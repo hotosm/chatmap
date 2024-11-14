@@ -1,0 +1,14 @@
+{
+    "app.subtitle": "Exporta un chat desde la aplicación y visualiza las ubicaciones compartidas en la conversación",
+    "app.config.msgPositionTextStart": "Buscará localizaciones y el",
+    "app.config.msgPositionTextEnd": "mensaje del mismo usuario.",
+    "app.config.closestPreviousMsg": "anterior",
+    "app.config.closestNextMsg": "siguiente",
+    "app.config.closestMsg": "más cercano",
+    "app.uploadNewFile": "Subir un nuevo archivo",
+    "app.download": "Descargar",
+    "app.options": "Opciones",
+    "app.uploadLabel": "Sube o arrastra un archivo aquí mismo"
+
+}
+  
