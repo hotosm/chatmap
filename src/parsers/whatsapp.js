@@ -62,6 +62,9 @@ const parseMessage = (line, system, lang) => {
 
         // Look for media
         msgObject.file = lookForMediaFile(msgObject);
+        if (msgObject.file) {
+            msgObject.message = "";
+        }
         
         return msgObject;
     }
