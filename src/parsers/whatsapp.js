@@ -41,7 +41,7 @@ const searchLocation = (line) => {
 }
 
 // Parse time, username and message
-const parseMessage = (line, system, lang) => {
+const parseMessage = (line, system) => {
     const match = line.match(MSG_PATTERN[system]);
     if (match) {
         let username = match[2];
@@ -71,7 +71,7 @@ const parseMessage = (line, system, lang) => {
 }
 
 // Parse time strings in the format [hh:mm:ss AM/PM]
-const parseTimeStringiOS = (dateStr, lang) => {
+const parseTimeStringiOS = (dateStr) => {
     const dateTime = dateStr.split(",");
     let fmtDate;
     const now = new Date();
@@ -81,7 +81,7 @@ const parseTimeStringiOS = (dateStr, lang) => {
 
 
 // Parse time strings in the format hh:mm a. m./p. m.
-const parseTimeStringAndroid = (dateStr, lang) => {
+const parseTimeStringAndroid = (dateStr) => {
     let dateTime = dateStr.replace("a. m.", "AM").replace("p. m.", "PM").split(" ");
     const date = dateTime[0].split("/");
     let fmtDate;
@@ -192,7 +192,7 @@ const getClosestMessageByDirection = (messages, msgIndex, direction) => {
 }
 
 // Parse messages from lines and create an index
-const parseAndIndex = (lines, system, lang) => {
+const parseAndIndex = (lines, system) => {
     let index = 0;
     const result = {};
     lines.forEach((line) => {
@@ -200,7 +200,7 @@ const parseAndIndex = (lines, system, lang) => {
         // Clean unicode from line
         line = line.replaceAll(/[\u200E\u200F\u202A-\u202E\u200B]/g, '');
 
-        const msg = parseMessage(line, system, lang);
+        const msg = parseMessage(line, system);
         if (msg) {
             result[index] = msg;
             index++;
@@ -227,11 +227,8 @@ export default function whatsAppParser({ text, msgPosition }) {
             break;
         }
     };
-    let lang = "EN";
-    if (text.indexOf("grupo") > -1) {
-        lang = "ES";
-    }
-    const messages = parseAndIndex(lines, system, lang);
+
+    const messages = parseAndIndex(lines, system);
     const msgObjects = Object.values(messages);
 
     msgObjects.forEach((msgObject, index) => {
