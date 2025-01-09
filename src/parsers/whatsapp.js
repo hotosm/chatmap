@@ -53,9 +53,7 @@ const parseMessage = (line, system) => {
         }
 
         let msgObject = {
-            time: system === "ANDROID" ?
-                parseTimeStringAndroid(match[1]) :
-                parseTimeStringiOS(match[1]),
+            time: parseTimeString(match[1]),
             username:  username,
             message: match[3],
         }
@@ -70,23 +68,13 @@ const parseMessage = (line, system) => {
     }
 }
 
-// Parse time strings in the format [hh:mm:ss AM/PM]
-const parseTimeStringiOS = (dateStr) => {
-    const dateTime = dateStr.split(",");
-    let fmtDate;
+// Parse time strings
+const parseTimeString = (dateStr) => {
+    let dateTimeStr = dateStr.replace("a. m.", "AM").replace("p. m.", "PM")
+    dateTimeStr = dateTimeStr.replace("a.m.", "AM").replace("p.m.", "PM")
+    let dateTime = dateTimeStr.split(" ");
     const now = new Date();
-    fmtDate = [[now.getFullYear(), now.getMonth(), now.getDay()].join("/"), dateTime[1]].join(" ")
-    return new Date(fmtDate);
-}
-
-
-// Parse time strings in the format hh:mm a. m./p. m.
-const parseTimeStringAndroid = (dateStr) => {
-    let dateTime = dateStr.replace("a. m.", "AM").replace("p. m.", "PM").split(" ");
-    const date = dateTime[0].split("/");
-    let fmtDate;
-    const now = new Date();
-    fmtDate = [[now.getFullYear(), now.getMonth(), now.getDay()].join("/"), dateTime[1]].join(" ")
+    let fmtDate = [[now.getFullYear(), now.getMonth(), now.getDay()].join("/"), dateTime[1]].join(" ")
     return new Date(fmtDate);
 }
 
