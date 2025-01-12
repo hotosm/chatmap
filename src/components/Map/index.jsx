@@ -7,7 +7,7 @@ import extent from 'turf-extent';
 import './map.css';
 
 const getMessage = (properties, dataFiles) => {
-  if (properties.file && properties.file in dataFiles) {
+  if (properties.file && dataFiles && properties.file in dataFiles) {
     if (properties.file.endsWith("jpg")) {
       return <img className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
     } else if (properties.file.endsWith("mp4")) {
