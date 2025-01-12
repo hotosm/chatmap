@@ -4,6 +4,20 @@
   background-color: white;
 }
 
+.title .logo {
+  display:inline;
+  vertical-align:middle;
+  margin-left: 10px;
+}
+
+.titleSmall .logo {
+  display:inline;
+  vertical-align:middle;
+  margin-left: 10px;
+  height: 2rem;
+}
+
+
 .copy .logo {
   display:inline;
   vertical-align:middle;

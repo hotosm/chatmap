@@ -69,7 +69,7 @@ function App() {
           }} />
           <NavModal isOpen={modalContent !== null} onClose={handleModalClose} content={modalContent} />
         </div>
-        <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className="logo" alt="logo" /> <strong>ChatMap</strong></h1>
+        <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className={"logo"} alt="logo" /> <strong>ChatMap</strong></h1>
         { dataAvailable ?
         <div className="fileOtions">
             <DownloadButton data={mapData} filename="chat-locations" />
