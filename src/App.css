@@ -79,6 +79,13 @@
   padding: 0 15px 0 15px;
 }
 
+.supportedApps {
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: #FFFF6E;
+  padding: .2rem .6rem;
+}
+
 .content {
   text-align: center;
   justify-content: center;

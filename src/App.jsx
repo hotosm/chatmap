@@ -11,7 +11,6 @@ import useSettings from './hooks/useSettings';
 import useFileManager from './hooks/useFileManager';
 import useContentMerger from './hooks/useContentMerger';
 import { FormattedMessage } from 'react-intl';
-import whatsAppParser from './parsers/whatsapp';
 
 function App() {
 
@@ -22,8 +21,7 @@ function App() {
   const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
   const [mapData, resetMerger] = useContentMerger({
     files: files,
-    msgPosition: settings.msgPosition, 
-    parser: whatsAppParser
+    msgPosition: settings.msgPosition
   });
   
   const handleNewUploadClick = () => {
@@ -71,10 +69,10 @@ function App() {
           }} />
           <NavModal isOpen={modalContent !== null} onClose={handleModalClose} content={modalContent} />
         </div>
-        <h1 className={dataAvailable ? "titleSmall" : ""} >WhatsApp <strong>ChatMap</strong></h1>
+        <h1 className={dataAvailable ? "titleSmall" : ""} ><strong>ChatMap</strong></h1>
         { dataAvailable ?
         <div className="fileOtions">
-            <DownloadButton data={mapData} filename="whatsapp-locations" />
+            <DownloadButton data={mapData} filename="chat-locations" />
             <button onClick={handleNewUploadClick} className="secondaryButton">
               <FormattedMessage
                 id = "app.uploadNewFile"
@@ -90,6 +88,7 @@ function App() {
               defaultMessage="Export a chat from the app and visualize the locations shared in the conversation"
             />
           </p>
+          <p className="supportedApps">Now it works with WhatsApp and Telegram!</p>
         </>
       }
       </header>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import getAppParser from "../parsers/detectApp";
 
 // Hook for parsing messages from a text
-function usefilesMerger({ files, msgPosition, parser}) {
+function usefilesMerger({ files, msgPosition}) {
 
     const [geoJSON, setGeoJSON] = useState({
         type: "FeatureCollection",
@@ -11,6 +12,7 @@ function usefilesMerger({ files, msgPosition, parser}) {
     useEffect(() => {
         if (!files) return;
         let features = [];
+        const parser = getAppParser(files);
         for (let filename in files) {
             const parsedData = parser({ text: files[filename], msgPosition });
             features = features.concat(parsedData.features);

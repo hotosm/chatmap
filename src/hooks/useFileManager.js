@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+function stripPath(filename) {
+    return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
+}
+
 function useFileManager() {
 
     const [dataFiles, setDataFiles] = useState();
@@ -9,7 +13,9 @@ function useFileManager() {
         setFiles(files)
     }
     const handleDataFile = (filename, fileContent) => {
-        setDataFiles(prevState => ({...prevState, ...{[filename]: fileContent}}));
+        setDataFiles(prevState => (
+            {...prevState, ...{[stripPath(filename)]: fileContent}}
+        ));
     }
 
     const resetFileManager = () => {

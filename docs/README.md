@@ -10,7 +10,7 @@ Try it here! [chatmap.hotosm.org](https://chatmap.hotosm.org)
 
 ## How to use it?
 
-1. Export a WhatsApp chat with shared locations
+1. Export a WhatsApp or Telegram chat with shared locations
 2. Upload the .zip file to this page
 3. It will extract all the locations and display them on a map, together with the message that follows each location.
 4. You can also download the locations + messages as a GeoJSON file from there

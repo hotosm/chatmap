@@ -1,6 +1,6 @@
 {
   "name": "chatmap",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "homepage": "https://chatmap.hotosm.org",
   "author": "Emilio Mariscal <emilio.mariscal@hotosm.org>",
   "dependencies": {
