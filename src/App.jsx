@@ -88,7 +88,12 @@ function App() {
               defaultMessage="Export a chat from the app and visualize the locations shared in the conversation"
             />
           </p>
-          <p className="supportedApps">Now it works with WhatsApp and Telegram!</p>
+          <p className="supportedApps">
+            <FormattedMessage
+              id = "app.supportedApps"
+              defaultMessage="Now it works with WhatsApp and Telegram!"
+            />
+          </p>
         </>
       }
       </header>
