@@ -69,7 +69,7 @@ function App() {
           }} />
           <NavModal isOpen={modalContent !== null} onClose={handleModalClose} content={modalContent} />
         </div>
-        <h1 className={dataAvailable ? "titleSmall" : ""} ><strong>ChatMap</strong></h1>
+        <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className="logo" alt="logo" /> <strong>ChatMap</strong></h1>
         { dataAvailable ?
         <div className="fileOtions">
             <DownloadButton data={mapData} filename="chat-locations" />
@@ -114,8 +114,7 @@ function App() {
           <div className="infoLinks">
             <div className="copy">
             <a className="github" href="https://github.com/hotosm/chatmap"></a>
-              <span>Free and Open Source Software by</span>
-              <a href="https://hotosm.org"><img src={logo} className="logo" alt="logo" /></a>
+              <span>Free and Open Source Software</span>
             </div>
             <a href="https://www.hotosm.org/privacy">We collect zero data. https://www.hotosm.org/privacy</a>
           </div>
