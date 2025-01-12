@@ -11,5 +11,5 @@
     "app.uploadLabel": "Carregue ou arraste um ficheiro aqui mesmo",
     "app.nolocations": "Não foram encontrados locais neste arquivo.",
     "app.loading": "Carregando",
-    "app.supportedApps": "Agora funciona com WhatsApp e Telegram!"
+    "app.supportedApps": "Agora funciona com WhatsApp, Telegram e Signal!"
 }

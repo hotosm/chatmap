@@ -91,7 +91,7 @@ function App() {
           <p className="supportedApps">
             <FormattedMessage
               id = "app.supportedApps"
-              defaultMessage="Now it works with WhatsApp and Telegram!"
+              defaultMessage="Now it works with WhatsApp, Telegram or Signal!"
             />
           </p>
         </>

@@ -1,6 +1,6 @@
 # ChatMap
 
-Export a chat from the app (WhatsApp or Telegram) and visualize the locations shared in the conversation.
+Export a chat from the app (WhatsApp, Telegram or Signal) and visualize the locations shared in the conversation.
 
 It was developed to help emergency services and humanitarian organizations to get
 locations from people in the field during disasters and emergencies, but it can

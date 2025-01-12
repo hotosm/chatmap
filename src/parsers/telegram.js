@@ -60,8 +60,8 @@ export default function telegramParser({ text, msgPosition }) {
         type: "FeatureCollection",
         features: []
     };
-    // Creates an indexed dictionary for messages
 
+    // Creates an indexed dictionary for messages
     const messages = parseAndIndex(json.messages);
     const msgObjects = Object.values(messages);
 

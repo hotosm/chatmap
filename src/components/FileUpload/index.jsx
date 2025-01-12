@@ -19,7 +19,7 @@ const getFileFormat = (filename) => {
     return "chat";
   } else if (fileName.endsWith(".zip")) {
     return "zip";
-  } else if (fileName.endsWith(".jpg") || fileName.endsWith(".mp4")) {
+  } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".mp4")) {
     return "media";
   }
 }
