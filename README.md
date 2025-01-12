@@ -10,7 +10,7 @@ be used for anything else.
 
 ---
 
-<img width="1043" alt="Screenshot 2024-11-14 at 09 30 14" src="https://github.com/user-attachments/assets/497ccb06-949b-41e9-bdd4-d4b25c915fda">
+<img width="1116" alt="Screenshot 2025-01-12 at 10 04 14 AM" src="https://github.com/user-attachments/assets/c4171f98-9a9f-46e2-b0da-cd8262c860c2" />
 
 ## How to use it?
 
