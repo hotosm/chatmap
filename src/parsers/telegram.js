@@ -4,18 +4,6 @@ function stripPath(filename) {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
 }
 
-// Look for jpg or mp4 media files
-const lookForMediaFile = (msgObject) => {
-    const msg = msgObject.message.toLowerCase();
-    let mediaFileIndex = msg.indexOf(".jpg");
-    if (mediaFileIndex < 0) {
-        mediaFileIndex = msg.indexOf(".mp4");
-    }
-    if (mediaFileIndex > 0) {
-        return msgObject.message.substring(0,mediaFileIndex + 4);
-    }
-}
-
 // Parse time, username and message
 const parseMessage = (line) => {
     let text = "";
@@ -39,6 +27,9 @@ const parseMessage = (line) => {
     }
     if (line.photo) {
         msgObject.file = stripPath(line.photo);
+    }
+    if (line.file && line.mime_type === "video/mp4") {
+        msgObject.file = stripPath(line.file);
     }
     return msgObject;
 }
