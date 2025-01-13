@@ -62,11 +62,11 @@ https://github.com/tbvdm/sigtop
 
 Then, from the command line, run this to export messages:
 
-sigtop msg -c "<name the group>"
+`sigtop msg -c <name the group>`
 
 And if you want to include media:
 
-sigtop att -c "<name the group>"
+`sigtop att -c <name the group>`
 
 A .txt file and a folder for media will be created.
 
