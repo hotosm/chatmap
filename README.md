@@ -12,9 +12,6 @@ be used for anything else.
 
 <img width="957" alt="Screenshot 2025-01-12 at 5 46 39 PM" src="https://github.com/user-attachments/assets/27356785-b5ed-424d-b45e-63af4fc87673" />
 
-## How to use it?
-
-Check [docs](https://github.com/hotosm/chatmap/tree/master/docs)
 
 ## Install and run
 
@@ -22,6 +19,60 @@ Check [docs](https://github.com/hotosm/chatmap/tree/master/docs)
 yarn install
 yarn start
 ```
+
+## How to use it?
+
+1. Export a WhatsApp, Telegram or Signal chat with shared locations
+2. Upload the .zip file to this page
+3. It will extract all the locations and display them on a map, together with the message that follows each location.
+4. You can also download the locations + messages as a GeoJSON file from there
+
+## WhatsApp
+
+Check this video-tutorial (2:47 min):
+
+https://www.youtube.com/watch?v=ScHgVhyj1aw
+
+## Telegram
+
+Download the Telegram Desktop app from the website:
+
+https://desktop.telegram.org
+
+Go to the group you want to export and from the top-right menu select:
+
+> Export chat history
+
+Check "Photos" if you want to include media, select "JSON" for the Format,
+and click "Export"
+
+A folder will be created. If you want to include media you should compress
+the whole folder into a .zip file and import it into ChatMap.
+
+If you don't need media, you can import the .json file only.
+
+## Signal
+
+You'll need Signal Desktop. Only the messages created after installing
+Signal Desktop will be available.
+
+Install Sigtop to export the chat:
+
+https://github.com/tbvdm/sigtop
+
+Then, from the command line, run this to export messages:
+
+sigtop msg -c "<name the group>"
+
+And if you want to include media:
+
+sigtop att -c "<name the group>"
+
+A .txt file and a folder for media will be created.
+
+Compress everything into a .zip file and import it into ChatMap.
+
+If you don't need media, you can import the .txt file only.
 
 ## Licensing
 
