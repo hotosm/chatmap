@@ -43,9 +43,7 @@ Import the .zip file. If you don't need media, you can import the .txt file only
 
 ## Telegram
 
-Download the Telegram Desktop app from the website:
-
-https://desktop.telegram.org
+You'll need [Telegram Desktop](https://desktop.telegram.org).
 
 Go to the group you want to export and from the top-right menu select:
 
@@ -61,12 +59,10 @@ If you don't need media, you can import the .json file only.
 
 ## Signal
 
-You'll need Signal Desktop. Only the messages created after installing
-Signal Desktop will be available.
+You'll need [Signal Desktop](https://signal.org/download/). Only the messages created after installing
+it will be available.
 
-Install Sigtop to export the chat:
-
-https://github.com/tbvdm/sigtop
+Install [Sigtop](https://github.com/tbvdm/sigtop) to export the chat.
 
 Then, from the command line, run this to export messages:
 
