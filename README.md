@@ -12,7 +12,6 @@ be used for anything else.
 
 <img width="957" alt="Screenshot 2025-01-12 at 5 46 39 PM" src="https://github.com/user-attachments/assets/27356785-b5ed-424d-b45e-63af4fc87673" />
 
-
 ## Install and run
 
 ```bash
@@ -22,16 +21,25 @@ yarn start
 
 ## How to use it?
 
+Create a group and ask people to post a locations and messages. Each location will be paired 
+with the closest message from the same user.
+
 1. Export a WhatsApp, Telegram or Signal chat with shared locations
-2. Upload the .zip file to this page
-3. It will extract all the locations and display them on a map, together with the message that follows each location.
+2. Upload a .zip file to this page
+3. It will extract all the locations and display them on a map, together with the paired message (text or media)
 4. You can also download the locations + messages as a GeoJSON file from there
 
 ## WhatsApp
 
-Check this video-tutorial (2:47 min):
+Check this [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (2:47 min).
 
-https://www.youtube.com/watch?v=ScHgVhyj1aw
+Go to the group you want to export and select:
+
+> Export chat
+
+Select "Attach media" if you want to include media.
+
+Import the .zip file. If you don't need media, you can import the .txt file only.
 
 ## Telegram
 
