@@ -72,16 +72,10 @@
 }
 
 .header h1 {
-  font-style: normal;
   font-size: 4rem;
-  font-weight: 200;
   margin-bottom: 0;
   letter-spacing: -.2rem;
-}
-
-.header h1 > strong {
-  font-weight: 700;
-  font-style: bold;
+  font-weight: 400;
 }
 
 .header h1.titleSmall {
@@ -95,7 +89,6 @@
 
 .supportedApps {
   font-size: 1rem;
-  font-weight: bold;
   background-color: #FFF59B;
   padding: .2rem .6rem;
 }
