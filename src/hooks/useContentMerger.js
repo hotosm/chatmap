@@ -12,8 +12,8 @@ function usefilesMerger({ files, msgPosition}) {
     useEffect(() => {
         if (!files) return;
         let features = [];
-        const parser = getAppParser(files);
         for (let filename in files) {
+            const parser = getAppParser(files[filename]);
             const parsedData = parser({ text: files[filename], msgPosition });
             features = features.concat(parsedData.features);
         }
