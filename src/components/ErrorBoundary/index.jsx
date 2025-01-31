@@ -13,7 +13,8 @@ export default class ErrorBoundary extends React.Component {
         
     render() {
       if (this.state.hasError) {
-        const mailLink = `mailto:emilio.mariscal@hotosm.org?subject=ChatMap Error&body=Hi, something went wrong with chatmap: ${this.state.error.message}`
+        const errorMsg = `${this.state.error.fileName}(${this.state.error.lineNumber}): \n ${this.state.error.toString()} \n ${this.state.error.stack}`;
+        const mailLink = `mailto:emilio.mariscal@hotosm.org?subject=ChatMap Error&body=Hi, something went wrong with chatmap: ${errorMsg}`
         return (
           <div className="errorMessage">
             <header className="header">
@@ -26,13 +27,13 @@ export default class ErrorBoundary extends React.Component {
                 <strong className="highlighted">Please, send the detail below to <a href={mailLink}>emilio.mariscal@hotosm.org</a></strong>
                 <br />or create an issue in <a href="https://github.com/hotosm/chatmap/issues">github.com/hotosm/chatmap/issues</a>
               </p>
-              <code>
-              <strong>Error:</strong> {this.state.error.message}
-              </code>
-            </div>
-            <div className="buttons">
-              <a className="primaryButton" href={"/"}>Go back</a>
-              <a className="secondaryButton" href={mailLink}>Send error report</a>
+              <div className="buttons">
+                <a className="primaryButton" href={"/"}>Go back</a>
+                <a className="secondaryButton" href={mailLink}>Send error report</a>
+              </div>
+              <pre>
+                <strong>Error:</strong> {errorMsg}
+              </pre>
             </div>
           </div>
         );

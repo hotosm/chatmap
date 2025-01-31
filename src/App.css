@@ -267,23 +267,20 @@
 .errorMessage {
   background-color: #f8f8f8;
   text-align: center;
-  padding: 2rem;
+  padding: 2rem 5rem;
   height: 100vh;
 }
 
-.errorMessage code {
+.errorMessage pre {
   margin: .5rem;
   padding: .5rem;
   border: 1px solid #D63F40;
-  width: 100%;
-}
-
-.errorMessage .primaryButton {
-  margin-top: 2rem;
+  overflow: hidden;
+  text-overflow:ellipsis; 
 }
 
 .errorMessage .buttons {
-  margin-top: 1rem;
+  margin-bottom: 2rem;
 }
 
 .errorMessage h2 {
