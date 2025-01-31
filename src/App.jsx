@@ -69,7 +69,7 @@ function App() {
           }} />
           <NavModal isOpen={modalContent !== null} onClose={handleModalClose} content={modalContent} />
         </div>
-        <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className={"logo"} alt="logo" /> ChatMap</h1>
+        <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className="logo" alt="logo" /> ChatMap</h1>
         { dataAvailable ?
         <div className="fileOtions">
             <DownloadButton data={mapData} filename="chat-locations" />
@@ -88,7 +88,7 @@ function App() {
               defaultMessage="Export a chat from the app and visualize the locations shared in the conversation"
             />
           </p>
-          <p className="supportedApps">
+          <p className="highlighted">
             <FormattedMessage
               id = "app.supportedApps"
               defaultMessage="Now it works with WhatsApp, Telegram or Signal!"

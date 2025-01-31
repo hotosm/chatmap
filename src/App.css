@@ -11,16 +11,16 @@
 }
 
 .titleSmall .logo {
-  display:inline;
-  vertical-align:middle;
+  display: inline;
+  vertical-align: middle;
   margin-left: 10px;
   height: 2rem;
 }
 
 
 .copy .logo {
-  display:inline;
-  vertical-align:middle;
+  display: inline;
+  vertical-align: middle;
   margin-left: 10px;
   height: 3vmin;
   pointer-events: none;
@@ -87,7 +87,7 @@
   padding: 0 15px 0 15px;
 }
 
-.supportedApps {
+.highlighted {
   font-size: 1rem;
   background-color: #FFF59B;
   padding: .2rem .6rem;
@@ -262,4 +262,49 @@
 
 .popupImage {
   width: 92%;
+}
+
+.errorMessage {
+  background-color: #f8f8f8;
+  text-align: center;
+  padding: 2rem;
+  height: 100vh;
+}
+
+.errorMessage code {
+  margin: .5rem;
+  padding: .5rem;
+  border: 1px solid #D63F40;
+  width: 100%;
+}
+
+.errorMessage .primaryButton {
+  margin-top: 2rem;
+}
+
+.errorMessage .buttons {
+  margin-top: 1rem;
+}
+
+.errorMessage h2 {
+  font-size: 2rem;
+}
+
+.errorMessage h3 {
+  font-weight: normal;
+  font-size: 1.2rem;
+}
+
+
+.errorMessage p {
+  line-height: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.errorMessage .title {
+  font-size: 3rem;
+}
+
+.errorMessage .logo {
+  height: 3rem;
 }
