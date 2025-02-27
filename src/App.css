@@ -144,7 +144,8 @@
   font-weight: bold;
   font-size: 1em;
   box-shadow: none;
-  border: none
+  border: none;
+  cursor: pointer;
 }
 
 .textButton {

@@ -4,6 +4,7 @@
   "homepage": "https://chatmap.hotosm.org",
   "author": "Emilio Mariscal <emilio.mariscal@hotosm.org>",
   "dependencies": {
+    "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "maplibre-gl": "^4.3.2",
     "moment": "^2.30.1",

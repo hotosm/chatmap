@@ -3,7 +3,7 @@ import logo from './hot-logo.svg';
 import './App.css';
 import FileUpload from './components/FileUpload/index.jsx'
 import Map from './components/Map/index.jsx'
-import DownloadButton from './components/DownloadButton';
+import SaveButton from './components/SaveButton/index.jsx';
 import NavBar from './components/NavBar';
 import NavModal from './components/NavModal';
 import Settings from "./components/Settings/index.jsx";
@@ -72,7 +72,7 @@ function App() {
         <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className="logo" alt="logo" /> ChatMap</h1>
         { dataAvailable ?
         <div className="fileOtions">
-            <DownloadButton data={mapData} filename="chat-locations" />
+            <SaveButton data={mapData} dataFiles={dataFiles} />
             <button onClick={handleNewUploadClick} className="secondaryButton">
               <FormattedMessage
                 id = "app.uploadNewFile"
