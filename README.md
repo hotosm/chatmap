@@ -29,6 +29,8 @@ with the closest message from the same user.
 3. It will extract all the locations and display them on a map, together with the paired message (text or media)
 4. You can also download the locations + messages as a .zip file from there
 
+Check docs for each instant messaging app [here](https://github.com/hotosm/chatmap/blob/master/docs/apps.md).
+
 ## How to save the map
 
 Login into umap.hotosm.org, click "Upload" and upload the .zip !
