@@ -27,56 +27,24 @@ with the closest message from the same user.
 1. Export a WhatsApp, Telegram or Signal chat with shared locations
 2. Upload a .zip file to this page
 3. It will extract all the locations and display them on a map, together with the paired message (text or media)
-4. You can also download the locations + messages as a GeoJSON file from there
+4. You can also download the locations + messages as a .zip file from there
 
-## WhatsApp
+## How to save the map
 
-Check this [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (2:47 min).
+Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
-Go to the group you want to export and select:
+## Product roadmap
 
-> Export chat
-
-Select "Attach media" if you want to include media.
-
-Import the .zip file. If you don't need media, you can import the .txt file only.
-
-## Telegram
-
-You'll need [Telegram Desktop](https://desktop.telegram.org).
-
-Go to the group you want to export and from the top-right menu select:
-
-> Export chat history
-
-Check "Photos" if you want to include media, select "JSON" for the Format,
-and click "Export"
-
-A folder will be created. If you want to include media you should compress
-the whole folder into a .zip file and import it into ChatMap.
-
-If you don't need media, you can import the .json file only.
-
-## Signal
-
-You'll need [Signal Desktop](https://signal.org/download/). Only the messages created after installing
-it will be available.
-
-Install [Sigtop](https://github.com/tbvdm/sigtop) to export the chat.
-
-Then, from the command line, run this to export messages:
-
-`sigtop msg -c <name the group>`
-
-And if you want to include media:
-
-`sigtop att -c <name the group>`
-
-A .txt file and a folder for media will be created.
-
-Compress everything into a .zip file and import it into ChatMap.
-
-If you don't need media, you can import the .txt file only.
+<!-- prettier-ignore-start -->
+| Status | Feature |
+|:--:| :-- |
+|✅| Support multiple instant messaging apps (WhatsApp, Telegram, Signal) |
+|✅| Support video |
+|✅| Download a .zip file with GeoJSON and images to save the map in umap.hotosm.org |
+|✅| Include videos in .zip download |
+|⚙️| Attach both image and text to a location |
+|  | Add tests |
+|  | Support audio |
 
 ## Licensing
 
