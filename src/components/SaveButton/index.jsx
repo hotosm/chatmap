@@ -13,9 +13,11 @@ function createAndDownloadZip(data, dataFiles) {
   zip.file('data.geojson', geoJsonBlob);
 
   // Add each blob file to the zip file
-  for (const [filename, blob] of Object.entries(dataFiles)) {
-    if (media_files.indexOf(filename) > -1) {
-      zip.file(filename, blob);
+  if (dataFiles) {
+    for (const [filename, blob] of Object.entries(dataFiles)) {
+      if (media_files.indexOf(filename) > -1) {
+        zip.file(filename, blob);
+      }
     }
   }
 
