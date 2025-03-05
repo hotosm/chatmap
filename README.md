@@ -43,7 +43,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| Support multiple instant messaging apps (WhatsApp, Telegram, Signal) |
 |✅| Support video |
 |✅| Download a .zip file with GeoJSON and images to save the map in umap.hotosm.org |
-|✅| Include videos in .zip download |
+|⚙️| Include videos in .zip download |
 |⚙️| Attach both image and text to a location |
 |  | Add tests |
 |  | Support audio |
