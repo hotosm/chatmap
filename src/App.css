@@ -1,27 +1,51 @@
+
+a {
+  color: var(--hot-color-blue-500);
+}
+
 .app {
   text-align: center;
-  font-family: Archivo, Helvetica, Arial, sans-serif;
-  background-color: white;
+  background-color: var(--hot-color-neutral-0);
 }
 
-.title .logo {
-  display:inline;
-  vertical-align:middle;
-  margin-left: 10px;
+.header {
+  padding: var(--hot-spacing-medium);
 }
 
-.titleSmall .logo {
-  display: inline;
-  vertical-align: middle;
-  margin-left: 10px;
-  height: 2rem;
+.header h1 {
+  display: flex;
+  gap: var(--hot-spacing-medium);
+  margin-bottom: 0;
 }
 
+.header h1 span {
+  font-size: calc(var(--hot-font-size-2x-large) + 3vmin);
+  height: calc(var(--hot-font-size-4x-large) - 0.2rem);
+  font-weight: var(--hot-font-weight-bold);
+  font-family: var(--hot-font-variant);
+}
+
+.header h1 .logo {
+  height: calc(var(--hot-font-size-2x-large) + 3vmin);
+}
+
+.header h1.titleSmall {
+  margin-bottom: var(--hot-spacing-medium);
+}
+
+.header h1.titleSmall span {
+  font-size: var(--hot-font-size-2x-large);
+  height: calc(var(--hot-font-size-2x-large) - 0.2rem);
+}
+
+.header h1.titleSmall .logo {
+  height: var(--hot-font-size-2x-large);
+}
 
 .copy .logo {
   display: inline;
   vertical-align: middle;
-  margin-left: 10px;
+  margin-left: var(--hot-spacing-x-small);
   height: 3vmin;
   pointer-events: none;
 }
@@ -35,13 +59,13 @@
   padding-left: 12px;
   background-size: contain;
   vertical-align: middle;
-  margin-left: 3px;
+  margin-left: var(--hot-spacing-3x-small);
 }
 
 .copy {
-  font-size: .9rem;
+  font-size: var(--hot-font-size-small);
   padding: 1vh;
-  color: #858585;
+  color: var(--hot-color-gray-300);
   opacity: .8;
 }
 
@@ -52,45 +76,29 @@
   right: 0;
 }
 
-.appNav button {
-  border-left: 1px solid #f1f1f1;
-}
-
-.appNav button:first-child {
-  border-left: none;
-}
-
 .header {
-  background-color: #f8f8f8;
+  background-color: var(--hot-color-gray-100);
+  background: radial-gradient(var(--hot-color-neutral-0), var(--hot-color-neutral-50), var(--hot-color-neutral-0));
   min-height: 15vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: #222;
-}
-
-.header h1 {
-  font-size: 4rem;
-  margin-bottom: 0;
-  letter-spacing: -.2rem;
-  font-weight: 700;
 }
 
 .header h1.titleSmall {
-  font-size: 2rem;
+  font-size: var(--hot-font-size-small);
   letter-spacing: -.1rem;
 }
 
 .subtitle {
-  padding: 0 15px 0 15px;
+  font-size: calc(var(--hot-font-size-medium) + 1vmin);
 }
 
 .highlighted {
   font-size: 1rem;
-  background-color: #FFF59B;
-  padding: .2rem .6rem;
+  background-color: var(--hot-color-yellow-100);
+  padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
 }
 
 .content {
@@ -98,7 +106,6 @@
   justify-content: center;
   display: flex;
   min-height: 30vh;
-  padding: 5vh;
 }
 
 .fileUpload, .map {
@@ -109,55 +116,52 @@
 }
 
 .fileUpload {
-  padding: 5vh;
+  padding: var(--hot-spacing-large);
 }
 
 .configDesc {
-  padding: 0 5px 0;
+  padding: 0 var(--hot-spacing-small) 0;
 }
 
 .fileUploadDropArea {
-  border: 2px dashed #5E5E5E !important;
+  margin-top: var(--hot-spacing-medium);
+  border: 2px dashed var(--hot-color-gray-200) !important;
 }
 
 .fileUploadDropArea span {
-  font-size: 1.5em;
+  font-size: var(--hot-font-size-large);
   text-decoration: none !important;
 }
 
 .fileUploadDropArea .file-types {
-  font-size: 1em;
+  font-size: var(--hot-font-size-small);
   opacity: .5;
 }
 
-.fileOtions {
-  padding: 3vh;
-  font-size: 1rem;
-}
 
 .primaryButton, .secondaryButton {
-  padding: 10px;
-  border-radius: 5px;
+  padding: var(--hot-spacing-small);
+  border-radius: var(--hot-border-radius-medium);
   text-decoration: none;
   display: inline-block;
-  margin: 3px;
-  font-weight: bold;
-  font-size: 1em;
+  margin: var(--hot-spacing-3x-small);
+  font-weight: var(--hot-font-weight-bold);
+  font-size: var(--hot-font-size-medium);
   box-shadow: none;
   border: none;
   cursor: pointer;
 }
 
 .textButton {
-  padding: 5px 10px;
+  padding: var(--hot-spacing-small) var(--hot-spacing-medium);
   text-decoration: none;
   display: inline-block;
-  font-weight: normal;
-  font-size: .9rem;
+  font-weight: var(--hot-font-weight-normal);
+  font-size: var(--hot-font-size-small);
   box-shadow: none;
   border: none;
   background: transparent;
-  color: #858585;
+  color: var(--hot-color-gray-300);
   cursor: pointer;
 }
 
@@ -166,37 +170,33 @@
 }
 
 .primaryButton {
-  background-color: #D63F40;
-  color: white;
+  background-color: var(--hot-color-primary-700);
+  color: var(--hot-color-neutral-0);
 }
 
 .secondaryButton {
-  background-color: #E0D9D3;
-  color: #5E5E5E;
+  background-color:  var(--hot-color-blue-50);
+  color: var(--hot-color-blue-700);
 }
 
 .optionButton {
-  padding: 10px;
+  padding: var(--hot-spacing-2x-small);
   text-decoration: none;
   display: inline-block;
-  font-size: .8em;
+  font-size: var(--hot-font-size-medium);
   box-shadow: none;
   border: none;
-  color: white;
-  background-color: #E0D9D3;
-}
-
-.optionButtonLeft {
-  border-radius: 5px 0 0 5px;
-}
-
-.optionButtonRight {
-  border-radius: 0 5px 5px 0;
+  color: var(--hot-color-gray-neutral-0);
+  background-color: var(--hot-color-gray-300);
 }
 
 .cardOptions {
   display: flex;
   width: 60vw;
+}
+
+.fileOtions {
+  display: flex;
 }
 
 .cardOption {
@@ -223,12 +223,12 @@
 }
 
 .msgUsername {
-  font-weight: bold;
+  font-weight: var(--hot-font-weight-bold);
 }
 
 .msgDatetime {
-  color: #999;
-  padding-left: 10px;
+  color: var(--hot-color-gray-300);
+  padding-left: var(--hot-spacing-small)
 }
 
 .infoLinks {
@@ -239,12 +239,12 @@
   text-align: center;
   bottom: 0;
   padding: 2vh;
-  font-size: .8rem;
-  background-color: white;
+  font-size: var(--hot-font-size-small);
+  background-color: var(--hot-color-neutral-0);
 }
 
 .infoLinks a {
-  color: #999;
+  color: var(--hot-color-gray-300);
   text-decoration: none;
 }
 
@@ -254,7 +254,7 @@
 }
 
 .activePopupFeatureContent {
-  font-size: 1.3em;
+  font-size: var(--hot-font-size-medium);
 }
 
 .popup {
@@ -266,43 +266,43 @@
 }
 
 .errorMessage {
-  background-color: #f8f8f8;
+  background-color: var(--hot-color-neutral-gray-50);
   text-align: center;
-  padding: 2rem 5rem;
+  padding: var(--hot-spacing-x-large) var(--hot-spacing-4x-large);
   height: 100vh;
 }
 
 .errorMessage pre {
-  margin: .5rem;
-  padding: .5rem;
-  border: 1px solid #D63F40;
+  margin: var(--hot-spacing-x-small);
+  padding: var(--hot-spacing-x-small);
+  border: 1px solid var(--hot-color-primary);
   overflow: hidden;
   text-overflow:ellipsis; 
 }
 
 .errorMessage .buttons {
-  margin-bottom: 2rem;
+  margin-bottom: var(--hot-spacing-x-large);
 }
 
 .errorMessage h2 {
-  font-size: 2rem;
+  font-size: var(--hot-spacing-x-large);
 }
 
 .errorMessage h3 {
-  font-weight: normal;
-  font-size: 1.2rem;
+  font-weight: var(--hot-font-weight-normal);
+  font-size: var(--hot-font-size-large);
 }
 
 
 .errorMessage p {
-  line-height: 1.5rem;
-  margin-bottom: 2rem;
+  line-height: var(--hot-letter-spacing-normal);
+  margin-bottom: var(--hot-spacing-x-large);
 }
 
 .errorMessage .title {
-  font-size: 3rem;
+  font-size: var(--hot-font-size-3x-large);
 }
 
 .errorMessage .logo {
-  height: 3rem;
+  height: var(--hot-font-size-3x-large);
 }

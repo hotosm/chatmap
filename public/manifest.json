@@ -1,6 +1,6 @@
 {
   "short_name": "ChatMap",
-  "name": "Export a chat from the app and visualize the locations shared in the conversation",
+  "name": "Export and upload a chat to visualize locations, messages and media",
   "icons": [
     {
       "src": "fabicon-16x16.png",

@@ -62,16 +62,21 @@ function App() {
     <div className="app">
       <header className="header">
         <div className="top">
+          {!dataAvailable &&
           <NavBar onOptionClick={(option) => {
             if (option === "options") {
                 setModalContent(<Settings settings={settings} onChange={handleSettingsChange} />)
             }
           }} />
+          }
           <NavModal isOpen={modalContent !== null} onClose={handleModalClose} content={modalContent} />
         </div>
-        <h1 className={dataAvailable ? "titleSmall" : ""} ><img src={logo} className="logo" alt="logo" /> ChatMap</h1>
+        <h1 className={dataAvailable ? "titleSmall" : "title"} >
+          <img src={logo} className="logo" alt="logo" />
+          <span>ChatMap</span>
+        </h1>
         { dataAvailable ?
-        <div className="fileOtions">
+        <div className="fileOptions">
             <SaveButton data={mapData} dataFiles={dataFiles} />
             <button onClick={handleNewUploadClick} className="secondaryButton">
               <FormattedMessage
@@ -85,7 +90,7 @@ function App() {
           <p className="subtitle">
             <FormattedMessage
               id = "app.subtitle"
-              defaultMessage="Export a chat from the app and visualize the locations shared in the conversation"
+              defaultMessage="Export and upload a chat to visualize locations, messages and media"
             />
           </p>
           <p className="highlighted">
@@ -103,13 +108,8 @@ function App() {
             <FileUpload onDataFileLoad={handleDataFile} onFilesLoad={handleFiles} />
           </div>
           <p className="configDesc">
-            <FormattedMessage
-              id = "app.config.msgPositionTextStart"
-              defaultMessage="It will search for locations and the"
-            />&nbsp;<strong>{ configMsgPositionText }</strong> <FormattedMessage
-              id = "app.config.msgPositionTextEnd"
-              defaultMessage="message from the same user."
-            />
+            <strong>From chat to map</strong> check this quick <strong><a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">video tutorial</a></strong>
+            
           </p>
           <div className="infoLinks">
             <div className="copy">

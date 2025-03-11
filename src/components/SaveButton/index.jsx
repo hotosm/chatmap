@@ -34,12 +34,12 @@ function SaveButton({ data, dataFiles }) {
   };
 
   return (
-    <a className="primaryButton" onClick={handleClick}>
+    <button className="primaryButton" onClick={handleClick}>
       <FormattedMessage
         id = "app.download"
         defaultMessage="Download"
       />
-    </a>
+    </button>
   );
 }
 

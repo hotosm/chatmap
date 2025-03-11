@@ -1,17 +1,5 @@
-@font-face {
-  font-family: "Archivo";
-  src: url("/fonts/Archivo-Regular.ttf");
-  font-display: swap;
-  font-weight: 400;
-  font-style: normal;
-}
 
-@font-face {
-  font-family: "Archivo";
-  src: url("/fonts/Archivo-Bold.ttf");
-  font-display: swap;
-  font-weight: 700;
-}
+/* defaults */
 
 body {
   font-family: Helvetica, arial, sans-serif;
@@ -19,4 +7,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  color: #2C3038;
 }
+

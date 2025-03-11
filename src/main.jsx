@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './hot.css';
+import './hot-font-face.css';
 import './index.css';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';

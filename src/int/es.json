@@ -1,5 +1,5 @@
 {
-    "app.subtitle": "Exporta un chat desde la aplicación y visualiza las ubicaciones compartidas en la conversación",
+    "app.subtitle": "Exporte e carregue um bate-papo para visualizar locais, mensagens e mídia",
     "app.config.msgPositionTextStart": "Buscará localizaciones y el",
     "app.config.msgPositionTextEnd": "mensaje del mismo usuario.",
     "app.config.closestPreviousMsg": "anterior",
