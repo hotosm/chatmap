@@ -21,7 +21,7 @@ yarn start
 
 ## How to use it?
 
-Create a group and ask people to post a locations and messages. Each location will be paired 
+Create a group and ask people to post locations and messages. Each location will be paired 
 with the closest message from the same user.
 
 1. Export a WhatsApp, Telegram or Signal chat with shared locations
