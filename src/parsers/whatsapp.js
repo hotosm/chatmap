@@ -1,3 +1,12 @@
+
+/**
+ * Contains a main parser function and supporting fuctions
+ * for creating a map from a WhatsApp conversation log.
+ *
+ * The Map is stored in memory as a GeoJSON and a list
+ * of media files
+ */
+
 import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "./chatmap";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
@@ -98,14 +107,25 @@ const parseAndIndex = (lines, system) => {
     return result;
 }
 
-
+/**
+ *
+ * @param {string} text
+ * @param {string} msgPosition
+ * @returns {object} GeoJSON
+ */
 export default function whatsAppParser({ text, msgPosition }) {
     if (!text) return;
+
+    // Split the full text in lines
     const lines = text.split("\n");
+
+    // Initialize the GeoJSON response
     const geoJSON = {
         type: "FeatureCollection",
         features: []
     };
+
+    // A GeoJSON Feature for storing a message
     let featureObject = {}
 
     // Creates an indexed dictionary for messages
@@ -117,12 +137,20 @@ export default function whatsAppParser({ text, msgPosition }) {
         }
     };
 
+    // Get message objects from text lines
     const messages = parseAndIndex(lines, system);
     const msgObjects = Object.values(messages);
 
+    // Read each message.
+    // When a location has been found, look for the closest
+    // content from the same user, and attach it to the message.
     msgObjects.forEach((msgObject, index) => {
         if (msgObject.message) {
+
+            // Check if there's a location in the message
             const location = searchLocation(msgObject.message);
+
+            // If there's a location, create a Point.
             if (location) {
                 featureObject = {
                     type: "Feature",
@@ -136,6 +164,7 @@ export default function whatsAppParser({ text, msgPosition }) {
                     }
                 }
                 let message;
+                // Look for related content for the Point.
                 switch (msgPosition) {
                     case "before":
                         message = getClosestPrevMessage(messages, index);
@@ -147,6 +176,7 @@ export default function whatsAppParser({ text, msgPosition }) {
                         message = getClosestMessage(messages, index);
                     break;
                 }
+                // Add the GeoJSON feature
                 featureObject.properties = {...message};
                 geoJSON.features.push(featureObject);
             }

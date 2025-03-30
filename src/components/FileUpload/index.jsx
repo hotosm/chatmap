@@ -3,17 +3,16 @@ import { FileUploader } from "react-drag-drop-files";
 import JSZip from "jszip";
 import { useIntl } from 'react-intl';
 
-function stripPath(filename) {
-  return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
-}
-
+// Accepted file tiles
 const fileTypes = ["txt", "zip", "json"];
 
+// Get file format: "chat", "zip" or "media"
 const getFileFormat = (filename) => {
   // Ignore MacOS system files
   if (filename.substring(0, 8) === "__MACOSX") {
       return;
   }
+  // Get file format from file extension
   const fileName = filename.toLowerCase();
   if (fileName.endsWith(".txt") || fileName.endsWith(".json")) {
     return "chat";
@@ -24,18 +23,25 @@ const getFileFormat = (filename) => {
   }
 }
 
+// Upload a file to the app
+// It shows an upload area, reacts when files are uploaded.
+// It can manage all file formats ("chat", "zip" or "media")
 const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
   const [files, setFiles] = useState();
   const [filesCount, setFilesCount] = useState();
   const intl = useIntl();
 
   const handleChange = (loadedFiles) => {
+    // Keep the files count
     setFilesCount(loadedFiles.length);
+
     for (let i = 0; i < loadedFiles.length; i++) {
+
+      // Get file object
       const file = loadedFiles[i];
       const fileFormat = getFileFormat(file.name); 
 
-      // Read a text or JSON export
+      // The chat was exported as a single text file
       if (fileFormat === "chat") {
         var reader = new FileReader();
           reader.readAsText(file, "UTF-8");
@@ -48,18 +54,22 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
             onError(file.name);
           }
 
-      // Read a Zip export
+      // The chat was exported as a .zip file
       } else if (fileFormat === "zip") {
+        // Un-compress file
         new JSZip().loadAsync( file )
         .then(function(zip) {
           Object.keys(zip.files).forEach(filename => {
+            // Process each file, depending on the file format
             const fileFormat = getFileFormat(filename); 
+            // Chat files
             if (fileFormat === "chat") {
               zip.files[filename].async("string").then(function (data) {
                 setFiles(prevFiles => (
                   {...prevFiles, ...{[file.name]: data}}
                 ));
               });
+            // Media files  (jpg ,jpeg, mp4)
             } else if (fileFormat === "media") {
               zip.files[filename].async("arraybuffer").then(function (data) {
                 const buffer = new Uint8Array(data);
@@ -73,6 +83,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
     };
   };
 
+  // All files are loaded into memory.
   useEffect(() => {
     if (files && Object.keys(files).length === filesCount) {
       onFilesLoad(files);
@@ -83,9 +94,12 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
 
   return (
     <>
+    {/* Loading message */}
     { loading ? <p style={{"textAlign": "center"}}>
       {intl.formatMessage({id: "app.loading", defaultMessage: "Loading"})} ...
     </p> : ""}
+
+    {/* File upload area */}
     <div style={loading ? {display: "none"} : null}>
     <FileUploader
       classes={"fileUploadDropArea"}

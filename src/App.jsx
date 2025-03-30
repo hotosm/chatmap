@@ -14,67 +14,65 @@ import { FormattedMessage } from 'react-intl';
 
 function App() {
 
+  // Store for the modal window content
   const [modalContent, setModalContent] = useState(null);
+  // Manage settings
   const [settings, handleSettingsChange] = useSettings({
     msgPosition: "closest"
   });
+  // Manage files and data files
   const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
+  // Mange the map
   const [mapData, resetMerger] = useContentMerger({
     files: files,
     msgPosition: settings.msgPosition
   });
-  
+
+  // The user has uploaded a new file
   const handleNewUploadClick = () => {
     resetFileManager()
     resetMerger();
   }
 
+  // The modal has been closed
   const handleModalClose = () => {
     setModalContent(null);
   }
 
+  // If this settings option has change, close the modal window
   useEffect(() => {
     setModalContent(null);
   }, [settings.msgPosition])
 
-  let configMsgPositionText;
-  if (settings.msgPosition === "before") {
-    configMsgPositionText = <FormattedMessage
-      id = "app.config.closestPreviousMsg"
-      defaultMessage="previous"
-    />
-  } else if (settings.msgPosition === "after") {
-    configMsgPositionText = <FormattedMessage
-      id = "app.config.closestNextMsg"
-      defaultMessage="next"
-    />
-  } else {
-    configMsgPositionText = <FormattedMessage
-      id = "app.config.closestMsg"
-      defaultMessage="closest"
-    />
-  }
-
+  // There's data
   const dataAvailable = files && mapData && mapData.features.length > 0;
+  // There's data but no locations
   const noLocations = files && mapData && mapData.features.length === 0;
 
   return (
     <div className="app">
       <header className="header">
+
+        {/* Navigation var */}
         <div className="top">
           {!dataAvailable &&
           <NavBar onOptionClick={(option) => {
             if (option === "options") {
+                // Display settings as a modal
                 setModalContent(<Settings settings={settings} onChange={handleSettingsChange} />)
             }
           }} />
           }
           <NavModal isOpen={modalContent !== null} onClose={handleModalClose} content={modalContent} />
         </div>
+
+        {/* Logo */}
         <h1 className={dataAvailable ? "titleSmall" : "title"} >
           <img src={logo} className="logo" alt="logo" />
           <span>ChatMap</span>
         </h1>
+
+        {/* Options: upload new file, download */}
         { dataAvailable ?
         <div className="fileOptions">
             <SaveButton data={mapData} dataFiles={dataFiles} />
@@ -87,6 +85,7 @@ function App() {
         </div>
         :
         <>
+          {/* Main legend */}
           <p className="subtitle">
             <FormattedMessage
               id = "app.subtitle"
@@ -102,6 +101,8 @@ function App() {
         </>
       }
       </header>
+
+      {/* If there're no files, show file upload options */}
       { !files &&
         <>
           <div className="fileUpload">
@@ -120,6 +121,8 @@ function App() {
           </div>
         </>
       }
+
+      {/* If there's data available, show the map! */}
       { dataAvailable && 
         <div className="data">
           <div className="map">
@@ -127,6 +130,8 @@ function App() {
           </div>
         </div>
       }
+
+      {/* If there are no locations */}
       { noLocations && 
         <>
           <h2>

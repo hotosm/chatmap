@@ -4,8 +4,13 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { osm } from './source';
 import Popup from './popup';
 import extent from 'turf-extent';
-import './map.css';
 
+/**
+ *
+ * @param {object} properties Properties object for the message
+ * @param {object} dataFiles Files with data
+ * @returns Gets content for message (text message, image, video)
+ */
 const getMessage = (properties, dataFiles) => {
   if (properties.file && dataFiles && properties.file in dataFiles) {
     if (properties.file.endsWith("jpg") || properties.file.endsWith("jpeg")) {
@@ -17,22 +22,37 @@ const getMessage = (properties, dataFiles) => {
   return properties.message;
 }
 
+/**
+ *
+ * @param {object} properties Message properties
+ * @returns A formate and padded datetime, ex: 02:15
+ */
+const formatDate = (properties) => {
+  const d = new Date(properties.time);
+  return (
+    String(d.getHours()).padStart(2, '0') + ":" +
+    String(d.getMinutes()).padStart(2, '0'))
+};
+
+/**
+ *
+ * @param {object} data Messages data
+ * @param {object} dataFiles Files data
+ * @returns
+ */
 export default function Map({ data, dataFiles }) {
+    // A div for the map
     const mapContainer = useRef(null);
+    // The Map obejct
     const map = useRef(null);
+    // Map popup
     const [activePopupFeature, setActivePopupFeature] = useState(null);
     const popupRef = useRef(null);
-
-    const formatDate = (properties) => {
-        const d = new Date(properties.time);
-        return (
-          String(d.getHours()).padStart(2, '0') + ":" + 
-          String(d.getMinutes()).padStart(2, '0'))
-    };
       
     useEffect(() => {
       if (map.current) return;
     
+      // Creates a MapLibreGL object
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         center: [0,0],
@@ -50,8 +70,8 @@ export default function Map({ data, dataFiles }) {
           data: data,
           type: "geojson"
         });
-        
 
+        // Fit map bounds on data extent
         const bbox = extent(data);
         map.current.fitBounds(bbox, {
             padding: 50

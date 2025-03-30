@@ -1,3 +1,13 @@
+
+/**
+ * Contains a main parser function and supporting fuctions
+ * for creating a map from a Signal conversation log.
+ *
+ * The Map is stored in memory as a GeoJSON and a list
+ * of media files
+ */
+
+
 import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "./chatmap";
 import moment from 'moment';
 

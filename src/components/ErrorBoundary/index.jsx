@@ -1,6 +1,11 @@
 import React from 'react';
 import logo from '../../hot-logo.svg';
 
+/*
+  A boundary for errors, displaying a message and
+  contact options for support.
+*/
+
 export default class ErrorBoundary extends React.Component {
     constructor(props) {
       super(props);

@@ -1,3 +1,8 @@
+/*
+ * Sources for baselayers available for the map. Other sources can be added
+ * in the future in order to have other baselayers.
+*/
+
 export const osm = {
   "version": 8,
 	"sources": {

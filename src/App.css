@@ -1,3 +1,10 @@
+/*
+  This file has styling for the whole app.
+  Please do not hardcode values directly, check
+  first hot.css for variables. More info about the
+  HOT UI design system here:
+  http://github.com/hotosm/ui-design
+*/
 
 a {
   color: var(--hot-color-blue-500);

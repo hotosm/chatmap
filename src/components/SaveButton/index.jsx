@@ -3,6 +3,13 @@ import { FormattedMessage } from 'react-intl';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
+/**
+ *
+ * @param {object} data Chat data
+ * @param {object} dataFiles Files data
+ * Create a zip with chat data and files inside. Fire an
+ * event for user to download the file
+ */
 function createAndDownloadZip(data, dataFiles) {
   const zip = new JSZip();
 

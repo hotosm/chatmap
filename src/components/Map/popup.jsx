@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import { renderToString } from "react-dom/server";
 
+// It manages popups, creating  maplibregl.Popup objects when necessary.
 export default function Popup({
   latitude,
   longitude,

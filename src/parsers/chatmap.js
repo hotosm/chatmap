@@ -1,22 +1,43 @@
-// Get closest message from the same user
+/*
+ * This will be used for all parsers for extracting related messages
+ * ex: location + media from chats.
+*/
+
+/**
+ * Get closest message (in terms time) from the same user.
+ * It will scan a dictionary of messages, starting in msgIndex position.
+ * From that position, it will look for messages of the same user in both
+ * directions (previous and next), calculate time dalta and return the
+ * closest one.
+ * @param {object} messages Dictionary of messages ex: messages[msgIndex]
+ * @param {int} msgIndex A message index
+ * @returns {object} message
+ */
 export const getClosestMessage = (messages, msgIndex) => {
+    // Previous message index
     let prevIndex = msgIndex - 1;
+    // Next message index
     let nextIndex = msgIndex + 1;
+    // Previous message
     let prevMessage;
+    // Next message
     let nextMessage;
+    // Closest message
     let message = messages[msgIndex];
 
     while (
 
       // There's a prev or next message
-      // and the next message is different from the prev one
+      // but no next or prev messages has been initialited
       (messages[prevIndex] || messages[nextIndex]) && 
       !(nextMessage && prevMessage) ) {
 
-      // If prev message is from the same user
+      // If PREV message is from the same user
       if (messages[prevIndex] &&
+          // Message from the same user than previous one
           messages[prevIndex].username === message.username &&
          !prevMessage) {
+        // Calculate time passed between current and previous message.
         const delta_prev = Math.abs(messages[msgIndex].time - messages[prevIndex].time);
         prevMessage = {
             index: prevIndex, 
@@ -24,10 +45,12 @@ export const getClosestMessage = (messages, msgIndex) => {
         }
       }
 
-      // If next message is from the same user
+      // If NEXT message is from the same user
       if (messages[nextIndex] && 
+          // Message from the same user than next one
           messages[nextIndex].username === message.username &&
           !nextMessage) {
+        // Calculate time passed between current and next message.
         const delta_next = Math.abs(messages[msgIndex].time - messages[nextIndex].time);
         nextMessage = {
             index: nextIndex, 
