@@ -13,6 +13,7 @@ import { saveAs } from 'file-saver';
 function createAndDownloadZip(data, dataFiles) {
   const zip = new JSZip();
 
+  // Get a list of media files from GeoJSON data
   const media_files = data.features.map(x => x.properties.file);
 
   // Add GeoJSON data to the zip file

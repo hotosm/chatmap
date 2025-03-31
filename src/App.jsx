@@ -22,7 +22,7 @@ function App() {
   });
   // Manage files and data files
   const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
-  // Mange the map
+  // Manage the map
   const [mapData, resetMerger] = useContentMerger({
     files: files,
     msgPosition: settings.msgPosition

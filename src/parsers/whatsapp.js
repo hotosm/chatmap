@@ -43,7 +43,7 @@ const lookForMediaFile = (msgObject) => {
 }
 
 // Search for a location
-const searchLocation = (line) => {
+export const searchLocation = (line) => {
     const match = line.match(LOCATION_PATTERN);
     if (match) {
         return match[0].split(",").map(x => parseFloat(x))
