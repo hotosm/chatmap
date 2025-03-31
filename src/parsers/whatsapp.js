@@ -10,7 +10,7 @@
 import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "./chatmap";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
-const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*$/;
 
 // Regex to search for messages in the format [<date>, <time>] <username>: <message>
 const MSG_PATTERN = {
@@ -32,7 +32,6 @@ export const detectSystem = (line) => {
 
 // Look for jpg or mp4 media files
 export const lookForMediaFile = (msgObject) => {
-    console.log(msgObject);
     const msg = msgObject.message.toLowerCase();
     let mediaFileIndex = msg.indexOf(".jpg");
     if (mediaFileIndex < 0) {
