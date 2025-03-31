@@ -19,7 +19,7 @@ const MSG_PATTERN = {
 }
 
 // Detect system (Android or iOS)
-const detectSystem = (line) => {
+export const detectSystem = (line) => {
     const match_ios = line.match(MSG_PATTERN.IOS);
     const match_android = line.match(MSG_PATTERN.ANDROID);
     if (match_ios) {
@@ -31,15 +31,17 @@ const detectSystem = (line) => {
 }
 
 // Look for jpg or mp4 media files
-const lookForMediaFile = (msgObject) => {
+export const lookForMediaFile = (msgObject) => {
+    console.log(msgObject);
     const msg = msgObject.message.toLowerCase();
     let mediaFileIndex = msg.indexOf(".jpg");
     if (mediaFileIndex < 0) {
         mediaFileIndex = msg.indexOf(".mp4");
     }
     if (mediaFileIndex > 0) {
-        return msgObject.message.substring(0,mediaFileIndex + 4);
+        return msgObject.message.substring(msg.lastIndexOf(":") + 2, mediaFileIndex + 4);
     }
+    return ""
 }
 
 // Search for a location
@@ -52,7 +54,7 @@ export const searchLocation = (line) => {
 }
 
 // Parse time, username and message
-const parseMessage = (line, system) => {
+export const parseMessage = (line, system) => {
     const match = line.match(MSG_PATTERN[system]);
     if (match) {
         let username = match[2];
@@ -80,7 +82,7 @@ const parseMessage = (line, system) => {
 }
 
 // Parse time strings
-const parseTimeString = (dateStr) => {
+export const parseTimeString = (dateStr) => {
     let dateTimeStr = dateStr.replace("a. m.", "AM").replace("p. m.", "PM")
     dateTimeStr = dateTimeStr.replace("a.m.", "AM").replace("p.m.", "PM")
     let dateTime = dateTimeStr.split(" ");
@@ -128,7 +130,7 @@ export default function whatsAppParser({ text, msgPosition }) {
     // A GeoJSON Feature for storing a message
     let featureObject = {}
 
-    // Creates an indexed dictionary for messages
+    // Detect system (Android, iOS, ...)
     let system;
     for (let i = 0; i < lines.length; i++) {
         system = detectSystem(lines[i]);
