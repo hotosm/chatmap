@@ -19,6 +19,8 @@ yarn install
 yarn start
 ```
 
+Test with `yarn test`.
+
 ## How to use it?
 
 Create a group and ask people to post locations and messages. Each location will be paired 
@@ -45,7 +47,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| Download a .zip file with GeoJSON and images to save the map in umap.hotosm.org |
 |⚙️| Include videos in .zip download |
 |⚙️| Attach both image and text to a location |
-|  | Add tests |
+|⚙️| Add tests |
 |  | Support audio |
 
 ## Licensing
