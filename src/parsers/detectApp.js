@@ -1,8 +1,3 @@
-import whatsAppParser from './whatsapp';
-import telegramParser from './telegram';
-import signalParser from './signal';
-
-
 /**
  * It detects the app (WhatsApp, Telegram or Signal)
  * and returns a parser, in a very simple way
@@ -11,12 +6,15 @@ import signalParser from './signal';
  * @returns {function} Parser function for the corresponding app
  */
 
-export default function getAppParser (text) {
+export default async function getAppParser (text) {
     if (!text) return;
     if (text[0] === "{") { 
+        const telegramParser = (await import('./telegram')).default
         return telegramParser;
     } else if (text.indexOf("group-v2-change") > -1) {
+        const signalParser = (await import('./signal')).default
         return signalParser;
     }
-    return whatsAppParser;
+    const whatsappParser = (await import('./whatsapp')).default
+    return whatsappParser;
 }

@@ -16,4 +16,11 @@ it('should found a picture', () => {
   });
   expect(filename).toEqual("00000005-PHOTO-2025-01-09-12-23-16.jpg"); 
 });
+it('should found a picture (no space after :)', () => {
+  const filename = lookForMediaFile({
+    message: "‎[09/01/2025 12:23:17] Salomon: ‎< pièce jointe :00000005-PHOTO-2025-01-09-12-23-16.jpg >",
+  });
+  expect(filename).toEqual("00000005-PHOTO-2025-01-09-12-23-16.jpg"); 
+});
+
 

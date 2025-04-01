@@ -19,29 +19,31 @@ function useContentMerger({ files, msgPosition}) {
     // Receives files and update status
     // with a GeoJSON response
     useEffect(() => {
-        // If no files provided, return
-        if (!files) return;
+        async function parseData() {
+            // If no files provided, return
+            if (!files) return;
 
-        // Parse each file and concatate the results
-        // This way, multiple .zip files with multiple chats
-        // can be imported.
-        let features = [];
-        for (let filename in files) {
+            // Parse each file and concatate the results
+            // This way, multiple .zip files with multiple chats
+            // can be imported.
+            let features = [];
+            for (let filename in files) {
 
-            // Parse data from chats. This is where the magic happens!  ・• * . ☆ﾟ
-            const parser = getAppParser(files[filename]);
+                // Parse data from chats. This is where the magic happens!  ・• * . ☆ﾟ
+                const parser = await getAppParser(files[filename]);
 
-            // Concatenate data from all uploaded chats
-            const parsedData = parser({ text: files[filename], msgPosition });
-            features = features.concat(parsedData.features);
+                // Concatenate data from all uploaded chats
+                const parsedData = parser({ text: files[filename], msgPosition });
+                features = features.concat(parsedData.features);
+            }
+
+            // Build the GeoJSON response with all features
+            setGeoJSON((prevState) => ({
+                type: "FeatureCollection",
+                features: [...prevState.features, ...features]
+            }));
         }
-
-        // Build the GeoJSON response with all features
-        setGeoJSON((prevState) => ({
-            type: "FeatureCollection",
-            features: [...prevState.features, ...features]
-        }));
-
+        parseData();
       }, [files]);
 
     // It resets data, initializing with an empty GeoJSON object.

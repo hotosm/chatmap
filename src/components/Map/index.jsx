@@ -130,7 +130,7 @@ export default function Map({ data, dataFiles }) {
               </p>
               <p>
                 { getMessage(activePopupFeature.properties, dataFiles) }
-              </p>
+              </p>}
             </div>
           </Popup>
         }

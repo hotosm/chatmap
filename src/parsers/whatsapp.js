@@ -38,7 +38,11 @@ export const lookForMediaFile = (msgObject) => {
         mediaFileIndex = msg.indexOf(".mp4");
     }
     if (mediaFileIndex > 0) {
-        return msgObject.message.substring(msg.lastIndexOf(":") + 2, mediaFileIndex + 4);
+        let path = msgObject.message.substring(msg.lastIndexOf(":") + 1, mediaFileIndex + 4);
+        if (path.substring(0, 1) == " ") {
+            return path.substring(1, path.length)
+        }
+        return path;
     }
     return ""
 }
