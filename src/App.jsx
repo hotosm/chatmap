@@ -1,4 +1,4 @@
-import React, { lazy } from 'react';
+import React, { lazy, useState } from 'react';
 import useSettings from './hooks/useSettings';
 import useFileManager from './hooks/useFileManager';
 import useContentMerger from './hooks/useContentMerger';
@@ -11,12 +11,16 @@ const Map = lazy(() => import('./components/Map'));
 
 function App() {
 
+  const [noLocations, setNoLocations] = useState(false);
+
   // Manage settings
   const [settings, handleSettingsChange] = useSettings({
     msgPosition: "closest"
   });
+
   // Manage files and data files
   const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
+
   // Manage the map
   const [mapData, resetMerger] = useContentMerger({
     files: files,
@@ -27,12 +31,16 @@ function App() {
   const handleNewUploadClick = () => {
     resetFileManager()
     resetMerger();
+    setNoLocations(false);
+  }
+
+  // Handle uploaded files error (ex: invalid chat export)
+  const handleFilesError = () => {
+    setNoLocations(true);
   }
 
   // There's data
-  const dataAvailable = files && mapData && mapData.features.length > 0;
-  // There's data but no locations
-  const noLocations = files && mapData && mapData.features.length === 0;
+  const dataAvailable = files && mapData.features.length > 0;
 
   return (
     <div className="app">
@@ -51,7 +59,9 @@ function App() {
         <>
           <FileUploadSection
             handleFiles={handleFiles}
-            handleDataFile={handleDataFile} />
+            handleDataFile={handleDataFile}
+            onError={handleFilesError}
+          />
           <Footer />
         </>
       }

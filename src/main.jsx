@@ -6,21 +6,28 @@ import './styles/main.css'
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
+import En from './int/en.json';
+import Es from './int/es.json';
+import Pt from './int/pt.json';
 
-const getLocaleMessages = async () => {
+const locales = {
+  "en": En,
+  "es": Es,
+  "pt": Pt
+}
+
+const getLocaleMessages = () => {
   const lang = navigator.language.slice(0,2);
-  if (lang === "es") {
-    return (await import('./int/es')).default;
-  } else if (lang === "pt") {
-    return (await import('./int/pt')).default;
+  if (lang in locales) {
+    return locales[lang];
   }
-  return (await import('./int/en')).default;
+  return locales["en"]
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <IntlProvider locale ={navigator.language} messages={getLocaleMessages()}>
+    <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
       <ErrorBoundary>
         <App />
       </ErrorBoundary>

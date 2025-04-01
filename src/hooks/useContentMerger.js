@@ -51,7 +51,7 @@ function useContentMerger({ files, msgPosition}) {
         setGeoJSON({
             type: "FeatureCollection",
             features: []
-        })
+        });
     }
 
     return [geoJSON, resetMerger];
