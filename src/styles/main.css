@@ -6,106 +6,26 @@
   http://github.com/hotosm/ui-design
 */
 
+/* defaults */
+
+body {
+  font-family: Helvetica, arial, sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  color: var(--hot-color-neutral-950);
+}
+
 a {
   color: var(--hot-color-blue-500);
 }
 
+/* Layout */
+
 .app {
   text-align: center;
   background-color: var(--hot-color-neutral-0);
-}
-
-.header {
-  padding: var(--hot-spacing-medium);
-}
-
-.header h1 {
-  display: flex;
-  gap: var(--hot-spacing-medium);
-  margin-bottom: 0;
-}
-
-.header h1 span {
-  font-size: calc(var(--hot-font-size-2x-large) + 3vmin);
-  height: calc(var(--hot-font-size-4x-large) - 0.2rem);
-  font-weight: var(--hot-font-weight-bold);
-  font-family: var(--hot-font-variant);
-}
-
-.header h1 .logo {
-  height: calc(var(--hot-font-size-2x-large) + 3vmin);
-}
-
-.header h1.titleSmall {
-  margin-bottom: var(--hot-spacing-medium);
-}
-
-.header h1.titleSmall span {
-  font-size: var(--hot-font-size-2x-large);
-  height: calc(var(--hot-font-size-2x-large) - 0.2rem);
-}
-
-.header h1.titleSmall .logo {
-  height: var(--hot-font-size-2x-large);
-}
-
-.copy .logo {
-  display: inline;
-  vertical-align: middle;
-  margin-left: var(--hot-spacing-x-small);
-  height: 3vmin;
-  pointer-events: none;
-}
-
-.github {
-  background-image: url("/img/github.png");
-  background-repeat: no-repeat;
-  width: 25px;
-  height: 25px;
-  display: inline-block;
-  padding-left: 12px;
-  background-size: contain;
-  vertical-align: middle;
-  margin-left: var(--hot-spacing-3x-small);
-}
-
-.copy {
-  font-size: var(--hot-font-size-small);
-  padding: 1vh;
-  color: var(--hot-color-gray-300);
-  opacity: .8;
-}
-
-.appNav {
-  padding: 1vh;
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.header {
-  background-color: var(--hot-color-gray-100);
-  background: radial-gradient(var(--hot-color-neutral-0), var(--hot-color-neutral-50), var(--hot-color-neutral-0));
-  min-height: 15vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.header h1.titleSmall {
-  font-size: var(--hot-font-size-small);
-  letter-spacing: -.1rem;
-}
-
-.subtitle {
-  font-size: calc(var(--hot-font-size-medium) + 1vmin);
-}
-
-.highlighted {
-  font-size: 1rem;
-  background-color: var(--hot-color-yellow-100);
-  padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
 }
 
 .content {
@@ -115,36 +35,15 @@ a {
   min-height: 30vh;
 }
 
-.fileUpload, .map {
-  text-align: center;
-  justify-content: center;
-  display: flex;
-  min-height: 15vh;
+/* Utilities */
+
+.highlighted {
+  font-size: 1rem;
+  background-color: var(--hot-color-yellow-100);
+  padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
 }
 
-.fileUpload {
-  padding: var(--hot-spacing-large);
-}
-
-.configDesc {
-  padding: 0 var(--hot-spacing-small) 0;
-}
-
-.fileUploadDropArea {
-  margin-top: var(--hot-spacing-medium);
-  border: 2px dashed var(--hot-color-gray-200) !important;
-}
-
-.fileUploadDropArea span {
-  font-size: var(--hot-font-size-large);
-  text-decoration: none !important;
-}
-
-.fileUploadDropArea .file-types {
-  font-size: var(--hot-font-size-small);
-  opacity: .5;
-}
-
+/* UI components */
 
 .primaryButton, .secondaryButton {
   padding: var(--hot-spacing-small);
@@ -186,6 +85,177 @@ a {
   color: var(--hot-color-blue-700);
 }
 
+/* Header */
+
+.header {
+  padding: var(--hot-spacing-medium);
+}
+
+.header h1 {
+  display: flex;
+  gap: var(--hot-spacing-medium);
+  margin-bottom: 0;
+}
+
+.header h1 span {
+  font-size: calc(var(--hot-font-size-2x-large) + 3vmin);
+  height: calc(var(--hot-font-size-4x-large) - 0.2rem);
+  font-weight: var(--hot-font-weight-bold);
+  font-family: var(--hot-font-variant);
+}
+
+.header h1 .logo {
+  height: calc(var(--hot-font-size-2x-large) + 3vmin);
+}
+
+.header h1.titleSmall {
+  margin-bottom: var(--hot-spacing-medium);
+}
+
+.header h1.titleSmall span {
+  font-size: var(--hot-font-size-2x-large);
+  height: calc(var(--hot-font-size-2x-large) - 0.2rem);
+}
+
+.header h1.titleSmall .logo {
+  height: var(--hot-font-size-2x-large);
+}
+
+.header {
+  background-color: var(--hot-color-gray-100);
+  background: radial-gradient(var(--hot-color-neutral-0), var(--hot-color-neutral-50), var(--hot-color-neutral-0));
+  min-height: 15vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.header h1.titleSmall {
+  font-size: var(--hot-font-size-small);
+  letter-spacing: -.1rem;
+}
+
+.subtitle {
+  font-size: calc(var(--hot-font-size-medium) + 1vmin);
+}
+
+/* Nav bar */
+
+.appNav {
+  padding: 1vh;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Footer */
+
+.copy {
+  display: inline;
+  vertical-align: middle;
+  margin-left: var(--hot-spacing-x-small);
+  height: 3vmin;
+  pointer-events: none;
+  font-size: var(--hot-font-size-small);
+  padding: 1vh;
+  color: var(--hot-color-gray-300);
+}
+
+.github {
+  background-image: url("/img/github.png");
+  background-repeat: no-repeat;
+  width: 25px;
+  height: 25px;
+  display: inline-block;
+  padding-left: 12px;
+  background-size: contain;
+  vertical-align: middle;
+  margin-left: var(--hot-spacing-3x-small);
+  opacity: .8;
+}
+
+.infoLinks {
+  display: block;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  text-align: center;
+  bottom: 0;
+  padding: 2vh;
+  font-size: var(--hot-font-size-small);
+  background-color: var(--hot-color-neutral-0);
+}
+
+.infoLinks a {
+  color: var(--hot-color-gray-300);
+  text-decoration: none;
+}
+
+/* File upload */
+
+.fileUpload, .map {
+  text-align: center;
+  justify-content: center;
+  display: flex;
+  min-height: 15vh;
+}
+
+.fileUpload {
+  padding: var(--hot-spacing-large);
+}
+
+.fileUploadDropArea {
+  margin-top: var(--hot-spacing-medium);
+  border: 2px dashed var(--hot-color-gray-200) !important;
+}
+
+.fileUploadDropArea span {
+  font-size: var(--hot-font-size-large);
+  text-decoration: none !important;
+}
+
+.fileUploadDropArea .file-types {
+  font-size: var(--hot-font-size-small);
+  opacity: .5;
+}
+
+/* Info */
+
+.info {
+  padding: 0 var(--hot-spacing-small) 0;
+}
+
+/* Map */
+
+.map {
+  width: 100vw;
+  height: 80vh;
+}
+
+.activePopupFeatureContent {
+  font-size: var(--hot-font-size-medium);
+}
+
+.popup {
+  min-width: 20vw;
+}
+
+.popupImage {
+  width: 92%;
+}
+
+.msgUsername {
+  font-weight: var(--hot-font-weight-bold);
+}
+
+.msgDatetime {
+  color: var(--hot-color-gray-300);
+  padding-left: var(--hot-spacing-small)
+}
+
+/* Settings */
+
 .optionButton {
   padding: var(--hot-spacing-2x-small);
   text-decoration: none;
@@ -200,10 +270,6 @@ a {
 .cardOptions {
   display: flex;
   width: 60vw;
-}
-
-.fileOtions {
-  display: flex;
 }
 
 .cardOption {
@@ -229,48 +295,7 @@ a {
   width: 80%;
 }
 
-.msgUsername {
-  font-weight: var(--hot-font-weight-bold);
-}
-
-.msgDatetime {
-  color: var(--hot-color-gray-300);
-  padding-left: var(--hot-spacing-small)
-}
-
-.infoLinks {
-  display: block;
-  position: absolute;
-  right: 0;
-  width: 100%;
-  text-align: center;
-  bottom: 0;
-  padding: 2vh;
-  font-size: var(--hot-font-size-small);
-  background-color: var(--hot-color-neutral-0);
-}
-
-.infoLinks a {
-  color: var(--hot-color-gray-300);
-  text-decoration: none;
-}
-
-.map {
-  width: 100vw;
-  height: 80vh;
-}
-
-.activePopupFeatureContent {
-  font-size: var(--hot-font-size-medium);
-}
-
-.popup {
-  min-width: 20vw;
-}
-
-.popupImage {
-  width: 92%;
-}
+/* Error boundary */
 
 .errorMessage {
   background-color: var(--hot-color-neutral-gray-50);

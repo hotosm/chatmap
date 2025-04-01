@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../../hot-logo.svg';
+import logo from '../../assets/hot-logo.svg';
 
 /*
   A boundary for errors, displaying a message and

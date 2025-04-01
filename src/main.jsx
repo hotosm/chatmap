@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './hot.css';
-import './hot-font-face.css';
-import './index.css';
+import './styles/hot.css';
+import './styles/hot-font-face.css';
+import './styles/main.css'
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
