@@ -14,8 +14,8 @@ const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|
 
 // Regex to search for messages in the format [<date>, <time>] <username>: <message>
 const MSG_PATTERN = {
-    IOS: /\[(.*)\] (.*): (.*)/,
-    ANDROID: /(.*) - (.*): (.*)/
+    IOS: /\[(.*)\] ([^:]*): (.*)/,
+    ANDROID: /(.*) - ([^:]*): (.*)/
 }
 
 // Detect system (Android or iOS)

@@ -4,7 +4,7 @@ import { parseMessage } from '../src/parsers/whatsapp';
 
 // parseMessage
 
-it('should parse a message for the Android system', () => {
+it('should parse a message for the iOS system', () => {
   const msgObject = parseMessage(
     "[09/01/2025 12:50:14] Salomon: Name Bentenie Type Tree 🌳 Year 2025",
     "IOS"
@@ -12,7 +12,7 @@ it('should parse a message for the Android system', () => {
   expect(msgObject.message).toEqual("Name Bentenie Type Tree 🌳 Year 2025"); 
 });
 
-it('should parse a message for the iOS system', () => {
+it('should parse a message for the Android system', () => {
   const msgObject = parseMessage(
     "17/10/2024, 3:37 p. m. - silvi: Necesito ayuda aquí!",
     "ANDROID"
@@ -20,11 +20,18 @@ it('should parse a message for the iOS system', () => {
   expect(msgObject.message).toEqual("Necesito ayuda aquí!"); 
 });
 
-// FIXME
-// it('should parse a message for the Android system (multiple : characters)', () => {
-//   const msgObject = parseMessage(
-//     "[09/01/2025 12:50:14] Salomon: Name: Bentenie Type: Tree 🌳 Year: 2025",
-//     "IOS"
-//   );
-//   expect(msgObject.message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025"); 
-// });
+it('should parse a message for the iOS system (multiple : characters)', () => {
+  const msgObject = parseMessage(
+    "[09/01/2025 12:50:14] Salomon: Name: Bentenie Type: Tree 🌳 Year: 2025",
+    "IOS"
+  );
+  expect(msgObject.message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025"); 
+});
+
+it('should parse a message for the Android system (multiple : characters)', () => {
+  const msgObject = parseMessage(
+    "17/10/2024, 3:37 p. m. - Salomon: Name: Bentenie Type: Tree 🌳 Year: 2025",
+    "ANDROID"
+  );
+  expect(msgObject.message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025"); 
+});
