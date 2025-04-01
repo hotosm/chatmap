@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import maplibregl from "maplibre-gl";
+import { Popup as PopupGL } from "maplibre-gl";
 import { renderToString } from "react-dom/server";
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
@@ -14,7 +14,7 @@ export default function Popup({
 }) {
   useEffect(() => {
     if (!popupRef.current) {
-      popupRef.current = new maplibregl.Popup({
+      popupRef.current = new PopupGL({
         closeOnClick: false,
         closeOnMove,
         closeButton,

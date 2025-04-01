@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import maplibregl from 'maplibre-gl';
+import { Map as MapGL } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { osm } from './source';
 import Popup from './popup';
@@ -53,7 +53,7 @@ export default function Map({ data, dataFiles }) {
       if (map.current) return;
     
       // Creates a MapLibreGL object
-      map.current = new maplibregl.Map({
+      map.current = new MapGL({
         container: mapContainer.current,
         center: [0,0],
         zoom: 17,

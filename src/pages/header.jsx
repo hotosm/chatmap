@@ -47,8 +47,8 @@ export default function Header({
 
             {/* Logo */}
             <h1 className={dataAvailable ? "titleSmall" : "title"} >
-            <img src={logo} className="logo" alt="logo" />
-            <span>ChatMap</span>
+                <img src={logo} className="logo" alt="logo" />
+                <span>ChatMap</span>
             </h1>
 
             {/* Options: upload new file, download */}

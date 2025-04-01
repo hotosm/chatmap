@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'build',
-    sourcemap: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 900,
+    minify: 'terser'
   },
   server: {
     open: true,

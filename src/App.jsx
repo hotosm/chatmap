@@ -1,5 +1,4 @@
-import React from 'react';
-import Map from './components/Map/index.jsx'
+import React, { lazy } from 'react';
 import useSettings from './hooks/useSettings';
 import useFileManager from './hooks/useFileManager';
 import useContentMerger from './hooks/useContentMerger';
@@ -7,6 +6,8 @@ import Header from './pages/header.jsx';
 import Footer from './pages/footer.jsx';
 import FileUploadSection from './pages/home/fileUpload.section.jsx';
 import NoLocationsSection from './pages/home/noLocations.section.jsx';
+
+const Map = lazy(() => import('./components/Map'));
 
 function App() {
 
