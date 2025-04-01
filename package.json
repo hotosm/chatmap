@@ -1,6 +1,6 @@
 {
   "name": "chatmap",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "homepage": "https://chatmap.hotosm.org",
   "author": "Emilio Mariscal <emilio.mariscal@hotosm.org>",
   "dependencies": {
@@ -45,7 +45,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@vitejs/plugin-react": "^4.3.3",
     "gh-pages": "^6.1.1",
-    "vite": "^6.2.3",
+    "vite": "^6.2.4",
     "vitest": "^3.0.9"
   }
 }
