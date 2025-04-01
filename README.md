@@ -39,6 +39,9 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
 ## Product roadmap
 
+✅ Done
+⚙️ In progress
+
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
