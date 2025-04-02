@@ -8,7 +8,7 @@
  */
 
 
-import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "./chatmap";
+import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "../chatmap";
 import moment from 'moment';
 
 // Regex to search for coordinates in the format <lat>%2C<lon> (ex: -31.006037,-64.262794)

@@ -1,13 +1,13 @@
 import React, { lazy, useState } from 'react';
-import useSettings from './hooks/useSettings';
-import useFileManager from './hooks/useFileManager';
-import useContentMerger from './hooks/useContentMerger';
-import Header from './pages/header.jsx';
-import Footer from './pages/footer.jsx';
-import FileUploadSection from './pages/home/fileUpload.section.jsx';
-import NoLocationsSection from './pages/home/noLocations.section.jsx';
+import useSettings from '../../components/Settings/useSettings.js';
+import useFileManager from '../../components/FileUpload/useFileManager.js';
+import useContentMerger from '../../components/ChatMap/useContentMerger.js';
+import Header from '../header.jsx';
+import Footer from '../footer.jsx';
+import FileUploadSection from './fileUpload.section.jsx';
+import NoLocationsSection from './noLocations.section.jsx';
 
-const Map = lazy(() => import('./components/Map'));
+const Map = lazy(() => import('../../components/Map/index.jsx'));
 
 function App() {
 

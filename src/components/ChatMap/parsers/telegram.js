@@ -7,7 +7,7 @@
  * of media files
  */
 
-import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "./chatmap";
+import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "../chatmap";
 
 function stripPath(filename) {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);

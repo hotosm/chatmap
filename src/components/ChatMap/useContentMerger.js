@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import getAppParser from "../parsers/getAppParser";
+import getAppParser from "./parsers/getAppParser";
 
 /**
  * Hook for parsing messages from a text

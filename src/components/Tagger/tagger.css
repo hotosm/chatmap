@@ -1,0 +1,17 @@
+.tags {
+    display: flex;
+    gap: var(--hot-spacing-x-small);
+}
+
+.tag {
+    border: 1px solid var(--hot-color-blue-500);
+    text-decoration: none;
+    display: inline-block;
+    font-weight: var(--hot-font-weight-bold);
+    box-shadow: none;
+    cursor: pointer;
+    padding: var(--hot-spacing-3x-small) var(--hot-spacing-x-small);
+    border-radius: var(--hot-border-radius-small);
+    font-size: var(--hot-font-size-small);
+}
+

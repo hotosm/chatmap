@@ -12,7 +12,7 @@ body {
   font-family: Helvetica, arial, sans-serif;
   margin: 0;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -moz-osx-font-smoothing: neutralscale;
   overflow: hidden;
   color: var(--hot-color-neutral-950);
 }
@@ -67,7 +67,7 @@ a {
   box-shadow: none;
   border: none;
   background: transparent;
-  color: var(--hot-color-gray-300);
+  color: var(--hot-color-neutral-300);
   cursor: pointer;
 }
 
@@ -85,10 +85,23 @@ a {
   color: var(--hot-color-blue-700);
 }
 
+.smallButton {
+  padding: var(--hot-spacing-x-small);
+  border-radius: var(--hot-border-radius-small);
+  margin: var(--hot-spacing-x-large);
+  font-size: var(--hot-font-size-small);
+}
+
+
+.textInput {
+  border: 1px solid var(--hot-color-neutral-300);
+  padding: var(--hot-spacing-2x-small);
+}
+
 /* Header */
 
 .header {
-  background-color: var(--hot-color-gray-100);
+  background-color: var(--hot-color-neutral-100);
   background: radial-gradient(var(--hot-color-neutral-0), var(--hot-color-neutral-50), var(--hot-color-neutral-0));
   min-height: 17vh;
   display: flex;
@@ -155,7 +168,7 @@ a {
   pointer-events: none;
   font-size: var(--hot-font-size-small);
   padding: 1vh;
-  color: var(--hot-color-gray-300);
+  color: var(--hot-color-neutral-300);
 }
 
 .github {
@@ -184,7 +197,7 @@ a {
 }
 
 .infoLinks a {
-  color: var(--hot-color-gray-300);
+  color: var(--hot-color-neutral-300);
   text-decoration: none;
 }
 
@@ -203,7 +216,7 @@ a {
 
 .fileUploadDropArea {
   margin-top: var(--hot-spacing-medium);
-  border: 2px dashed var(--hot-color-gray-200) !important;
+  border: 2px dashed var(--hot-color-neutral-200) !important;
 }
 
 .fileUploadDropArea span {
@@ -246,8 +259,13 @@ a {
 }
 
 .msgDatetime {
-  color: var(--hot-color-gray-300);
+  color: var(--hot-color-neutral-300);
   padding-left: var(--hot-spacing-small)
+}
+
+.maplibregl-popup-close-button {
+  font-size: var(--hot-font-size-x-large);
+  color: var(--hot-color-neutral-400);
 }
 
 /* Settings */
@@ -259,8 +277,8 @@ a {
   font-size: var(--hot-font-size-medium);
   box-shadow: none;
   border: none;
-  color: var(--hot-color-gray-neutral-0);
-  background-color: var(--hot-color-gray-300);
+  color: var(--hot-color-neutral-neutral-0);
+  background-color: var(--hot-color-neutral-300);
 }
 
 .cardOptions {
@@ -294,7 +312,7 @@ a {
 /* Error boundary */
 
 .errorMessage {
-  background-color: var(--hot-color-neutral-gray-50);
+  background-color: var(--hot-color-neutral-neutral-50);
   text-align: center;
   padding: var(--hot-spacing-x-large) var(--hot-spacing-4x-large);
   height: 100vh;

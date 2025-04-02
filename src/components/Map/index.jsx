@@ -7,35 +7,6 @@ import extent from 'turf-extent';
 
 /**
  *
- * @param {object} properties Properties object for the message
- * @param {object} dataFiles Files with data
- * @returns {string} Message (text message or HTML for image, video)
- */
-const getMessage = (properties, dataFiles) => {
-  if (properties.file && dataFiles && properties.file in dataFiles) {
-    if (properties.file.endsWith("jpg") || properties.file.endsWith("jpeg")) {
-      return <img className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
-    } else if (properties.file.endsWith("mp4")) {
-      return <video controls autoplay loop className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
-    }
-  }
-  return properties.message;
-}
-
-/**
- *
- * @param {object} properties Message properties
- * @returns {string} A formatted and padded datetime, ex: 02:15
- */
-const formatDate = (properties) => {
-  const d = new Date(properties.time);
-  return (
-    String(d.getHours()).padStart(2, '0') + ":" +
-    String(d.getMinutes()).padStart(2, '0'))
-};
-
-/**
- *
  * @param {object} data Messages data
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
@@ -117,22 +88,10 @@ export default function Map({ data, dataFiles }) {
         <div ref={mapContainer} className="map" />
         {map.current && activePopupFeature &&
           <Popup
-            longitude={activePopupFeature.geometry.coordinates[0]}
-            latitude={activePopupFeature.geometry.coordinates[1]}
             popupRef={popupRef}
-            closeOnMove={false}
-            closeButton={true}
-          >
-           <div className="activePopupFeatureContent">
-              <p>
-                <span className="msgUsername">{activePopupFeature.properties.username}</span>
-                <span className="msgDatetime">{formatDate(activePopupFeature.properties)}</span>
-              </p>
-              <p>
-                { getMessage(activePopupFeature.properties, dataFiles) }
-              </p>
-            </div>
-          </Popup>
+            feature={activePopupFeature}
+            dataFiles={dataFiles}
+          />
         }
       </div>
     );
