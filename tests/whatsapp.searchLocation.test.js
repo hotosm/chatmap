@@ -1,6 +1,6 @@
 import { expect, test as it} from 'vitest'
 
-import { searchLocation } from '../src/parsers/whatsapp';
+import { searchLocation } from '../src/components/ChatMap/parsers/whatsapp';
 
 // searchLocation
 

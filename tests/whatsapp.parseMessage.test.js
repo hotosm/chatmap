@@ -1,6 +1,6 @@
 import { expect, test as it} from 'vitest'
 
-import { parseMessage } from '../src/parsers/whatsapp';
+import { parseMessage } from '../src/components/ChatMap/parsers/whatsapp';
 
 // parseMessage
 

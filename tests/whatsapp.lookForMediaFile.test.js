@@ -1,6 +1,6 @@
 import { expect, test as it} from 'vitest'
 
-import { lookForMediaFile } from '../src/parsers/whatsapp';
+import { lookForMediaFile } from '../src/components/ChatMap/parsers/whatsapp';
 
 // lookForMediaFile
 

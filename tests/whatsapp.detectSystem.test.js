@@ -1,6 +1,6 @@
 import { expect, test as it} from 'vitest'
 
-import { detectSystem } from '../src/parsers/whatsapp';
+import { detectSystem } from '../src/components/ChatMap/parsers/whatsapp';
 
 // detectSystem
 
