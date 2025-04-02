@@ -4,6 +4,8 @@ import getAppParser from "../parsers/getAppParser";
 /**
  * Hook for parsing messages from a text
  *
+ * This is where the magic happens!  ・• * . ☆ﾟ
+ *
  * @param {object} files - Is a dictionary of files, filename is the key ex: myfile = files[filename]
  * @param {string} msgPosition - Parser config. Content to attach is "before", "after" or "closest"
  * (empty for default) to each location.
@@ -29,7 +31,8 @@ function useContentMerger({ files, msgPosition}) {
             let features = [];
             for (let filename in files) {
 
-                // Parse data from chats. This is where the magic happens!  ・• * . ☆ﾟ
+                // Parse data from chats with the corresponding parser
+                // depending on the chat app (ex: WhatsApp, Telegram or Signal)
                 const parser = await getAppParser(files[filename]);
 
                 // Concatenate data from all uploaded chats

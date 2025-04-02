@@ -9,7 +9,7 @@ import extent from 'turf-extent';
  *
  * @param {object} properties Properties object for the message
  * @param {object} dataFiles Files with data
- * @returns Gets content for message (text message, image, video)
+ * @returns {string} Message (text message or HTML for image, video)
  */
 const getMessage = (properties, dataFiles) => {
   if (properties.file && dataFiles && properties.file in dataFiles) {
@@ -25,7 +25,7 @@ const getMessage = (properties, dataFiles) => {
 /**
  *
  * @param {object} properties Message properties
- * @returns A formate and padded datetime, ex: 02:15
+ * @returns {string} A formatted and padded datetime, ex: 02:15
  */
 const formatDate = (properties) => {
   const d = new Date(properties.time);
@@ -38,7 +38,7 @@ const formatDate = (properties) => {
  *
  * @param {object} data Messages data
  * @param {object} dataFiles Files data
- * @returns
+ * @returns {React.ReactElement} Map component
  */
 export default function Map({ data, dataFiles }) {
     // A div for the map
