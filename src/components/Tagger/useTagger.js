@@ -7,13 +7,31 @@ import { useState } from 'react';
  */
 function useTagger() {
 
-    const [tags, setTags] = useState({});
+    const [allTags, setAllTags] = useState({});
 
-    const addTag = (key, value) => {
-        setTags(prev => ({...prev, [key]: value}));
+    const add = (id, key, value) => {
+        return setAllTags(prev => ({
+            ...prev,
+            [id]: {
+                ...prev[id],
+                [key]: value
+            }
+        }));
     }
 
-    return [tags, addTag];
+    const remove = (id, key) => {
+        return setAllTags(prev => {
+            const newTags = { ...prev };
+            delete newTags[id][key];
+            return newTags;
+        });
+    }
+
+    const tags = (id) => {
+        return allTags[id];
+    }
+
+    return [add, remove, tags];
 
 }
 

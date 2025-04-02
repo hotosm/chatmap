@@ -60,7 +60,7 @@ export default function Popup ({
       closeButton={true}
       >
       <div className="activePopupFeatureContent">
-        <Tagger />
+        <Tagger featureId={feature.properties.id} />
         <p>
           <span className="msgUsername">{feature.properties.username}</span>
           <span className="msgDatetime">{formatDate(feature.properties)}</span>

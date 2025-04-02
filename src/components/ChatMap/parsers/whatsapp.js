@@ -149,6 +149,7 @@ export default function whatsAppParser({ text, msgPosition }) {
     // Read each message.
     // When a location has been found, look for the closest
     // content from the same user, and attach it to the message.
+    let msgId = 0;
     msgObjects.forEach((msgObject, index) => {
         if (msgObject.message) {
 
@@ -183,6 +184,8 @@ export default function whatsAppParser({ text, msgPosition }) {
                 }
                 // Add the GeoJSON feature
                 featureObject.properties = {...message};
+                featureObject.properties.id = msgId;
+                msgId += 1;
                 geoJSON.features.push(featureObject);
             }
         }
