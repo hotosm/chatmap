@@ -3,6 +3,7 @@ import { Popup as PopupGL } from "maplibre-gl";
 import { createRoot } from "react-dom/client";
 import { formatDate, getMessage } from "./utils";
 import Tagger from '../Tagger';
+// import { MapDataProvider } from '../../context/MapDataContext';
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
@@ -12,7 +13,7 @@ const PopupGLWrapper = ({
   closeOnMove,
   closeButton,
   closeOnClick,
-  popupRef
+  popupRef,
 }) => {
 
   const containerRef = useRef(document.createElement("div"));
@@ -49,8 +50,11 @@ const PopupGLWrapper = ({
 export default function Popup ({
   feature,
   popupRef,
-  dataFiles
+  dataFiles,
+  onAddTag,
+  onRemoveTag
 }) {
+  
   return (
     <PopupGLWrapper
       longitude={feature.geometry.coordinates[0]}
@@ -60,7 +64,11 @@ export default function Popup ({
       closeButton={true}
       >
       <div className="activePopupFeatureContent">
-        <Tagger featureId={feature.properties.id} />
+        <Tagger
+          tags={feature.properties.tags || {}}
+          onAddTag={(tag_key, tag_value) => onAddTag(tag_key, tag_value, feature)} 
+          onRemoveTag={(tag_key, tag_value) => onRemoveTag(tag_key, tag_value, feature)} 
+        />
         <p>
           <span className="msgUsername">{feature.properties.username}</span>
           <span className="msgDatetime">{formatDate(feature.properties)}</span>

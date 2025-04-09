@@ -1,5 +1,5 @@
 {
-    "app.subtitle": "Exporte e carregue um bate-papo para visualizar locais, mensagens e mídia",
+    "app.subtitle": "Exporta un chat y súbalo para visualizar, localizaciones, mensajes y multimedia",
     "app.config.msgPositionTextStart": "Buscará localizaciones y el",
     "app.config.msgPositionTextEnd": "mensaje del mismo usuario.",
     "app.config.closestPreviousMsg": "anterior",

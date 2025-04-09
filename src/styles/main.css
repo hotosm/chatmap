@@ -6,6 +6,9 @@
   http://github.com/hotosm/ui-design
 */
 
+@import url(./hot.css);
+@import url(./hot-font-face.css);
+
 /* defaults */
 
 body {
