@@ -1,20 +1,19 @@
-// MapDataContext.jsx
 import { createContext, useContext, useReducer } from 'react';
 
-// Create a context to hold the state
 const MapDataContext = createContext();
 
-// Define the initial state
+// Initial state
 const initialState = {
   type: "FeatureCollection",
   features: []
 };
 
-// Define the reducer function to handle state transitions
+// Reducer
 const reducer = (state, action) => {
   switch (action.type) {
     case 'set':
       return { ...state, ...action.payload };
+
     case 'add_tag': {
       const newState = { ...state };
       newState.features.forEach((feature) => {
@@ -27,6 +26,7 @@ const reducer = (state, action) => {
       });
       return newState;
     };
+
     case 'remove_tag': {
       const newState = { ...state };
       newState.features.forEach((feature) => {
@@ -41,8 +41,7 @@ const reducer = (state, action) => {
   }
 }
 
-// Create a component that will provide the context
-// MapDataProvider takes in an argument called children
+// Provider
 export const MapDataProvider = (props) => {
   const [data, mapDataDispatch] = useReducer(reducer, initialState);
 
@@ -53,7 +52,7 @@ export const MapDataProvider = (props) => {
   );
 }
 
-// Create a function that invokes the context 
+// Hook
 export const useMapDataContext = () => {
   return useContext(MapDataContext);
 }
