@@ -18,7 +18,7 @@ function App() {
     msgPosition: "closest"
   });
 
-  // Manage files and data files.
+  // File Manager: Manages files and data files.
   // - handleFiles: handle all chat files
   // - handleDataFile: handle all other files (images, videos)
   // - resetFileManager: clear files and data files states
@@ -26,13 +26,18 @@ function App() {
   // - dataFiles: stores all other files (images, videos)
   const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
 
+  // Content Merger: Handle chat content
+  // - mapData: ready to use GeoJSON data created from chats
+  // - resetMerger: clean everthing to upload a new file
   const [mapData, resetMerger] = useContentMerger({
     files: files,
     msgPosition: settings.msgPosition
   });
 
+  // Map Data Context: Manages map data 
   const { data, mapDataDispatch } = useMapDataContext();
 
+  // Updates map data context with new map data
   useEffect(() => {
     mapDataDispatch({
       type: 'set',
@@ -80,7 +85,7 @@ function App() {
           </>
         }
 
-        {/* Show the map! */}
+        {/* There's data, show the map! */}
         { dataAvailable && 
           <Map data={data} dataFiles={dataFiles} />
         }

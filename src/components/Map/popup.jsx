@@ -67,7 +67,7 @@ export default function Popup ({
         <Tagger
           tags={feature.properties.tags || {}}
           onAddTag={(tag_key, tag_value) => onAddTag(tag_key, tag_value, feature)} 
-          onRemoveTag={(tag_key, tag_value) => onRemoveTag(tag_key, tag_value, feature)} 
+          onRemoveTag={(tag_key, tag_value) => onRemoveTag(tag_key, feature)} 
         />
         <p>
           <span className="msgUsername">{feature.properties.username}</span>

@@ -14,6 +14,16 @@ const reducer = (state, action) => {
     case 'set':
       return { ...state, ...action.payload };
 
+    case 'update_feature_props': {
+      const newState = { ...state };
+      newState.features.forEach((feature) => {
+        if (feature.properties.id === action.payload.id) {
+          feature.properties = action.payload.properties;
+        }
+      });
+      return newState;
+    }
+
     case 'add_tag': {
       const newState = { ...state };
       newState.features.forEach((feature) => {

@@ -98,30 +98,33 @@ export default function Map({ dataFiles }) {
       popupRef.current.addTo(map.current);
     }, [activePopupFeature]);
 
-    // Handle tags changes
-    const handleTagChange = (action, tag_key, tag_value, feature) => {
-      // TODO: DRY
-      // Update map data store
-      mapDataDispatch({
-          type: action,
-          payload: {
-              tag_key: tag_key,
-              tag_value: tag_value,
-              id: feature.properties.id
-          }
-      });
-      // Update popup
-      const activeFeature = {...feature};
-      if (action == "add_tag") {
-        activeFeature.properties.tags = {
-          ...activeFeature.properties.tags,
-          [tag_key]: tag_value
-        }
-      } else {
-        delete activeFeature.properties.tags[tag_key];
-      }
-      setActivePopupFeature(activeFeature);
+    // Tag handlers
 
+    const handleAddTag = (tag_key, tag_value, feature) => {
+      if (!feature.properties.tags) {
+        feature.properties.tags = {};
+      }
+      feature.properties.tags = {
+        ...feature.properties.tags,
+        [tag_key]: tag_value
+      }
+      handleChange(feature);
+    };
+
+    const handleRemoveTag = (tag_key, feature) => {
+        delete feature.properties.tags[tag_key];
+        handleChange(feature);
+    }
+
+    const handleChange = (feature) => {
+      mapDataDispatch({
+        type: "update_feature_props",
+        payload: {
+            properties: feature.properties,
+            id: feature.properties.id
+        }
+      });
+      setActivePopupFeature(feature);
     }
 
     return (
@@ -132,14 +135,8 @@ export default function Map({ dataFiles }) {
             popupRef={popupRef}
             feature={activePopupFeature}
             dataFiles={dataFiles}
-            onAddTag={
-              (tag_key, tag_value, feature) => 
-                handleTagChange("add_tag", tag_key, tag_value, feature)
-            }
-            onRemoveTag={
-              (tag_key, tag_value, feature) => 
-                handleTagChange("remove_tag", tag_key, tag_value, feature)
-            }
+            onAddTag={handleAddTag}
+            onRemoveTag={handleRemoveTag}
           />
         }
       </div>
