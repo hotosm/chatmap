@@ -52,7 +52,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| Download a .zip file with GeoJSON and images to save the map in umap.hotosm.org |
 |✅| Add tests |
 |✅| Include videos in .zip download |
-|⚙️| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
+|✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
 |⚙️| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 |⚙️| [Support audio](https://github.com/hotosm/chatmap/issues/5) |
 
