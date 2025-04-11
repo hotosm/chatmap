@@ -1,5 +1,6 @@
 {
-    "app.subtitle": "Exporta un chat y súbalo para visualizar, localizaciones, mensajes y multimedia",
+
+    "app.subtitle": "Exporta un chat y súbelo para visualizar, localizaciones, mensajes y multimedia",
     "app.config.msgPositionTextStart": "Buscará localizaciones y el",
     "app.config.msgPositionTextEnd": "mensaje del mismo usuario.",
     "app.config.closestPreviousMsg": "anterior",
@@ -13,4 +14,3 @@
     "app.loading": "Cargando",
     "app.supportedApps": "Ahora funciona con WhatsApp, Telegram o Signal!"
 }
-  
