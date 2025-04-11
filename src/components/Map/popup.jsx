@@ -25,6 +25,8 @@ const PopupGLWrapper = ({
         closeOnMove,
         closeButton,
         className: "popup",
+        maxWidth: '300px',
+        anchor: 'left',
       });
     }
     popupRef.current.setLngLat([longitude, latitude]);

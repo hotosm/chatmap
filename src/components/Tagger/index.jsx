@@ -8,10 +8,12 @@ export default function Tagger({
 }) {
     const textRef = useRef();
 
+    // Remove a tag
     const removeTagHandler = (key) => {
         onRemoveTag && onRemoveTag(key);
     };
 
+    // Handle 'Enter' key / add tags
     const handleKeyDown = (event) => {
         if (event.key === 'Enter' && textRef.current.value) {
             onAddTag && onAddTag(textRef.current.value);
@@ -20,10 +22,10 @@ export default function Tagger({
         }
     }
 
+    // Focus on load
     useEffect(() => {
         textRef.current.focus()
     });
-    
 
     return (
         <div className="tagger">

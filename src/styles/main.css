@@ -106,7 +106,7 @@ a {
 .tagsOptions {
   position: absolute;
   right: 15px;
-  top: 148px;
+  top: 142px;
   z-index: 9999;
 }
 
@@ -211,8 +211,8 @@ a {
   font-size: var(--hot-font-size-medium);
 }
 
-.popup {
-  min-height: 70vh;
+.popup .maplibregl-popup-content {
+  padding: 0;
 }
 
 .popupImage {

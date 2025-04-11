@@ -18,6 +18,7 @@ export default function Map({ dataFiles }) {
     const map = useRef(null);
     // Map popup
     const [activePopupFeature, setActivePopupFeature] = useState(null);
+    const [featureIndex, setFeatureIndex] = useState(0);
     const popupRef = useRef(null);
 
     const { data, mapDataDispatch } = useMapDataContext();
@@ -77,11 +78,41 @@ export default function Map({ dataFiles }) {
           if (feature.properties["tags"]) {
             feature.properties.tags = JSON.parse(feature.properties.tags);
           }
+          data.features.forEach((item, index) => {
+            if (feature.properties.id == item.properties.id) {
+              setFeatureIndex(index);
+            }
+          });
+          
           setActivePopupFeature(feature);
         });
 
       });
     }, [data, popupRef]);
+
+    // Next, prev arrows
+    useEffect(() => {
+      const handleKeyDown = (event) => {
+        if (event.key === 'ArrowLeft') {
+          if (featureIndex > 0) {
+            setActivePopupFeature(data.features[featureIndex - 1]);
+            setFeatureIndex(featureIndex - 1);  
+          }
+        } else if (event.key === 'ArrowRight') {
+          if (featureIndex < data.features.length - 1) {
+            setActivePopupFeature(data.features[featureIndex + 1]);
+            setFeatureIndex(featureIndex + 1);
+          }
+        }
+      };
+      map.current.flyTo({
+        center: data.features[featureIndex].geometry.coordinates
+      });
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [featureIndex]); 
 
     useEffect(() => {
       if (map.current.getSource("locations")) {

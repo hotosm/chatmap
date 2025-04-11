@@ -26,7 +26,7 @@ export const getMessage = (properties, dataFiles) => {
       const url = URL.createObjectURL(dataFiles[properties.file]);
       return <a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a>
     } else if (properties.file.endsWith("mp4")) {
-      return <video controls autoplay loop className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
+      return <video controls autoPlay loop className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
     }
   }
   return properties.message;
