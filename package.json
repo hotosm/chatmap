@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@babel/core": "^7.26.10",
+    "@shoelace-style/shoelace": "^2.20.1",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "maplibre-gl": "^4.3.2",

@@ -23,7 +23,8 @@ export const formatDate = (properties) => {
 export const getMessage = (properties, dataFiles) => {
   if (properties.file && dataFiles && properties.file in dataFiles) {
     if (properties.file.endsWith("jpg") || properties.file.endsWith("jpeg")) {
-      return <img className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
+      const url = URL.createObjectURL(dataFiles[properties.file]);
+      return <img className="popupImage" alt="Message attached file" src={url} />
     } else if (properties.file.endsWith("mp4")) {
       return <video controls autoplay loop className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
     }

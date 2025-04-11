@@ -7,6 +7,7 @@
 */
 
 @import url(./hot.css);
+@import url(./hot-sl.css);
 @import url(./hot-font-face.css);
 
 /* defaults */
@@ -44,61 +45,6 @@ a {
   font-size: 1rem;
   background-color: var(--hot-color-yellow-100);
   padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
-}
-
-/* UI components */
-
-.primaryButton, .secondaryButton {
-  padding: var(--hot-spacing-small);
-  border-radius: var(--hot-border-radius-medium);
-  text-decoration: none;
-  display: inline-block;
-  margin: var(--hot-spacing-3x-small);
-  font-weight: var(--hot-font-weight-bold);
-  font-size: var(--hot-font-size-medium);
-  box-shadow: none;
-  border: none;
-  cursor: pointer;
-}
-
-.textButton {
-  padding: var(--hot-spacing-small) var(--hot-spacing-medium);
-  text-decoration: none;
-  display: inline-block;
-  font-weight: var(--hot-font-weight-normal);
-  font-size: var(--hot-font-size-small);
-  box-shadow: none;
-  border: none;
-  background: transparent;
-  color: var(--hot-color-neutral-300);
-  cursor: pointer;
-}
-
-.textButton:hover {
-  text-decoration: underline;
-}
-
-.primaryButton {
-  background-color: var(--hot-color-primary-700);
-  color: var(--hot-color-neutral-0);
-}
-
-.secondaryButton {
-  background-color:  var(--hot-color-blue-50);
-  color: var(--hot-color-blue-700);
-}
-
-.smallButton {
-  padding: var(--hot-spacing-x-small);
-  border-radius: var(--hot-border-radius-small);
-  margin: var(--hot-spacing-x-large);
-  font-size: var(--hot-font-size-small);
-}
-
-
-.textInput {
-  border: 1px solid var(--hot-color-neutral-300);
-  padding: var(--hot-spacing-2x-small);
 }
 
 /* Header */
@@ -150,6 +96,15 @@ a {
 
 .subtitle {
   font-size: calc(var(--hot-font-size-medium) + 1vmin);
+}
+
+.fileOptions {
+  display: flex;
+  gap: 10px;
+}
+
+.header sl-button::part(label) {
+  font-weight: bold;
 }
 
 /* Nav bar */
@@ -355,3 +310,4 @@ a {
 .errorMessage .logo {
   height: var(--hot-font-size-3x-large);
 }
+

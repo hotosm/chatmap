@@ -6,12 +6,15 @@ function NavBar({ onOptionClick }) {
     return (
     <>
         <div className="appNav">
-            <button className="textButton" onClick={ () => onOptionClick("options") }>
+            <sl-button
+                variant="text"
+                onClick={ () => onOptionClick("options") }
+            >
             <FormattedMessage
                 id = "app.options"
                 defaultMessage="Options"
             />
-            </button>
+            </sl-button>
         </div>
     </>
     );

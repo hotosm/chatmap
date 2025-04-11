@@ -24,28 +24,18 @@ const reducer = (state, action) => {
       return newState;
     }
 
-    case 'add_tag': {
-      const newState = { ...state };
-      newState.features.forEach((feature) => {
-        if (feature.properties.id === action.payload.id) {
-          if (!feature.properties.tags) {
-            feature.properties.tags = {};
+    case 'get_tags': {
+      const tags = {};
+      state.features.forEach((feature) => {
+        Object.keys(feature.tags).forEach((tagKey) => {
+          if (!tags[tagKey]) {
+            tags[tagKey] = feature.tags[tagKey];
           }
-          feature.properties.tags[action.payload.tag_key] = action.payload.tag_value;
-        }
+        });
       });
-      return newState;
-    };
+      return tags;
+    }
 
-    case 'remove_tag': {
-      const newState = { ...state };
-      newState.features.forEach((feature) => {
-        if (feature.properties.id === action.payload.id) {
-          delete feature.properties.tags[action.payload.tag_key];
-        }
-      });
-      return newState;
-    };
     default:
       throw new Error();
   }

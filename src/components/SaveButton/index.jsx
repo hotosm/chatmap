@@ -17,7 +17,17 @@ function createAndDownloadZip(data, dataFiles) {
   const media_files = data.features.map(x => x.properties.file);
 
   // Add GeoJSON data to the zip file
-  const geoJsonBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const newData = {
+    ...data
+  }
+  newData.features.forEach(feature => {
+    if (feature.properties.tags) {
+      feature.properties.tags = Object.keys(feature.properties.tags).map = (tagKey) => (
+        `${tagKey}_${feature.properties.tags[tagKey]}`
+      )
+    }
+  })
+  const geoJsonBlob = new Blob([JSON.stringify(newData)], { type: 'application/json' });
   zip.file('data.geojson', geoJsonBlob);
 
   // Add each blob file to the zip file
@@ -42,12 +52,15 @@ function SaveButton({ data, dataFiles }) {
   };
 
   return (
-    <button className="primaryButton" onClick={handleClick}>
+    <sl-button
+      variant="primary"
+      onClick={handleClick}
+    >
       <FormattedMessage
         id = "app.download"
         defaultMessage="Download"
       />
-    </button>
+    </sl-button>
   );
 }
 

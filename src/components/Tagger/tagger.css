@@ -1,9 +1,18 @@
-.tags {
-    display: flex;
-    gap: var(--hot-spacing-x-small);
+
+.tagger {
+    margin: var(--hot-spacing-x-small);
+    text-align: left;
 }
 
-.tag {
+.tagger .tags {
+    display: flex;
+    gap: var(--hot-spacing-x-small);
+    margin-top: var(--hot-spacing-x-small);
+    width: 90%;
+    flex-wrap: wrap;
+}
+
+.tagger .tag {
     border: 1px solid var(--hot-color-blue-500);
     text-decoration: none;
     display: inline-block;
@@ -15,3 +24,7 @@
     font-size: var(--hot-font-size-small);
 }
 
+.tagger .textInput {
+    margin: 0;
+    width: 95%;
+}

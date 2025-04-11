@@ -10,12 +10,14 @@ export default function FileUploadSection({ handleNewUploadClick }) {
           defaultMessage="No locations found in this file"
         />
       </h2>
-      <button onClick={handleNewUploadClick} className="secondaryButton">
+      <sl-button
+        onClick={handleNewUploadClick}
+      >
       <FormattedMessage
           id = "app.uploadNewFile"
           defaultMessage="Upload new file"
         /> 
-      </button>
+      </sl-button>
   </>
   );
 };

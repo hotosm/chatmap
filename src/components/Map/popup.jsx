@@ -64,11 +64,6 @@ export default function Popup ({
       closeButton={true}
       >
       <div className="activePopupFeatureContent">
-        <Tagger
-          tags={feature.properties.tags || {}}
-          onAddTag={(tag_key, tag_value) => onAddTag(tag_key, tag_value, feature)} 
-          onRemoveTag={(tag_key, tag_value) => onRemoveTag(tag_key, feature)} 
-        />
         <p>
           <span className="msgUsername">{feature.properties.username}</span>
           <span className="msgDatetime">{formatDate(feature.properties)}</span>
@@ -76,6 +71,11 @@ export default function Popup ({
         <p>
           { getMessage(feature.properties, dataFiles) }
         </p>
+        <Tagger
+          tags={feature.properties.tags || {}}
+          onAddTag={(tag_key, tag_value) => onAddTag(tag_key, tag_value, feature)} 
+          onRemoveTag={(tag_key, tag_value) => onRemoveTag(tag_key, feature)} 
+        />
       </div>
     </PopupGLWrapper>
   )

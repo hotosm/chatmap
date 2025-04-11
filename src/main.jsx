@@ -8,6 +8,7 @@ import En from './int/en.json';
 import Es from './int/es.json';
 import Pt from './int/pt.json';
 import { MapDataProvider } from './context/MapDataContext';
+import '@shoelace-style/shoelace/dist/components/button/button.js';
 
 const locales = {
   "en": En,
