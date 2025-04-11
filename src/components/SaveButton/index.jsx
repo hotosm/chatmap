@@ -20,11 +20,12 @@ function createAndDownloadZip(data, dataFiles) {
   const newData = {
     ...data
   }
+
+  // Convert tags object to string
+  // Ex: { building: yes } to "building_yes"
   newData.features.forEach(feature => {
     if (feature.properties.tags) {
-      feature.properties.tags = Object.keys(feature.properties.tags).map = (tagKey) => (
-        `${tagKey}_${feature.properties.tags[tagKey]}`
-      )
+      feature.properties.tags = feature.properties.tags.join(",");
     }
   })
   const geoJsonBlob = new Blob([JSON.stringify(newData)], { type: 'application/json' });

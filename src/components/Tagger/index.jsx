@@ -13,13 +13,9 @@ export default function Tagger({
     };
 
     const handleKeyDown = (event) => {
-        if (event.key === 'Enter') {
-            const keyval = textRef.current.value.split("=");
-            if (keyval[0]) {
-                const [key, value] = [keyval[0], keyval[1] || ""];
-                onAddTag && onAddTag(key, value);
-                textRef.current.value = "";
-            }
+        if (event.key === 'Enter' && textRef.current.value) {
+            onAddTag && onAddTag(textRef.current.value);
+            textRef.current.value = "";
             event.preventDefault();
         }
     }
@@ -41,17 +37,17 @@ export default function Tagger({
                 <sl-icon name="tags" slot="suffix"></sl-icon>
             </sl-input>
             <div className="tags">
-                {Object.keys(tags).map(key =>
+                {tags && tags.map(tag =>
                     <sl-button
                         variant="neutral"
                         size="small"
                         outline
-                        onClick={() => removeTagHandler(key)}
+                        onClick={() => removeTagHandler(tag)}
                         pill
-                        key={`${key}_${tags[key]}`}
+                        key={`${tag}`}
                     >
                         <sl-icon name="x-circle" slot="prefix"></sl-icon>
-                        {key}{tags[key] ? `=${tags[key]}` : ""}
+                        {tag}
                     </sl-button>
                 )}
             </div>

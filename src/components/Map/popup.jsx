@@ -71,9 +71,9 @@ export default function Popup ({
           { getMessage(feature.properties, dataFiles) }
         </p>
         <Tagger
-          tags={feature.properties.tags || {}}
-          onAddTag={(tag_key, tag_value) => onAddTag(tag_key, tag_value, feature)} 
-          onRemoveTag={(tag_key, tag_value) => onRemoveTag(tag_key, feature)} 
+          tags={feature.properties.tags || []}
+          onAddTag={tag => onAddTag(tag, feature)} 
+          onRemoveTag={tag => onRemoveTag(tag, feature)} 
         />
       </div>
     </PopupGLWrapper>

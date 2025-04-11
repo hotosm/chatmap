@@ -8,7 +8,6 @@ import { useMapDataContext } from '../../context/MapDataContext';
 
 /**
  *
- * @param {object} data Messages data
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
  */
@@ -75,7 +74,7 @@ export default function Map({ dataFiles }) {
         map.current.on("click", "pois",  (e) => {
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
-          if ("tags" in feature.properties) {
+          if (feature.properties["tags"]) {
             feature.properties.tags = JSON.parse(feature.properties.tags);
           }
           setActivePopupFeature(feature);
@@ -93,7 +92,7 @@ export default function Map({ dataFiles }) {
               ...data,
               features: [
                 ...data.features.filter(feature => 
-                  feature.properties.tags && data.filterTag in feature.properties.tags
+                  feature.properties.tags && feature.properties.tags.indexOf(data.filterTag) > -1
                 )
               ]
             });
@@ -114,19 +113,16 @@ export default function Map({ dataFiles }) {
 
     // Tag handlers
 
-    const handleAddTag = (tag_key, tag_value, feature) => {
+    const handleAddTag = (tag, feature) => {
       if (!feature.properties.tags) {
-        feature.properties.tags = {};
+        feature.properties.tags = [];
       }
-      feature.properties.tags = {
-        ...feature.properties.tags,
-        [tag_key]: tag_value
-      }
+      feature.properties.tags.push(tag);
       handleChange(feature);
     };
 
-    const handleRemoveTag = (tag_key, feature) => {
-        delete feature.properties.tags[tag_key];
+    const handleRemoveTag = (tag, feature) => {
+        feature.properties.tags = feature.properties.tags.filter(x => x != tag);
         handleChange(feature);
     }
 

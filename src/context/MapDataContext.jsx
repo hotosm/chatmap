@@ -25,18 +25,6 @@ const reducer = (state, action) => {
       return newState;
     }
 
-    case 'get_tags': {
-      const tags = {};
-      state.features.forEach((feature) => {
-        Object.keys(feature.tags).forEach((tagKey) => {
-          if (!tags[tagKey]) {
-            tags[tagKey] = feature.tags[tagKey];
-          }
-        });
-      });
-      return tags;
-    }
-
     case 'set_filter_tag':
       return { ...state, ...{filterTag: action.payload.tag } };
 
