@@ -8,9 +8,11 @@ be used for anything else.
 
 ### Try it here! [chatmap.hotosm.org](https://chatmap.hotosm.org)
 
+Check this quick [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (2:47) for more info about how to use it.
+
 ---
 
-<img width="957" alt="Screenshot 2025-01-12 at 5 46 39 PM" src="https://github.com/user-attachments/assets/27356785-b5ed-424d-b45e-63af4fc87673" />
+<img width="959" alt="Screenshot 2025-04-11 at 12 10 04 PM" src="https://github.com/user-attachments/assets/1f045037-02d9-458f-ba65-8d1bad5eb983" />
 
 ## Install and run
 
