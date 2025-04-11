@@ -91,28 +91,28 @@ export default function Map({ dataFiles }) {
     }, [data, popupRef]);
 
     // Next, prev arrows
-    useEffect(() => {
-      const handleKeyDown = (event) => {
-        if (event.key === 'ArrowLeft') {
-          if (featureIndex > 0) {
-            setActivePopupFeature(data.features[featureIndex - 1]);
-            setFeatureIndex(featureIndex - 1);  
-          }
-        } else if (event.key === 'ArrowRight') {
-          if (featureIndex < data.features.length - 1) {
-            setActivePopupFeature(data.features[featureIndex + 1]);
-            setFeatureIndex(featureIndex + 1);
-          }
-        }
-      };
-      map.current.flyTo({
-        center: data.features[featureIndex].geometry.coordinates
-      });
-      window.addEventListener("keydown", handleKeyDown);
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-      };
-    }, [featureIndex]); 
+    // useEffect(() => {
+      // const handleKeyDown = (event) => {
+        // if (event.key === 'ArrowLeft') {
+        //   if (featureIndex > 0) {
+        //     setActivePopupFeature(data.features[featureIndex - 1]);
+        //     setFeatureIndex(featureIndex - 1);  
+        //   }
+        // } else if (event.key === 'ArrowRight') {
+        //   if (featureIndex < data.features.length - 1) {
+        //     setActivePopupFeature(data.features[featureIndex + 1]);
+        //     setFeatureIndex(featureIndex + 1);
+        //   }
+        // }
+      // };
+      // map.current.flyTo({
+      //   center: data.features[featureIndex].geometry.coordinates
+      // });
+      // window.addEventListener("keydown", handleKeyDown);
+      // return () => {
+      //   window.removeEventListener("keydown", handleKeyDown);
+      // };
+    // }, [featureIndex]); 
 
     useEffect(() => {
       if (map.current.getSource("locations")) {
@@ -141,6 +141,15 @@ export default function Map({ dataFiles }) {
       setActivePopupFeature(activePopupFeature);
       popupRef.current.addTo(map.current);
     }, [activePopupFeature]);
+
+    //
+    useEffect(() => {
+      if (!map.current || !activePopupFeature) return;
+      if (data.filterTag) {
+        setActivePopupFeature(null);
+        popupRef.current.remove()
+      }
+    }, [data.filterTag])
 
     // Tag handlers
 

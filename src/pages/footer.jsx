@@ -11,9 +11,11 @@ export default function Footer() {
     <div className="infoLinks">
         <div className="copy">
             <a className="github" href="https://github.com/hotosm/chatmap"></a>
-            <span>Free and Open Source Software</span>
+            <a href="https://github.com/hotosm/chatmap">Free Software</a>
         </div>
-        <a href="https://www.hotosm.org/privacy">We collect zero data. https://www.hotosm.org/privacy</a>
+        <a href="https://www.hotosm.org/privacy">- We collect zero data. hotosm.org/privacy -</a>
+        &nbsp;
+        <a href="https://github.com/hotosm/chatmap">v0.4.0</a>
     </div>
     </>
   );

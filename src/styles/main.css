@@ -131,7 +131,6 @@ a {
   margin-left: var(--hot-spacing-x-small);
   height: 3vmin;
   pointer-events: none;
-  font-size: var(--hot-font-size-small);
   padding: 1vh;
   color: var(--hot-color-neutral-300);
 }
@@ -157,7 +156,7 @@ a {
   text-align: center;
   bottom: 0;
   padding: 2vh;
-  font-size: var(--hot-font-size-small);
+  font-size: var(--hot-font-size-x-small);
   background-color: var(--hot-color-neutral-0);
 }
 
@@ -168,11 +167,10 @@ a {
 
 /* File upload */
 
-.fileUpload, .map {
+.fileUpload {
   text-align: center;
   justify-content: center;
   display: flex;
-  min-height: 83vh;
 }
 
 .fileUpload {
@@ -205,6 +203,9 @@ a {
 .map {
   width: 100vw;
   height: 83vh;
+  text-align: center;
+  justify-content: center;
+  display: flex;
 }
 
 .activePopupFeatureContent {
