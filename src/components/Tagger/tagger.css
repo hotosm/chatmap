@@ -1,6 +1,6 @@
 
 .tagger {
-    margin: var(--hot-spacing-x-small);
+    margin: 0 var(--hot-spacing-x-small) var(--hot-spacing-x-small);
     text-align: left;
 }
 

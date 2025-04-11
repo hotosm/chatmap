@@ -27,14 +27,21 @@ export default class ErrorBoundary extends React.Component {
             </header>
             <div>
               <h2>Oops! something went wrong 🫢</h2>
-              <h3>Let us know of this error so we can fix it as soon as possible.</h3>
+              <h3>Let us know of this error so we can fix it as soon as possible!</h3>
               <p>
                 <strong className="highlighted">Please, send the detail below to <a href={mailLink}>emilio.mariscal@hotosm.org</a></strong>
-                <br />or create an issue in <a href="https://github.com/hotosm/chatmap/issues">github.com/hotosm/chatmap/issues</a>
+                <br /><br />or create an issue in <a href="https://github.com/hotosm/chatmap/issues">github.com/hotosm/chatmap/issues</a>
               </p>
               <div className="buttons">
-                <a className="primaryButton" href={"/"}>Go back</a>
-                <a className="secondaryButton" href={mailLink}>Send error report</a>
+                <sl-button variant="success" href={"/"}>
+                  Reload
+                  <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
+                </sl-button>
+                
+                <sl-button variant="primary" href={mailLink}>
+                    Send error report
+                    <sl-icon name="envelope-plus" slot="prefix"></sl-icon>
+                </sl-button>
               </div>
               <pre>
                 <strong>Error:</strong> {errorMsg}

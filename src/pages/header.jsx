@@ -21,6 +21,13 @@ export default function Header({
         return accumulator;
     }, {});
 
+    const selectTagHandler = tag => {
+        mapDataDispatch({
+            type: 'set_filter_tag',
+            payload: {tag: tag},
+        });
+    }
+
     return (
         <>
 
@@ -39,6 +46,7 @@ export default function Header({
                     <SaveButton data={data} dataFiles={dataFiles} />
                     <sl-button
                         variant="success"
+                        outline
                         onClick={handleNewUploadClick}
                     >
                         <FormattedMessage
@@ -47,7 +55,9 @@ export default function Header({
                         /> 
                     </sl-button>
                 </div>
-                <TagsOptions tags={tags} />
+                <div className="tagsOptions">
+                    <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
+                </div>
             </>
             :
             <>

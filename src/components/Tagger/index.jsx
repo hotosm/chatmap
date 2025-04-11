@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import "./tagger.css";
 
 export default function Tagger({
@@ -20,26 +20,39 @@ export default function Tagger({
                 onAddTag && onAddTag(key, value);
                 textRef.current.value = "";
             }
+            event.preventDefault();
         }
     }
 
+    useEffect(() => {
+        textRef.current.focus()
+    });
+    
+
     return (
         <div className="tagger">
-            <input
+            <sl-input
+                size="small"
                 onKeyDown={handleKeyDown}
                 ref={textRef}
-                className="textInput"
-                type="text"
+                autofocus
                 placeholder="Your tag here"
-            />
+            >
+                <sl-icon name="tags" slot="suffix"></sl-icon>
+            </sl-input>
             <div className="tags">
                 {Object.keys(tags).map(key =>
-                    <span
+                    <sl-button
+                        variant="neutral"
+                        size="small"
+                        outline
                         onClick={() => removeTagHandler(key)}
-                        className="tag"
+                        pill
                         key={`${key}_${tags[key]}`}
-                    > {key}{tags[key] ? `=${tags[key]}` : ""}
-                    </span>
+                    >
+                        <sl-icon name="x-circle" slot="prefix"></sl-icon>
+                        {key}{tags[key] ? `=${tags[key]}` : ""}
+                    </sl-button>
                 )}
             </div>
         </div>

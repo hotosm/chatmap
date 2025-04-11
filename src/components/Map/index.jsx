@@ -87,7 +87,21 @@ export default function Map({ dataFiles }) {
     useEffect(() => {
       if (map.current.getSource("locations")) {
         // Add geojson data source
-        map.current.getSource('locations').setData(data);
+        if (data.filterTag) {
+          {
+            map.current.getSource('locations').setData({
+              ...data,
+              features: [
+                ...data.features.filter(feature => 
+                  feature.properties.tags && data.filterTag in feature.properties.tags
+                )
+              ]
+            });
+          }
+        } else {
+          map.current.getSource('locations').setData(data);
+        }
+        
       }
     }, [data]);
 

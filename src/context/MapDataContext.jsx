@@ -5,7 +5,8 @@ const MapDataContext = createContext();
 // Initial state
 const initialState = {
   type: "FeatureCollection",
-  features: []
+  features: [],
+  filterTag: null,
 };
 
 // Reducer
@@ -35,6 +36,9 @@ const reducer = (state, action) => {
       });
       return tags;
     }
+
+    case 'set_filter_tag':
+      return { ...state, ...{filterTag: action.payload.tag } };
 
     default:
       throw new Error();

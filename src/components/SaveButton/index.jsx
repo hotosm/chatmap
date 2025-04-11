@@ -60,6 +60,7 @@ function SaveButton({ data, dataFiles }) {
         id = "app.download"
         defaultMessage="Download"
       />
+      <sl-icon name="save2" slot="prefix"></sl-icon>
     </sl-button>
   );
 }

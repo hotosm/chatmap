@@ -7,7 +7,6 @@ import Footer from '../footer.jsx';
 import FileUploadSection from './fileUpload.section.jsx';
 import NoLocationsSection from './noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
-import Tagger from '../../components/Tagger';
 
 const Map = lazy(() => import('../../components/Map/index.jsx'));
 
@@ -88,7 +87,10 @@ function App() {
 
         {/* There's data, show the map! */}
         { dataAvailable && 
-          <Map data={data} dataFiles={dataFiles} />
+          <Map 
+            data={data}
+            dataFiles={dataFiles}
+          />
         }
 
         {/* If there are no locations, show a message */}

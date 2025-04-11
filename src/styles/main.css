@@ -103,7 +103,14 @@ a {
   gap: 10px;
 }
 
-.header sl-button::part(label) {
+.tagsOptions {
+  position: absolute;
+  right: 15px;
+  top: 148px;
+  z-index: 9999;
+}
+
+.header .fileOptions sl-button::part(label) {
   font-weight: bold;
 }
 
@@ -205,11 +212,16 @@ a {
 }
 
 .popup {
-  min-width: 20vw;
+  min-height: 70vh;
 }
 
 .popupImage {
   width: 92%;
+  border-radius: var(--hot-border-radius-medium);
+}
+
+.userinfo {
+  font-size: var(--hot-font-size-small);
 }
 
 .msgUsername {
@@ -224,7 +236,20 @@ a {
 .maplibregl-popup-close-button {
   font-size: var(--hot-font-size-x-large);
   color: var(--hot-color-neutral-400);
+  padding: var(--hot-spacing-2x-small) var(--hot-spacing-small);
+  border-radius: var(--hot-border-radius-medium);
 }
+
+.message {
+  padding: 0 0 var(--hot-spacing-x-small);
+  margin: 0;
+}
+
+.popup .maplibregl-popup-content {
+  box-shadow: 0 1px 15px rgba(0,0,0,.15);
+  border-radius: var(--hot-border-radius-medium);
+}
+
 
 /* Settings */
 
@@ -270,10 +295,14 @@ a {
 /* Error boundary */
 
 .errorMessage {
-  background-color: var(--hot-color-neutral-neutral-50);
+  background-color: var(--hot-color-neutral-neutral-100);
   text-align: center;
   padding: var(--hot-spacing-x-large) var(--hot-spacing-4x-large);
   height: 100vh;
+}
+
+.errorMessage .header {
+  background: none;
 }
 
 .errorMessage pre {
@@ -286,6 +315,8 @@ a {
 
 .errorMessage .buttons {
   margin-bottom: var(--hot-spacing-x-large);
+  display: inline-flex;
+  gap: 10px;
 }
 
 .errorMessage h2 {
