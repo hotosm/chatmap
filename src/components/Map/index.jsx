@@ -91,6 +91,7 @@ export default function Map({ dataFiles }) {
     }, [data, popupRef]);
 
     // Next, prev arrows
+    // ** Temporarly disabled because UX issues with tagging input **
     // useEffect(() => {
       // const handleKeyDown = (event) => {
         // if (event.key === 'ArrowLeft') {
@@ -105,14 +106,18 @@ export default function Map({ dataFiles }) {
         //   }
         // }
       // };
-      // map.current.flyTo({
-      //   center: data.features[featureIndex].geometry.coordinates
-      // });
       // window.addEventListener("keydown", handleKeyDown);
       // return () => {
       //   window.removeEventListener("keydown", handleKeyDown);
       // };
     // }, [featureIndex]); 
+
+    useEffect(() => {
+      if (!activePopupFeature) return;
+      map.current.flyTo({
+        center: data.features[featureIndex].geometry.coordinates
+      });
+    }, [activePopupFeature]); 
 
     useEffect(() => {
       if (map.current.getSource("locations")) {
