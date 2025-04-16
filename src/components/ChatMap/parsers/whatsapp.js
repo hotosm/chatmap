@@ -7,7 +7,7 @@
  * of media files
  */
 
-import { getClosestMessage, getClosestNextMessage, getClosestPrevMessage } from "../chatmap";
+import { getClosestMessage } from "../chatmap";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
 const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*$/;

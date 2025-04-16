@@ -87,15 +87,6 @@ export const getClosestMessage = (messages, msgIndex) => {
   return message;
 }
 
-// Get closest next message from the same user
-export const getClosestNextMessage = (messages, msgIndex) => {
-  return getClosestMessageByDirection(messages, msgIndex, 1);
-}
-
-// Get closest previous message from the same user
-export  const getClosestPrevMessage = (messages, msgIndex) => {
-  return getClosestMessageByDirection(messages, msgIndex, -1);
-}
 
 // Get closest next/prev message from the same user
 export  const getClosestMessageByDirection = (messages, msgIndex, direction) => {
