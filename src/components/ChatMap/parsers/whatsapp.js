@@ -95,7 +95,7 @@ export const parseTimeString = (dateStr) => {
 }
 
 // Parse messages from lines and create an index
-const parseAndIndex = (lines, system) => {
+export const parseAndIndex = (lines, system) => {
     let index = 0;
     const result = {};
     lines.forEach((line) => {
@@ -104,9 +104,25 @@ const parseAndIndex = (lines, system) => {
         line = line.replaceAll(/[\u200E\u200F\u202A-\u202E\u200B]/g, '');
 
         const msg = parseMessage(line, system);
+
         if (msg) {
             result[index] = msg;
             index++;
+        } else {
+            // If message is just text without datestring,
+            // append it to the previous message. Code should be
+            // improved but it will work for now.
+            if (result[index - 1] && 
+
+                (system == "ANDROID" && line.substring(2,1) !== "/" &&
+                line.indexOf("a. m.") == -1 &&
+                line.indexOf("p. m.") == -1) ||
+
+                (system == "IOS" &&
+                line.indexOf("[") == -1))
+            {
+                result[index - 1].message += " " + line;
+            }
         }
     })
     return result;
