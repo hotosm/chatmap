@@ -1,5 +1,4 @@
 import React, { lazy, useState, useEffect } from 'react';
-import useSettings from '../../components/Settings/useSettings.js';
 import useFileManager from '../../components/FileUpload/useFileManager.js';
 import useContentMerger from '../../components/ChatMap/useContentMerger.js';
 import Header from '../header.jsx';
@@ -14,10 +13,6 @@ function App() {
 
   const [noLocations, setNoLocations] = useState(false);
 
-  const [settings, handleSettingsChange] = useSettings({
-    msgPosition: "closest"
-  });
-
   // File Manager: Manages files and data files.
   // - handleFiles: handle all chat files
   // - handleDataFile: handle all other files (images, videos)
@@ -30,8 +25,7 @@ function App() {
   // - mapData: ready to use GeoJSON data created from chats
   // - resetMerger: clean everthing to upload a new file
   const [mapData, resetMerger] = useContentMerger({
-    files: files,
-    msgPosition: settings.msgPosition
+    files: files
   });
 
   // Map Data Context: Manages map data 
@@ -69,8 +63,6 @@ function App() {
           dataFiles={dataFiles}
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
-          settings={settings}
-          handleSettingsChange={handleSettingsChange}
         />
 
         {/* If there're no files, show file upload options */}

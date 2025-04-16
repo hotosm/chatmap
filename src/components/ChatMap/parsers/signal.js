@@ -82,7 +82,7 @@ const parseAndIndex = (lines) => {
 }
 
 
-export default function signalParser({ text, msgPosition }) {
+export default function signalParser({ text }) {
     if (!text) return;
     const lines = text.split("\n");
     const geoJSON = {
@@ -104,18 +104,7 @@ export default function signalParser({ text, msgPosition }) {
                     coordinates: msgObject._location
                 }
             }
-            let message;
-            switch (msgPosition) {
-                case "before":
-                    message = getClosestPrevMessage(messages, index);
-                    break;
-                case "after":
-                    message = getClosestNextMessage(messages, index);
-                    break;
-                default:
-                    message = getClosestMessage(messages, index);
-                break;
-            }
+            const message = getClosestMessage(messages, index);
             featureObject.properties = {...message};
             geoJSON.features.push(featureObject);
         }

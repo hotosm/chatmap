@@ -1,10 +1,5 @@
 {
     "app.subtitle": "Export and upload a chat to visualize locations, messages and media",
-    "app.config.msgPositionTextStart": "It will search for locations and the",
-    "app.config.msgPositionTextEnd": "message from the same user.",
-    "app.config.closestPreviousMsg": "previous",
-    "app.config.closestNextMsg": "next",
-    "app.config.closestMsg": "closest",
     "app.uploadNewFile": "Upload new file",
     "app.download": "Download",
     "app.options": "Options",

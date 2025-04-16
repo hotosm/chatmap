@@ -62,7 +62,7 @@ const parseAndIndex = (lines) => {
     return result;
 }
 
-export default function telegramParser({ text, msgPosition }) {
+export default function telegramParser({ text }) {
     if (!text) return;
     const json = JSON.parse(text);
     const geoJSON = {
@@ -87,18 +87,7 @@ export default function telegramParser({ text, msgPosition }) {
                     ]
                 }
             }
-            let message;
-            switch (msgPosition) {
-                case "before":
-                    message = getClosestPrevMessage(messages, index);
-                    break;
-                case "after":
-                    message = getClosestNextMessage(messages, index);
-                    break;
-                default:
-                    message = getClosestMessage(messages, index);
-                break;
-            }
+            const message = getClosestMessage(messages, index);
             featureObject.properties = {...message};
             geoJSON.features.push(featureObject);
         }

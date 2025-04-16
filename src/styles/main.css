@@ -251,48 +251,6 @@ a {
   border-radius: var(--hot-border-radius-medium);
 }
 
-
-/* Settings */
-
-.optionButton {
-  padding: var(--hot-spacing-2x-small);
-  text-decoration: none;
-  display: inline-block;
-  font-size: var(--hot-font-size-medium);
-  box-shadow: none;
-  border: none;
-  color: var(--hot-color-neutral-neutral-0);
-  background-color: var(--hot-color-neutral-300);
-}
-
-.cardOptions {
-  display: flex;
-  width: 60vw;
-}
-
-.cardOption {
-  width: 30%;
-  cursor: pointer;
-  opacity: .7;
-}
-
-.cardOption h3 {
-  text-transform: capitalize;
-}
-
-.cardOptionSelected {
-  opacity: 1;
-  width: 50%;
-}
-
-.cardOption:hover {
-  opacity: 1;
-}
-
-.cardOptionImage {
-  width: 80%;
-}
-
 /* Error boundary */
 
 .errorMessage {

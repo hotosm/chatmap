@@ -131,10 +131,9 @@ export const parseAndIndex = (lines, system) => {
 /**
  *
  * @param {string} text
- * @param {string} msgPosition
  * @returns {object} GeoJSON
  */
-export default function whatsAppParser({ text, msgPosition }) {
+export default function whatsAppParser({ text }) {
     if (!text) return;
 
     // Split the full text in lines
@@ -185,19 +184,7 @@ export default function whatsAppParser({ text, msgPosition }) {
                         ]
                     }
                 }
-                let message;
-                // Look for related content for the Point.
-                switch (msgPosition) {
-                    case "before":
-                        message = getClosestPrevMessage(messages, index);
-                        break;
-                    case "after":
-                        message = getClosestNextMessage(messages, index);
-                        break;
-                    default:
-                        message = getClosestMessage(messages, index);
-                    break;
-                }
+                const message = getClosestMessage(messages, index);
                 // Add the GeoJSON feature
                 featureObject.properties = {...message};
                 featureObject.properties.id = msgId;
