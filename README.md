@@ -23,6 +23,8 @@ yarn start
 
 Test with `yarn test`.
 
+Check the [dev](https://github.com/hotosm/chatmap/tree/dev) branch for latest development version.
+
 ## How to use it?
 
 Create a group and ask people to post locations and messages. Each location will be paired 
