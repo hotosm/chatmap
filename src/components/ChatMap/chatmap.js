@@ -42,9 +42,9 @@ export const getClosestMessage = (messages, msgIndex, searchLocation) => {
       if (
         messages[prevIndex] &&
         delta_prev < 1800000 &&
-        messages[prevIndex].file || (
+        (messages[prevIndex].file || (
         messages[prevIndex]?.message &&
-        !searchLocation(messages[prevIndex].message))
+        !searchLocation(messages[prevIndex].message)))
       ) {
         prevMessage = {
           index: prevIndex, 
@@ -64,9 +64,9 @@ export const getClosestMessage = (messages, msgIndex, searchLocation) => {
       if (
         messages[nextIndex] &&
         delta_next < 1800000 &&
-        messages[nextIndex].file || (
+        (messages[nextIndex].file || (
         messages[nextIndex]?.message &&
-        !searchLocation(messages[nextIndex].message))
+        !searchLocation(messages[nextIndex].message)))
       ) {
         nextMessage = {
             index: nextIndex, 

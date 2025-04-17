@@ -21,6 +21,7 @@ body {
   color: var(--hot-color-neutral-950);
   position: fixed;
   width: 100vw;
+  height: 100vh;
 }
 
 a {
