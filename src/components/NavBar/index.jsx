@@ -1,14 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 
-function NavBar({ onOptionClick, children }) {
-
-    const [selected, setSelected] = useState(false);
+function NavBar({ onOptionClick, children, selected }) {
 
     const handleOptionClick = option => {
-        if (option === "chat") {
-            setSelected(prev => !prev);
-            onOptionClick(option);
-        }
+        onOptionClick(option);
     }
 
     return (

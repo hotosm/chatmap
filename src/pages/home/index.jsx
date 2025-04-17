@@ -34,6 +34,10 @@ function App() {
   });
   
 
+  useEffect(() => {
+      setShowMessages(false);
+  }, [mapData])
+
   // Map Data Context: Manages map data 
   const { data, mapDataDispatch } = useMapDataContext();
 

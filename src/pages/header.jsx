@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import logo from '../assets/hot-logo.svg';
 import SaveButton from '../components/SaveButton/index.jsx';
 import TagsOptions from "../components/TagsOptions";
@@ -30,6 +30,17 @@ export default function Header({
         });
     }
 
+    const [selected, setSelected] = useState(false);
+
+    const onOptionClick = option => {
+        setSelected(prev => !prev);
+        handleOptionClick(option);
+    }
+
+    useEffect(() => {
+        setSelected(false);
+    }, [data])
+
     return (
         <>
 
@@ -59,7 +70,8 @@ export default function Header({
                 </div>
                 <div className="tagsOptions">
                     <NavBar
-                        onOptionClick={handleOptionClick}
+                        onOptionClick={onOptionClick}
+                        selected={selected}
                     >
                         <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
                     </NavBar>
