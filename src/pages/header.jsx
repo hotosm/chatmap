@@ -4,11 +4,13 @@ import SaveButton from '../components/SaveButton/index.jsx';
 import TagsOptions from "../components/TagsOptions";
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
+import NavBar from '../components/NavBar';
 
 export default function Header({
     dataAvailable,
     dataFiles,
     handleNewUploadClick,
+    handleOptionClick
 }) {
 
     const { data, mapDataDispatch } = useMapDataContext();
@@ -56,7 +58,11 @@ export default function Header({
                     </sl-button>
                 </div>
                 <div className="tagsOptions">
-                    <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
+                    <NavBar
+                        onOptionClick={handleOptionClick}
+                    >
+                        <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
+                    </NavBar>
                 </div>
             </>
             :

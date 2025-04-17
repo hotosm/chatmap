@@ -65,6 +65,7 @@ const parseAndIndex = (lines) => {
         if (started) {
             if (isFrom) {
                 result[msgIndex] = msg;
+                result[msgIndex].id = msgIndex;
                 lastUsername = msg.username;
                 msg = {};
                 msgIndex++;
@@ -72,6 +73,7 @@ const parseAndIndex = (lines) => {
             } else if (index === lines.length - 1 && msg) {
                 msg.username = lastUsername;
                 result[msgIndex] = msg;
+                result[msgIndex].id = msgIndex;
             }
         }
         if (isFrom && !started) {
@@ -104,11 +106,25 @@ export default function signalParser({ text }) {
                     coordinates: msgObject._location
                 }
             }
-            const message = getClosestMessage(messages, index);
-            featureObject.properties = {...message};
+            const message = getClosestMessage(messages, index, searchLocation);
+            // Add the GeoJSON feature
+            console.log(message);
+
+            if (message) {
+                featureObject.properties = {...message};
+                featureObject.properties.related = message.id;
+                messages[message.id].mapped = true;
+            } else {
+                // No related message
+                featureObject.properties = {
+                    username: msgObject.username,
+                    time: msgObject.time
+                }
+            }
+            featureObject.properties.id = index;
             geoJSON.features.push(featureObject);
+            messages[index].mapped = true;
         }
     });
-
-    return geoJSON;
+    return {geoJSON, messages};
 }

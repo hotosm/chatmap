@@ -19,6 +19,8 @@ body {
   -moz-osx-font-smoothing: neutralscale;
   overflow: hidden;
   color: var(--hot-color-neutral-950);
+  position: fixed;
+  width: 100vw;
 }
 
 a {
@@ -104,10 +106,10 @@ a {
 }
 
 .tagsOptions {
-  position: absolute;
+  /* position: absolute;
   right: 15px;
   top: 142px;
-  z-index: 9999;
+  z-index: 9999; */
 }
 
 .header .fileOptions sl-button::part(label) {
@@ -121,6 +123,10 @@ a {
   position: absolute;
   top: 0;
   right: 0;
+}
+
+.appNav span {
+  padding-left: 1vh;
 }
 
 /* Footer */
@@ -241,11 +247,6 @@ a {
   border-radius: var(--hot-border-radius-medium);
 }
 
-.message {
-  padding: 0 0 var(--hot-spacing-x-small);
-  margin: 0;
-}
-
 .popup .maplibregl-popup-content {
   box-shadow: 0 1px 15px rgba(0,0,0,.15);
   border-radius: var(--hot-border-radius-medium);
@@ -299,5 +300,68 @@ a {
 
 .errorMessage .logo {
   height: var(--hot-font-size-3x-large);
+}
+
+/* Messages */
+
+.messages {
+  position: absolute;
+  right: 0;
+  width: 15vw;
+  height: 83vh;
+  z-index: 999;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  background: var(--hot-color-neutral-50);
+  box-shadow: -1px 4px 9px rgba(0,0,0, .2);
+  padding-bottom: var(--hot-spacing-x-large);
+}
+
+.message {
+  padding: var(--hot-spacing-small);
+}
+
+.messages .message {
+  border: 1px solid var(--hot-color-neutral-200);
+  box-shadow: 2px -1px 9px rgba(0,0,0, .2);
+  margin: var(--hot-spacing-small);
+  padding: var(--hot-spacing-medium);
+  border-radius: var(--hot-border-radius-small);
+  opacity: .5;
+}
+
+.messages .message:hover {
+  box-shadow: 2px -1px 9px rgba(255,0,0, .2);
+  border-color: var(--hot-color-neutral-500);
+  cursor: pointer;
+  background-color: var(--hot-color-neutral-0);
+}
+
+.messages .message.selected {
+  border-color: var(--hot-color-primary-500) !important;
+  border-width: 2px;
+  background-color: var(--hot-color-neutral-0);
+}
+
+.messages .message.mapped {
+  opacity: 1;
+}
+
+.messages .message .username,
+.messages .message .time {
+  font-size: var(--hot-font-size-x-small);
+}
+
+.messages .message .time {
+  color: var(--hot-color-neutral-500);
+}
+
+.messages .message .text {
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: var(--hot-font-size-x-small);
+  text-overflow: clip;
+  text-overflow: ellipsis ellipsis;
+  text-overflow: ellipsis " ...";
 }
 

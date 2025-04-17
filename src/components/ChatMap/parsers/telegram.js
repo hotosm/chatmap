@@ -8,6 +8,7 @@
  */
 
 import { getClosestMessage } from "../chatmap";
+import { searchLocation } from "./whatsapp";
 
 function stripPath(filename) {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
@@ -56,6 +57,7 @@ const parseAndIndex = (lines) => {
         const msg = parseMessage(line);
         if (msg) {
             result[index] = msg;
+            result[index].id = index;
             index++;
         }
     })
@@ -87,11 +89,24 @@ export default function telegramParser({ text }) {
                     ]
                 }
             }
-            const message = getClosestMessage(messages, index);
-            featureObject.properties = {...message};
+            const message = getClosestMessage(messages, index, searchLocation);
+            // Add the GeoJSON feature
+            if (message) {
+                featureObject.properties = {...message};
+                featureObject.properties.related = message.id;
+                messages[message.id].mapped = true;
+            } else {
+                // No related message
+                featureObject.properties = {
+                    username: msgObject.username,
+                    time: msgObject.time
+                }
+            }
+            featureObject.properties.id = index;
             geoJSON.features.push(featureObject);
+            messages[index].mapped = true;
         }
     });
 
-    return geoJSON;
+    return {geoJSON, messages};
 }

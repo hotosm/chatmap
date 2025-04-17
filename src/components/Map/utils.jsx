@@ -7,8 +7,8 @@
  * @param {object} properties Message properties
  * @returns {string} A formatted and padded datetime, ex: 02:15
  */
-export const formatDate = (properties) => {
-  const d = new Date(properties.time);
+export const formatDate = (time) => {
+  const d = new Date(time);
   return (
     String(d.getHours()).padStart(2, '0') + ":" +
     String(d.getMinutes()).padStart(2, '0'))
@@ -26,7 +26,7 @@ export const getMessage = (properties, dataFiles) => {
       const url = URL.createObjectURL(dataFiles[properties.file]);
       return <><a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a></>
     } else if (properties.file.endsWith("mp4")) {
-      return <><video controls autoPlay loop className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} /></>
+      return <><video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} /></>
     }
   }
   return properties.message;

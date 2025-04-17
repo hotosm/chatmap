@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { Popup as PopupGL } from "maplibre-gl";
 import { createRoot } from "react-dom/client";
-import { formatDate, getMessage } from "./utils";
 import Tagger from '../Tagger';
+import Message from '../Message';
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
@@ -65,13 +65,10 @@ export default function Popup ({
       closeButton={true}
       >
       <div className="activePopupFeatureContent">
-        <p className="userinfo">
-          <span className="msgUsername">{feature.properties.username}</span>
-          <span className="msgDatetime">{formatDate(feature.properties)}</span>
-        </p>
-        <p className="message">
-          { getMessage(feature.properties, dataFiles) }
-        </p>
+        <Message
+          message={feature.properties}
+          dataFiles={dataFiles}
+        />
         <Tagger
           tags={feature.properties.tags || []}
           onAddTag={tag => onAddTag(tag, feature)} 

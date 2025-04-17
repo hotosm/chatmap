@@ -107,6 +107,7 @@ export const parseAndIndex = (lines, system) => {
 
         if (msg) {
             result[index] = msg;
+            result[index].id = index;
             index++;
         } else {
             // If message is just text without datestring,
@@ -164,7 +165,6 @@ export default function whatsAppParser({ text }) {
     // Read each message.
     // When a location has been found, look for the closest
     // content from the same user, and attach it to the message.
-    let msgId = 0;
     msgObjects.forEach((msgObject, index) => {
         if (msgObject.message) {
 
@@ -173,26 +173,43 @@ export default function whatsAppParser({ text }) {
 
             // If there's a location, create a Point.
             if (location) {
-                featureObject = {
-                    type: "Feature",
-                    properties: {},
-                    geometry: {
-                        type: "Point",
-                        coordinates: [
-                            parseFloat(location[1]),
-                            parseFloat(location[0])
-                        ]
+                const coordinates = [
+                    parseFloat(location[1]),
+                    parseFloat(location[0])
+                ];
+                // Accept only coordinates with decimals
+                if (
+                    coordinates[0] / Math.round(coordinates[0]) !== 1 &&
+                    coordinates[1] / Math.round(coordinates[1]) !== 0
+                ) {
+                    featureObject = {
+                        type: "Feature",
+                        properties: {},
+                        geometry: {
+                            type: "Point",
+                            coordinates: coordinates
+                        }
                     }
+                    const message = getClosestMessage(messages, index, searchLocation);
+                    // Add the GeoJSON feature
+                    if (message) {
+                        featureObject.properties = {...message};
+                        featureObject.properties.related = message.id;
+                        messages[message.id].mapped = true;
+                    } else {
+                        // No related message
+                        featureObject.properties = {
+                            username: msgObject.username,
+                            time: msgObject.time
+                        }
+                    }
+                    featureObject.properties.id = index;
+                    geoJSON.features.push(featureObject);
+                    messages[index].mapped = true;
                 }
-                const message = getClosestMessage(messages, index);
-                // Add the GeoJSON feature
-                featureObject.properties = {...message};
-                featureObject.properties.id = msgId;
-                msgId += 1;
-                geoJSON.features.push(featureObject);
             }
         }
     });
 
-    return geoJSON;
+    return {geoJSON, messages};
 }

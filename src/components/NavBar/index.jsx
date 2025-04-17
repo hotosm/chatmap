@@ -1,20 +1,29 @@
-import React from "react";
-import { FormattedMessage } from 'react-intl';
+import React, { useState } from "react";
 
-function NavBar({ onOptionClick }) {
+function NavBar({ onOptionClick, children }) {
+
+    const [selected, setSelected] = useState(false);
+
+    const handleOptionClick = option => {
+        if (option === "chat") {
+            setSelected(prev => !prev);
+            onOptionClick(option);
+        }
+    }
 
     return (
     <>
         <div className="appNav">
             <sl-button
-                variant="text"
-                onClick={ () => onOptionClick("options") }
+                size="small"
+                variant={`${selected && "success"}`}
+                onClick={ () => handleOptionClick("chat") }
             >
-            <FormattedMessage
-                id = "app.options"
-                defaultMessage="Options"
-            />
+                <sl-icon name="chat-square-dots"></sl-icon>
             </sl-button>
+            <span>
+                {children}
+            </span>
         </div>
     </>
     );

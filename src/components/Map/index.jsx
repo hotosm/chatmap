@@ -11,7 +11,7 @@ import { useMapDataContext } from '../../context/MapDataContext';
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
  */
-export default function Map({ dataFiles }) {
+export default function Map({ dataFiles, onSelectFeature }) {
     // A div for the map
     const mapContainer = useRef(null);
     // The Map obejct
@@ -83,7 +83,7 @@ export default function Map({ dataFiles }) {
               setFeatureIndex(index);
             }
           });
-          
+
           setActivePopupFeature(feature);
         });
 
@@ -117,6 +117,7 @@ export default function Map({ dataFiles }) {
       map.current.flyTo({
         center: data.features[featureIndex].geometry.coordinates
       });
+      onSelectFeature && onSelectFeature(activePopupFeature);
     }, [activePopupFeature]); 
 
     useEffect(() => {
@@ -147,7 +148,7 @@ export default function Map({ dataFiles }) {
       popupRef.current.addTo(map.current);
     }, [activePopupFeature]);
 
-    //
+    // Filter by tag
     useEffect(() => {
       if (!map.current || !activePopupFeature) return;
       if (data.filterTag) {

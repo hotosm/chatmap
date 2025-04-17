@@ -13,7 +13,7 @@
  * @param {int} msgIndex A message index
  * @returns {object} message
  */
-export const getClosestMessage = (messages, msgIndex) => {
+export const getClosestMessage = (messages, msgIndex, searchLocation) => {
   // Previous message index
   let prevIndex = msgIndex - 1;
   // Next message index
@@ -39,9 +39,17 @@ export const getClosestMessage = (messages, msgIndex) => {
        !prevMessage) {
       // Calculate time passed between current and previous message.
       const delta_prev = Math.abs(messages[msgIndex].time - messages[prevIndex].time);
-      prevMessage = {
+      if (
+        messages[prevIndex] &&
+        delta_prev < 1800000 &&
+        messages[prevIndex].file || (
+        messages[prevIndex]?.message &&
+        !searchLocation(messages[prevIndex].message))
+      ) {
+        prevMessage = {
           index: prevIndex, 
           delta: delta_prev
+        }
       }
     }
 
@@ -52,9 +60,18 @@ export const getClosestMessage = (messages, msgIndex) => {
         !nextMessage) {
       // Calculate time passed between current and next message.
       const delta_next = Math.abs(messages[msgIndex].time - messages[nextIndex].time);
-      nextMessage = {
-          index: nextIndex, 
-          delta: delta_next
+
+      if (
+        messages[nextIndex] &&
+        delta_next < 1800000 &&
+        messages[nextIndex].file || (
+        messages[nextIndex]?.message &&
+        !searchLocation(messages[nextIndex].message))
+      ) {
+        nextMessage = {
+            index: nextIndex, 
+            delta: delta_next
+        }
       }
     }
 
@@ -84,7 +101,7 @@ export const getClosestMessage = (messages, msgIndex) => {
   } else if (nextMessage) {
     return messages[nextMessage.index];
   }
-  return message;
+  // return message;
 }
 
 
