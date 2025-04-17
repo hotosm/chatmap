@@ -309,6 +309,7 @@ a {
   position: absolute;
   right: 0;
   width: 15vw;
+  min-width: 200px;
   height: 83vh;
   z-index: 999;
   overflow-y: scroll;
