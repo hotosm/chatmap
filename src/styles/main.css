@@ -319,15 +319,11 @@ a {
   padding-bottom: var(--hot-spacing-x-large);
 }
 
-.message {
-  padding: var(--hot-spacing-small);
-}
-
 .messages .message {
   border: 1px solid var(--hot-color-neutral-200);
   box-shadow: 2px -1px 9px rgba(0,0,0, .2);
   margin: var(--hot-spacing-small);
-  padding: var(--hot-spacing-medium);
+  padding: var(--hot-spacing-x-small);
   border-radius: var(--hot-border-radius-small);
   opacity: .5;
 }
@@ -349,8 +345,8 @@ a {
   opacity: 1;
 }
 
-.messages .message .username,
-.messages .message .time {
+.messages .message .msgUsername,
+.messages .message .msgDatetime {
   font-size: var(--hot-font-size-x-small);
 }
 
