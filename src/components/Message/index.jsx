@@ -15,7 +15,7 @@ function Message({ message, selected, ref, dataFiles }) {
                     <span className="msgUsername">{message.username}</span>
                     <span className="msgDatetime">{formatDate(message.time)}</span>
                 </p>
-                <p className="text">{ getMessage(message, dataFiles) }</p>
+                <p>{ getMessage(message, dataFiles) }</p>
             </div>
         )
 

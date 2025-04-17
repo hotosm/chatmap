@@ -363,3 +363,6 @@ a {
   text-overflow: ellipsis " ...";
 }
 
+/* .message .text {
+  padding: var(--hot-spacing-small);
+} */
