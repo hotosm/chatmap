@@ -1,9 +1,11 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import "./tagger.css";
 
 export default function Tagger({
     onAddTag,
     onRemoveTag,
+    onFocus,
+    onBlur,
     tags
 }) {
     const textRef = useRef();
@@ -22,18 +24,15 @@ export default function Tagger({
         }
     }
 
-    // Focus on load
-    useEffect(() => {
-        textRef.current.focus()
-    });
-
     return (
         <div className="tagger">
             <sl-input
                 size="small"
                 onKeyDown={handleKeyDown}
                 ref={textRef}
-                autofocus
+                onClick={() => textRef.current.focus()}
+                onFocus={() => onFocus && onFocus()}
+                onBlur={() => onBlur && onBlur()}
                 placeholder="Your tag here"
             >
                 <sl-icon name="tags" slot="suffix"></sl-icon>

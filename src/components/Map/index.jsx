@@ -19,9 +19,14 @@ export default function Map({ dataFiles, onSelectFeature }) {
     // Map popup
     const [activePopupFeature, setActivePopupFeature] = useState(null);
     const [featureIndex, setFeatureIndex] = useState(0);
+    const [editingTags, setEditingTags] = useState(false);
     const popupRef = useRef(null);
 
     const { data, mapDataDispatch } = useMapDataContext();
+
+    const handleTagEditing = (status) => {
+      setEditingTags(status);
+    }
 
     useEffect(() => {
       if (map.current) return;
@@ -91,26 +96,27 @@ export default function Map({ dataFiles, onSelectFeature }) {
     }, [data, popupRef]);
 
     // Next, prev arrows
-    // ** Temporarly disabled because UX issues with tagging input **
-    // useEffect(() => {
-      // const handleKeyDown = (event) => {
-        // if (event.key === 'ArrowLeft') {
-        //   if (featureIndex > 0) {
-        //     setActivePopupFeature(data.features[featureIndex - 1]);
-        //     setFeatureIndex(featureIndex - 1);  
-        //   }
-        // } else if (event.key === 'ArrowRight') {
-        //   if (featureIndex < data.features.length - 1) {
-        //     setActivePopupFeature(data.features[featureIndex + 1]);
-        //     setFeatureIndex(featureIndex + 1);
-        //   }
-        // }
-      // };
-      // window.addEventListener("keydown", handleKeyDown);
-      // return () => {
-      //   window.removeEventListener("keydown", handleKeyDown);
-      // };
-    // }, [featureIndex]); 
+    useEffect(() => {
+      const handleKeyDownNextPrev = (event) => {
+        if (!editingTags) {
+          if (event.key === 'ArrowLeft') {
+            if (featureIndex > 0) {
+              setActivePopupFeature(data.features[featureIndex - 1]);
+              setFeatureIndex(featureIndex - 1);  
+            }
+          } else if (event.key === 'ArrowRight') {
+            if (featureIndex < data.features.length - 1) {
+              setActivePopupFeature(data.features[featureIndex + 1]);
+              setFeatureIndex(featureIndex + 1);
+            }
+          }
+        }
+      };
+      window.addEventListener("keydown", handleKeyDownNextPrev);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDownNextPrev);
+      };
+    }, [featureIndex, editingTags]);
 
     useEffect(() => {
       if (!activePopupFeature) return;
@@ -193,6 +199,7 @@ export default function Map({ dataFiles, onSelectFeature }) {
             dataFiles={dataFiles}
             onAddTag={handleAddTag}
             onRemoveTag={handleRemoveTag}
+            onTagEditing={handleTagEditing}
           />
         }
       </div>

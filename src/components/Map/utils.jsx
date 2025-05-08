@@ -29,5 +29,5 @@ export const getMessage = (properties, dataFiles) => {
       return <><video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} /></>
     }
   }
-  return <p class="text">{properties.message}</p>;
+  return <p className="text">{properties.message}</p>;
 }

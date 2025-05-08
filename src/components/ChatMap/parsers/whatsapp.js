@@ -8,6 +8,7 @@
  */
 
 import { getClosestMessage } from "../chatmap";
+import ignore from "./ignore";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
 const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*$/;
@@ -59,7 +60,7 @@ export const searchLocation = (line) => {
 // Parse time, username and message
 export const parseMessage = (line, system) => {
     const match = line.match(MSG_PATTERN[system]);
-    if (match) {
+    if (match && ignore.indexOf(match[3]) === -1) {
         let username = match[2];
 
         // Check if the username has a ':' character and remove the text after it

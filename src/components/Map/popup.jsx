@@ -53,7 +53,8 @@ export default function Popup ({
   popupRef,
   dataFiles,
   onAddTag,
-  onRemoveTag
+  onRemoveTag,
+  onTagEditing
 }) {
   
   return (
@@ -73,6 +74,8 @@ export default function Popup ({
           tags={feature.properties.tags || []}
           onAddTag={tag => onAddTag(tag, feature)} 
           onRemoveTag={tag => onRemoveTag(tag, feature)} 
+          onFocus={() => onTagEditing(true)}
+          onBlur={() => onTagEditing(false)}
         />
       </div>
     </PopupGLWrapper>
