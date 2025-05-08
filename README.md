@@ -1,18 +1,16 @@
 # ChatMap
 
-Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize locations, messages and media.
+## Field mapping has never been easier!
 
-It was developed to help emergency services and humanitarian organizations to get
-locations from people in the field during disasters and emergencies, but it can
-be used for anything else.
+Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize locations, messages and media.
 
 ### Try it here! [chatmap.hotosm.org](https://chatmap.hotosm.org)
 
 Check this quick [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (2:47) for more info about how to use it.
 
----
+<img width="1001" alt="Screenshot 2025-05-08 at 5 38 46 PM" src="https://github.com/user-attachments/assets/9a9e50e0-f154-4fc3-b574-09bf54b23c67" />
 
-<img width="959" alt="Screenshot 2025-04-11 at 12 10 04 PM" src="https://github.com/user-attachments/assets/1f045037-02d9-458f-ba65-8d1bad5eb983" />
+---
 
 ## Install and run
 
