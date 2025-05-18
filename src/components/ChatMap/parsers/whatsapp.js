@@ -7,8 +7,8 @@
  * of media files
  */
 
-import { getClosestMessage } from "../chatmap";
 import ignore from "./ignore";
+import ChatMap from "../chatmap";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
 const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*$/;
@@ -49,18 +49,29 @@ export const lookForMediaFile = (msgObject) => {
 }
 
 // Search for a location
-export const searchLocation = (line) => {
-    const match = line.match(LOCATION_PATTERN);
-    if (match) {
-        return match[0].split(",").map(x => parseFloat(x))
+export const searchLocation = msgObject => {
+    if (msgObject.message) {
+        const match = msgObject.message.match(LOCATION_PATTERN);
+        if (match) {
+            return match[0].split(",").map(x => parseFloat(x))
+        }
     }
     return null;
+}
+
+const isInTheIgnoreList = msg => {
+    for (let i = 0; i < ignore.length; i++) {
+        if (msg.indexOf(ignore[i]) > -1) {
+            return true;
+        }
+    };
+    return false;
 }
 
 // Parse time, username and message
 export const parseMessage = (line, system) => {
     const match = line.match(MSG_PATTERN[system]);
-    if (match && ignore.indexOf(match[3]) === -1) {
+    if (match && !isInTheIgnoreList(match[3])) {
         let username = match[2];
 
         // Check if the username has a ':' character and remove the text after it
@@ -106,14 +117,14 @@ export const parseAndIndex = (lines, system) => {
 
         const msg = parseMessage(line, system);
 
-        if (msg) {
+        if (msg && !isInTheIgnoreList(msg.message)) {
             result[index] = msg;
             result[index].id = index;
             index++;
+            console.log(msg.message)
         } else {
             // If message is just text without datestring,
-            // append it to the previous message. Code should be
-            // improved but it will work for now.
+            // append it to the previous message.
             if (result[index - 1] && 
 
                 (system == "ANDROID" && line.substring(2,1) !== "/" &&
@@ -141,15 +152,6 @@ export default function whatsAppParser({ text }) {
     // Split the full text in lines
     const lines = text.split("\n");
 
-    // Initialize the GeoJSON response
-    const geoJSON = {
-        type: "FeatureCollection",
-        features: []
-    };
-
-    // A GeoJSON Feature for storing a message
-    let featureObject = {}
-
     // Detect system (Android, iOS, ...)
     let system;
     for (let i = 0; i < lines.length; i++) {
@@ -161,56 +163,8 @@ export default function whatsAppParser({ text }) {
 
     // Get message objects from text lines
     const messages = parseAndIndex(lines, system);
-    const msgObjects = Object.values(messages);
-
-    // Read each message.
-    // When a location has been found, look for the closest
-    // content from the same user, and attach it to the message.
-    msgObjects.forEach((msgObject, index) => {
-        if (msgObject.message) {
-
-            // Check if there's a location in the message
-            const location = searchLocation(msgObject.message);
-
-            // If there's a location, create a Point.
-            if (location) {
-                const coordinates = [
-                    parseFloat(location[1]),
-                    parseFloat(location[0])
-                ];
-                // Accept only coordinates with decimals
-                if (
-                    coordinates[0] / Math.round(coordinates[0]) !== 1 &&
-                    coordinates[1] / Math.round(coordinates[1]) !== 0
-                ) {
-                    featureObject = {
-                        type: "Feature",
-                        properties: {},
-                        geometry: {
-                            type: "Point",
-                            coordinates: coordinates
-                        }
-                    }
-                    const message = getClosestMessage(messages, index, searchLocation);
-                    // Add the GeoJSON feature
-                    if (message) {
-                        featureObject.properties = {...message};
-                        featureObject.properties.related = message.id;
-                        messages[message.id].mapped = true;
-                    } else {
-                        // No related message
-                        featureObject.properties = {
-                            username: msgObject.username,
-                            time: msgObject.time
-                        }
-                    }
-                    featureObject.properties.id = index;
-                    geoJSON.features.push(featureObject);
-                    messages[index].mapped = true;
-                }
-            }
-        }
-    });
+    const chatmap = new ChatMap(messages, searchLocation);
+    const geoJSON = chatmap.pairContentAndLocations();
 
     return {geoJSON, messages};
 }

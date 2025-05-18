@@ -7,12 +7,16 @@
  * of media files
  */
 
-import { getClosestMessage } from "../chatmap";
-import { searchLocation } from "./whatsapp";
+import ChatMap from "../chatmap";
 
-function stripPath(filename) {
+const stripPath = filename => {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
 }
+
+const searchLocation = msg => {
+    return msg.location;
+}
+
 
 // Parse time, username and message
 const parseMessage = (line) => {
@@ -67,46 +71,11 @@ const parseAndIndex = (lines) => {
 export default function telegramParser({ text }) {
     if (!text) return;
     const json = JSON.parse(text);
-    const geoJSON = {
-        type: "FeatureCollection",
-        features: []
-    };
 
-    // Creates an indexed dictionary for messages
+    // Get message objects
     const messages = parseAndIndex(json.messages);
-    const msgObjects = Object.values(messages);
-
-    msgObjects.forEach((msgObject, index) => {
-        if (msgObject.location) {
-            let featureObject = {
-                type: "Feature",
-                properties: {},
-                geometry: {
-                    type: "Point",
-                    coordinates: [
-                        msgObject.location[1],
-                        msgObject.location[0]
-                    ]
-                }
-            }
-            const message = getClosestMessage(messages, index, searchLocation);
-            // Add the GeoJSON feature
-            if (message) {
-                featureObject.properties = {...message};
-                featureObject.properties.related = message.id;
-                messages[message.id].mapped = true;
-            } else {
-                // No related message
-                featureObject.properties = {
-                    username: msgObject.username,
-                    time: msgObject.time
-                }
-            }
-            featureObject.properties.id = index;
-            geoJSON.features.push(featureObject);
-            messages[index].mapped = true;
-        }
-    });
+    const chatmap = new ChatMap(messages, searchLocation);
+    const geoJSON = chatmap.pairContentAndLocations();
 
     return {geoJSON, messages};
 }

@@ -8,14 +8,15 @@
  */
 
 
-import { getClosestMessage } from "../chatmap";
+import ChatMap from "../chatmap";
 import moment from 'moment';
 
 // Regex to search for coordinates in the format <lat>%2C<lon> (ex: -31.006037,-64.262794)
 const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)%2C\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
 
 // Search for a location
-const searchLocation = (line) => {
+const searchLocationInLine = (line) => {
+    console.log(line);
     const match = line.match(LOCATION_PATTERN);
     if (match) {
         return match[0].split("%2C").map(x => parseFloat(x))
@@ -23,9 +24,15 @@ const searchLocation = (line) => {
     return null;
 }
 
+// Search for a location
+const searchLocation = msg => {
+    return msg._location;
+}
+
+
 // Parse time, username and message
 const parseMessage = (line, msg) => {
-    const location = searchLocation(line);
+    const location = searchLocationInLine(line);
     if (location) {
         msg._location = [parseFloat(location[1]), parseFloat(location[0])]
         msg.file = null;
@@ -87,44 +94,11 @@ const parseAndIndex = (lines) => {
 export default function signalParser({ text }) {
     if (!text) return;
     const lines = text.split("\n");
-    const geoJSON = {
-        type: "FeatureCollection",
-        features: []
-    };
-    let featureObject = {}
 
+    // Get message objects
     const messages = parseAndIndex(lines);
-    const msgObjects = Object.values(messages);
+    const chatmap = new ChatMap(messages, searchLocation);
+    const geoJSON = chatmap.pairContentAndLocations();
 
-    msgObjects.forEach((msgObject, index) => {
-        if (msgObject._location) {
-            featureObject = {
-                type: "Feature",
-                properties: {},
-                geometry: {
-                    type: "Point",
-                    coordinates: msgObject._location
-                }
-            }
-            const message = getClosestMessage(messages, index, searchLocation);
-            // Add the GeoJSON feature
-            console.log(message);
-
-            if (message) {
-                featureObject.properties = {...message};
-                featureObject.properties.related = message.id;
-                messages[message.id].mapped = true;
-            } else {
-                // No related message
-                featureObject.properties = {
-                    username: msgObject.username,
-                    time: msgObject.time
-                }
-            }
-            featureObject.properties.id = index;
-            geoJSON.features.push(featureObject);
-            messages[index].mapped = true;
-        }
-    });
     return {geoJSON, messages};
 }

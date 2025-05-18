@@ -1,4 +1,4 @@
-import React, {useRef, useEffect } from "react";
+import {useRef, useEffect } from "react";
 import Message from '../Message';
 
 function Messages({ messages, selectedFeature, dataFiles }) {
