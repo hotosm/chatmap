@@ -1,4 +1,4 @@
-import React, { lazy, useState, useEffect } from 'react';
+import { lazy, useState, useEffect } from 'react';
 import useFileManager from '../../components/FileUpload/useFileManager.js';
 import useContentMerger from '../../components/ChatMap/useContentMerger.js';
 import Header from '../header.jsx';
