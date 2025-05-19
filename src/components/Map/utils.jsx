@@ -5,13 +5,13 @@
 /**
  *
  * @param {object} properties Message properties
- * @returns {string} A formatted and padded datetime, ex: 02:15
+ * @returns {string} A formatted and padded datetime, ex: 02:15:22
  */
 export const formatDate = (time) => {
   const d = new Date(time);
   return (
-    String(d.getHours()).padStart(2, '0') + ":" +
-    String(d.getMinutes()).padStart(2, '0'))
+    `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
+  )
 };
 
 /**

@@ -16,7 +16,6 @@ const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)%2C\s*[-+]?(180(\.0+)
 
 // Search for a location
 const searchLocationInLine = (line) => {
-    console.log(line);
     const match = line.match(LOCATION_PATTERN);
     if (match) {
         return match[0].split("%2C").map(x => parseFloat(x))

@@ -114,12 +114,14 @@ export default class ChatMap {
     // to decide which to return
 
     if (prevMessage && nextMessage) {
-
       if (prevMessage.delta === nextMessage.delta) {
-        return {
-            ...messages[prevMessage.index],
-            message: messages[prevMessage.index].message + ". " + messages[nextMessage.index].message
+
+        if (this.pairedMessagesIds.indexOf(prevMessage.index) === -1) {
+          return messages[prevMessage.index];
+        } else {
+          return messages[nextMessage.index];
         }
+
       } else if (prevMessage.delta < nextMessage.delta) {
         return messages[prevMessage.index];
       } else if (prevMessage.delta > nextMessage.delta) {
@@ -131,7 +133,7 @@ export default class ChatMap {
     } else if (nextMessage) {
       return messages[nextMessage.index];
     }
-    // return message;
+    return message;
   }
 
 
@@ -199,37 +201,40 @@ export default class ChatMap {
     // When a location has been found, look for the closest
     // content from the same user and pair it to the message.
     msgObjects.forEach((msgObject, index) => {
-        if (this.locationMessages[index]) {
-              featureObject = {
-                  type: "Feature",
-                  properties: {},
-                  geometry: {
-                      type: "Point",
-                      coordinates: this.locationMessages[index]
-                  }
-              }
-              const message = this.getClosestMessage(messages, index);
-              if (message) {
-                  if (
-                    this.pairedMessagesIds.indexOf(message.id) === -1
-                  ) {
-                    // Add the GeoJSON feature
-                    featureObject.properties = {
-                      ...message,
-                      related: message.id
-                    };
-                    this.pairedMessagesIds.push(message.id);
-                  }
-              } else {
-                  // No related message
-                  featureObject.properties = {
-                      username: msgObject.username,
-                      time: msgObject.time
-                  }
-              }
-              featureObject.properties.id = index;
-              geoJSON.features.push(featureObject);
+      if (this.locationMessages[index]) {
+        featureObject = {
+            type: "Feature",
+            properties: {},
+            geometry: {
+                type: "Point",
+                coordinates: this.locationMessages[index]
+            }
         }
+        const message = this.getClosestMessage(messages, index);
+        if (message) {
+            if (
+              this.pairedMessagesIds.indexOf(message.id) === -1
+            ) {
+              // Add the GeoJSON feature
+              featureObject.properties = {
+                ...message,
+                related: message.id
+              };
+              this.pairedMessagesIds.push(message.id);
+            }
+        } else {
+            // No related message
+            featureObject.properties = {
+                username: msgObject.username,
+                time: msgObject.time
+            }
+        }
+
+        featureObject.properties.id = index;
+        if (!isNaN(featureObject.properties.time)) {
+          geoJSON.features.push(featureObject);
+        }
+      }
     });
     return geoJSON;
   }

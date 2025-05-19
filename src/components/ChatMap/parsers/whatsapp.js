@@ -121,7 +121,6 @@ export const parseAndIndex = (lines, system) => {
             result[index] = msg;
             result[index].id = index;
             index++;
-            console.log(msg.message)
         } else {
             // If message is just text without datestring,
             // append it to the previous message.
