@@ -11,7 +11,7 @@ export default function Footer() {
             <a className="github" href="https://github.com/hotosm/chatmap"></a>
             <a href="https://github.com/hotosm/chatmap">Free Software</a>
         </div>
-        <a href="https://www.hotosm.org/privacy">- We collect zero data. hotosm.org/privacy -</a>
+        <a href="https://www.hotosm.org/privacy">- We collect zero personal data. hotosm.org/privacy -</a>
         &nbsp;
         <a href="https://github.com/hotosm/chatmap">v0.4.7</a>
     </div>
