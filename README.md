@@ -55,6 +55,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
 |✅| [Messages list](https://github.com/hotosm/chatmap/issues/9)
 |⚙️| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
+|⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
 |⚙️| [Support audio](https://github.com/hotosm/chatmap/issues/5) |
 
 ## Licensing
