@@ -33,7 +33,7 @@ const searchLocation = msg => {
 const parseMessage = (line, msg) => {
     const location = searchLocationInLine(line);
     if (location) {
-        msg._location = [parseFloat(location[1]), parseFloat(location[0])]
+        msg._location = [parseFloat(location[0]), parseFloat(location[1])]
         msg.file = null;
     } else if (line.indexOf("From: ") === 0) {
         msg.username = line.replace("From: ", "");
