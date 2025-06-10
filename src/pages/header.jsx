@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import logo from '../assets/hot-logo.svg';
 import SaveButton from '../components/SaveButton/index.jsx';
 import TagsOptions from "../components/TagsOptions";

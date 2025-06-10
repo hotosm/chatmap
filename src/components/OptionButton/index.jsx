@@ -1,5 +1,3 @@
-import React from "react";
-
 function OptionButton({ value, left, right, active, onClick }) {
 
   return (

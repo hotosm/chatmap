@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import "./tagger.css";
 
 export default function Tagger({

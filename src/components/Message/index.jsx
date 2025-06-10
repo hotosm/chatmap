@@ -1,4 +1,3 @@
-import React from "react";
 import { formatDate, getMessage } from "../Map/utils";
 
 function Message({ message, selected, ref, dataFiles }) {

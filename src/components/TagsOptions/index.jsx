@@ -1,6 +1,3 @@
-
-import React from "react";
-
 export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
     return (
         Object.keys(tags).length > 0 ?
