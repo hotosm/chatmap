@@ -97,7 +97,6 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
       if (files) {
         onFilesLoad(files);
       } else {
-        console.log("onError")
         onError && onError();
       }
     }

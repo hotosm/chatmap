@@ -21,10 +21,12 @@ function createAndDownloadZip(data, dataFiles) {
     ...data
   }
 
-  // Convert tags object to string
-  // Ex: { building: yes } to "building_yes"
   newData.features.forEach(feature => {
+    // Remove username for privacy reasons
+    delete feature.properties.username;
     if (feature.properties.tags) {
+      // Convert tags object to string
+      // Ex: { building: yes } to "building_yes"
       feature.properties.tags = feature.properties.tags.join(",");
     }
   })
