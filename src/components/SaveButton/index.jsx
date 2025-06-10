@@ -22,8 +22,13 @@ function createAndDownloadZip(data, dataFiles) {
   }
 
   newData.features.forEach(feature => {
-    // Remove username for privacy reasons
+    // Delete username for enhanced privacy and security
     delete feature.properties.username;
+
+    // Delete unused properties
+    delete feature.properties.timeString;
+    delete feature.properties.related;
+
     if (feature.properties.tags) {
       // Convert tags object to string
       // Ex: { building: yes } to "building_yes"
