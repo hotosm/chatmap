@@ -76,7 +76,7 @@ a {
 
 .header h1 span {
   font-size: calc(var(--hot-font-size-2x-large) + 3vmin);
-  height: calc(var(--hot-font-size-4x-large) - 0.2rem);
+  height: calc(var(--hot-font-size-4x-large) - 0);
   font-weight: var(--hot-font-weight-bold);
   font-family: var(--hot-font-sans-variant);
 }
@@ -91,7 +91,7 @@ a {
 
 .header h1.titleSmall span {
   font-size: var(--hot-font-size-2x-large);
-  height: calc(var(--hot-font-size-2x-large) - 0.2rem);
+  height: calc(var(--hot-font-size-2x-large) - 0);
 }
 
 .header h1.titleSmall .logo {
