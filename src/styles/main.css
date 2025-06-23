@@ -69,15 +69,16 @@ a {
 
 .header h1 {
   display: flex;
-  gap: var(--hot-spacing-medium);
+  gap: var(--hot-spacing-small);
   margin-bottom: 0;
+  align-items: flex-end;
 }
 
 .header h1 span {
   font-size: calc(var(--hot-font-size-2x-large) + 3vmin);
   height: calc(var(--hot-font-size-4x-large) - 0.2rem);
   font-weight: var(--hot-font-weight-bold);
-  font-family: var(--hot-font-variant);
+  font-family: var(--hot-font-sans-variant);
 }
 
 .header h1 .logo {
