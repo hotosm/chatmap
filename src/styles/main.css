@@ -132,22 +132,8 @@ a {
   vertical-align: middle;
   margin-left: var(--hot-spacing-x-small);
   height: 3vmin;
-  pointer-events: none;
   padding: 1vh;
   color: var(--hot-color-neutral-300);
-}
-
-.github {
-  background-image: url("/img/github.png");
-  background-repeat: no-repeat;
-  width: 25px;
-  height: 25px;
-  display: inline-block;
-  padding-left: 12px;
-  background-size: contain;
-  vertical-align: middle;
-  margin-left: var(--hot-spacing-3x-small);
-  opacity: .8;
 }
 
 .infoLinks {
@@ -198,6 +184,10 @@ a {
 
 .info {
   padding: 0 var(--hot-spacing-small) 0;
+}
+
+.info a{
+  color: var(--hot-color-primary-700);
 }
 
 /* Map */
@@ -358,3 +348,6 @@ a {
   text-overflow: ellipsis " ...";
 }
 
+.fileUploadDropArea svg {
+  filter: saturate(0%);
+}
