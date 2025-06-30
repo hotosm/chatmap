@@ -24,10 +24,6 @@ export default function Map({ dataFiles, onSelectFeature }) {
 
     const { data, mapDataDispatch } = useMapDataContext();
 
-    const handleTagEditing = (status) => {
-      setEditingTags(status);
-    }
-
     useEffect(() => {
       if (map.current) return;
     
@@ -171,11 +167,13 @@ export default function Map({ dataFiles, onSelectFeature }) {
       }
       feature.properties.tags.push(tag);
       handleChange(feature);
+      setEditingTags(false);
     };
 
     const handleRemoveTag = (tag, feature) => {
         feature.properties.tags = feature.properties.tags.filter(x => x != tag);
         handleChange(feature);
+        setEditingTags(false);
     }
 
     const handleChange = (feature) => {
@@ -199,7 +197,6 @@ export default function Map({ dataFiles, onSelectFeature }) {
             dataFiles={dataFiles}
             onAddTag={handleAddTag}
             onRemoveTag={handleRemoveTag}
-            onTagEditing={handleTagEditing}
           />
         }
       </div>
