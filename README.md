@@ -52,12 +52,14 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| Include videos in .zip download |
 |✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
 |✅| [Messages list](https://github.com/hotosm/chatmap/issues/9)
-|⚙️| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
-|⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
-|⚙️| [Support audio](https://github.com/hotosm/chatmap/issues/5) |
+|⚙️| [Link a device and get a stream of locations + content] |
+|⚙️| [Backend with user authentication and saved maps] |
+| | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
+| | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+| | [Support audio](https://github.com/hotosm/chatmap/issues/5) |
 
 ## Licensing
 
-Copyright 2024 Emilio Mariscal
+Copyright 2024 Humanitarian OpenStreetMap Team
 
 This is free software! you may use this project under the terms of the GNU General Public License (GPL) Version 3.
