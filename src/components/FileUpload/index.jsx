@@ -10,7 +10,7 @@ const fileTypes = ["txt", "zip", "json"];
 const getFileFormat = (filename) => {
   // Ignore MacOS system files
   if (filename.substring(0, 8) === "__MACOSX") {
-      return;
+    return;
   }
   // Get file format from file extension
   const fileName = filename.toLowerCase();
@@ -18,7 +18,16 @@ const getFileFormat = (filename) => {
     return "chat";
   } else if (fileName.endsWith(".zip")) {
     return "zip";
-  } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".mp4")) {
+  } else if (
+    fileName.endsWith(".jpg") ||
+    fileName.endsWith(".jpeg") ||
+    fileName.endsWith(".mp4") ||
+    fileName.endsWith(".ogg") ||
+    fileName.endsWith(".opus") ||
+    fileName.endsWith(".mp3") ||
+    fileName.endsWith(".m4a") ||
+    fileName.endsWith(".wav")
+  ) {
     return "media";
   }
 }
@@ -37,56 +46,56 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
 
       // Get file object
       const file = loadedFiles[i];
-      const fileFormat = getFileFormat(file.name); 
+      const fileFormat = getFileFormat(file.name);
 
       // The chat was exported as a single text or JSON file
       if (fileFormat === "chat") {
         var reader = new FileReader();
-          reader.readAsText(file, "UTF-8");
-          reader.onload = function (evt) {
-            setFiles(prevFiles => (
+        reader.readAsText(file, "UTF-8");
+        reader.onload = function (evt) {
+          setFiles(prevFiles => (
               {...prevFiles, ...{[file.name]: evt.target.result}}
-            ));
-            // Keeps loaded file count
+          ));
+          // Keeps loaded file count
             setLoadedFilesCount(prev => prev+=1);
-          }
-          reader.onerror = function (evt) {
-            onError(file.name);
-          }
+        }
+        reader.onerror = function (evt) {
+          onError(file.name);
+        }
 
-      // The chat was exported as a .zip file
+        // The chat was exported as a .zip file
       } else if (fileFormat === "zip") {
         // Un-compress file
         new JSZip().loadAsync( file )
         .then(function(zip) {
-          setFilesCount(prev => prev += Object.keys(zip.files).length);
-           Object.keys(zip.files).forEach(filename => {
-            // Process each file, depending on the file format
-            const fileFormat = getFileFormat(filename); 
-            // Chat files
-            if (fileFormat === "chat") {
-              zip.files[filename].async("string").then(function (data) {
-                setFiles(prevFiles => (
+            setFilesCount(prev => prev += Object.keys(zip.files).length);
+            Object.keys(zip.files).forEach(filename => {
+              // Process each file, depending on the file format
+              const fileFormat = getFileFormat(filename);
+              // Chat files
+              if (fileFormat === "chat") {
+                zip.files[filename].async("string").then(function (data) {
+                  setFiles(prevFiles => (
                   {...prevFiles, ...{[file.name]: data}}
-                ));
-                // Keeps loaded file count
+                  ));
+                  // Keeps loaded file count
                 setLoadedFilesCount(prev => prev+=1);
-              });
-            // Media files  (jpg ,jpeg, mp4)
+                });
+            // Media files (jpg, jpeg, mp4 and audio files)
             } else if (fileFormat === "media") {
-              zip.files[filename].async("arraybuffer").then(function (data) {
-                const buffer = new Uint8Array(data);
-                const blob = new Blob([buffer.buffer]);
-                onDataFileLoad(filename, blob)
+                zip.files[filename].async("arraybuffer").then(function (data) {
+                  const buffer = new Uint8Array(data);
+                  const blob = new Blob([buffer.buffer]);
+                  onDataFileLoad(filename, blob)
+                  // Keeps loaded file count
+                setLoadedFilesCount(prev => prev+=1);
+                });
+              } else {
                 // Keeps loaded file count
                 setLoadedFilesCount(prev => prev+=1);
-              });
-            } else {
-                // Keeps loaded file count
-                setLoadedFilesCount(prev => prev+=1);
-            }
-          })
-        });
+              }
+            })
+          });
       }
     };
   };
@@ -106,22 +115,22 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
 
   return (
     <>
-    {/* Loading message */}
+      {/* Loading message */}
     { loading ? <p style={{"textAlign": "center"}}>
       {intl.formatMessage({id: "app.loading", defaultMessage: "Loading"})} ({loadedFilesCount} / {filesCount})...
-    </p> : ""}
+      </p> : ""}
 
-    {/* File upload area */}
+      {/* File upload area */}
     <div style={loading ? {display: "none"} : null}>
-    <FileUploader
-      classes={"fileUploadDropArea"}
-      handleChange={handleChange}
-      multiple
-      name="file"
-      types={fileTypes}
+        <FileUploader
+          classes={"fileUploadDropArea"}
+          handleChange={handleChange}
+          multiple
+          name="file"
+          types={fileTypes}
       label={intl.formatMessage({id: "app.uploadLabel", defaultMessage: "Upload or drag a file right here"})}
-    />
-    </div>
+        />
+      </div>
 
     </>
   );

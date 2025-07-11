@@ -27,6 +27,14 @@ export const getMessage = (properties, dataFiles) => {
       return <><a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a></>
     } else if (properties.file.endsWith("mp4")) {
       return <><video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} /></>
+    } else if (
+      properties.file.endsWith("ogg") ||
+      properties.file.endsWith("opus") ||
+      properties.file.endsWith("mp3") ||
+      properties.file.endsWith("m4a") ||
+      properties.file.endsWith("wav")
+    ) {
+      return <><audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[properties.file])} /></>
     }
   }
   return <p className="text">{properties.message}</p>;

@@ -31,15 +31,23 @@ export const detectSystem = (line) => {
     return "UNKNOWN";
 }
 
-// Look for jpg or mp4 media files
+// Look for jpg, mp4, or audio media files
 export const lookForMediaFile = (msgObject) => {
     const msg = msgObject.message.toLowerCase();
-    let mediaFileIndex = msg.indexOf(".jpg");
-    if (mediaFileIndex < 0) {
-        mediaFileIndex = msg.indexOf(".mp4");
+    // Supported media extensions
+    const extensions = [".jpg", ".mp4", ".ogg", ".opus", ".mp3", ".m4a", ".wav"];
+    let mediaFileIndex = -1;
+    let foundExt = "";
+    for (let ext of extensions) {
+        let idx = msg.indexOf(ext);
+        if (idx > 0) {
+            mediaFileIndex = idx;
+            foundExt = ext;
+            break;
+        }
     }
     if (mediaFileIndex > 0) {
-        let path = msgObject.message.substring(msg.lastIndexOf(":") + 1, mediaFileIndex + 4);
+        let path = msgObject.message.substring(msg.lastIndexOf(":") + 1, mediaFileIndex + foundExt.length);
         if (path.substring(0, 1) == " ") {
             return path.substring(1, path.length)
         }
@@ -91,7 +99,7 @@ export const parseMessage = (line, system) => {
         if (msgObject.file) {
             msgObject.message = "";
         }
-        
+
         return msgObject;
     }
 }
@@ -124,11 +132,11 @@ export const parseAndIndex = (lines, system) => {
         } else {
             // If message is just text without datestring,
             // append it to the previous message.
-            if (result[index - 1] && 
+            if (result[index - 1] &&
 
                 (system == "ANDROID" && line.substring(2,1) !== "/" &&
-                line.indexOf("a. m.") == -1 &&
-                line.indexOf("p. m.") == -1) ||
+                    line.indexOf("a. m.") == -1 &&
+                    line.indexOf("p. m.") == -1) ||
 
                 (system == "IOS" &&
                 line.indexOf("[") == -1))

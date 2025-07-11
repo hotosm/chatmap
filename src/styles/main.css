@@ -213,6 +213,12 @@ a {
   border-radius: var(--hot-border-radius-medium);
 }
 
+.popupAudio {
+  width: 92%;
+  border-radius: var(--hot-border-radius-medium);
+  margin: var(--hot-spacing-x-small) 0;
+}
+
 .userinfo {
   font-size: var(--hot-font-size-small);
 }
