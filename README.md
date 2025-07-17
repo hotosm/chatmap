@@ -52,11 +52,11 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| Include videos in .zip download |
 |✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
 |✅| [Messages list](https://github.com/hotosm/chatmap/issues/9)
+|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks Oscar!|
 |⚙️| Link a device and get a stream of locations + content |
 |⚙️| Backend with user authentication and saved maps |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
-| | [Support audio](https://github.com/hotosm/chatmap/issues/5) |
 
 ## Licensing
 
