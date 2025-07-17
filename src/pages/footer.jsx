@@ -14,7 +14,7 @@ export default function Footer() {
         </div>
         <a href="https://www.hotosm.org/privacy">- We collect zero personal data. hotosm.org/privacy -</a>
         &nbsp;
-        <a href="https://github.com/hotosm/chatmap">v0.4.8</a>
+        <a href="https://github.com/hotosm/chatmap">v0.4.9</a>
     </div>
     </>
   );
