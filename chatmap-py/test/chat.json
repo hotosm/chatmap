@@ -1,0 +1,92 @@
+[
+    {
+        "session": "test",
+        "from": "001234567890@s.msg.net",
+        "chat": "MyChat",
+        "text": "Hello there!",
+        "date": "2025-01-01T12:00:00-03:00",
+        "location": "",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567890@s.msg.net",
+        "chat": "MyChat1",
+        "text": "I'm here now, everything is ok",
+        "date": "2025-01-01T12:30:00-03:00",
+        "location": "",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567899@s.msg.net",
+        "chat": "MyChat",
+        "text": "Hi everyone, I'm happy to join your efforts",
+        "date": "2025-01-01T12:30:10-03:00",
+        "location": "",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567890@s.msg.net",
+        "chat": "MyChat1",
+        "text": "",
+        "date": "2025-01-01T12:30:20-03:00",
+        "location": "-34.596657,-58.438326",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567890@s.msg.net",
+        "chat": "MyChat",
+        "text": "New position",
+        "date": "2025-01-01T12:40:00-03:00",
+        "location": "",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567899@s.msg.net",
+        "chat": "MyChat",
+        "text": "Trash bin",
+        "date": "2025-01-01T12:40:10-03:00",
+        "location": "",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567890@s.msg.net",
+        "chat": "MyChat",
+        "text": "",
+        "date": "2025-01-01T12:41:00-03:00",
+        "location": "-34.597958,-58.435354",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567899@s.msg.net",
+        "chat": "MyChat",
+        "text": "",
+        "date": "2025-01-01T12:41:10-03:00",
+        "location": "-34.596659,-58.438329",
+        "photo": "",
+        "video": ""
+    },
+    {
+        "session": "test",
+        "from": "001234567890@s.msg.net",
+        "chat": "MyChat",
+        "text": "",
+        "date": "2025-01-01T12:41:11-03:00",
+        "location": "-34.597958,-58.435354",
+        "photo": "",
+        "video": ""
+    }
+]

@@ -60,6 +60,6 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
 ## Licensing
 
-Copyright 2024 Humanitarian OpenStreetMap Team
+Copyright 2024 Emilio Mariscal
 
 This is free software! you may use this project under the terms of the GNU General Public License (GPL) Version 3.

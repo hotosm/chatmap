@@ -12,10 +12,11 @@ class ChatMap:
         self.searchLocation = searchLocation
         self.msgObjects = list(messages.values())
 
-    def getMessageFromSameUser (self, index, username, msg_index):
+    def getMessageFromSameUser (self, index, username, chat, msg_index):
         messages = self.messages
         # If message is from the same user
-        if index > -1 and index < len(messages) and messages[index]['username'] == username:
+        if index > -1 and index < len(messages) and messages[index]['username'] == username \
+            and messages[index]['chat'] == chat:
             # Calculate time passed between current and previous message.
             delta_diff = abs((messages[msg_index]['time'] - messages[index]['time']).total_seconds() * 1000) # Convert timedelta to milliseconds
             if (messages[index] 
@@ -65,6 +66,7 @@ class ChatMap:
                 prevMessageFromSameUser = self.getMessageFromSameUser(
                     prevIndex,
                     message['username'],
+                    message['chat'],
                     msgIndex
                 )
                 if prevMessageFromSameUser:
@@ -78,6 +80,7 @@ class ChatMap:
                 nextMessageFromSameUser = self.getMessageFromSameUser(
                     nextIndex,
                     message['username'],
+                    message['chat'],
                     msgIndex
                 )
                 if nextMessageFromSameUser:
@@ -183,6 +186,7 @@ class ChatMap:
                         featureObject['properties'] = {
                             'message': message['message'],
                             'username': message['username'],
+                            'chat': message['chat'],
                             'time': str(message['time']),
                             'location': message['location'],
                             'related': message['id']

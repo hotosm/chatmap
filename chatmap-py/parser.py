@@ -16,13 +16,12 @@ def searchLocation(msg):
 
 # Parse time, username and message
 def parseMessage(line):
-    text = ""
     msgObject = {
         'time': parseTimeString(line['date']),
         'username': line['from'],
     }
-    text = line['text']
-    msgObject['message'] = text
+    msgObject['message'] = line['text']
+    msgObject['chat'] = line['chat']
     msgObject['location'] = line['location']
     return msgObject
 
