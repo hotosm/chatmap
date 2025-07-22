@@ -21,12 +21,13 @@ export const formatDate = (time) => {
  * @returns {string} Message (text message or HTML for image, video)
  */
 export const getMessage = (properties, dataFiles) => {
+  let content;
   if (properties.file && dataFiles && properties.file in dataFiles) {
     if (properties.file.endsWith("jpg") || properties.file.endsWith("jpeg")) {
       const url = URL.createObjectURL(dataFiles[properties.file]);
-      return <><a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a></>
+      content = <a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a>;
     } else if (properties.file.endsWith("mp4")) {
-      return <><video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} /></>
+      content = <video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
     } else if (
       properties.file.endsWith("ogg") ||
       properties.file.endsWith("opus") ||
@@ -34,8 +35,11 @@ export const getMessage = (properties, dataFiles) => {
       properties.file.endsWith("m4a") ||
       properties.file.endsWith("wav")
     ) {
-      return <><audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[properties.file])} /></>
+      content = <audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[properties.file])} />
     }
   }
-  return <p className="text">{properties.message}</p>;
+  return <>
+      { content ? content : null };
+      { properties.message ? <p className="text">{properties.message}</p> : null}
+    </>
 }
