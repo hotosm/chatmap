@@ -45,6 +45,9 @@ const parseMessage = (line) => {
     if (line.file && line.mime_type === "video/mp4") {
         msgObject.file = stripPath(line.file);
     }
+    if (line.file && ["audio/ogg", "audio/opus", "audio/mp3", "audio/m4a", "audio/wav"].indexOf(line.mime_type) > -1) {
+        msgObject.file = stripPath(line.file);
+    }
     return msgObject;
 }
 
