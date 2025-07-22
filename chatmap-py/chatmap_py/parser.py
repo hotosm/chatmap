@@ -1,5 +1,5 @@
 from datetime import datetime
-from chatmap import ChatMap
+from .chatmap import ChatMap
 
 '''
  Contains a main parser function and supporting fuctions

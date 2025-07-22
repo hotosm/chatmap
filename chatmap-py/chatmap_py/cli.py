@@ -7,7 +7,7 @@
 ###
 
 from argparse import ArgumentParser
-from parser import streamParser
+from .parser import streamParser
 import json
 
 def main():

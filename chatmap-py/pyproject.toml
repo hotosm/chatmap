@@ -1,0 +1,97 @@
+[project]
+name = "chatmap-py"
+description = "Analyzes chat logs and pair locations with messages, generating a GeoJSON."
+authors = [
+    {name = "Emilio Mariscal", email = "emilio.mariscal@hotosm.org"},
+]
+dependencies = []
+requires-python = ">=3.1"
+readme = "README.md"
+license = {text = "AGPL-3.0-only"}
+keywords = ["hot", "geojson", "data", "chat", "chatmap"]
+classifiers = [
+    "Topic :: Utilities",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.1",
+]
+version = "0.0.2"
+
+[project.urls]
+homepage = "https://github.com/hotosm/chatmap/tree/master/chatmap-py"
+documentation = "https://github.com/hotosm/chatmap/tree/master/chatmap-py"
+repository = "https://github.com/hotosm/chatmap"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pytest.ini_options]
+addopts = "-ra -q -p no:warnings"
+testpaths = [
+    "test",
+]
+pythonpath = "chatmap_py"
+log_cli = true
+log_cli_level = "DEBUG"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.0.2"
+version_files = [
+    "pyproject.toml:version",
+    "chatmap_py/__version__.py",
+    "Makefile:VERSION",
+]
+update_changelog_on_bump = true
+
+[tool.pdm]
+version = {from = "chatmap_py/__version__.py"}
+distribution = true
+
+[tool.pdm.build]
+includes = ["chatmap_py"]
+source-includes = ["LICENSE.md", "README.md"]
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "commitizen>=3.6.0",
+    "pre-commit>=3.3.3",
+]
+debug = [
+    "debugpy>=1.6.7.post1",
+    "ipdb>=0.13.13",
+]
+test = [
+    "pytest>=7.4.0",
+]
+docs = [
+    "mkdocs>=1.5.2",
+    "mkdocs-material>=9.2.3",
+    "mkdocstrings-python>=1.5.2",
+    "mkdocs-exclude>=1.0.2",
+]
+
+[tool.ruff]
+fix = true
+line-length = 88
+target-version = "py310"
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".vscode",
+    "__pypackages__",
+    "build",
+    "dist",
+    "chatmap_py/__version__.py",
+]
+
+[tool.ruff.lint]
+select = ["I", "E", "W", "D", "B", "F", "N", "Q"]
+ignore = ["N805", "B008"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[project.scripts]
+geojsonstats = "chatmap_py.cli:main"
