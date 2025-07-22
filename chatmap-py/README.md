@@ -3,9 +3,18 @@
 This is a Python package for analyzing chat logs in JSON format,
 pair locations with messages and generate a GeoJSON as a result.
 
-## Test 
+## Install
 
-`python cli.py test/chat.json`
+```bash
+pip install chatmap-py
+```
+
+## Usage
+
+```py
+from chatmap_py import parser
+geoJSON = parser.streamParser(data)
+```
 
 ## Licensing
 
