@@ -21,7 +21,7 @@ def main():
             geoJSON = streamParser(json_data)
             print(json.dumps(geoJSON))
     else:
-        "Usage: python chatmap.py <filename.json>"
+        "Usage: python cli.py <filename.json>"
 
 if __name__ == "__main__":
     main()
