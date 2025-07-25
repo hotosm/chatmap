@@ -86,7 +86,7 @@ async def status(user_id: str) -> Dict[str, str]:
             raise HTTPException(status_code=502, detail="Failed to get session")
         return {'status': response.text}
 
-# Get Status
+# Logout
 @app.get("/logout")
 async def status(user_id: str) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
