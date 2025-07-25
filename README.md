@@ -21,9 +21,9 @@ yarn start
 
 Test with `yarn test`.
 
-## ChatMap Live with linked devices
+## ChatMap Live + linked devices
 
-Check docs for enabling the Live version of ChatMap with linked devices.
+Check [docs](/hotosm/chatmap/blob/feature/live/docs/live.md) for enabling the Live version of ChatMap with linked devices.
 
 ## How to use it?
 
@@ -35,7 +35,7 @@ with the closest message from the same user.
 3. It will extract all the locations and display them on a map, together with the paired message (text or media)
 4. You can also download the locations + messages as a .zip file from there
 
-Check docs for each instant messaging app [here](https://github.com/hotosm/chatmap/blob/master/docs/apps.md).
+Check docs for each instant messaging app [here](/hotosm/chatmap/blob/master/docs/apps.md).
 
 ## How to save the map
 
