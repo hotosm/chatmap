@@ -13,13 +13,17 @@ import (
     "sync"
     "time"
 
+    "google.golang.org/protobuf/proto"
+
     _ "github.com/mattn/go-sqlite3"
     "go.mau.fi/whatsmeow"
+    "go.mau.fi/whatsmeow/store"
     "go.mau.fi/whatsmeow/store/sqlstore"
     "go.mau.fi/whatsmeow/types/events"
     "github.com/redis/go-redis/v9"
     qrcode "github.com/skip2/go-qrcode"
     waLog "go.mau.fi/whatsmeow/util/log"
+    waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
 // List of messages
@@ -76,8 +80,13 @@ func ConvertToJSDateFormat(input string) (string) {
 // Initialize client with sessionId
 func initClient(sessionID string) {
 
+    log.Printf("initClient: %s \n", sessionID)
+
     // Create new DB storage
     ctx := context.Background()
+    store.DeviceProps.PlatformType = waProto.DeviceProps_DESKTOP.Enum()
+    store.DeviceProps.Os = proto.String("ChatMap")
+
     var path string
     if err := os.MkdirAll("sessions", 0755); err != nil {
         fmt.Printf("Failed to create sessions directory: %v\n", err)
@@ -96,6 +105,7 @@ func initClient(sessionID string) {
     }
 
     // Initialize new whatsmeow client
+    log.Printf("Initializing client for session: %s ... \n", sessionID)
     client := whatsmeow.NewClient(deviceStore, nil)
 
     // Store client session in memory
@@ -108,6 +118,7 @@ func initClient(sessionID string) {
 
     // If no client store, get QR
     if client.Store.ID == nil {
+        log.Printf("No client store found for session: %s , returning QR \n", sessionID)
         qrChan, _ := client.GetQRChannel(context.Background())
         go func() {
             for evt := range qrChan {
@@ -127,6 +138,7 @@ func initClient(sessionID string) {
         // Connected client session
         sessionMetaMu.Lock()
         sessionMeta[sessionID].Connected = true
+        log.Printf("Session %s CONNECTED \n", sessionID)
         sessionMetaMu.Unlock()
     }
 
@@ -253,6 +265,7 @@ func reInitSessions() {
 func qrHandler(w http.ResponseWriter, r *http.Request) {
     sessionID := r.URL.Query().Get("session")
     if sessionID == "" {
+        log.Printf("Missing session Id: %s \n", sessionID)
         http.Error(w, "Missing session ID", http.StatusBadRequest)
         return
     }
@@ -280,6 +293,7 @@ func qrHandler(w http.ResponseWriter, r *http.Request) {
 func startHandler(w http.ResponseWriter, r *http.Request) {
     sessionID := r.URL.Query().Get("session")
     if sessionID == "" {
+        log.Printf("Missing session Id: %s \n", sessionID)
         http.Error(w, "Missing session ID", http.StatusBadRequest)
         return
     }
@@ -393,7 +407,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
     delete(sessionMeta, sessionID)
     sessionMetaMu.Unlock()
 
-    dbFile := fmt.Sprintf("session_%s.db", sessionID)
+    dbFile := fmt.Sprintf("sessions/session_%s.db", sessionID)
     _ = os.Remove(dbFile)
 
     fmt.Fprintf(w, "Session %s logged out and removed\n", sessionID)
