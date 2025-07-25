@@ -19,7 +19,7 @@ function App() {
   // Get data from API
   const {mapData, QRImgSrc, session, status, files, isLoading, error, fetchMapData, fetchSession, fetchQRCode, fetchStatus} = useAPI();
 
-  useInterval(() => { status === "connected" && fetchMapData() }, status === "connected" && 1000);
+  useInterval(() => { status === "connected" && fetchMapData() }, status === "connected" && 10000);
 
   useEffect(() => {
     fetchSession();

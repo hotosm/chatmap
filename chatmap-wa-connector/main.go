@@ -238,13 +238,13 @@ func handleMessage(sessionID string, v *events.Message) {
 
 // Re-init sessions
 func reInitSessions() {
-    files, err := filepath.Glob("session_*.db")
+    files, err := filepath.Glob("sessions/session_*.db")
     if err != nil {
         log.Printf("Failed to list DB files: %v", err)
         return
     }
     for _, file := range files {
-        sessionId := strings.TrimSuffix(strings.TrimPrefix(file, "session_"), ".db")
+        sessionId := strings.TrimSuffix(strings.TrimPrefix(file, "sessions/session_"), ".db")
         go initClient(sessionId)
     }
 }
