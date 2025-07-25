@@ -10,7 +10,8 @@ export default function Header({
     dataAvailable,
     dataFiles,
     handleNewUploadClick,
-    handleOptionClick
+    handleOptionClick,
+    showUploadButton
 }) {
 
     const { data, mapDataDispatch } = useMapDataContext();
@@ -47,16 +48,19 @@ export default function Header({
         <header className="header">
 
             {/* Logo */}
-            <h1 className={dataAvailable ? "titleSmall" : "title"} >
-                <img src={logo} className="logo" alt="logo" />
-                <span>ChatMap</span>
-            </h1>
+            <a href="/">
+                <h1 className={dataAvailable ? "titleSmall" : "title"} >
+                    <img src={logo} className="logo" alt="logo" />
+                    <span>ChatMap</span>
+                </h1>
+            </a>
 
             {/* Options: upload new file, download */}
             { dataAvailable ?
             <>
                 <div className="fileOptions">
                     <SaveButton data={data} dataFiles={dataFiles} />
+                    { showUploadButton ?
                     <sl-button
                         variant="success"
                         outline
@@ -66,7 +70,7 @@ export default function Header({
                             id = "app.uploadNewFile"
                             defaultMessage="Upload new file"
                         /> 
-                    </sl-button>
+                    </sl-button> : null}
                 </div>
                 <div className="tagsOptions">
                     <NavBar

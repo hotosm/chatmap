@@ -1,7 +1,9 @@
+import './styles/main.css'
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './styles/main.css'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/home';
+import Linked from './pages/linked';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
 import En from './int/en.json';
@@ -34,13 +36,22 @@ const getLocaleMessages = () => {
   return locales["en"]
 }
 
+const ENABLE_LIVE = import.meta.env.VITE_ENABLE_LIVE || false;
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
       <ErrorBoundary>
         <MapDataProvider>
-          <Home />
+           <Router>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              { ENABLE_LIVE ?
+              <Route path="/linked" element={<Linked />} />
+              : null}
+            </Routes>
+          </Router>
         </MapDataProvider>
       </ErrorBoundary>
     </IntlProvider>

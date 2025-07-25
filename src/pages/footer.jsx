@@ -1,3 +1,5 @@
+const ENABLE_LIVE = import.meta.env.VITE_ENABLE_LIVE || false;
+
 export default function Footer() {
 
   return (
@@ -8,6 +10,11 @@ export default function Footer() {
     <p className="info">
        Save your downloaded map in <a href="https://umap.hotosm.org/chatmap">umap.hotosm.org/chatmap</a>
     </p>
+    { ENABLE_LIVE ?
+    <p className="info info-bottom-spaced">
+        Or <a href="/linked">link a device</a> <small>(new!)</small>
+    </p>
+    : null}
     <div className="infoLinks">
         <div className="copy">
             <a href="https://github.com/hotosm/chatmap">This is free software</a>

@@ -25,7 +25,7 @@ export const getMessage = (properties, dataFiles) => {
   if (properties.file && dataFiles && properties.file in dataFiles) {
     if (properties.file.endsWith("jpg") || properties.file.endsWith("jpeg")) {
       const url = URL.createObjectURL(dataFiles[properties.file]);
-      content = <a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a>;
+      content = <a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a>
     } else if (properties.file.endsWith("mp4")) {
       content = <video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
     } else if (
@@ -39,7 +39,7 @@ export const getMessage = (properties, dataFiles) => {
     }
   }
   return <>
-      { content ? content : null };
+      { content ? content : null }
       { properties.message ? <p className="text">{properties.message}</p> : null}
     </>
 }

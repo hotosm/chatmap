@@ -21,6 +21,10 @@ yarn start
 
 Test with `yarn test`.
 
+## ChatMap Live with linked devices
+
+Check docs for enabling the Live version of ChatMap with linked devices.
+
 ## How to use it?
 
 Create a group and ask people to post locations and messages. Each location will be paired 
@@ -53,8 +57,8 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
 |✅| [Messages list](https://github.com/hotosm/chatmap/issues/9)
 |✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
-|⚙️| [Live community reporting](https://github.com/orgs/hotosm/projects/46) |
-|⚙️| [Backend with user authentication and saved maps](https://github.com/hotosm/chatmap/issues/18) |
+|⚙️| Link a device and get a stream of locations + content (live community reporting)|
+|⚙️| Backend with user authentication and saved maps |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
 

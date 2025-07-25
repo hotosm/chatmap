@@ -38,7 +38,7 @@ function App() {
       setShowMessages(false);
   }, [mapData])
 
-  // Map Data Context: Manages map data 
+  // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
 
   // Updates map data context with new map data
@@ -86,6 +86,7 @@ function App() {
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
           handleOptionClick={handleOptionClick}
+          showUploadButton={true}
         />
 
         { showMessages && dataAvailable &&

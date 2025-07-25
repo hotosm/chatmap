@@ -62,6 +62,11 @@ a {
   justify-content: center;
 }
 
+.header a {
+  text-decoration: none;
+  color:var(--hot-color-neutral-950);
+}
+
 .header h1.titleSmall {
   font-size: var(--hot-font-size-small);
   letter-spacing: -.1rem;
@@ -79,6 +84,11 @@ a {
   height: calc(var(--hot-font-size-4x-large) - 0);
   font-weight: var(--hot-font-weight-bold);
   font-family: var(--hot-font-sans-variant);
+}
+
+.header .logo-link {
+  text-decoration: none;
+  color: var(--hot-color-gray-950);
 }
 
 .header h1 .logo {
@@ -186,8 +196,16 @@ a {
   padding: 0 var(--hot-spacing-small) 0;
 }
 
-.info a{
+.info-bottom-spaced {
+  padding-bottom: var(--hot-spacing-medium)
+}
+
+.info a {
   color: var(--hot-color-primary-700);
+}
+
+.info small {
+  font-size: var(--hot-font-size-x-small);
 }
 
 /* Map */
@@ -211,12 +229,6 @@ a {
 .popupImage {
   width: 92%;
   border-radius: var(--hot-border-radius-medium);
-}
-
-.popupAudio {
-  width: 92%;
-  border-radius: var(--hot-border-radius-medium);
-  margin: var(--hot-spacing-x-small) 0;
 }
 
 .userinfo {
@@ -356,4 +368,32 @@ a {
 
 .fileUploadDropArea svg {
   filter: saturate(0%);
+}
+
+.connectForm {
+  padding: var(--hot-spacing-medium);
+  background-color: var(--hot-color-neutral-0);
+  position: absolute;
+  top: 300px;
+  z-index: 9999;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--hot-spacing-medium);
+}
+
+.connectForm.qrCodeContainer {
+  flex-direction: column;
+}
+
+.phoneNumberInput {
+  padding: var(--hot-spacing-x-small);
+  border-radius: var(--hot-border-radius-small);
+  border: 1px solid var(--hot-color-neutral-300);
+  font-size: var(--hot-font-size-medium);
+  font-weight: bold;
+}
+
+.qrCode {
+  border: 1px solid var(--hot-color-neutral-300);
 }
