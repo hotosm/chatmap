@@ -57,6 +57,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |⚙️| [Backend with user authentication and saved maps](https://github.com/hotosm/chatmap/issues/18) |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) |
 
 ## Licensing
 
