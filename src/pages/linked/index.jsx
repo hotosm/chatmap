@@ -19,19 +19,25 @@ function App() {
   // Get data from API
   const {mapData, QRImgSrc, session, status, files, isLoading, error, fetchMapData, fetchSession, fetchQRCode, fetchStatus} = useAPI();
 
-  useInterval(() => { status === "connected" && fetchMapData() }, status === "connected" && 10000);
+  useInterval(() => { status === "connected" && fetchMapData() }, 10000);
+
+  useInterval(() => fetchStatus(), session && status !== "connected" ? 1000 : null);
+ 
+  useEffect(() => {
+    status === "connected" && fetchMapData();
+  }, [status]);
 
   useEffect(() => {
-    fetchSession();
+      fetchSession();
   }, []);
 
   useEffect(() => {
-    if (session) {
-      fetchQRCode();
+    if (status !== "connected" && status !== "waiting") {
+      if (session) {
+        fetchQRCode(session);
+      }
     }
-  }, [session]);
-
-  useInterval(() => fetchStatus(), session != null && status !== "connected" ? 1000 : null);
+  }, [session, status]);
 
   // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
@@ -60,11 +66,6 @@ function App() {
     }
   }
 
-  const handleConnectClick = () => {
-    fetchSession(phoneNumber);
-    fetchQRCode(phoneNumber);
-  }
-
   // There's data for the map!
   // const dataAvailable = files && data && data.features && data.features.length > 0;
   const dataAvailable = data && data.features && data.features.length > 0;
@@ -84,6 +85,13 @@ function App() {
           mode="linked"
         />
 
+        <div>
+          <ul>
+            <li>status: {status}</li>
+            <li>session: {session}</li>
+          </ul>
+        </div>
+
         { showMessages && dataAvailable &&
           <Messages
             messages={chatMessages}
@@ -91,32 +99,11 @@ function App() {
           />
         }
 
-        { !showMessages && !dataAvailable && !QRImgSrc &&
-          <div class="connectForm">
-            <input
-              type="text"
-              placeholder="Phone number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="phoneNumberInput"
-            />
-            <sl-button
-              variant="primary"
-              onClick={handleConnectClick}
-            >
-              <FormattedMessage
-                id = "app.connect"
-                defaultMessage="Connect"
-              />
-            </sl-button>
-          </div>
-        }
-
         {/* If there're no files, show file upload options */}
-        { status === "waiting" && QRImgSrc &&
-          <div class="connectForm qrCodeContainer">
+        { status !== "connected" && QRImgSrc &&
+          <div className="connectForm qrCodeContainer">
             <h3>Scan this QR code with your device:</h3>
-            <img class="qrCode" src={QRImgSrc} alt="QR Code" />
+            <img className="qrCode" src={QRImgSrc} alt="QR Code" />
           </div>
         }
 

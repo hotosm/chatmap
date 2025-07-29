@@ -69,8 +69,8 @@ async def qr(user_id: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(f'{server_url}/start-qr?session={user_id}')
         if response.status_code != 200:
-            logger.info(f'Failed to get session: {user_id}')
-            raise HTTPException(status_code=502, detail="Failed to get session")
+            logger.info(f'Failed to get QR code: {user_id}')
+            raise HTTPException(status_code=502, detail="Failed to get QR code")
 
         if "image" not in response.headers.get("Content-Type", ""):
             raise HTTPException(status_code=400, detail="URL did not return an image")
@@ -125,7 +125,7 @@ async def get_chatmap(user_id: str, db: Session = Depends(get_db)) -> GeoJson:
         # Cleanup old messages
         await cleanup(user_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        pass #raise HTTPException(status_code=500, detail=str(e))
     data = [
         {bytes.decode(k): bytes.decode(v) if isinstance(v, bytes) else v
         for k, v in entry.items()}
@@ -135,26 +135,30 @@ async def get_chatmap(user_id: str, db: Session = Depends(get_db)) -> GeoJson:
     geoJSON = chatmap_parser.streamParser(data)
 
     # Look for existing entries for same user in DB
-    userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user_id).first()
-    if userChatmap:
-        # Merge new GeoJSON with existing one and update DB
-        currentGeoJSON = json.loads(userChatmap.geojson)
-        if currentGeoJSON:
-            mergedGeoJSON = {
-                "type": "FeatureCollection",
-                "features": merge_geojson(currentGeoJSON, geoJSON)
-            }
-            userChatmap.geojson = json.dumps(mergedGeoJSON)
-            db.commit()
-            db.refresh(userChatmap)
-            return mergedGeoJSON
-    else:
-        # Create new entry
-        newUserChatmap = UserChatMap(id=user_id, geojson=json.dumps(geoJSON))
-        db.add(newUserChatmap)
-        db.commit()
-        db.refresh(newUserChatmap)
-        return geoJSON
+    if len(geoJSON['features']) > 0:
+        try:
+            userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user_id).first()
+            if userChatmap:
+                # Merge new GeoJSON with existing one and update DB
+                currentGeoJSON = json.loads(userChatmap.geojson)
+                if currentGeoJSON:
+                    mergedGeoJSON = {
+                        "type": "FeatureCollection",
+                        "features": merge_geojson(currentGeoJSON, geoJSON)
+                    }
+                    userChatmap.geojson = json.dumps(mergedGeoJSON)
+                    db.commit()
+                    db.refresh(userChatmap)
+                    return mergedGeoJSON
+            else:
+                # Create new entry
+                newUserChatmap = UserChatMap(id=user_id, geojson=json.dumps(geoJSON))
+                db.add(newUserChatmap)
+                db.commit()
+                db.refresh(newUserChatmap)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    return geoJSON
 
 # Get all sessions
 async def get_sessions():

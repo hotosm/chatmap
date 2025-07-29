@@ -15,16 +15,19 @@ const useApi = (params = {}) => {
         type: "FeatureCollection",
         features: []
     });
-    const [files, setFiles] = useState(null);
-    const [QRImgSrc, setQRImgSrc] = useState(null);
-    const [session, setSession] = useState(null);
-    const [status, setStatus] = useState(null);
+    const [files, setFiles] = useState();
+    const [QRImgSrc, setQRImgSrc] = useState();
+    const [session, setSession] = useState();
+    const [status, setStatus] = useState();
 
-    const fetchSession = useCallback(async (session_token) => {
-        const local_session = session_token || localStorage.getItem("chatmap_access_token");
-        if (local_session) {
-            setSession(local_session);
-            localStorage.setItem("chatmap_access_token", local_session);
+    const fetchSession = useCallback(async () => {
+        const stored_session = localStorage.getItem("chatmap_access_token");
+        if (stored_session) {
+            setSession(stored_session);
+        } else {
+            const session_token = crypto.randomUUID();
+            localStorage.setItem("chatmap_access_token", session_token);
+            setSession(session_token);
         }
         return;
     }, []);

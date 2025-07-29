@@ -80,7 +80,9 @@ func ConvertToJSDateFormat(input string) (string) {
 // Initialize client with sessionId
 func initClient(sessionID string) {
 
-    log.Printf("initClient: %s \n", sessionID)
+    log.Printf("Init session: %s \n", sessionID)
+
+    // -- DB Storage --
 
     // Create new DB storage
     ctx := context.Background()
@@ -88,15 +90,20 @@ func initClient(sessionID string) {
     store.DeviceProps.Os = proto.String("ChatMap")
 
     var path string
+    // Sessions directory
     if err := os.MkdirAll("sessions", 0755); err != nil {
         fmt.Printf("Failed to create sessions directory: %v\n", err)
         return
     }
+
+    // Open DB
     path = fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
     container, err := sqlstore.New(ctx, "sqlite3", path, waLog.Noop)
     if err != nil {
         log.Fatalf("failed to open db: %v", err)
     }
+
+    // -- Device Store --
 
     // Get device from storage
     deviceStore, err := container.GetFirstDevice(ctx)
@@ -116,8 +123,8 @@ func initClient(sessionID string) {
     sessionMeta[sessionID] = &SessionMeta{}
     sessionMetaMu.Unlock()
 
-    // If no client store, get QR
     if client.Store.ID == nil {
+        // If no client store, get QR
         log.Printf("No client store found for session: %s , returning QR \n", sessionID)
         qrChan, _ := client.GetQRChannel(context.Background())
         go func() {
@@ -127,8 +134,14 @@ func initClient(sessionID string) {
                     sessionMeta[sessionID].QRCode = evt.Code
                     sessionMetaMu.Unlock()
                 } else if evt.Event == "success" {
+                    existingSessionId := getExistingSessionId(client.Store.ID.User, sessionID)
+                    if (existingSessionId != "") {
+                        log.Printf("Logout existing SessionId %s \n", existingSessionId)
+                        logout(existingSessionId)
+                    }
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].Connected = true
+                    log.Printf("Session %s CONNECTED (1) ClientID: %s\n", sessionID,  client.Store.ID.User)
                     sessionMetaMu.Unlock()
                     break
                 }
@@ -138,7 +151,7 @@ func initClient(sessionID string) {
         // Connected client session
         sessionMetaMu.Lock()
         sessionMeta[sessionID].Connected = true
-        log.Printf("Session %s CONNECTED \n", sessionID)
+        log.Printf("Session %s CONNECTED (2) ClientID: %s\n", sessionID,  client.Store.ID.User)
         sessionMetaMu.Unlock()
     }
 
@@ -157,6 +170,44 @@ func initClient(sessionID string) {
             log.Fatalf("failed to connect: %v", err)
         }
     }()
+}
+
+func getExistingSessionId(phoneNumber string, currentSessionId string) (string) {
+    files, err := filepath.Glob("sessions/session_*.db")
+    if err != nil {
+        log.Printf("Failed to list DB files: %v", err)
+        return ""
+    }
+    for _, file := range files {
+        sessionID := strings.TrimSuffix(strings.TrimPrefix(file, "sessions/session_"), ".db")
+
+        // Create new DB storage
+        ctx := context.Background()
+
+        // Open DB
+        var path string
+        path = fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
+        container, err := sqlstore.New(ctx, "sqlite3", path, waLog.Noop)
+        if err != nil {
+            log.Fatalf("failed to open db: %v", err)
+        }
+
+        // Get device from storage
+        deviceStore, err := container.GetFirstDevice(ctx)
+        if err != nil {
+            log.Fatalf("failed to get device: %v", err)
+        }
+
+        // Initialize whatsmeow client
+        client := whatsmeow.NewClient(deviceStore, nil)
+
+        // If same phone number, return sessionID
+        if (client.Store.ID != nil && client.Store.ID.User == phoneNumber && sessionID != currentSessionId) {
+            return sessionID
+        }
+    }
+    return ""
+
 }
 
 // Handle incoming messages
@@ -367,14 +418,16 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
     sessionMetaMu.RUnlock()
 
     if !ok {
-        http.Error(w, "Session not found", http.StatusNotFound)
+        fmt.Fprint(w, "not_found")
         return
     }
 
     if meta.Connected {
         fmt.Fprint(w, "connected")
+        return
     } else {
         fmt.Fprint(w, "waiting")
+        return
     }
 }
 
@@ -387,30 +440,43 @@ func sessionsHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(sessionMeta)
 }
 
-// Handler for logout session endpoint
-func logoutHandler(w http.ResponseWriter, r *http.Request) {
-    sessionID := r.URL.Query().Get("session")
-    if sessionID == "" {
-        http.Error(w, "Missing session ID", http.StatusBadRequest)
-        return
+// Logout session
+func logout(sessionID string) {
+    ctx := context.Background()
+    container, _ := sqlstore.New(ctx, "sqlite3", fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID), waLog.Noop)
+    deviceStore, _ := container.GetFirstDevice(ctx)
+    client := whatsmeow.NewClient(deviceStore, nil)
+    err := client.Connect()
+    if err == nil {
+        client.Logout(ctx)
+        log.Printf("Logged out old session %s sessionID", sessionID)
+    }
+
+    path := fmt.Sprintf("./sessions/session_%s.db", sessionID)
+    e := os.Remove(path)
+    if e != nil {
+        log.Printf("Error removing %s", path)
     }
 
     clientsMu.Lock()
     client, exists := clients[sessionID]
     if exists {
         client.Disconnect()
+        client.Logout(ctx)
         delete(clients, sessionID)
     }
     clientsMu.Unlock()
 
-    sessionMetaMu.Lock()
-    delete(sessionMeta, sessionID)
-    sessionMetaMu.Unlock()
+}
 
-    dbFile := fmt.Sprintf("sessions/session_%s.db", sessionID)
-    _ = os.Remove(dbFile)
-
-    fmt.Fprintf(w, "Session %s logged out and removed\n", sessionID)
+// Handler for logout session endpoint
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+   sessionID := r.URL.Query().Get("session")
+   if sessionID == "" {
+        http.Error(w, "Missing session ID", http.StatusBadRequest)
+        return
+    }
+    logout(sessionID)
 }
 
 // Handler for media file serving endpoint
