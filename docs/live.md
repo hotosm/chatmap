@@ -3,6 +3,8 @@
 In this advanced mode users will be able to link devices to ChatMap
 for creating live-updated maps.
 
+<img width="542" alt="Screenshot 2025-07-30 at 2 58 23 PM" src="https://github.com/user-attachments/assets/e867eae1-1788-4ab8-a2a4-968a33e1c275" />
+
 # Setup
 
 ## Install dependencies
