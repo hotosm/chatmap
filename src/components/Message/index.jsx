@@ -11,7 +11,7 @@ function Message({ message, selected, ref, dataFiles }) {
                 ref={ref}
             >
                 <p className="userinfo">
-                    <span className="msgUsername">{message.username}</span>
+                    <span className="msgUsername">{message.username.split("@")[0]}</span>
                     <span className="msgDatetime">{formatDate(message.time)}</span>
                 </p>
                 <div>{ getMessage(message, dataFiles) }</div>

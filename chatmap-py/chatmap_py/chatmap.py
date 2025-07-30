@@ -192,11 +192,27 @@ class ChatMap:
                             'related': message['id']
                         }
                         self.pairedMessagesIds.append(message['id'])
+                    else:
+                        featureObject['properties'] = {
+                            'username': msgObject['username'],
+                            'time': str(msgObject['time']),
+                            'message': msgObject['message'],
+                            'chat': msgObject['chat'],
+                            'time': str(msgObject['time']),
+                            'location': msgObject['location'],
+                            'related': msgObject['id']
+                        }
+
                 else:
                     # No related message
                     featureObject['properties'] = {
                         'username': msgObject['username'],
-                        'time': str(msgObject['time'])
+                        'time': str(msgObject['time']),
+                        'message': msgObject['message'],
+                        'chat': msgObject['chat'],
+                        'time': str(msgObject['time']),
+                        'location': msgObject['location'],
+                        'related': msgObject['id']
                     }
 
                 featureObject['properties']['id'] = index
