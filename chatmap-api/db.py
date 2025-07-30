@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import create_engine, Column, String, select
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from typing import Dict
 
-DATABASE_URL = "sqlite:///./chatmap.sqlite3"  # for file-based DB
+DATABASE_URL = "sqlite:///./chatmap.sqlite3"
 
 engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}
@@ -15,4 +16,31 @@ class UserChatMap(Base):
     id = Column(String, primary_key=True, index=True)
     geojson = Column(String, index=True)
 
-Base.metadata.create_all(bind=engine)
+class SessionData(Base):
+    __tablename__ = "sessions"
+    user_id = Column(String, primary_key=True)
+    key = Column(String, primary_key=True)
+    value = Column(String)
+
+def load_session(db: Session, user_id: str) -> Dict:
+    result = db.execute(
+        select(SessionData.key, SessionData.value).where(SessionData.user_id == user_id)
+    ).fetchall()
+    session_dict = {"user_id": user_id}
+    for key, value in result:
+        session_dict[key] = value
+    return session_dict
+
+def save_session(db: Session, session: Dict):
+    user_id = session.get("user_id")
+    if not user_id:
+        return
+    for key, value in session.items():
+        if key == "user_id":
+            continue
+        obj = SessionData(user_id=user_id, key=key, value=str(value))
+        db.merge(obj)
+    db.commit()
+
+def init_db():
+    Base.metadata.create_all(bind=engine)

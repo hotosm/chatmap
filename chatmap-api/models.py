@@ -36,12 +36,12 @@ class GeometryType(Enum):
     POINT = "Point"
 
 class Properties(BaseModel):
-    message: str
-    username: str
-    chat: str
-    time: str
-    location: str
-    related: int
+    message: str = ""
+    username: str = ""
+    chat: str = ""
+    time: str = ""
+    location: str = ""
+    related: int = 0
     id: int
 
 class Geometries(BaseModel):
