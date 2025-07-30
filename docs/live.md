@@ -11,6 +11,12 @@ for creating live-updated maps.
 
 You'll need a Redis server for temporarily storing incoming messages.
 
+### Environmenmt variables
+
+* `CHATMAP_ENC_KEY` - It will be used by `chatmap-wa-connector` for encrypting all
+incoming text messages and by `chatmap-api` for decrypting text messages
+linked to a location.
+
 ## Run IM API connector
 
 Inside `chatmap-wa-connector` you'll find a Go app for connecting to
@@ -28,12 +34,17 @@ Inside `chatmap-api` you'll find a Python API that serves as a middleware betwee
 the front-end and the IM API connector. It also manages the Redis queue for parsing
 locations using the `chatmap-py` package and saves them in the database.
 
+* Install Python requirements using `pip install -r requirements.txt` (a virtual environment is recommended).
+* Set a `SECRET_KEY` environment variable for session encryption
+
 ```bash
 cd chatmap-api
 uvicorn main:app --reload
 ```
 
 ## Run ChatMap Frontend
+
+Install requirements using `yarn install`.
 
 Run the ChatMap front end with the corresponding flag for enabling live mode:
 

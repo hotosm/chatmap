@@ -12,6 +12,10 @@ import (
     "os"
     "sync"
     "time"
+    "crypto/aes"
+    "crypto/cipher"
+    "crypto/rand"
+    "encoding/base64"
 
     "google.golang.org/protobuf/proto"
 
@@ -84,8 +88,42 @@ func ConvertToJSDateFormat(input string) (string) {
     return t.Format(time.RFC3339)
 }
 
+func encrypt(plaintext []byte, key []byte) (string) {
+    block, err := aes.NewCipher(key)
+    if err != nil {
+        fmt.Printf("Encryption error: %v\n", err)
+        return "1"
+    }
+
+    aesGCM, err := cipher.NewGCM(block)
+    if err != nil {
+        fmt.Printf("Encryption error: %v\n", err)
+        return "2"
+    }
+
+    nonce := make([]byte, aesGCM.NonceSize())
+    if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+        fmt.Printf("Encryption error: %v\n", err)
+        return "3"
+    }
+
+    ciphertext := aesGCM.Seal(nil, nonce, plaintext, nil)
+    payload := append(nonce, ciphertext...)
+    encoded := base64.StdEncoding.EncodeToString(payload)
+
+    return encoded
+}
+
+
 // Initialize client with sessionId
 func initClient(sessionID string) {
+
+    // Encryption key
+    enc_key := os.Getenv("CHATMAP_ENC_KEY")
+    if enc_key == "" {
+        enc_key = "0123456789ABCDEF0123456789ABCDEF"
+        log.Printf("WARNING: CHATMAP_ENC_KEY environment variable not set")
+    }
 
     log.Printf("Init session: %s \n", sessionID)
 
@@ -168,7 +206,7 @@ func initClient(sessionID string) {
     client.AddEventHandler(func(evt interface{}) {
         switch v := evt.(type) {
         case *events.Message:
-            go handleMessage(sessionID, v)
+            go handleMessage(sessionID, v, enc_key)
         }
     })
 
@@ -220,7 +258,7 @@ func getExistingSessionId(phoneNumber string, currentSessionId string) (string) 
 }
 
 // Handle incoming messages
-func handleMessage(sessionID string, v *events.Message) {
+func handleMessage(sessionID string, v *events.Message, enc_key string) {
     ctx := context.Background()
     msg := v.Message
     date := ConvertToJSDateFormat(v.Info.Timestamp.String())
@@ -237,7 +275,8 @@ func handleMessage(sessionID string, v *events.Message) {
 
     // Text message
     if msg.GetConversation() != "" {
-        message.Text = msg.GetConversation()
+        message_text := encrypt([]byte(msg.GetConversation()), []byte(enc_key))
+        message.Text = message_text
 
     // Location
     } else if msg.LocationMessage != nil {
@@ -526,6 +565,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
     redisClient = redis.NewClient(&redis.Options{
         Addr: "localhost:6379",
     })
