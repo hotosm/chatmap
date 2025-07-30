@@ -21,24 +21,39 @@ const useApi = (params = {}) => {
     const [status, setStatus] = useState();
 
     const fetchSession = useCallback(async () => {
-        const stored_session = localStorage.getItem("chatmap_access_token");
+        const stored_session = sessionStorage.getItem("chatmap_access_token");
         if (stored_session) {
             setSession(stored_session);
         } else {
-            const session_token = crypto.randomUUID();
-            localStorage.setItem("chatmap_access_token", session_token);
-            setSession(session_token);
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await fetch(`${API_URL}/get-token`, {
+                    method: 'GET',
+                });
+                if (!response.ok) throw new Error('Failed to fetch data');
+                const result = await response.json();
+                sessionStorage.setItem("chatmap_access_token", result.access_token);
+                setSession(result.access_token);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
         }
         return;
     }, []);
 
     const fetchMapData = useCallback(async () => {
-        const token = localStorage.getItem("chatmap_access_token")
+        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/chatmap?user_id=${token}`, {
+            const response = await fetch(`${API_URL}/chatmap`, {
                 method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
             });
             if (!response.ok) throw new Error('Failed to fetch data');
             const result = await response.json();
@@ -51,12 +66,15 @@ const useApi = (params = {}) => {
     }, [params]);
 
     const fetchQRCode = useCallback(async () => {
-        const token = localStorage.getItem("chatmap_access_token")
+        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/qr?user_id=${token}`, {
+            const response = await fetch(`${API_URL}/qr`, {
                 method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
             });
             if (!response.ok) throw new Error('Failed to fetch QR code');
             const blob = await response.blob();
@@ -70,12 +88,15 @@ const useApi = (params = {}) => {
     }, []);
 
     const fetchStatus = useCallback(async () => {
-        const token = localStorage.getItem("chatmap_access_token")
+        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/status?user_id=${token}`, {
-                method: 'GET'
+            const response = await fetch(`${API_URL}/status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
             });
             if (!response.ok) throw new Error('Failed to fetch status');
             const result = await response.json();
@@ -87,7 +108,19 @@ const useApi = (params = {}) => {
         }
     }, []);
 
-    return { mapData, QRImgSrc, session, status, files, isLoading, error, fetchMapData, fetchSession, fetchQRCode, fetchStatus };
+    return {
+        mapData,
+        QRImgSrc,
+        session,
+        status,
+        files,
+        isLoading,
+        error,
+        fetchMapData,
+        fetchSession,
+        fetchQRCode,
+        fetchStatus
+    };
 
 };
 

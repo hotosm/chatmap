@@ -5,7 +5,6 @@ import NoLocationsSection from '../home/noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
 import Messages from '../../components/Messages/index.jsx';
 import { useInterval } from '../../hooks/useInterval.js';
-import { FormattedMessage } from 'react-intl';
 
 const Map = lazy(() => import('../../components/Map/index.jsx'));
 
@@ -14,7 +13,6 @@ function App() {
   const [noLocations, setNoLocations] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState();
   const [showMessages, setShowMessages] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
 
   // Get data from API
   const {mapData, QRImgSrc, session, status, files, isLoading, error, fetchMapData, fetchSession, fetchQRCode, fetchStatus} = useAPI();
@@ -32,10 +30,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (status !== "connected" && status !== "waiting") {
-      if (session) {
-        fetchQRCode(session);
-      }
+    if (status === "not_found" && session) {
+      fetchQRCode(session);
     }
   }, [session, status]);
 
@@ -84,13 +80,6 @@ function App() {
           handleOptionClick={handleOptionClick}
           mode="linked"
         />
-
-        <div>
-          <ul>
-            <li>status: {status}</li>
-            <li>session: {session}</li>
-          </ul>
-        </div>
 
         { showMessages && dataAvailable &&
           <Messages

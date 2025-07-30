@@ -46,6 +46,13 @@ type Message struct {
 type SessionMeta struct {
     QRCode   string
     Connected bool
+    User string
+}
+
+// Status
+type Status struct {
+    Status string `json:"status"`
+    User string `json:"user"`
 }
 
 var (
@@ -141,6 +148,7 @@ func initClient(sessionID string) {
                     }
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].Connected = true
+                    sessionMeta[sessionID].User = client.Store.ID.User
                     log.Printf("Session %s CONNECTED (1) ClientID: %s\n", sessionID,  client.Store.ID.User)
                     sessionMetaMu.Unlock()
                     break
@@ -151,6 +159,7 @@ func initClient(sessionID string) {
         // Connected client session
         sessionMetaMu.Lock()
         sessionMeta[sessionID].Connected = true
+        sessionMeta[sessionID].User = client.Store.ID.User
         log.Printf("Session %s CONNECTED (2) ClientID: %s\n", sessionID,  client.Store.ID.User)
         sessionMetaMu.Unlock()
     }
@@ -224,6 +233,8 @@ func handleMessage(sessionID string, v *events.Message) {
         Date: date,
     }
 
+    client := clients[sessionID]
+
     // Text message
     if msg.GetConversation() != "" {
         message.Text = msg.GetConversation()
@@ -240,7 +251,6 @@ func handleMessage(sessionID string, v *events.Message) {
 
     // Media (image or video)
     // } else if msg.ImageMessage != nil || msg.VideoMessage != nil {
-        // client := clients[sessionID]
 
     //     var media whatsmeow.DownloadableMessage
     //     var fileName string
@@ -287,6 +297,7 @@ func handleMessage(sessionID string, v *events.Message) {
         Stream: fmt.Sprintf("wa-messages:%s", sessionID),
         ID:     streamID,
         Values: map[string]interface{}{
+            "user":    client.Store.ID.User,
             "from":    message.From,
             "chat":    message.Chat,
             "text":    message.Text,
@@ -417,18 +428,19 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
     meta, ok := sessionMeta[sessionID]
     sessionMetaMu.RUnlock()
 
-    if !ok {
-        fmt.Fprint(w, "not_found")
-        return
-    }
+    w.Header().Set("Content-Type", "application/json")
 
-    if meta.Connected {
-        fmt.Fprint(w, "connected")
-        return
+    status := Status{}
+
+    if !ok {
+        status.Status = "not_found"
+    } else if meta.Connected {
+        status.Status = "connected"
+        status.User = meta.User
     } else {
-        fmt.Fprint(w, "waiting")
-        return
+        status.Status = "waiting"
     }
+    json.NewEncoder(w).Encode(status)
 }
 
 // Handler for list of sessions endpoint
