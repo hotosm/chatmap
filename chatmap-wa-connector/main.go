@@ -533,7 +533,7 @@ func main() {
     // Re-init sessions
     reInitSessions()
 
-    http.HandleFunc("/sessions", sessionsHandler)
+    // http.HandleFunc("/sessions", sessionsHandler)
     http.HandleFunc("/status", statusHandler)
     http.HandleFunc("/logout", logoutHandler)
     http.HandleFunc("/media", mediaHandler)
