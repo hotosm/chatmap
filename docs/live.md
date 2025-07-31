@@ -21,7 +21,7 @@ linked to a location.
 
 Inside `chatmap-wa-connector` you'll find a Go app for connecting to
 the WhatsApp API using the whatsmeow library for linking devices and 
-receiving messages. All messags will be stored in the Redis queue.
+receiving messages. All messages will be stored encrypted in the Redis queue.
 
 ```bash
 cd chatmap-wa-connector
