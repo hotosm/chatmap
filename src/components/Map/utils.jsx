@@ -37,6 +37,8 @@ export const getMessage = (properties, dataFiles) => {
     ) {
       content = <audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[properties.file])} />
     }
+  } else if (properties.file.indexOf(".jpg") > 0 ) {
+      content = <a href={properties.file} target="_blank"><img className="popupImage" alt="Message attached file" src={properties.file} /></a>
   }
   return <>
       { content ? content : null }

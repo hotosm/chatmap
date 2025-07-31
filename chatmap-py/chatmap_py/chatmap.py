@@ -126,8 +126,8 @@ class ChatMap:
                 and not nextMessage:
                     delta_next = abs(messages[msgIndex]['time'] - messages[nextIndex]['time'])
                     nextMessage = {
-                        'index': nextIndex, 
-                        'delta': delta_next   
+                        'index': nextIndex,
+                        'delta': delta_next
                     }
             nextIndex += direction
 
@@ -180,42 +180,35 @@ class ChatMap:
                     }
                 }
                 message = self.getClosestMessage(messages, index)
+
                 if message:
-                    if message['id'] not in self.pairedMessagesIds:
+                        self.pairedMessagesIds.append(message['id'])
                         # Add the GeoJSON feature
                         featureObject['properties'] = {
+                            'id': message['id'],
                             'message': message['message'],
                             'username': message['username'],
                             'chat': message['chat'],
                             'time': str(message['time']),
+                            'file': str(message['file']),
                             'location': message['location'],
                             'related': message['id']
                         }
-                        self.pairedMessagesIds.append(message['id'])
-                    else:
-                        featureObject['properties'] = {
-                            'username': msgObject['username'],
-                            'time': str(msgObject['time']),
-                            'message': msgObject['message'],
-                            'chat': msgObject['chat'],
-                            'time': str(msgObject['time']),
-                            'location': msgObject['location'],
-                            'related': msgObject['id']
-                        }
-
                 else:
                     # No related message
                     featureObject['properties'] = {
+                        'id': msgObject['id'],
                         'username': msgObject['username'],
                         'time': str(msgObject['time']),
                         'message': msgObject['message'],
                         'chat': msgObject['chat'],
                         'time': str(msgObject['time']),
+                        'file': str(msgObject['file']),
                         'location': msgObject['location'],
                         'related': msgObject['id']
                     }
 
-                featureObject['properties']['id'] = index
+                # featureObject['properties']['id'] = index
                 if not isinstance(featureObject['properties'].get('time'), int):
                     geoJSON['features'].append(featureObject)
 

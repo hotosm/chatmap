@@ -5,3 +5,4 @@ __pycache__
 *.log
 *.sqlite3
 ./venv
+media

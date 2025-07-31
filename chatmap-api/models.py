@@ -40,9 +40,10 @@ class Properties(BaseModel):
     username: str = ""
     chat: str = ""
     time: str = ""
+    file: str = ""
     location: str = ""
-    related: int = 0
-    id: int
+    related: str = ""
+    id: str
 
 class Geometries(BaseModel):
     type: GeometryType

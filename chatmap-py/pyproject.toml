@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.1",
 ]
-version = "0.0.3"
+version = "0.0.4"
 
 [project.urls]
 homepage = "https://github.com/hotosm/chatmap/tree/master/chatmap-py"
@@ -37,7 +37,7 @@ log_cli_level = "DEBUG"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.0.3"
+version = "0.0.4"
 version_files = [
     "pyproject.toml:version",
     "chatmap_py/__version__.py",
@@ -94,4 +94,4 @@ ignore = ["N805", "B008"]
 convention = "google"
 
 [project.scripts]
-geojsonstats = "chatmap_py.cli:main"
+chatmap_py = "chatmap_py.cli:main"

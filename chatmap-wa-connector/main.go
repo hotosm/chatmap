@@ -7,6 +7,7 @@ import (
     "io"
     "log"
     "net/http"
+    "path"
     "path/filepath"
     "strings"
     "os"
@@ -37,13 +38,25 @@ type Response struct {
 
 // Message
 type Message struct {
+    Id string `json:"id"`
     From string `json:"from"`
-    Chat string `json:"from"`
+    Chat string `json:"chat"`
     Text string `json:"text"`
-    Location *string `json:"text"`
+    Location *string `json:"location"`
     Date string `json:"date"`
     Photo string `json:"photo"`
     Video string `json:"video"`
+    File string `json:"file"`
+}
+
+// MediaReference
+type MediaReference struct {
+    MediaKey   string `json:"media_key"`
+    DirectPath string `json:"direct_path"`
+    FileSHA256 string `json:"file_sha256"`
+    FileEncSHA256 string `json:"file_sha256"`
+    FileLength uint64 `json:"file_length"`
+    Mimetype   string `json:"mimetype"`
 }
 
 // Session
@@ -88,6 +101,7 @@ func ConvertToJSDateFormat(input string) (string) {
     return t.Format(time.RFC3339)
 }
 
+// Encript text (for messages)
 func encrypt(plaintext []byte, key []byte) (string) {
     block, err := aes.NewCipher(key)
     if err != nil {
@@ -113,7 +127,6 @@ func encrypt(plaintext []byte, key []byte) (string) {
 
     return encoded
 }
-
 
 // Initialize client with sessionId
 func initClient(sessionID string) {
@@ -219,6 +232,7 @@ func initClient(sessionID string) {
     }()
 }
 
+// Get previously created sessions for the same phone number
 func getExistingSessionId(phoneNumber string, currentSessionId string) (string) {
     files, err := filepath.Glob("sessions/session_*.db")
     if err != nil {
@@ -257,6 +271,91 @@ func getExistingSessionId(phoneNumber string, currentSessionId string) (string) 
 
 }
 
+// Build serialized media reference
+func mediaReference(msg *waProto.ImageMessage) string {
+    ref := MediaReference{
+        MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
+        DirectPath: msg.GetDirectPath(),
+        FileSHA256: base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
+        FileLength: msg.GetFileLength(),
+        Mimetype:   msg.GetMimetype(),
+    }
+    data, _ := json.Marshal(ref)
+    return string(data)
+}
+
+// Download and decrypt media file using reference data
+func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte, error) {
+    // Decode metadata
+    mediaKey, err := base64.StdEncoding.DecodeString(meta.MediaKey)
+    if err != nil {
+        return nil, fmt.Errorf("failed to decode MediaKey: %w", err)
+    }
+    fileSHA256, err := base64.StdEncoding.DecodeString(meta.FileSHA256)
+    if err != nil {
+        return nil, fmt.Errorf("failed to decode FileSHA256: %w", err)
+    }
+    fileEncSHA256, err := base64.StdEncoding.DecodeString(meta.FileEncSHA256)
+    if err != nil {
+        return nil, fmt.Errorf("failed to decode FileEncSHA256: %w", err)
+    }
+    // Create ImageMessage from metdata
+    imgMsg := waProto.ImageMessage{
+        MediaKey:   mediaKey,
+        DirectPath: &meta.DirectPath,
+        FileSHA256: fileSHA256,
+        FileEncSHA256: fileEncSHA256,
+        FileLength: &meta.FileLength,
+        Mimetype:   &meta.Mimetype,
+    }
+    // Download & decrypt
+    data, err := client.Download(context.Background(), &imgMsg)
+    if err != nil {
+        log.Printf("download error: %w", err)
+        return nil, fmt.Errorf("download error: %w", err)
+    }
+    return data, nil
+}
+
+// Get a message id and a sessionID and serves a media file
+func mediaHandler(w http.ResponseWriter, r *http.Request) {
+
+    // Get the full path (e.g., "/filename.jpg")
+	urlPath := r.URL.Path
+
+	// Extract the file name from the path
+	msgID := strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
+
+    sessionID := r.URL.Query().Get("sessionID")
+    client := clients[sessionID]
+    ctx := context.Background()
+
+    // Get media reference data from Redis
+    res, _ := redisClient.XRange(ctx, fmt.Sprintf("wa-messages:%s", sessionID), msgID, msgID).Result()
+
+    if (len(res) > 0) {
+        photoJSON, _ := res[0].Values["photo"].(string)
+
+        // De-serialize media reference
+        var meta MediaReference
+        if err := json.Unmarshal([]byte(photoJSON), &meta); err != nil {
+            log.Printf("failed to unmarshal image message JSON: %w", err)
+        }
+
+        // Download decrypted media
+        data, err := downloadMediaFromMsg(client, meta)
+        if err != nil {
+            log.Printf("error downloading media: %w", err)
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "image/jpeg")
+        w.WriteHeader(http.StatusOK)
+        _, _ = w.Write(data)
+    }
+}
+
 // Handle incoming messages
 func handleMessage(sessionID string, v *events.Message, enc_key string) {
     ctx := context.Background()
@@ -273,6 +372,13 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
 
     client := clients[sessionID]
 
+    // Message ID
+    parsedTime, err := time.Parse(time.RFC3339, message.Date)
+    if err != nil {
+        log.Fatalf("Failed to parse time: %v", err)
+    }
+    streamID := fmt.Sprintf("%d-0", parsedTime.UnixMilli())
+
     // Text message
     if msg.GetConversation() != "" {
         message_text := encrypt([]byte(msg.GetConversation()), []byte(enc_key))
@@ -286,56 +392,27 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             message.Location = &location
         }
 
-    // FIXME: media disabled, encryption and file management is needed
-
     // Media (image or video)
-    // } else if msg.ImageMessage != nil || msg.VideoMessage != nil {
-
-    //     var media whatsmeow.DownloadableMessage
-    //     var fileName string
-
-    //     // Create "media" directory if it doesn't exist
-    //     if err := os.MkdirAll("media", 0755); err != nil {
-    //         fmt.Printf("Failed to create media directory: %v\n", err)
-    //         return
-    //     }
-
-    //     if msg.ImageMessage != nil {
-    //         media = msg.GetImageMessage()
-    //         fileName = fmt.Sprintf("%s.jpg", v.Info.ID)
-    //         message.Photo = fileName
-    //     } else {
-    //         media = msg.GetVideoMessage()
-    //         fileName = fmt.Sprintf("%s.mp4", v.Info.ID)
-    //         message.Video = fileName
-    //     }
-
-    //     // Download & decrypt
-    //     data, err := client.Download(context.Background(), media)
-    //     if err != nil {
-    //         fmt.Printf("Failed to download media: %v\n", err)
-    //         return
-    //     }
-
-    //     // Save media to a file
-    //     filePath := "media/" + fileName
-    //     if err := os.WriteFile(filePath, data, 0644); err != nil {
-    //         fmt.Printf("Failed to save media: %v\n", err)
-    //         return
-    //     }
+    } else if msg.ImageMessage != nil || msg.VideoMessage != nil {
+        if msg.ImageMessage != nil {
+            image := msg.GetImageMessage()
+            message.Photo = mediaReference(image)
+            message.File = fmt.Sprintf("%s.jpg", streamID)
+        }
+        // else {
+        //     video := msg.GetVideoMessage()
+        //     message.Video = mediaReference(video)
+        //     message.File = fmt.Sprintf("%s.mp4", streamID)
+        // }
     }
 
     // Save data into Redis queue
-    parsedTime, err := time.Parse(time.RFC3339, message.Date)
-    if err != nil {
-        log.Fatalf("Failed to parse time: %v", err)
-    }
-    streamID := fmt.Sprintf("%d-0", parsedTime.UnixMilli())
 
     redisClient.XAdd(ctx, &redis.XAddArgs{
         Stream: fmt.Sprintf("wa-messages:%s", sessionID),
         ID:     streamID,
         Values: map[string]interface{}{
+            "id":      streamID,
             "user":    client.Store.ID.User,
             "from":    message.From,
             "chat":    message.Chat,
@@ -344,6 +421,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             "location": message.Location,
             "photo": message.Photo,
             "video": message.Video,
+            "file": message.File,
         },
     })
 
@@ -530,40 +608,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
     logout(sessionID)
 }
 
-// Handler for media file serving endpoint
-func mediaHandler(w http.ResponseWriter, r *http.Request) {
-    filename := r.URL.Query().Get("file")
-
-    if filename == "" {
-        http.Error(w, "Missing 'file' query parameter", http.StatusBadRequest)
-        return
-    }
-
-    // Prevent directory traversal
-    cleanFilename := filepath.Clean(filename)
-    fullPath := filepath.Join("media", cleanFilename)
-
-    file, err := os.Open(fullPath)
-    if err != nil {
-        http.Error(w, "File not found", http.StatusNotFound)
-        return
-    }
-    defer file.Close()
-
-    ext := strings.ToLower(filepath.Ext(cleanFilename))
-    switch ext {
-    case ".jpg", ".jpeg":
-        w.Header().Set("Content-Type", "image/jpeg")
-    case ".mp4":
-        w.Header().Set("Content-Type", "video/mp4")
-    default:
-        http.Error(w, "Unsupported file type", http.StatusUnsupportedMediaType)
-        return
-    }
-
-    io.Copy(w, file)
-}
-
 func main() {
 
     redisClient = redis.NewClient(&redis.Options{
@@ -576,7 +620,7 @@ func main() {
     // http.HandleFunc("/sessions", sessionsHandler)
     http.HandleFunc("/status", statusHandler)
     http.HandleFunc("/logout", logoutHandler)
-    http.HandleFunc("/media", mediaHandler)
+    http.HandleFunc("/media/", mediaHandler)
     http.HandleFunc("/start-qr", startAndQRHandler)
 
     fmt.Println("Listening on :8001")

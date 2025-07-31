@@ -1,5 +1,5 @@
 from datetime import datetime
-from .chatmap import ChatMap
+from chatmap import ChatMap
 
 '''
  Contains a main parser function and supporting fuctions
@@ -21,7 +21,9 @@ def parseMessage(line):
         'username': line['from'],
     }
     msgObject['message'] = line['text']
+    msgObject['id'] = line['id']
     msgObject['chat'] = line['chat']
+    msgObject['file'] = line['file']
     msgObject['location'] = line['location']
     return msgObject
 
@@ -38,7 +40,6 @@ def parseAndIndex(lines):
         msg = parseMessage(line)
         if msg:
             result[index] = msg
-            result[index]['id'] = index
             index += 1
     return result
 
