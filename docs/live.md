@@ -57,3 +57,8 @@ where users can scan a QR code for link a device.
 
 Once a device is linked, ChatMap will parse locations + related content from
 all incoming messages and update the map in real-time.
+
+## Supported IM apps
+
+It only works with WhatsApp for now, but other connectors will be developed, starting
+with Signal and Telegram.
