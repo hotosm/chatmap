@@ -46,7 +46,7 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 # Redis key for filtering
 STREAM_KEY = "wa-messages"
 # Expiring time for messages (in minutes)
-EXPIRING_MIN = 30
+EXPIRING_MIN = 120
 EXPIRING_MIN_MS = EXPIRING_MIN * 60 * 1000
 
 # Linked devices server
@@ -212,19 +212,27 @@ async def get_chatmap(request: Request, session: dict = Depends(get_current_sess
         user_id = session['user_id']
         if 'features' in geoJSON:
             for feature in geoJSON['features']:
+
+                # If text message, decrypt it
                 if 'message' in feature['properties'] and feature['properties']['message'] != "":
                     feature['properties']['message'] = decrypt(feature['properties']['message'])
+
                 if 'file' in feature['properties'] and feature['properties']['file'] != "":
                     # If image, get the decrypted file from the connector sever
                     # and save it to local directory
                     if feature['properties']['file'].endswith(".jpg"):
                         filename = feature['properties']['file']
+
+                        # FIXME: using session could result in dupicates
                         session_folder = os.path.join(MEDIA_FOLDER, user_id)
+
                         # Create session folder if not exists
                         if not os.path.exists(session_folder):
                             os.mkdir(session_folder)
+
                         # File to save
                         target_file = os.path.join(session_folder, f"{filename}")
+
                         # If file was not saved previously, download decrypted image
                         # from connector server and save it to disk
                         if not os.path.exists(target_file):
@@ -236,10 +244,11 @@ async def get_chatmap(request: Request, session: dict = Depends(get_current_sess
                                     f.write(response.content)
                             except httpx.HTTPError as e:
                                 logger.error(f"Failed to download: {str(e)}")
-                            # Set signed URL for image, using sessionId
-                            api_url = str(request.base_url)
-                            url = f"{api_url}media?sessionId={user_id}&filename={filename}"
-                            feature['properties']['file'] = url
+
+                        # Set signed URL for image, using sessionId
+                        api_url = str(request.base_url)
+                        url = f"{api_url}media?sessionId={user_id}&filename={filename}"
+                        feature['properties']['file'] = url
 
         try:
             userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
