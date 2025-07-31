@@ -52,7 +52,7 @@ Run the ChatMap front end with the corresponding flag for enabling live mode:
 VITE_ENABLE_LIVE=1 yarn start
 ```
 
-Once you have eveything up and running, you'll find a link to the `/linked` page
+Once you have everything up and running, you'll find a link to the `/linked` page
 where users can scan a QR code for link a device. 
 
 Once a device is linked, ChatMap will parse locations + related content from
