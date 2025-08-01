@@ -30,10 +30,13 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (status === "not_found" && session) {
+    if (
+      (status === "not_found" && session) ||
+      (status === "waiting" && !QRImgSrc)
+     ) {
       fetchQRCode(session);
     }
-  }, [session, status]);
+  }, [session, status, QRImgSrc]);
 
   // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
