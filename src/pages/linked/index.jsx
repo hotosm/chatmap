@@ -63,7 +63,6 @@ function App() {
   }
 
   // There's data for the map!
-  // const dataAvailable = files && data && data.features && data.features.length > 0;
   const dataAvailable = data && data.features && data.features.length > 0;
 
   const handleFeatureSelect = (feature) => {
@@ -78,6 +77,7 @@ function App() {
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
           handleOptionClick={handleOptionClick}
+          showChatIcon={false}
           mode="linked"
         />
 

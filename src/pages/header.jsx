@@ -11,7 +11,8 @@ export default function Header({
     dataFiles,
     handleNewUploadClick,
     handleOptionClick,
-    showUploadButton
+    showUploadButton,
+    showChatIcon
 }) {
 
     const { data, mapDataDispatch } = useMapDataContext();
@@ -74,9 +75,17 @@ export default function Header({
                 </div>
                 <div className="tagsOptions">
                     <NavBar
-                        onOptionClick={onOptionClick}
                         selected={selected}
                     >
+                        { showChatIcon ?
+                        <sl-button
+                            size="small"
+                            variant={`${selected && "success"}`}
+                            onClick={ () => onOptionClick("chat") }
+                        >
+                            <sl-icon name="chat-square-dots"></sl-icon>
+                        </sl-button>
+                        : null }
                         <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
                     </NavBar>
                 </div>
