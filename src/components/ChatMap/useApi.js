@@ -20,6 +20,10 @@ const useApi = (params = {}) => {
     const [session, setSession] = useState();
     const [status, setStatus] = useState();
 
+    const logoutSession = () => {
+        sessionStorage.removeItem("chatmap_access_token");
+    }
+
     const fetchSession = useCallback(async () => {
         const stored_session = sessionStorage.getItem("chatmap_access_token");
         if (stored_session) {
@@ -98,7 +102,13 @@ const useApi = (params = {}) => {
                     'Authorization': `Bearer ${token}`
                 },
             });
-            if (!response.ok) throw new Error('Failed to fetch status');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    logoutSession();
+                    fetchSession();
+                }
+                throw new Error('Failed to fetch status');
+            }
             const result = await response.json();
             setStatus(result.status);
         } catch (err) {

@@ -192,11 +192,13 @@ func initClient(sessionID string) {
                     sessionMeta[sessionID].QRCode = evt.Code
                     sessionMetaMu.Unlock()
                 } else if evt.Event == "success" {
+                    // Logout existing sessions of the same user
                     existingSessionId := getExistingSessionId(client.Store.ID.User, sessionID)
                     if (existingSessionId != "") {
                         log.Printf("Logout existing SessionId %s \n", existingSessionId)
                         logout(existingSessionId)
                     }
+                    // Connected client session
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].Connected = true
                     sessionMeta[sessionID].User = client.Store.ID.User
@@ -331,7 +333,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
     ctx := context.Background()
 
     // Get media reference data from Redis
-    res, _ := redisClient.XRange(ctx, fmt.Sprintf("wa-messages:%s", sessionID), msgID, msgID).Result()
+    res, _ := redisClient.XRange(ctx, fmt.Sprintf("wa-messages:%s", client.Store.ID.User), msgID, msgID).Result()
 
     if (len(res) > 0) {
         photoJSON, _ := res[0].Values["photo"].(string)
@@ -409,7 +411,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     // Save data into Redis queue
 
     redisClient.XAdd(ctx, &redis.XAddArgs{
-        Stream: fmt.Sprintf("wa-messages:%s", sessionID),
+        Stream: fmt.Sprintf("wa-messages:%s", client.Store.ID.User),
         ID:     streamID,
         Values: map[string]interface{}{
             "id":      streamID,
