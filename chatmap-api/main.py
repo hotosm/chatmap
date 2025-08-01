@@ -324,7 +324,7 @@ async def shutdown_event():
 # if DEBUG:
 #     # Get raw messages
 #     @app.get("/messages")
-#     async def messages(session: str):
+#     async def messages(user: str):
 #         try:
 #             entries = await redis_client.xrange(f"{STREAM_KEY}:{user}", min='-', max='+')
 #         except Exception as e:
@@ -336,6 +336,14 @@ async def shutdown_event():
 #     @app.get("/me")
 #     def read_me(session: dict = Depends(get_current_session)):
 #         return session
+
+#     # Get map for user
+#     @app.get("/map")
+#     async def clean(user: str, db: Session = Depends(get_db)):
+#         userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
+#         if userChatmap:
+#             return json.loads(userChatmap.geojson)
+#         return {}
 
 #     # Remove all maps
 #     @app.get("/clean")

@@ -360,9 +360,14 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handle incoming messages
 func handleMessage(sessionID string, v *events.Message, enc_key string) {
+    chat:= v.Info.Chat.String()
+    if (chat == "status@broadcast") {
+        return;
+    }
     ctx := context.Background()
     msg := v.Message
     date := ConvertToJSDateFormat(v.Info.Timestamp.String())
+    hasContent := false
 
     log.Printf("Message received from: %s", v.Info.Sender.String())
 
@@ -385,6 +390,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     if msg.GetConversation() != "" {
         message_text := encrypt([]byte(msg.GetConversation()), []byte(enc_key))
         message.Text = message_text
+        hasContent = true
 
     // Location
     } else if msg.LocationMessage != nil {
@@ -392,6 +398,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
         if loc != nil {
             location := fmt.Sprintf("%.5f,%.5f", loc.GetDegreesLatitude(), loc.GetDegreesLongitude())
             message.Location = &location
+            hasContent = true
         }
 
     // Media (image or video)
@@ -400,6 +407,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             image := msg.GetImageMessage()
             message.Photo = mediaReference(image)
             message.File = fmt.Sprintf("%s.jpg", streamID)
+            hasContent = true
         }
         // else {
         //     video := msg.GetVideoMessage()
@@ -409,23 +417,24 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     }
 
     // Save data into Redis queue
-
-    redisClient.XAdd(ctx, &redis.XAddArgs{
-        Stream: fmt.Sprintf("wa-messages:%s", client.Store.ID.User),
-        ID:     streamID,
-        Values: map[string]interface{}{
-            "id":      streamID,
-            "user":    client.Store.ID.User,
-            "from":    message.From,
-            "chat":    message.Chat,
-            "text":    message.Text,
-            "date":    message.Date,
-            "location": message.Location,
-            "photo": message.Photo,
-            "video": message.Video,
-            "file": message.File,
-        },
-    })
+    if (hasContent) {
+        redisClient.XAdd(ctx, &redis.XAddArgs{
+            Stream: fmt.Sprintf("wa-messages:%s", client.Store.ID.User),
+            ID:     streamID,
+            Values: map[string]interface{}{
+                "id":      streamID,
+                "user":    client.Store.ID.User,
+                "from":    message.From,
+                "chat":    message.Chat,
+                "text":    message.Text,
+                "date":    message.Date,
+                "location": message.Location,
+                "photo": message.Photo,
+                "video": message.Video,
+                "file": message.File,
+            },
+        })
+    }
 
 }
 
