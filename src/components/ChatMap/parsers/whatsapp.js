@@ -106,8 +106,9 @@ export const parseMessage = (line, system) => {
 
 // Parse time strings
 export const parseTimeString = (dateStr) => {
-    let dateTimeStr = dateStr.replace("a. m.", "AM").replace("p. m.", "PM")
-    dateTimeStr = dateTimeStr.replace("a.m.", "AM").replace("p.m.", "PM")
+    let dateTimeStr = dateStr.replace("a. m.", "AM").replace("p. m.", "PM");
+    dateTimeStr = dateTimeStr.replace("a.m.", "AM").replace("p.m.", "PM");
+    dateTimeStr = dateTimeStr.replaceAll(".", ":");
     let dateTime = dateTimeStr.split(" ");
     const now = new Date();
     let fmtDate = [[now.getFullYear(), now.getMonth() + 1, now.getDate()].join("/"), dateTime[1]].join(" ")
