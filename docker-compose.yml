@@ -1,0 +1,58 @@
+name: chatmap-main
+
+services:
+  chatmap-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+          VITE_ENABLE_LIVE: true # Enable live mode
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - chatmap-nginx
+
+  chatmap-api:
+    build:
+      context: ./chatmap-api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - chatmap-redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  chatmap-go:
+    build:
+      context: ./chatmap-wa-connector
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+
+  chatmap-redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  # chatmap-certbot:
+  #   image: certbot/certbot:latest
+  #   command: renew --quiet
+  #   volumes:
+  #     - ./letsencrypt:/etc/letsencrypt
+  #   depends_on:
+  #     - nginx
+
+  chatmap-nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      # - ./letsencrypt:/etc/letsencrypt
+    # depends_on:
+    #   - certbot

@@ -25,7 +25,7 @@ receiving messages. All messages will be stored encrypted in the Redis queue.
 
 ```bash
 cd chatmap-wa-connector
-go run main.gp
+go run main.go
 ```
 
 ## Run ChatMap API

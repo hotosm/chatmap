@@ -1,4 +1,4 @@
-module wa-reader-go
+module chatmap-wa-connector
 
 go 1.23.0
 

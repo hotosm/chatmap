@@ -27,7 +27,7 @@ library. You can build it by going to the the `chatmap-wa-connector` directory a
 
 `go build`
 
-Then, rename and copy the binary file to `electron-app/backend/chatmap-go`
+Then, rename and copy the binary file `chatmap-wa-connector` to `electron-app/backend/chatmap-go`
 
 ### ChatMap API
 
