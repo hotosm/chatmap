@@ -6,3 +6,6 @@ __pycache__
 *.sqlite3
 ./venv
 media
+build
+dist
+run.spec

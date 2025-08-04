@@ -12,7 +12,7 @@ export default function Footer() {
     </p>
     { ENABLE_LIVE ?
     <p className="info info-bottom-spaced">
-        Or <a href="/linked">link a device</a> <small>(new!)</small>
+        Or <a href="#linked">link a device</a> <small>(new!)</small>
     </p>
     : null}
     <div className="infoLinks">

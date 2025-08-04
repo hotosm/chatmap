@@ -3,7 +3,7 @@ import { FileUploader } from "react-drag-drop-files";
 import JSZip from "jszip";
 import { useIntl } from 'react-intl';
 
-// Accepted file tiles
+// Accepted file types
 const fileTypes = ["txt", "zip", "json"];
 
 // Get file format: "chat", "zip" or "media"

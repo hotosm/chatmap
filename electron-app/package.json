@@ -1,0 +1,40 @@
+{
+  "name": "chatmap",
+  "version": "0.0.1",
+  "description": "ChatMap desktop app",
+  "main": "main.js",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "org.hotosm.chatmap",
+    "files": [
+      "main.js",
+      "public/**/*",
+      "backend/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "target": "dmg"
+    }
+  },
+  "dependencies": {
+    "electron-store": "^10.1.0",
+    "express": "^5.1.0"
+  }
+}

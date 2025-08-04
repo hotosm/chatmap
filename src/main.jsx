@@ -1,7 +1,7 @@
 import './styles/main.css'
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, Routes, HashRouter } from 'react-router-dom';
 import Home from './pages/home';
 import Linked from './pages/linked';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -20,7 +20,7 @@ import '@shoelace-style/shoelace/dist/components/menu/menu.js';
 import '@shoelace-style/shoelace/dist/components/menu-item/menu-item.js';
 
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
-setBasePath("https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.14.0/cdn/");
+setBasePath("/shoelace/");
 
 const locales = {
   "en": En,
@@ -44,14 +44,14 @@ root.render(
     <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
       <ErrorBoundary>
         <MapDataProvider>
-           <Router>
+          <HashRouter>
             <Routes>
               <Route path="/" element={<Home />} />
               { ENABLE_LIVE ?
               <Route path="/linked" element={<Linked />} />
               : null}
             </Routes>
-          </Router>
+          </HashRouter>
         </MapDataProvider>
       </ErrorBoundary>
     </IntlProvider>
