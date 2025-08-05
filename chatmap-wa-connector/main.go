@@ -33,7 +33,7 @@ import (
 
 // List of messages
 type Response struct {
-    Messages []string `json:"messages"`
+    Messages []Message `json:"messages"`
 }
 
 // Message
@@ -323,10 +323,10 @@ func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte
 func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
     // Get the full path (e.g., "/filename.jpg")
-	urlPath := r.URL.Path
+    urlPath := r.URL.Path
 
-	// Extract the file name from the path
-	msgID := strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
+    // Extract the file name from the path
+    msgID := strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
 
     sessionID := r.URL.Query().Get("sessionID")
     client := clients[sessionID]
@@ -619,10 +619,54 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
     logout(sessionID)
 }
 
+// Get a list of messages
+func messagesHandler(w http.ResponseWriter, r *http.Request) {
+    user := r.URL.Query().Get("user")
+    ctx := context.Background()
+    // Get media reference data from Redis
+     res, _ := redisClient.XRange(ctx, fmt.Sprintf("wa-messages:%s", user), "-", "+").Result()
+     var messages []Message
+
+    for _, item := range res {
+        vals := item.Values
+        get := func(key string) string {
+            if v, ok := vals[key]; ok {
+                if s, ok := v.(string); ok {
+                    return s
+                }
+            }
+            return ""
+        }
+        location := get("location")
+        var locationPtr *string
+        if location != "" {
+            locationPtr = &location
+        }
+
+        message := Message{
+            Id:       get("id"),
+            From:     get("from"),
+            Chat:     get("chat"),
+            Text:     get("text"),
+            Location: locationPtr,
+            Date:     get("date"),
+            Photo:    get("photo"),
+            Video:    get("video"),
+            File:     get("file"),
+        }
+        messages = append(messages, message)
+    }
+
+    response := Response{Messages: messages}
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
+}
+
 func main() {
 
     redis_host := os.Getenv("REDIS_HOST")
     redis_port := os.Getenv("REDIS_PORT")
+    fmt.Printf("Connecting to Redis %s:%s \n", redis_host, redis_port)
     redisClient = redis.NewClient(&redis.Options{
         Addr: redis_host + ":" + redis_port,
     })
@@ -630,7 +674,10 @@ func main() {
     // Re-init sessions
     reInitSessions()
 
+    // FOR DEBUGGING
     // http.HandleFunc("/sessions", sessionsHandler)
+    // http.HandleFunc("/messages", messagesHandler)
+
     http.HandleFunc("/status", statusHandler)
     http.HandleFunc("/logout", logoutHandler)
     http.HandleFunc("/media/", mediaHandler)

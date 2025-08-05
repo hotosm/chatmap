@@ -34,6 +34,9 @@ services:
     build:
       context: ./chatmap-wa-connector
       dockerfile: Dockerfile
+    environment:
+      - REDIS_HOST=chatmap-redis
+      - REDIS_PORT=6379
     ports:
       - "8001:8001"
     volumes:
