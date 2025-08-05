@@ -18,8 +18,7 @@ COPY ./public ./public
 COPY ./vite.config.js ./vite.config.js
 
 # Enable live mode
-ARG VITE_ENABLE_LIVE
-ENV VITE_ENABLE_LIVE=$VITE_ENABLE_LIVE
+ENV VITE_ENABLE_LIVE=1
 
 RUN yarn build
 

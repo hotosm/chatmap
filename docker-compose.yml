@@ -2,11 +2,7 @@ name: chatmap-main
 
 services:
   chatmap-ui:
-    build:
-      context: ./chatmap-ui
-      dockerfile: Dockerfile
-      args:
-          VITE_ENABLE_LIVE: true # Enable live mode
+    image: ghcr.io/hotosm/chatmap-ui:latest
     ports:
       - "3000:80"
     environment:
@@ -15,9 +11,7 @@ services:
       - chatmap-nginx
 
   chatmap-api:
-    build:
-      context: ./chatmap-api
-      dockerfile: Dockerfile
+    image: ghcr.io/hotosm/chatmap-api:latest
     ports:
       - "8000:8000"
     depends_on:
@@ -33,9 +27,7 @@ services:
       - ./data:/app/data
 
   chatmap-go:
-    build:
-      context: ./chatmap-im-connector
-      dockerfile: Dockerfile
+    image: ghcr.io/hotosm/chatmap-im-connector:latest
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
