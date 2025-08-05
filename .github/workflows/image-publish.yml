@@ -27,7 +27,7 @@ jobs:
       - name: Build and push chatmap-ui
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./chatmap-ui
           file: ./chatmap-ui/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/chatmap-ui:latest
@@ -35,7 +35,7 @@ jobs:
       - name: Build and push chatmap-im-connector
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./chatmap-im-connector
           file: ./chatmap-im-connector/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/chatmap-im-connector:latest
@@ -43,7 +43,7 @@ jobs:
       - name: Build and push chatmap-api
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./chatmap-api
           file: ./chatmap-api/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/chatmap-api:latest
