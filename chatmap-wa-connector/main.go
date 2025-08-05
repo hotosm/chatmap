@@ -621,8 +621,10 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
+    redis_host := os.Getenv("REDIS_HOST")
+    redis_port := os.Getenv("REDIS_PORT")
     redisClient = redis.NewClient(&redis.Options{
-        Addr: "localhost:6379",
+        Addr: redis_host + ":" + redis_port,
     })
 
     // Re-init sessions

@@ -23,8 +23,12 @@ services:
     depends_on:
       - chatmap-redis
     environment:
-      - REDIS_HOST=redis
+      - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
+      - SERVER_URL=http://chatmap-go:8001
+    volumes:
+      - ./media:/app/media
+      - ./data:/app/data
 
   chatmap-go:
     build:
@@ -32,6 +36,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
+    volumes:
+      - ./sessions:/app/sessions
 
   chatmap-redis:
     image: redis:latest
@@ -56,3 +62,4 @@ services:
       # - ./letsencrypt:/etc/letsencrypt
     # depends_on:
     #   - certbot
+

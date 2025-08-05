@@ -10,9 +10,9 @@ RUN go mod download
 
 COPY main.go ./main.go
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o chatmap-wa-connector .
+RUN go build -o chatmap-wa-connector .
 
-FROM gcr.io/distroless/static:nonroot 
+FROM golang:1.23.4
 
 WORKDIR /app
 

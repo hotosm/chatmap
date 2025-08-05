@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, String, select
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from typing import Dict
 
-DATABASE_URL = "sqlite:///./chatmap.sqlite3"
+DATABASE_URL = "sqlite:///./data/chatmap.sqlite3"
 
 engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}
