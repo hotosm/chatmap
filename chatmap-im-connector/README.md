@@ -1,4 +1,4 @@
-# chatmap-wa-connector
+# chatmap-im-connector
 
 This is a Go API for connecting to the WhatsApp API for
 linking devices and getting messages

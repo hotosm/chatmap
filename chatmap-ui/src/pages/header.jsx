@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import logo from '../assets/hot-logo.svg';
 import SaveButton from '../components/SaveButton/index.jsx';
-import TagsOptions from "../components/TagsOptions";
+import TagsOptions from "../components/TagsOptions/index.jsx";
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
-import NavBar from '../components/NavBar';
+import NavBar from '../components/NavBar/index.jsx';
 
 export default function Header({
     dataAvailable,

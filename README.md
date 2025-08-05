@@ -15,6 +15,7 @@ Check this quick [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (
 ## Install and run
 
 ```bash
+cd chatmap-ui
 yarn install
 yarn start
 ```

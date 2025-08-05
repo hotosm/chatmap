@@ -10,15 +10,15 @@ RUN go mod download
 
 COPY main.go ./main.go
 
-RUN go build -o chatmap-wa-connector .
+RUN go build -o chatmap-im-connector .
 
 FROM golang:1.23.4
 
 WORKDIR /app
 
-COPY --from=builder /app/chatmap-wa-connector .
+COPY --from=builder /app/chatmap-im-connector .
 
 EXPOSE 8001
 
-CMD ["/app/chatmap-wa-connector"]
+CMD ["/app/chatmap-im-connector"]
 

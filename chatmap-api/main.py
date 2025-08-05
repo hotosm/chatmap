@@ -44,7 +44,7 @@ redis_port = int(os.getenv("REDIS_PORT", 6379))
 redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
 
 # Redis key for filtering
-STREAM_KEY = "wa-messages"
+STREAM_KEY = "messages"
 # Expiring time for messages (in minutes)
 EXPIRING_MIN = 120
 EXPIRING_MIN_MS = EXPIRING_MIN * 60 * 1000
@@ -298,8 +298,8 @@ async def media(filename: str, user: str) -> Dict[str, str]:
 
 # Get all sessions
 async def get_sessions():
-    sessions = await redis_client.scan(0, match="wa-messages:*", type="stream")
-    return [item[0].decode('utf-8').replace("wa-messages:", "") for item in sessions if type(item) != int]
+    sessions = await redis_client.scan(0, match="messages:*", type="stream")
+    return [item[0].decode('utf-8').replace("messages:", "") for item in sessions if type(item) != int]
 
 # Update all sessions every (EXPIRING_MIN) minutes
 @scheduler.scheduled_job('interval', minutes=EXPIRING_MIN)

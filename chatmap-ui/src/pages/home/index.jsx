@@ -6,7 +6,7 @@ import Footer from '../footer.jsx';
 import FileUploadSection from './fileUpload.section.jsx';
 import NoLocationsSection from './noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
-import Messages from '../../components/Messages';
+import Messages from '../../components/Messages/index.jsx';
 
 const Map = lazy(() => import('../../components/Map/index.jsx'));
 

@@ -6,7 +6,7 @@ locations using the `chatmap-py` package and saves them in the database.
 
 ## Setup
 
-You'll need a Redis server with messages (created by `chatmap-wa-connector`).
+You'll need a Redis server with messages (created by `chatmap-im-connector`).
 
 ## Install dependencies
 

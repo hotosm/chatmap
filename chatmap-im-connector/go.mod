@@ -1,4 +1,4 @@
-module chatmap-wa-connector
+module chatmap-im-connector
 
 go 1.23.0
 

@@ -333,7 +333,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
     ctx := context.Background()
 
     // Get media reference data from Redis
-    res, _ := redisClient.XRange(ctx, fmt.Sprintf("wa-messages:%s", client.Store.ID.User), msgID, msgID).Result()
+    res, _ := redisClient.XRange(ctx, fmt.Sprintf("messages:%s", client.Store.ID.User), msgID, msgID).Result()
 
     if (len(res) > 0) {
         photoJSON, _ := res[0].Values["photo"].(string)
@@ -419,7 +419,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     // Save data into Redis queue
     if (hasContent) {
         redisClient.XAdd(ctx, &redis.XAddArgs{
-            Stream: fmt.Sprintf("wa-messages:%s", client.Store.ID.User),
+            Stream: fmt.Sprintf("messages:%s", client.Store.ID.User),
             ID:     streamID,
             Values: map[string]interface{}{
                 "id":      streamID,
@@ -624,7 +624,7 @@ func messagesHandler(w http.ResponseWriter, r *http.Request) {
     user := r.URL.Query().Get("user")
     ctx := context.Background()
     // Get media reference data from Redis
-     res, _ := redisClient.XRange(ctx, fmt.Sprintf("wa-messages:%s", user), "-", "+").Result()
+     res, _ := redisClient.XRange(ctx, fmt.Sprintf("messages:%s", user), "-", "+").Result()
      var messages []Message
 
     for _, item := range res {

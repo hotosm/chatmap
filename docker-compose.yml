@@ -3,7 +3,7 @@ name: chatmap-main
 services:
   chatmap-ui:
     build:
-      context: .
+      context: ./chatmap-ui
       dockerfile: Dockerfile
       args:
           VITE_ENABLE_LIVE: true # Enable live mode
@@ -26,17 +26,20 @@ services:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - SERVER_URL=http://chatmap-go:8001
+      # - CHATMAP_ENC_KEY=
+      # - CHATMAP_SECRET_KEY=
     volumes:
       - ./media:/app/media
       - ./data:/app/data
 
   chatmap-go:
     build:
-      context: ./chatmap-wa-connector
+      context: ./chatmap-im-connector
       dockerfile: Dockerfile
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
+      # - CHATMAP_ENC_KEY=
     ports:
       - "8001:8001"
     volumes:

@@ -16,18 +16,18 @@ Install requirements by running:
 ### IM API connector
 
 The instant messaging API connector is a Go app that connects to WhatsApp using the whatsmeow
-library. You can build it by going to th the `chatmap-wa-connector` directory and running:
+library. You can build it by going to th the `chatmap-im-connector` directory and running:
 
 `go build`
 
 ### IM API connector
 
 The instant messaging API connector is a Go app that connects to WhatsApp using the whatsmeow
-library. You can build it by going to the the `chatmap-wa-connector` directory and running:
+library. You can build it by going to the the `chatmap-im-connector` directory and running:
 
 `go build`
 
-Then, rename and copy the binary file `chatmap-wa-connector` to `electron-app/backend/chatmap-go`
+Then, rename and copy the binary file `chatmap-im-connector` to `chatmap-desktop/backend/chatmap-go`
 
 ### ChatMap API
 
@@ -36,7 +36,7 @@ by going to the `chatmap-api` directory and running:
 
 `pyinstaller --onefile run.py`
 
-Then, rename and copy the binary file to `electron-app/backend/chatmap-api`
+Then, rename and copy the binary file to `chatmap-desktop/backend/chatmap-api`
 
 ### ChatMap front-end
 
@@ -44,11 +44,11 @@ For building the fron-end, go to the root folder and type:
 
 `yarn build`
 
-Then, copy all files from the `build` directory to `electron-app/public.
+Then, copy all files from the `build` directory to `chatmap-desktop/public.
 
 ## Run Electron app
 
-Finally, for running the Electron app, go to the `electron-app` directory and run:
+Finally, for running the Electron app, go to the `chatmap-desktop` directory and run:
 
 `yarn start`
 
