@@ -3,12 +3,12 @@ name: chatmap-main
 services:
   chatmap-ui:
     image: ghcr.io/hotosm/chatmap-ui:latest
-    ports:
-      - "3000:80"
+    expose:
+      - "80"
     environment:
       - NODE_ENV=production
-    depends_on:
-      - chatmap-nginx
+    networks:
+      - appnet
 
   chatmap-api:
     image: ghcr.io/hotosm/chatmap-api:latest
@@ -25,6 +25,8 @@ services:
     volumes:
       - ./media:/app/media
       - ./data:/app/data
+    networks:
+      - appnet
 
   chatmap-go:
     image: ghcr.io/hotosm/chatmap-im-connector:latest
@@ -36,19 +38,23 @@ services:
       - "8001:8001"
     volumes:
       - ./sessions:/app/sessions
+    networks:
+      - appnet
 
   chatmap-redis:
     image: redis:latest
     ports:
       - "6379:6379"
+    networks:
+      - appnet
 
   # chatmap-certbot:
-  #   image: certbot/certbot:latest
-  #   command: renew --quiet
-  #   volumes:
-  #     - ./letsencrypt:/etc/letsencrypt
-  #   depends_on:
-  #     - nginx
+  #    image: certbot/certbot:latest
+  #    command: renew --quiet
+  #    volumes:
+  #      - ./letsencrypt:/etc/letsencrypt
+  #    depends_on:
+  #      - chatmap-nginx
 
   chatmap-nginx:
     image: nginx:latest
@@ -57,7 +63,11 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      # - ./letsencrypt:/etc/letsencrypt
-    # depends_on:
-    #   - certbot
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - chatmap-ui
+    networks:
+      - appnet
 
+networks:
+  appnet:

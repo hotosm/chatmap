@@ -1,6 +1,8 @@
-const ENABLE_LIVE = import.meta.env.VITE_ENABLE_LIVE || false;
+
 
 export default function Footer() {
+
+  const ENABLE_LIVE = window._CHATMAP_CONFIG("ENABLE_LIVE", false);
 
   return (
     <>

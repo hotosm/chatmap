@@ -1,0 +1,4 @@
+{
+    "API_URL": "http://localhost:8000",
+    "ENABLE_LIVE": true
+}

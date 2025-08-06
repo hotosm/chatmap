@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 /**
  * Get ChatMap data from an API
  *
  * @param {object} params - Parameters
  */
 const useApi = (params = {}) => {
+
+    const API_URL = window._CHATMAP_CONFIG("API_URL", 'http://localhost:8000');
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);

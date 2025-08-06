@@ -36,26 +36,35 @@ const getLocaleMessages = () => {
   return locales["en"]
 }
 
-const ENABLE_LIVE = import.meta.env.VITE_ENABLE_LIVE || false;
+async function init() {
+  const response = await fetch('/config.json');
+  const config = await response.json();
+  const getConfig = window._CHATMAP_CONFIG = (label, default_val) => (
+    import.meta.env[`VITE_${label}`] ||
+    config[label] || default_val
+  )
+  const ENABLE_LIVE = getConfig("ENABLE_LIVE", false);
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
-      <ErrorBoundary>
-        <MapDataProvider>
-          <HashRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              { ENABLE_LIVE ?
-              <Route path="/linked" element={<Linked />} />
-              : null}
-            </Routes>
-          </HashRouter>
-        </MapDataProvider>
-      </ErrorBoundary>
-    </IntlProvider>
-  </React.StrictMode>
-);
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(
+    <React.StrictMode>
+      <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
+        <ErrorBoundary>
+          <MapDataProvider>
+            <HashRouter>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                { ENABLE_LIVE ?
+                <Route path="/linked" element={<Linked />} />
+                : null}
+              </Routes>
+            </HashRouter>
+          </MapDataProvider>
+        </ErrorBoundary>
+      </IntlProvider>
+    </React.StrictMode>
+  );
+}
 
+init();
 

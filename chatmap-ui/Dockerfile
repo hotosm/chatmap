@@ -13,12 +13,8 @@ RUN yarn install
 
 COPY ./index.html  ./index.html
 COPY ./src ./src
-COPY ./tests ./tests
 COPY ./public ./public
 COPY ./vite.config.js ./vite.config.js
-
-# Enable live mode
-ENV VITE_ENABLE_LIVE=1
 
 RUN yarn build
 
