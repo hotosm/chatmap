@@ -1,4 +1,7 @@
 .DS_Store
 data
 sessions
-nginx
+.env
+certbot/
+config.json
+nginx/
