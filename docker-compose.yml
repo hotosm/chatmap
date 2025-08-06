@@ -1,5 +1,3 @@
-name: chatmap-main
-
 services:
   chatmap-ui:
     image: ghcr.io/hotosm/chatmap-ui:latest
@@ -22,8 +20,8 @@ services:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - SERVER_URL=http://chatmap-go:8001
-      # - CHATMAP_ENC_KEY=
-      # - CHATMAP_SECRET_KEY=
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY}
+      - CHATMAP_SECRET_KEY=${CHATMAP_SECRET_KEY}
     volumes:
       - ./media:/app/media
       - ./data:/app/data
@@ -35,7 +33,7 @@ services:
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
-      # - CHATMAP_ENC_KEY=
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY}
     ports:
       - "8001:8001"
     volumes:
@@ -50,26 +48,29 @@ services:
     networks:
       - appnet
 
-  chatmap-certbot:
-     image: certbot/certbot:latest
-     command: renew --quiet
-     volumes:
-       - ./letsencrypt:/etc/letsencrypt
-     depends_on:
-       - chatmap-nginx
-
   chatmap-nginx:
     image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./letsencrypt:/etc/letsencrypt
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+
     depends_on:
       - chatmap-ui
     networks:
       - appnet
+
+  chatmap-certbot:
+     image: certbot/certbot
+     restart: "no"
+     volumes:
+       - ./certbot/conf:/etc/letsencrypt
+       - ./certbot/www:/var/www/certbot
+     command: certonly --webroot --webroot-path=/var/www/certbot --email ${CHATMAP_SITE_ADMIN_EMAIL} --agree-tos --no-eff-email --force-renewal -d ${CHATMAP_SITE_DOMAIN}
+
 
 networks:
   appnet:

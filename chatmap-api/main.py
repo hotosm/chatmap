@@ -34,7 +34,7 @@ DEBUG = False
 
 # API
 app = FastAPI()
-api_router = APIRouter(prefix="/api")
+api_router = APIRouter(prefix=f"v{os.getenv("CHATMAP_API_VERSION", "1")}")
 
 # Security
 SECRET_KEY = os.getenv("CHATMAP_SECRET_KEY", "4sup3rs3cret5up3rdummykey")
