@@ -7,6 +7,8 @@ services:
       - "80"
     environment:
       - NODE_ENV=production
+    volumes:
+      - ./config.json:/usr/share/nginx/html/config.json
     networks:
       - appnet
 
@@ -48,13 +50,13 @@ services:
     networks:
       - appnet
 
-  # chatmap-certbot:
-  #    image: certbot/certbot:latest
-  #    command: renew --quiet
-  #    volumes:
-  #      - ./letsencrypt:/etc/letsencrypt
-  #    depends_on:
-  #      - chatmap-nginx
+  chatmap-certbot:
+     image: certbot/certbot:latest
+     command: renew --quiet
+     volumes:
+       - ./letsencrypt:/etc/letsencrypt
+     depends_on:
+       - chatmap-nginx
 
   chatmap-nginx:
     image: nginx:latest

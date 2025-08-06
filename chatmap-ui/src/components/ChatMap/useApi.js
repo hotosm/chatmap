@@ -7,7 +7,7 @@ import { useState, useCallback } from "react";
  */
 const useApi = (params = {}) => {
 
-    const API_URL = window._CHATMAP_CONFIG("API_URL", 'http://localhost:8000');
+    const API_URL = window._CHATMAP_CONFIG("API_URL", 'http://localhost:8000/api');
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
