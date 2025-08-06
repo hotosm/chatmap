@@ -33,8 +33,9 @@ logging.basicConfig(filename='chatmap-api.log', level=logging.INFO)
 DEBUG = False
 
 # API
+API_VERSION = os.getenv("CHATMAP_API_VERSION", "1")
 app = FastAPI()
-api_router = APIRouter(prefix=f"v{os.getenv("CHATMAP_API_VERSION", "1")}")
+api_router = APIRouter(prefix=f"/v{API_VERSION}")
 
 # Security
 SECRET_KEY = os.getenv("CHATMAP_SECRET_KEY", "4sup3rs3cret5up3rdummykey")
