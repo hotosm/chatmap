@@ -33,6 +33,7 @@ logging.basicConfig(filename='chatmap-api.log', level=logging.INFO)
 DEBUG = False
 
 # API
+API_URL = os.getenv("CHATMAP_API_URL", "http://localhost:8000")
 API_VERSION = os.getenv("CHATMAP_API_VERSION", "1")
 app = FastAPI()
 prefix = f"v{API_VERSION}"
@@ -257,8 +258,7 @@ async def get_chatmap(request: Request, session: dict = Depends(get_current_sess
                                 logger.error(f"Failed to download: {str(e)}")
 
                         # Set signed URL for image, using sessionId
-                        api_url = str(request.base_url)
-                        url = f"{api_url}{prefix}/media?user={user}&filename={filename}"
+                        url = f"{API_URL}/{prefix}/media?user={user}&filename={filename}"
                         feature['properties']['file'] = url
                         related_ids.append(feature['properties']['related'])
                         filtered_features.append(feature)
