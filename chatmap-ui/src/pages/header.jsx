@@ -12,7 +12,9 @@ export default function Header({
     handleNewUploadClick,
     handleOptionClick,
     showUploadButton,
-    showChatIcon
+    showChatIcon,
+    legend,
+    subtitle
 }) {
 
     const { data, mapDataDispatch } = useMapDataContext();
@@ -94,16 +96,18 @@ export default function Header({
             <>
             {/* Main legend */}
             <p className="subtitle">
+                {subtitle ? subtitle :
                 <FormattedMessage
                 id = "app.subtitle"
-                defaultMessage="Export and upload a chat to visualize locations, messages and media"
-                />
+                defaultMessage="Export and upload a chat to create a map"
+                />}
             </p>
             <p className="highlighted">
+                { legend ? legend :
                 <FormattedMessage
                 id = "app.supportedApps"
                 defaultMessage="Now it works with WhatsApp, Telegram or Signal!"
-                />
+                />}
             </p>
             </>
             }

@@ -12,14 +12,13 @@
 
 /* defaults */
 
-body {
+html, body {
   font-family: Helvetica, arial, sans-serif;
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: neutralscale;
   overflow: hidden;
   color: var(--hot-color-neutral-950);
-  position: fixed;
   width: 100vw;
   height: 100vh;
 }
@@ -29,6 +28,16 @@ a {
 }
 
 /* Layout */
+
+#root {
+    min-height: 100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+.app {
+  flex:1;
+}
 
 .app {
   text-align: center;
@@ -148,11 +157,9 @@ a {
 
 .infoLinks {
   display: block;
-  position: absolute;
   right: 0;
   width: 100%;
   text-align: center;
-  bottom: 0;
   padding: 2vh;
   font-size: var(--hot-font-size-x-small);
   background-color: var(--hot-color-neutral-0);
@@ -172,28 +179,29 @@ a {
 }
 
 .fileUpload {
-  padding: var(--hot-spacing-large);
+  padding-top: var(--hot-spacing-2x-large);
+  padding-bottom: var(--hot-spacing-large);
 }
 
-.fileUploadDropArea {
-  margin-top: var(--hot-spacing-medium);
-  border: 2px dashed var(--hot-color-neutral-200) !important;
+.fileUploadDropArea::part(base) {
+  border: 2px dashed var(--hot-color-neutral-600);
+  height: calc(var(--hot-spacing-large) * 3.2);
 }
 
-.fileUploadDropArea span {
-  font-size: var(--hot-font-size-large);
-  text-decoration: none !important;
+.fileUploadDropArea::part(input) {
+  height: calc(var(--hot-spacing-large) * 3);
+  text-align: center;
 }
 
-.fileUploadDropArea .file-types {
-  font-size: var(--hot-font-size-small);
-  opacity: .5;
-}
 
 /* Info */
 
 .info {
   padding: 0 var(--hot-spacing-small) 0;
+}
+
+.info-top-spaced {
+  padding-top: var(--hot-spacing-medium)
 }
 
 .info-bottom-spaced {
@@ -216,6 +224,10 @@ a {
   text-align: center;
   justify-content: center;
   display: flex;
+}
+
+.mapDisabled {
+  opacity: .5;
 }
 
 .activePopupFeatureContent {
@@ -252,7 +264,7 @@ a {
 }
 
 .popup .maplibregl-popup-content {
-  box-shadow: 0 1px 15px rgba(0,0,0,.15);
+  box-shadow: var(--hot-shadow-small);
   border-radius: var(--hot-border-radius-medium);
 }
 
@@ -318,13 +330,13 @@ a {
   overflow-y: scroll;
   overflow-x: hidden;
   background: var(--hot-color-neutral-50);
-  box-shadow: -1px 4px 9px rgba(0,0,0, .2);
+  box-shadow: var(--hot-shadow-small);
   padding-bottom: var(--hot-spacing-x-large);
 }
 
 .messages .message {
   border: 1px solid var(--hot-color-neutral-200);
-  box-shadow: 2px -1px 9px rgba(0,0,0, .2);
+  box-shadow: var(--hot-shadow-small);
   margin: var(--hot-spacing-small);
   padding: var(--hot-spacing-x-small);
   border-radius: var(--hot-border-radius-small);
@@ -332,7 +344,7 @@ a {
 }
 
 .messages .message:hover {
-  box-shadow: 2px -1px 9px rgba(255,0,0, .2);
+  box-shadow: var(--hot-shadow-small);
   border-color: var(--hot-color-neutral-500);
   cursor: pointer;
   background-color: var(--hot-color-neutral-0);
@@ -371,6 +383,70 @@ a {
 }
 
 .connectForm {
+  padding: var(--hot-spacing-large);
+  background-color: var(--hot-color-neutral-0);
+  position: absolute;
+  top: 300px;
+  z-index: 9999;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: left;
+  border-radius: var(--hot-border-radius-small);
+  box-shadow: var(--hot-shadow-small);
+}
+
+.connectFormWrapper {
+  display: flex;
+  gap: var(--hot-spacing-medium);
+  flex-direction: row;
+}
+
+.connectForm h2 {
+  margin-top: 0;
+}
+
+.connectForm h3 {
+  font-weight: var(--hot-font-weight-normal);
+}
+
+.connectForm ol {
+  padding-left: var(--hot-spacing-large);
+  font-size: var(--hot-font-size-large);
+  line-height: var(--hot-line-height-loose);
+}
+
+.connectForm hr {
+  border: none;
+  border-bottom: 1px solid var(--hot-color-warning-300);
+}
+
+.connectForm small {
+  color: var(--hot-color-neutral-600)
+}
+
+.qrCode {
+  border: 1px solid var(--hot-color-neutral-300);
+}
+
+/* Messages */
+
+.loading {
+  position: absolute;
+  bottom: var(--hot-spacing-medium);
+  right: var(--hot-spacing-medium);
+  z-index: 9999;
+}
+
+.loading-hide {
+  display: none;
+}
+
+.loadingBadge::part(base) {
+  background-color: var(--hot-color-neutral-0);
+  color: var(--hot-color-neutral-700);
+}
+
+.mapMessage {
   padding: var(--hot-spacing-medium);
   background-color: var(--hot-color-neutral-0);
   position: absolute;
@@ -378,22 +454,18 @@ a {
   z-index: 9999;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
+  box-shadow: var(--hot-shadow-small);
+}
+
+.mapMessage h3 {
+  font-weight: var(--hot-font-weight-normal);
+}
+
+.mapSteps {
+  font-size: var(--hot-font-size-3x-large);
+  display: inline-flex;
+  flex-direction: row;
   gap: var(--hot-spacing-medium);
-}
-
-.connectForm.qrCodeContainer {
-  flex-direction: column;
-}
-
-.phoneNumberInput {
-  padding: var(--hot-spacing-x-small);
-  border-radius: var(--hot-border-radius-small);
-  border: 1px solid var(--hot-color-neutral-300);
-  font-size: var(--hot-font-size-medium);
-  font-weight: bold;
-}
-
-.qrCode {
-  border: 1px solid var(--hot-color-neutral-300);
+  font-weight: var(--hot-font-weight-light);
+  margin: var(--hot-spacing-2x-large) 0;
 }

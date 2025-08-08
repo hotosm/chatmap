@@ -369,8 +369,6 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     date := ConvertToJSDateFormat(v.Info.Timestamp.String())
     hasContent := false
 
-    log.Printf("Message received from: %s", v.Info.Sender.String())
-
     message := Message{
         From: v.Info.Sender.String(),
         Chat: v.Info.Chat.String(),
@@ -434,6 +432,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
                 "file": message.File,
             },
         })
+        log.Printf("Saved received message from: %s", message.From)
     }
 
 }
@@ -665,7 +664,13 @@ func messagesHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 
     redis_host := os.Getenv("REDIS_HOST")
+    if (redis_host == "") {
+        redis_host = "localhost"
+    }
     redis_port := os.Getenv("REDIS_PORT")
+    if (redis_port == "") {
+        redis_port = "6379"
+    }
     fmt.Printf("Connecting to Redis %s:%s \n", redis_host, redis_port)
     redisClient = redis.NewClient(&redis.Options{
         Addr: redis_host + ":" + redis_port,

@@ -78,6 +78,7 @@ function App() {
   }
 
   return (
+    <>
     <div className="app">
 
         <Header
@@ -125,6 +126,15 @@ function App() {
           />
         }
     </div>
+    <div className="infoLinks">
+        <div className="copy">
+            <a href="https://github.com/hotosm/chatmap">This is free software</a>
+        </div>
+        <a href="https://www.hotosm.org/privacy">- We collect zero personal data. hotosm.org/privacy -</a>
+        &nbsp;
+        <a href="https://github.com/hotosm/chatmap">v0.5.0</a>
+    </div>
+    </>
   );
 }
 

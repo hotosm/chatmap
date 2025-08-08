@@ -117,18 +117,35 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
     <>
       {/* Loading message */}
     { loading ? <p style={{"textAlign": "center"}}>
-      {intl.formatMessage({id: "app.loading", defaultMessage: "Loading"})} ({loadedFilesCount} / {filesCount})...
+      {intl.formatMessage({
+        id: "app.loading",
+        defaultMessage: "Loading"
+        })} ({loadedFilesCount} / {filesCount})...
       </p> : ""}
 
       {/* File upload area */}
     <div style={loading ? {display: "none"} : null}>
         <FileUploader
-          classes={"fileUploadDropArea"}
           handleChange={handleChange}
           multiple
           name="file"
+          children={
+            <sl-input
+              className="fileUploadDropArea"
+              placeholder={
+              intl.formatMessage({
+                id: "app.uploadLabel",
+                defaultMessage: "Upload your .zip file here"
+              })
+            }
+            size="large"
+          >
+          </sl-input>}
           types={fileTypes}
-      label={intl.formatMessage({id: "app.uploadLabel", defaultMessage: "Upload or drag a file right here"})}
+          // label={intl.formatMessage({
+          //   id: "app.uploadLabel",
+          //   defaultMessage: "Upload or drag a file right here"
+          // })}
         />
       </div>
 

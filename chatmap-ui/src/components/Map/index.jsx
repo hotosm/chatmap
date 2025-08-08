@@ -49,7 +49,8 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
         // Fit map bounds on data extent
         const bbox = extent(data);
         map.current.fitBounds(bbox, {
-            padding: 50
+            padding: 50,
+            maxZoom: 14
         });
 
         // Change cursor on marker hover

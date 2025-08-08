@@ -232,5 +232,11 @@
    --hot-border-radius-circle: 50%;
    --hot-border-radius-pill: 9999px;
 
+  /*
+   * Shadows
+   */
+
+   --hot-shadow-small: 2px 2px 2px rgba(0,0,0,0.1);
+
 }
 

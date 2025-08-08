@@ -303,42 +303,6 @@ async def media(filename: str, user: str) -> Dict[str, str]:
 async def status():
     return {'version': "0.0.1"}
 
-# API Router
-app.include_router(api_router)
-
-# Get all sessions
-async def get_sessions():
-    sessions = await redis_client.scan(0, match="messages:*", type="stream")
-    return [item[0].decode('utf-8').replace("messages:", "") for item in sessions if type(item) != int]
-
-# Update all sessions every (EXPIRING_MIN) minutes
-@scheduler.scheduled_job('interval', minutes=EXPIRING_MIN)
-async def update():
-    sessions = get_sessions()
-    for session in sessions:
-        await get_chatmap(session)
-
-# On API startup
-@api_router.on_event("startup")
-async def startup_event():
-    global scheduler
-    if not os.path.exists("media"):
-        os.mkdir("media")
-    try:
-        Base.metadata.create_all(bind=engine)
-        scheduler.start()
-    except Exception as e:
-        print(f"Error starting scheduler: {e}")
-
-# On API shutdown
-@api_router.on_event("shutdown")
-async def shutdown_event():
-    global scheduler
-    try:
-        scheduler.shutdown(wait=True)
-    except Exception as e:
-        print(f"Error shutting down scheduler: {e}")
-
 # ----- (FOR DEBUGGING) -----
 
 # if DEBUG:
@@ -398,3 +362,40 @@ async def shutdown_event():
 #             print(f"Error parsing chat: {e}")
 #         return geoJSON
 
+# -------------
+
+# API Router
+app.include_router(api_router)
+
+# Get all sessions
+async def get_sessions():
+    sessions = await redis_client.scan(0, match="messages:*", type="stream")
+    return [item[0].decode('utf-8').replace("messages:", "") for item in sessions if type(item) != int]
+
+# Update all sessions every (EXPIRING_MIN) minutes
+@scheduler.scheduled_job('interval', minutes=EXPIRING_MIN)
+async def update():
+    sessions = get_sessions()
+    for session in sessions:
+        await get_chatmap(session)
+
+# On API startup
+@api_router.on_event("startup")
+async def startup_event():
+    global scheduler
+    if not os.path.exists("media"):
+        os.mkdir("media")
+    try:
+        Base.metadata.create_all(bind=engine)
+        scheduler.start()
+    except Exception as e:
+        print(f"Error starting scheduler: {e}")
+
+# On API shutdown
+@api_router.on_event("shutdown")
+async def shutdown_event():
+    global scheduler
+    try:
+        scheduler.shutdown(wait=True)
+    except Exception as e:
+        print(f"Error shutting down scheduler: {e}")
