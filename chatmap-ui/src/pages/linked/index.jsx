@@ -84,6 +84,10 @@ function App() {
     setShowSettings(!showSettings);
   }
 
+  const handleSettingsCloseClick = () => {
+    setShowSettings(false);
+  }
+
   const handleLogoutClick = async () => {
     await logoutSession();
     navigate("/", { replace: true });
@@ -168,7 +172,9 @@ function App() {
 
         {/* Settings window */}
         { showSettings &&
-          <Settings />
+          <Settings
+            handleCloseClick={handleSettingsCloseClick}
+          />
         }
     </div>
   );

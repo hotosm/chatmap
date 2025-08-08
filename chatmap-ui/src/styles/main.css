@@ -516,13 +516,12 @@ a {
   background-color: var(--hot-color-neutral-0);
   position: absolute;
   top: 75px;
-  right: 20px;
+  right: 15px;
   z-index: 9999;
   text-align: left;
   border-radius: var(--hot-border-radius-small);
   box-shadow: var(--hot-shadow-small);
-  width: 250px;
-  height: 350px;
+  width: 220px;
 }
 
 .settings h2 {
@@ -544,6 +543,13 @@ a {
 .settingsOptions > div,
 .settingsOptions .option {
   margin-bottom: var(--hot-spacing-medium);
+}
+
+
+.settings .closeButton {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 /* Media queries */
