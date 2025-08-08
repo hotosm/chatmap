@@ -61,6 +61,7 @@ function SaveButton({ data, dataFiles }) {
   return (
     <sl-button
       variant="primary"
+      size="small"
       onClick={handleClick}
     >
       <FormattedMessage

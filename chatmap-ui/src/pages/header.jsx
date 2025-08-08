@@ -48,10 +48,10 @@ export default function Header({
     return (
         <>
 
-        <header className="header">
+        <header className={`header ${dataAvailable && "headerSmall"}`}>
 
             {/* Logo */}
-            <a href="/">
+            <a href="/" className="logoLink">
                 <h1 className={dataAvailable ? "titleSmall" : "title"} >
                     <img src={logo} className="logo" alt="logo" />
                     <span>ChatMap</span>
@@ -67,11 +67,13 @@ export default function Header({
                     <sl-button
                         variant="success"
                         outline
+                        size="small"
                         onClick={handleNewUploadClick}
                     >
+                        <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
                         <FormattedMessage
                             id = "app.uploadNewFile"
-                            defaultMessage="Upload new file"
+                            defaultMessage="New file"
                         /> 
                     </sl-button> : null}
                 </div>
@@ -95,13 +97,13 @@ export default function Header({
             :
             <>
             {/* Main legend */}
-            <p className="subtitle">
+            <h2 className="subtitle">
                 {subtitle ? subtitle :
                 <FormattedMessage
                 id = "app.subtitle"
                 defaultMessage="Export and upload a chat to create a map"
                 />}
-            </p>
+            </h2>
             <p className="highlighted">
                 { legend ? legend :
                 <FormattedMessage

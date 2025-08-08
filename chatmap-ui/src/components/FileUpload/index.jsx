@@ -124,7 +124,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
       </p> : ""}
 
       {/* File upload area */}
-    <div style={loading ? {display: "none"} : null}>
+    <div class="fileUploadWrapper" style={loading ? {display: "none"} : null}>
         <FileUploader
           handleChange={handleChange}
           multiple
@@ -142,10 +142,6 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
           >
           </sl-input>}
           types={fileTypes}
-          // label={intl.formatMessage({
-          //   id: "app.uploadLabel",
-          //   defaultMessage: "Upload or drag a file right here"
-          // })}
         />
       </div>
 

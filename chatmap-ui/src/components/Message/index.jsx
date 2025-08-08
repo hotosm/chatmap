@@ -5,8 +5,8 @@ function Message({ message, selected, ref, dataFiles }) {
             <div
                 key={message.id}
                 className={`message
-                    ${selected && 'selected'}
-                    ${message.mapped && 'mapped'}
+                    ${selected ? 'selected' : ''}
+                    ${message.mapped ? 'mapped' : ''}
                 `}
                 ref={ref}
             >

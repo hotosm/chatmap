@@ -76,11 +76,6 @@ a {
   color:var(--hot-color-neutral-950);
 }
 
-.header h1.titleSmall {
-  font-size: var(--hot-font-size-small);
-  letter-spacing: -.1rem;
-}
-
 .header h1 {
   display: flex;
   gap: var(--hot-spacing-small);
@@ -104,29 +99,58 @@ a {
   height: calc(var(--hot-font-size-2x-large) + 3vmin);
 }
 
+.header .subtitle {
+  font-size: calc(var(--hot-font-size-medium) + 1vmin);
+  font-weight: var(--hot-font-weight-normal);
+  margin-top: var(--hot-spacing-large);
+  margin-bottom: 0;
+}
+
+/* Compact header */
+
 .header h1.titleSmall {
-  margin-bottom: var(--hot-spacing-medium);
+  font-size: var(--hot-font-size-small);
+  letter-spacing: -.1rem;
 }
 
 .header h1.titleSmall span {
-  font-size: var(--hot-font-size-2x-large);
-  height: calc(var(--hot-font-size-2x-large) - 0);
+  font-size: var(--hot-font-size-x-large);
 }
 
 .header h1.titleSmall .logo {
-  height: var(--hot-font-size-2x-large);
+  height: 32px;
 }
 
-.subtitle {
-  font-size: calc(var(--hot-font-size-medium) + 1vmin);
+.headerSmall {
+  flex-direction: row;
+  min-height: 60px;
+  justify-content: space-between;
+  gap: var(--hot-spacing-x-small);
+  padding-right: var(--hot-spacing-2x-small);
 }
 
-.fileOptions {
-  display: flex;
+.header.headerSmall h1 {
+  align-items: inherit;
+}
+
+.headerSmall .logoLink, .fileOptions {
+  width: 50%;
+}
+
+.headerSmall .logoLink {
+  margin-top: 0;
+  height: 49px;
+  margin-left: var(--hot-spacing-small);
+}
+
+.headerSmall .fileOptions {
+  text-align: right;
   gap: 10px;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.header .fileOptions sl-button::part(label) {
+.headerSmall .fileOptions sl-button::part(label) {
   font-weight: bold;
 }
 
@@ -176,9 +200,6 @@ a {
   text-align: center;
   justify-content: center;
   display: flex;
-}
-
-.fileUpload {
   padding-top: var(--hot-spacing-2x-large);
   padding-bottom: var(--hot-spacing-large);
 }
@@ -186,6 +207,12 @@ a {
 .fileUploadDropArea::part(base) {
   border: 2px dashed var(--hot-color-neutral-600);
   height: calc(var(--hot-spacing-large) * 3.2);
+  cursor: pointer;
+}
+
+.fileUploadDropArea::part(base):hover {
+  border: 2px solid var(--hot-color-primary-300);
+  background-color: var(--hot-color-primary-50);
 }
 
 .fileUploadDropArea::part(input) {
@@ -193,6 +220,9 @@ a {
   text-align: center;
 }
 
+.fileUploadDropArea svg {
+  filter: saturate(0%);
+}
 
 /* Info */
 
@@ -220,7 +250,7 @@ a {
 
 .map {
   width: 100vw;
-  height: 83vh;
+  height: 93vh;
   text-align: center;
   justify-content: center;
   display: flex;
@@ -245,6 +275,8 @@ a {
 
 .userinfo {
   font-size: var(--hot-font-size-small);
+  text-align: left;
+  padding-left: var(--hot-spacing-medium);
 }
 
 .msgUsername {
@@ -265,7 +297,7 @@ a {
 
 .popup .maplibregl-popup-content {
   box-shadow: var(--hot-shadow-small);
-  border-radius: var(--hot-border-radius-medium);
+  border-radius: var(--hot-border-radius-large);
 }
 
 /* Error boundary */
@@ -334,6 +366,11 @@ a {
   padding-bottom: var(--hot-spacing-x-large);
 }
 
+.message .text {
+  text-align: left;
+  padding-left: var(--hot-spacing-small);
+}
+
 .messages .message {
   border: 1px solid var(--hot-color-neutral-200);
   box-shadow: var(--hot-shadow-small);
@@ -378,9 +415,7 @@ a {
   text-overflow: ellipsis " ...";
 }
 
-.fileUploadDropArea svg {
-  filter: saturate(0%);
-}
+/* Connect form */
 
 .connectForm {
   padding: var(--hot-spacing-large);
@@ -393,14 +428,8 @@ a {
   text-align: left;
   border-radius: var(--hot-border-radius-small);
   box-shadow: var(--hot-shadow-small);
+  width: 790px;
 }
-
-.connectFormWrapper {
-  display: flex;
-  gap: var(--hot-spacing-medium);
-  flex-direction: row;
-}
-
 .connectForm h2 {
   margin-top: 0;
 }
@@ -468,4 +497,29 @@ a {
   gap: var(--hot-spacing-medium);
   font-weight: var(--hot-font-weight-light);
   margin: var(--hot-spacing-2x-large) 0;
+}
+
+/* Minimum width */
+@media (min-width: 790px) {
+  .connectFormWrapper {
+    display: flex;
+    gap: var(--hot-spacing-medium);
+    flex-direction: row;
+  }
+}
+
+/* Minimum width */
+@media (max-width: 790px) {
+  .connectFormWrapper {
+    text-align: center;
+  }
+  .connectFormWrapper ol {
+    font-size: var(--hot-font-size-medium);
+    list-style-position: inside;
+  }
+  .connectForm {
+    width: 100%;
+    padding: var(--hot-spacing-medium);
+    top: 200px;
+  }
 }
