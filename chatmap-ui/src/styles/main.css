@@ -86,6 +86,11 @@ a {
 .header h1 span {
   font-size: calc(var(--hot-font-size-2x-large) + 3vmin);
   height: calc(var(--hot-font-size-4x-large) - 0);
+  font-family: var(--hot-font-sans);
+  font-weight: var(--hot-font-weight-light);
+}
+
+.header h1 span > strong {
   font-weight: var(--hot-font-weight-bold);
   font-family: var(--hot-font-sans-variant);
 }
@@ -166,6 +171,11 @@ a {
 
 .appNav span {
   padding-left: 1vh;
+}
+
+.mapOptions {
+  font-size: var(--hot-font-size-large);
+  margin-top: -3px /* FIXME */
 }
 
 /* Footer */
@@ -499,7 +509,45 @@ a {
   margin: var(--hot-spacing-2x-large) 0;
 }
 
-/* Minimum width */
+/* Settings */
+
+.settings {
+  padding: var(--hot-spacing-medium);
+  background-color: var(--hot-color-neutral-0);
+  position: absolute;
+  top: 75px;
+  right: 20px;
+  z-index: 9999;
+  text-align: left;
+  border-radius: var(--hot-border-radius-small);
+  box-shadow: var(--hot-shadow-small);
+  width: 250px;
+  height: 350px;
+}
+
+.settings h2 {
+  font-size: var(--hot-font-size-medium);
+  margin-top: 0
+}
+
+.settings h3 {
+  font-size: var(--hot-font-size-small);
+  margin: var(--hot-spacing-large) 0;
+}
+
+.settings hr {
+  height: 1px;
+  border: none;
+  border-top: 1px solid var(--hot-color-neutral-100);
+}
+
+.settingsOptions > div,
+.settingsOptions .option {
+  margin-bottom: var(--hot-spacing-medium);
+}
+
+/* Media queries */
+
 @media (min-width: 790px) {
   .connectFormWrapper {
     display: flex;
@@ -508,7 +556,6 @@ a {
   }
 }
 
-/* Minimum width */
 @media (max-width: 790px) {
   .connectFormWrapper {
     text-align: center;
@@ -523,3 +570,4 @@ a {
     top: 200px;
   }
 }
+

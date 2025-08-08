@@ -42,5 +42,14 @@ def save_session(db: Session, session: Dict):
         db.merge(obj)
     db.commit()
 
+def remove_session(db: Session, session: Dict):
+    user_id = session.get("user_id")
+    if not user_id:
+        return
+    db.query(SessionData).filter(SessionData.user_id == user_id).delete(
+        synchronize_session=False
+    )
+    db.commit()
+
 def init_db():
     Base.metadata.create_all(bind=engine)

@@ -124,7 +124,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
       </p> : ""}
 
       {/* File upload area */}
-    <div class="fileUploadWrapper" style={loading ? {display: "none"} : null}>
+    <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>
         <FileUploader
           handleChange={handleChange}
           multiple

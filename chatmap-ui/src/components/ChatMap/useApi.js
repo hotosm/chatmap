@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Get ChatMap data from an API
@@ -20,9 +21,24 @@ const useApi = (params = {}) => {
     const [session, setSession] = useState();
     const [status, setStatus] = useState();
 
-    const logoutSession = () => {
-        sessionStorage.removeItem("chatmap_access_token");
-    }
+    const logoutSession = useCallback(async () => {
+        setIsLoading(true);
+        const token = sessionStorage.getItem("chatmap_access_token")
+        try {
+            const response = await fetch(`${API_URL}/logout`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Failed to logout');
+            sessionStorage.removeItem("chatmap_access_token");
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    });
 
     const fetchSession = useCallback(async () => {
         const stored_session = sessionStorage.getItem("chatmap_access_token");
@@ -128,6 +144,7 @@ const useApi = (params = {}) => {
         error,
         fetchMapData,
         fetchSession,
+        logoutSession,
         fetchQRCode,
         fetchStatus
     };

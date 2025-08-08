@@ -3,18 +3,22 @@ import useAPI from '../../components/ChatMap/useApi.js'
 import Header from '../header.jsx';
 import NoLocationsSection from '../home/noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
-import Messages from '../../components/Messages/index.jsx';
-import QRCode from '../../components/QRCode/index.jsx';
+import Messages from '../../components/Messages';
+import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
+import Settings from '../../components/Settings';
+import { useNavigate } from "react-router-dom";
 
-const Map = lazy(() => import('../../components/Map/index.jsx'));
+const Map = lazy(() => import('../../components/Map'));
 
 function App() {
 
   const [noLocations, setNoLocations] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState();
   const [showMessages, setShowMessages] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const alertRef = useRef();
+  const navigate = useNavigate();
 
   // Get data from API
   const {
@@ -26,6 +30,7 @@ function App() {
     error,
     fetchMapData,
     fetchSession,
+    logoutSession,
     fetchQRCode,
     fetchStatus
   } = useAPI();
@@ -33,7 +38,6 @@ function App() {
   useInterval(() => { status === "connected" && fetchMapData() }, 10000);
 
   useInterval(() => fetchStatus(), session && status !== "connected" ? 1000 : null);
-
 
   useEffect(() => {
     if (error) {
@@ -76,13 +80,24 @@ function App() {
     setSelectedFeature(feature.properties);
   }
 
+  const handleSettingsClick = () => {
+    setShowSettings(!showSettings);
+  }
+
+  const handleLogoutClick = async () => {
+    await logoutSession();
+    navigate("/", { replace: true });
+  }
+
   return (
     <div className="app">
 
         <Header
           dataAvailable={dataAvailable}
+          handleSettingsClick={handleSettingsClick}
           mapData={data}
           showChatIcon={false}
+          handleLogoutClick={handleLogoutClick}
           mode="linked"
           subtitle={"Live updated maps with linked devices"}
           legend={"Only WhatsApp is supported for now, more apps coming soon!"}
@@ -149,6 +164,11 @@ function App() {
           <NoLocationsSection
             handleNewUploadClick={handleNewUploadClick}
           />
+        }
+
+        {/* Settings window */}
+        { showSettings &&
+          <Settings />
         }
     </div>
   );

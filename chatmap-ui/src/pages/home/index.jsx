@@ -100,17 +100,17 @@ function App() {
 
         {/* If there're no files, show file upload options */}
         { !files &&
-          <>
+          <div className="indexMain">
             <FileUploadSection
               handleFiles={handleFiles}
               handleDataFile={handleDataFile}
               onError={handleFilesError}
             />
             <Footer />
-          </>
+          </div>
         }
 
-        {/* There's data, show the map! */}
+        {/* Thered's data, show the map! */}
         { dataAvailable && 
           <Map 
             data={data}

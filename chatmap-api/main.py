@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import UserChatMap, Base, engine, SessionLocal, init_db, load_session, save_session
+from db import UserChatMap, Base, engine, SessionLocal, init_db, load_session, save_session, remove_session
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
 from datetime import datetime, timedelta, timezone
@@ -35,7 +35,8 @@ DEBUG = False
 # API
 API_VERSION = os.getenv("CHATMAP_API_VERSION", "1")
 app = FastAPI()
-api_router = APIRouter(prefix=f"/v{API_VERSION}")
+prefix = f"v{API_VERSION}"
+api_router = APIRouter(prefix=f"/{prefix}")
 
 # Security
 SECRET_KEY = os.getenv("CHATMAP_SECRET_KEY", "4sup3rs3cret5up3rdummykey")
@@ -158,11 +159,12 @@ async def status(session: dict = Depends(get_current_session), db: Session = Dep
 
 # Logout
 @api_router.get("/logout")
-async def logout(session: dict = Depends(get_current_session)) -> Dict[str, str]:
+async def logout(session: dict = Depends(get_current_session), db: Session = Depends(get_db)) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
         response = await client.get(f'{server_url}/logout?session={session["user_id"]}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to logout")
+        remove_session(db, session)
         return {'status': "logged out"}
 
 # Cleanup old messages
@@ -256,7 +258,7 @@ async def get_chatmap(request: Request, session: dict = Depends(get_current_sess
 
                         # Set signed URL for image, using sessionId
                         api_url = str(request.base_url)
-                        url = f"{api_url}media?user={user}&filename={filename}"
+                        url = f"{api_url}{prefix}/media?user={user}&filename={filename}"
                         feature['properties']['file'] = url
                         related_ids.append(feature['properties']['related'])
                         filtered_features.append(feature)

@@ -11,6 +11,8 @@ export default function Header({
     dataFiles,
     handleNewUploadClick,
     handleOptionClick,
+    handleSettingsClick,
+    handleLogoutClick,
     showUploadButton,
     showChatIcon,
     legend,
@@ -41,6 +43,14 @@ export default function Header({
         handleOptionClick(option);
     }
 
+    const onSettingsClick = () => {
+        handleSettingsClick();
+    }
+
+    const onLogoutClick = () => {
+        handleLogoutClick();
+    }
+
     useEffect(() => {
         setSelected(false);
     }, [data])
@@ -54,7 +64,7 @@ export default function Header({
             <a href="/" className="logoLink">
                 <h1 className={dataAvailable ? "titleSmall" : "title"} >
                     <img src={logo} className="logo" alt="logo" />
-                    <span>ChatMap</span>
+                    <span><strong>ChatMap</strong></span>
                 </h1>
             </a>
 
@@ -76,6 +86,18 @@ export default function Header({
                             defaultMessage="New file"
                         /> 
                     </sl-button> : null}
+                    <div className="mapOptions">
+                        <sl-icon-button
+                            name="gear"
+                            label="Settings"
+                            onClick={ () => onSettingsClick() }
+                        ></sl-icon-button>
+                        <sl-icon-button
+                            name="box-arrow-right"
+                            label="Logout"
+                            onClick={ () => onLogoutClick() }
+                        ></sl-icon-button>
+                    </div>
                 </div>
                 <div className="tagsOptions">
                     <NavBar
