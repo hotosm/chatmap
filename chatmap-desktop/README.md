@@ -16,14 +16,7 @@ Install requirements by running:
 ### IM API connector
 
 The instant messaging API connector is a Go app that connects to WhatsApp using the whatsmeow
-library. You can build it by going to th the `chatmap-im-connector` directory and running:
-
-`go build`
-
-### IM API connector
-
-The instant messaging API connector is a Go app that connects to WhatsApp using the whatsmeow
-library. You can build it by going to the the `chatmap-im-connector` directory and running:
+library. You can build it by going to the `chatmap-im-connector` directory and run:
 
 `go build`
 
@@ -32,7 +25,7 @@ Then, rename and copy the binary file `chatmap-im-connector` to `chatmap-desktop
 ### ChatMap API
 
 This API servers as a middleware between the front-end and the IM API. You can build it
-by going to the `chatmap-api` directory and running:
+by going to the `chatmap-api` directory and run:
 
 `pyinstaller --onefile run.py`
 
