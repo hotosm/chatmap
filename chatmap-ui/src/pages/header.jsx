@@ -12,7 +12,8 @@ export default function Header({
     handleNewUploadClick,
     handleOptionClick,
     handleSettingsClick,
-    showLogout,
+    showLogoutIcon,
+    showSettingsIcon,
     handleLogoutClick,
     showUploadButton,
     showChatIcon,
@@ -88,12 +89,14 @@ export default function Header({
                         /> 
                     </sl-button> : null}
                     <div className="mapOptions">
+                        { showSettingsIcon &&
                         <sl-icon-button
                             name="gear"
                             label="Settings"
                             onClick={ () => onSettingsClick() }
                         ></sl-icon-button>
-                        { showLogout &&
+                        }
+                        { showLogoutIcon &&
                         <sl-icon-button
                             name="box-arrow-right"
                             label="Logout"
