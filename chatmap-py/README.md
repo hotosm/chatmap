@@ -11,6 +11,12 @@ pip install chatmap-py
 
 ## Usage
 
+```
+chatmap_py.cli <filename> > map.geojson
+```
+
+Or in your code:
+
 ```py
 from chatmap_py import parser
 geoJSON = parser.streamParser(data)

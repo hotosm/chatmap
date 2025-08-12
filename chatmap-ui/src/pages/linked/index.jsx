@@ -100,8 +100,9 @@ function App() {
           dataAvailable={dataAvailable}
           handleSettingsClick={handleSettingsClick}
           mapData={data}
-          showChatIcon={false}
+          showChatIcon={true}
           handleLogoutClick={handleLogoutClick}
+          showLogout={true}
           mode="linked"
           subtitle={"Live updated maps with linked devices"}
           legend={"Only WhatsApp is supported for now, more apps coming soon!"}

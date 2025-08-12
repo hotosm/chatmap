@@ -1,0 +1,441 @@
+[
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:23:24-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.421319,-67.166518"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:23:36-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "",
+        "file": "00000043-file-2025-08-09-13-23-35.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:23:47-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.453517,-67.166479"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:23:50-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "House"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:24:03-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.425526,-67.166373"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:24:07-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "House"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:24:30-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.422530,-67.166296"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:24:33-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "House"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:57:06-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.411822,-67.163237"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:57:15-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000051-file-2025-08-09-13-57-14.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:57:56-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.418399,-67.163329"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:58:08-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000053-file-2025-08-09-13-58-07.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:58:21-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.418401,-67.163336"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:58:34-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000055-file-2025-08-09-13-58-33.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:59:22-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "",
+        "file": "00000056-file-2025-08-09-13-59-21.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T13:59:57-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.418217,-67.163611"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:00:07-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.418297,-67.163618"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:00:17-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "",
+        "file": "00000059-file-2025-08-09-14-00-16.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:00:29-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000060-file-2025-08-09-14-00-28.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:02:34-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000061-file-2025-08-09-14-02-33.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:02:41-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.419218,-67.165549"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:02:52-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "prefab=yes"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:04:28-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.438400,-67.165198"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:04:37-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000065-file-2025-08-09-14-04-36.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:05:56-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.414427,-67.166388"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:06:08-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000067-file-2025-08-09-14-06-07.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:07:48-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.428631,-67.168562"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:07:56-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "",
+        "file": "00000069-file-2025-08-09-14-07-55.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:09:17-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.415757,-67.169600"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:09:27-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000071-file-2025-08-09-14-09-26.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:09:31-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.478757,-67.169600"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:09:38-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000073-file-2025-08-09-14-09-37.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:10:31-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.428856,-67.170752"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:10:40-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000075-file-2025-08-09-14-10-39.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:10:54-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.438856,-67.170752"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:10:58-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000077-file-2025-08-09-14-10-57.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:12:24-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.415929,-67.171500"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:12:34-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000079-file-2025-08-09-14-12-33.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:13:29-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "location": "-31.42909,-67.172034"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:14:06-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.418984,-67.172316"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:14:11-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000082-file-2025-08-09-14-14-10.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:14:06-03:00",
+        "from": "Alice",
+        "user": "Alice",
+        "text": "",
+        "file": "00000083-file-2025-08-09-14-14-05.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:15:18-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.429087,-67.172461"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:15:25-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000085-file-2025-08-09-14-15-24.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:15:41-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.409066,-67.172438"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:15:51-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000087-file-2025-08-09-14-15-50.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:16:49-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.410822,-67.172583"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:17:00-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000089-file-2025-08-09-14-16-59.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:19:35-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "location": "-31.417190,-67.172964"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:19:50-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000091-file-2025-08-09-14-19-49.jpg"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:22:30-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "-31.318934,-67.172942"
+    },
+    {
+        "session": "test",
+        "chat": "MyChat",
+        "date": "2024-01-11T14:22:41-03:00",
+        "from": "Bob",
+        "user": "Bob",
+        "text": "",
+        "file": "00000093-file-2025-08-09-14-22-40.jpg"
+    }
+]

@@ -4,7 +4,18 @@ on:
   push:
     branches:
       - develop
-
+    paths:
+      - "chatmap-api/Dockerfile"
+      - "chatmap-api/*.py"
+      - "chatmap-api/requirements.txt"
+      - "chatmap-im-connector/Dockerfile"
+      - "chatmap-im-connector/*.go"
+      - "chatmap-im-connector/*.mod"
+      - "chatmap-im-connector/*.sum"
+      - "chatmap-ui/Dockerfile"
+      - "chatmap-ui/*.json"
+      - "chatmap-ui/*.js"
+      - "chatmap-ui/src/**"
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -15,6 +15,7 @@ function Messages({ messages, selectedFeature, dataFiles }) {
     }, [selectedFeature, messages]);
 
     return (
+        <>
     <div className="messages">
         {
             Object.keys(messages).map(key => (
@@ -31,6 +32,7 @@ function Messages({ messages, selectedFeature, dataFiles }) {
             ))
         }
     </div>
+    </>
     );
 }
 

@@ -98,7 +98,7 @@ class ChatMap:
         # to decide which to return
         if prevMessage and nextMessage:
             if prevMessage.get('delta') == nextMessage.get('delta'):
-                if self.pairedMessagesIds.index(prevMessage['index']) == -1:
+                if prevMessage['index'] in self.pairedMessagesIds:
                     return messages[prevMessage['index']]
                 else:
                     return messages[nextMessage['index']]

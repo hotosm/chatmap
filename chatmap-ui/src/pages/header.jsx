@@ -12,6 +12,7 @@ export default function Header({
     handleNewUploadClick,
     handleOptionClick,
     handleSettingsClick,
+    showLogout,
     handleLogoutClick,
     showUploadButton,
     showChatIcon,
@@ -92,26 +93,27 @@ export default function Header({
                             label="Settings"
                             onClick={ () => onSettingsClick() }
                         ></sl-icon-button>
+                        { showLogout &&
                         <sl-icon-button
                             name="box-arrow-right"
                             label="Logout"
                             onClick={ () => onLogoutClick() }
                         ></sl-icon-button>
+                        }
+                        { showChatIcon &&
+                        <sl-icon-button
+                            name="chat-square-dots"
+                            size="small"
+                            onClick={ () => onOptionClick("chat") }
+                        >
+                        </sl-icon-button>
+                        }
                     </div>
                 </div>
                 <div className="tagsOptions">
                     <NavBar
                         selected={selected}
                     >
-                        { showChatIcon ?
-                        <sl-button
-                            size="small"
-                            variant={`${selected && "success"}`}
-                            onClick={ () => onOptionClick("chat") }
-                        >
-                            <sl-icon name="chat-square-dots"></sl-icon>
-                        </sl-button>
-                        : null }
                         <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
                     </NavBar>
                 </div>

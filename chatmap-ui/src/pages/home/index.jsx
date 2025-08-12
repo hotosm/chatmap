@@ -85,6 +85,7 @@ function App() {
           dataAvailable={dataAvailable}
           dataFiles={dataFiles}
           mapData={data}
+          showChatIcon={true}
           handleNewUploadClick={handleNewUploadClick}
           handleOptionClick={handleOptionClick}
           showUploadButton={true}

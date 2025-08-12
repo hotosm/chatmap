@@ -3,7 +3,7 @@ annotated-types==0.7.0
 anyio==4.9.0
 APScheduler==3.11.0
 certifi==2025.7.14
-chatmap-py==0.0.5
+chatmap-py==0.0.6
 click==8.2.1
 ecdsa==0.19.1
 fastapi==0.116.1
