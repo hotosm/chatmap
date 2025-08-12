@@ -93,25 +93,39 @@ class ChatMap:
                 prevIndex -= 1
             nextIndex += 1
 
+        prevPaired = prevMessage and prevMessage['index'] in self.pairedMessagesIds
+        nextPaired = nextMessage and nextMessage['index'] in self.pairedMessagesIds
+
         # If there are prev and next messages
         # check the time difference between the two
         # to decide which to return
         if prevMessage and nextMessage:
+
+            # Prev and next message are in the same distance
             if prevMessage.get('delta') == nextMessage.get('delta'):
-                if prevMessage['index'] in self.pairedMessagesIds:
+
+                if not prevPaired:
                     return messages[prevMessage['index']]
-                else:
+                elif not nextPaired:
                     return messages[nextMessage['index']]
 
             elif prevMessage['delta'] < nextMessage['delta']:
-                return messages[prevMessage['index']]
+                if not prevPaired:
+                    return messages[prevMessage['index']]
+                elif not nextPaired:
+                    return messages[nextMessage['index']]
             elif prevMessage['delta'] > nextMessage['delta']:
-                return messages[nextMessage['index']]
+                if not nextPaired:
+                    return messages[nextMessage['index']]
+                elif not prevPaired:
+                    return messages[prevMessage['index']]
 
         elif prevMessage:
-            return messages[prevMessage['index']]
+             if not prevPaired:
+                return messages[prevMessage['index']]
         elif nextMessage:
-            return messages[nextMessage['index']]
+            if not nextPaired:
+                return messages[nextMessage['index']]
 
         return message
 
@@ -179,37 +193,34 @@ class ChatMap:
                         'coordinates': self.locationMessages[index]
                     }
                 }
+
                 message = self.getClosestMessage(messages, index)
 
                 if message:
-                        self.pairedMessagesIds.append(message['id'])
+                    if message['id'] not in self.pairedMessagesIds:
                         # Add the GeoJSON feature
                         featureObject['properties'] = {
-                            'id': message['id'],
+                            'id': msgObject['id'],
                             'message': message['message'],
                             'username': message['username'],
                             'chat': message['chat'],
                             'time': str(message['time']),
-                            'file': str(message['file']),
-                            'location': message['location'],
+                            'file': message['file'],
                             'related': message['id']
                         }
+                        self.pairedMessagesIds.append(message['id'])
                 else:
                     # No related message
                     featureObject['properties'] = {
                         'id': msgObject['id'],
-                        'username': msgObject['username'],
-                        'time': str(msgObject['time']),
                         'message': msgObject['message'],
+                        'username': msgObject['username'],
                         'chat': msgObject['chat'],
                         'time': str(msgObject['time']),
-                        'file': str(msgObject['file']),
-                        'location': msgObject['location'],
+                        'file': msgObject['file'],
                         'related': msgObject['id']
                     }
 
-                # featureObject['properties']['id'] = index
                 if not isinstance(featureObject['properties'].get('time'), int):
                     geoJSON['features'].append(featureObject)
-
         return geoJSON

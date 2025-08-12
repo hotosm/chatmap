@@ -14,8 +14,8 @@ def main():
         with open(args.file) as file:
             # try:
                 data = json.loads("\n".join(file.readlines()))
-                for idx, item in enumerate(data):
-                    item['id'] = idx
+                # for idx, item in enumerate(data):
+                #     item['id'] = idx
                 geoJSON = parser.streamParser(data)
                 print(json.dumps(geoJSON))
             # except Exception as e:

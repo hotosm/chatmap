@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from enum import Enum
 from pydantic import BaseModel
 from typing import List, Optional
@@ -42,8 +42,8 @@ class Properties(BaseModel):
     time: str = ""
     file: str = ""
     location: str = ""
-    related: str = ""
-    id: str
+    related: Union[int, str]
+    id: Union[int, str]
 
 class Geometries(BaseModel):
     type: GeometryType
