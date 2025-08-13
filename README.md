@@ -66,6 +66,7 @@ Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
 |⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) |
 
 ## Licensing
 
