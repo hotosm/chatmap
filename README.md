@@ -28,7 +28,7 @@ In Live mode, people can link a device to get a live stream of data and update m
 even with locations coming from direct messages, not only groups, and without the need of manually
 exporting chats.
 
-Check [docs](https://github.com/hotosm/chatmap/blob/feature/live/docs/live.md) for enabling
+Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md) for enabling
 the Live version of ChatMap with linked devices.
 
 ## How to use it?
