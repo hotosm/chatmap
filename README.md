@@ -49,6 +49,10 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
 ## Product roadmap
 
+Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
+
+### Latest features
+
 ✅ Done
 ⚙️ In progress
 
