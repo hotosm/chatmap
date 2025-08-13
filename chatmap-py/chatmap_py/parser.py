@@ -10,19 +10,21 @@ def strip_path(filename):
     return filename.split('/')[-1]
 
 def searchLocation(msg):
-    if 'location' in msg and msg['location'] != "":
+    if 'location' in msg and msg['location'] != "" and msg['location'] != None:
         return msg['location'].split(',')
     return None
 
 # Parse time, username and message
 def parseMessage(line):
     msgObject = {
-        'time': parseTimeString(line['date']),
-        'username': line['from'],
+        'time': parseTimeString(line.get('date')),
+        'username': line.get('from'),
     }
-    msgObject['message'] = line['text']
-    msgObject['chat'] = line['chat']
-    msgObject['location'] = line['location']
+    msgObject['message'] = line.get('text')
+    msgObject['id'] = line.get('id')
+    msgObject['chat'] = line.get('chat')
+    msgObject['file'] = line.get('file')
+    msgObject['location'] = line.get('location')
     return msgObject
 
 
@@ -38,7 +40,6 @@ def parseAndIndex(lines):
         msg = parseMessage(line)
         if msg:
             result[index] = msg
-            result[index]['id'] = index
             index += 1
     return result
 

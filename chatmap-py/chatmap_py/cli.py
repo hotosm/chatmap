@@ -1,27 +1,33 @@
-#!/usr/bin/python3
+'''
+ ChatMap cli
+'''
 
-###
-# ChatMap
-# Takes a chat in JSON format and returns a GeoJSON
-# with locations and paired messages.
-###
-
-from argparse import ArgumentParser
-from .parser import streamParser
+import argparse
 import json
+from chatmap_py import parser
 
 def main():
-
-    parser = ArgumentParser()
-    parser.add_argument("file",nargs="*")
-    args = parser.parse_args()
+    args = argparse.ArgumentParser()
+    args.add_argument("--file", "-f", help="File", type=str, default=None)
+    args = args.parse_args()
     if args.file:
-        with open(args.file[0], 'r') as data:
-            json_data = json.load(data)
-            geoJSON = streamParser(json_data)
-            print(json.dumps(geoJSON))
+        with open(args.file) as file:
+            # try:
+                data = json.loads("\n".join(file.readlines()))
+                # for idx, item in enumerate(data):
+                #     item['id'] = idx
+                geoJSON = parser.streamParser(data)
+                print(json.dumps(geoJSON))
+            # except Exception as e:
+                # print("Error:", e)
+
     else:
-        "Usage: python cli.py <filename.json>"
+        print("ChatMap location parser")
+        print("")
+        print("This script can read locations shared on a chat JSON log file")
+        print("and print them as a GeoJSON.")
+        print("")
+        print("Usage: python chatmap-cli.py -f messages.json")
 
 if __name__ == "__main__":
     main()

@@ -26,16 +26,19 @@ function App() {
 
   // Content Merger: Handle chat content
   // - mapData: ready to use GeoJSON data created from chats
-  // - messages: all chat messages
+  // - chatMessages: all chat messages
   // - resetMerger: clean everthing to upload a new file
-  // TODO: return messages
   const [mapData, chatMessages, resetMerger] = useContentMerger({
     files: files
   });
   
 
   useEffect(() => {
-      setShowMessages(false);
+    setShowMessages(false);
+    // Public event for external integratons
+    if (mapData.features.length > 0) {
+      window._CHATMAP?.mapData && window._CHATMAP.mapData();
+    }
   }, [mapData])
 
   // Map Data Context: Manages map data 
