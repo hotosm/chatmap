@@ -24,7 +24,12 @@ Test with `yarn test`.
 
 ## ChatMap Live + linked devices
 
-Check [docs](https://github.com/hotosm/chatmap/blob/feature/live/docs/live.md) for enabling the Live version of ChatMap with linked devices.
+In Live mode, people can link a device to get a live stream of data and update maps in real-time,
+even with locations coming from direct messages, not only groups, and without the need of manually
+exporting chats.
+
+Check [docs](https://github.com/hotosm/chatmap/blob/feature/live/docs/live.md) for enabling
+the Live version of ChatMap with linked devices.
 
 ## How to use it?
 
@@ -50,13 +55,6 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
-|✅| Support multiple instant messaging apps (WhatsApp, Telegram, Signal) |
-|✅| Support video |
-|✅| Download a .zip file with GeoJSON and images to save the map in umap.hotosm.org |
-|✅| Add tests |
-|✅| Include videos in .zip download |
-|✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
-|✅| [Messages list](https://github.com/hotosm/chatmap/issues/9)
 |✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
 |✅| Link a device and get a stream of locations + content (live community reporting)|
 |✅| Backend with user authentication and saved maps |
