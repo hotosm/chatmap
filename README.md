@@ -37,7 +37,7 @@ Check docs for each instant messaging app [here](https://github.com/hotosm/chatm
 
 Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
-## Product roadmap
+## Latest features
 
 ✅ Done
 ⚙️ In progress
@@ -45,19 +45,16 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
-|✅| Support multiple instant messaging apps (WhatsApp, Telegram, Signal) |
-|✅| Support video |
-|✅| Download a .zip file with GeoJSON and images to save the map in umap.hotosm.org |
-|✅| Add tests |
-|✅| Include videos in .zip download |
-|✅| [Add a new feature to tag content](https://github.com/hotosm/chatmap/issues/6) |
-|✅| [Messages list](https://github.com/hotosm/chatmap/issues/9)
 |✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
 |⚙️| [Live community reporting](https://github.com/orgs/hotosm/projects/46) |
 |⚙️| [Backend with user authentication and saved maps](https://github.com/hotosm/chatmap/issues/18) |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
-| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) |
+| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
+
+Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming 
+
+Contributors are welcomed!
 
 ## Licensing
 
