@@ -62,8 +62,8 @@ Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
 |✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
 |✅| Link a device and get a stream of locations + content (live community reporting)|
 |✅| Backend with user authentication and saved maps |
-|⚙️| Map settings
-|⚙️| User profile
+|⚙️| [Map settings](https://github.com/hotosm/chatmap/issues/37)
+|⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
 
