@@ -52,9 +52,9 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 
-Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming 
+Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming features.
 
-Contributors are welcomed!
+Contributors are welcome!
 
 ## Licensing
 
