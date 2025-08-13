@@ -17,9 +17,14 @@
       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
       g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
     })();
+    window.onload = () => {
+      window._CHATMAP = {
+        mapData: () => window._paq.push(['trackEvent', 'Create', 'Map', 'chatmap-create-map', 1])
+      }
+    }
   </script>
   <!-- End Matomo Code -->
-  <script type="module" crossorigin src="/assets/index-BxihLgpe.js"></script>
+  <script type="module" crossorigin src="/assets/index-BNzxUXMe.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-Cw0kRKMk.css">
 </head>
 <body>
