@@ -131,15 +131,10 @@ a {
   min-height: 60px;
   justify-content: space-between;
   gap: var(--hot-spacing-x-small);
-  padding-right: var(--hot-spacing-2x-small);
 }
 
 .header.headerSmall h1 {
   align-items: inherit;
-}
-
-.headerSmall .logoLink, .fileOptions {
-  width: 50%;
 }
 
 .headerSmall .logoLink {
@@ -148,34 +143,20 @@ a {
   margin-left: var(--hot-spacing-small);
 }
 
-.headerSmall .fileOptions {
+.headerSmall .mapOptions {
   text-align: right;
   gap: 10px;
   display: flex;
   justify-content: flex-end;
+  padding-right: var(--hot-spacing-small);
 }
 
-.headerSmall .fileOptions sl-button::part(label) {
+.headerSmall .mapOptions sl-button::part(label) {
   font-weight: bold;
 }
 
-/* Nav bar */
-
-.appNav {
-  padding: 1vh;
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 9999;
-}
-
-.appNav span {
-  padding-left: 1vh;
-}
-
-.mapOptions {
-  font-size: var(--hot-font-size-large);
-  margin-top: -3px /* FIXME */
+.headerSmall sl-menu-item::part(base) {
+  font-size: var(--hot-font-size-x-small);
 }
 
 /* Footer */
@@ -575,12 +556,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     height: 90vh;
   }
 
-  .headerSmall .fileOptions .newFile sl-button::part(base) {
+  .headerSmall .mapOptions .newFile sl-button::part(base),
+  .headerSmall .mapOptions .tagsOptions sl-button::part(base) {
     width: 40px;
     padding-inline-start: 0;
   }
 
-  .headerSmall .fileOptions .newFile sl-button::part(label) {
+  .headerSmall .mapOptions .newFile sl-button::part(label),
+  .headerSmall .mapOptions .tagsOptions sl-button::part(label) {
     display: none;
   }
 
