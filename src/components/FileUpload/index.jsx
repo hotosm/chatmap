@@ -130,7 +130,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
             >
               <sl-icon name="file-arrow-up-fill" slot="prefix"></sl-icon>
               <FormattedMessage
-                id = "app.saveYourMapIn"
+                id = "app.uploadLabel"
                 defaultMessage="Upload your .zip file here"
               />
           </sl-button>}
