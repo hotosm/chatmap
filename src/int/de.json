@@ -1,0 +1,17 @@
+{
+    "app.subtitle": "Exportiere und Lade deinen Chat hoch um eine Karte zu erstellen",
+    "app.uploadNewFile": "Neue Datei",
+    "app.download": "Download",
+    "app.options": "Optionen",
+    "app.uploadLabel": "Lade deine .zip-Datei hier hoch",
+    "app.nolocations": "Keine Orte in dieser Datei gefunden",
+    "app.loading": "Laden",
+    "app.howItWorks": "Wie funktioniert es?",
+    "app.supportedApps": "Es funktioniert nun mit WhatsApp, Telegram und Signal!",
+    "app.checkThisQuick": "Schaue diese kurze",
+    "app.videoTutorial": "Video-Anleitung",
+    "app.saveYourMapIn": "Speichere deine Karte in",
+    "app.tags": "Schlagworte",
+    "app.yourTagHere": "Dein Schlagwort hier",
+    "app.all": "Alle"
+}
