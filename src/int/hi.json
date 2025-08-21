@@ -1,0 +1,17 @@
+{
+    "app.subtitle": "मैप बनाने के लिए चैट एक्सपोर्ट और अपलोड करें",
+    "app.uploadNewFile": "नई फ़ाइल",
+    "app.download": "डाउनलोड",
+    "app.options": "विकल्प",
+    "app.uploadLabel": "अपनी .zip फ़ाइल यहाँ अपलोड करें",
+    "app.nolocations": "इस फ़ाइल में कोई स्थान नहीं मिला",
+    "app.loading": "लोड हो रहा है",
+    "app.howItWorks": "यह कैसे काम करता है?",
+    "app.supportedApps": "अब यह WhatsApp, Telegram या Signal के साथ काम करता है!",
+    "app.checkThisQuick": "इसे जल्दी देख लें",
+    "app.videoTutorial": "वीडियो ट्यूटोरियल",
+    "app.saveYourMapIn": "अपना मैप सेव करें",
+    "app.tags": "टैग्स",
+    "app.yourTagHere": "अपना टैग यहाँ डालें",
+    "app.all": "सभी"
+}
