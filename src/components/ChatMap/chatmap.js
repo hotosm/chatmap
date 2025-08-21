@@ -109,29 +109,41 @@ export default class ChatMap {
       nextIndex++;
     }
 
+    const prevPaired = prevMessage && this.pairedMessagesIds.indexOf(prevMessage.index) > -1
+    const nextPaired = nextMessage && this.pairedMessagesIds.indexOf(nextMessage.index) > -1
+
     // If there are prev and next messages
     // check the time difference between the two
     // to decide which to return
-
     if (prevMessage && nextMessage) {
+
+      // Prev and next message are in the same distance
       if (prevMessage.delta === nextMessage.delta) {
 
-        if (this.pairedMessagesIds.indexOf(prevMessage.index) === -1) {
+        if (!prevPaired) {
           return messages[prevMessage.index];
-        } else {
+        } else if (!nextPaired) {
           return messages[nextMessage.index];
         }
 
       } else if (prevMessage.delta < nextMessage.delta) {
-        return messages[prevMessage.index];
+        if (!prevPaired) {
+          return messages[prevMessage.index];
+        }
       } else if (prevMessage.delta > nextMessage.delta) {
-        return messages[nextMessage.index];
+        if (!nextPaired) {
+          return messages[nextMessage.index];
+        }
       }
 
     } else if (prevMessage) {
-      return messages[prevMessage.index];
+      if (!prevPaired) {
+        return messages[prevMessage.index];
+      }
     } else if (nextMessage) {
-      return messages[nextMessage.index];
+      if (!nextPaired) {
+        return messages[nextMessage.index];
+      }
     }
     return message;
   }
@@ -210,7 +222,9 @@ export default class ChatMap {
                 coordinates: this.locationMessages[index]
             }
         }
+
         const message = this.getClosestMessage(messages, index);
+
         if (message) {
             if (
               this.pairedMessagesIds.indexOf(message.id) === -1

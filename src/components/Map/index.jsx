@@ -11,7 +11,7 @@ import { useMapDataContext } from '../../context/MapDataContext';
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
  */
-export default function Map({ dataFiles, onSelectFeature }) {
+export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
     // A div for the map
     const mapContainer = useRef(null);
     // The Map obejct
@@ -30,8 +30,8 @@ export default function Map({ dataFiles, onSelectFeature }) {
       // Creates a MapLibreGL object
       map.current = new MapGL({
         container: mapContainer.current,
-        center: [0,0],
-        zoom: 17,
+        center: center || [0,0],
+        zoom: zoom || 17,
         style: osm
       });
 
@@ -49,7 +49,8 @@ export default function Map({ dataFiles, onSelectFeature }) {
         // Fit map bounds on data extent
         const bbox = extent(data);
         map.current.fitBounds(bbox, {
-            padding: 50
+            padding: 50,
+            maxZoom: 14
         });
 
         // Change cursor on marker hover

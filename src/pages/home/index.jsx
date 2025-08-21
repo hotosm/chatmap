@@ -6,7 +6,7 @@ import Footer from '../footer.jsx';
 import FileUploadSection from './fileUpload.section.jsx';
 import NoLocationsSection from './noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
-import Messages from '../../components/Messages';
+import Messages from '../../components/Messages/index.jsx';
 
 const Map = lazy(() => import('../../components/Map/index.jsx'));
 
@@ -26,22 +26,23 @@ function App() {
 
   // Content Merger: Handle chat content
   // - mapData: ready to use GeoJSON data created from chats
-  // - chatMessages: all chat messages
+  // - messages: all chat messages
   // - resetMerger: clean everthing to upload a new file
+  // TODO: return messages
   const [mapData, chatMessages, resetMerger] = useContentMerger({
     files: files
   });
   
 
   useEffect(() => {
-    setShowMessages(false);
-    // Public event for external integratons
-    if (mapData.features.length > 0) {
-      window._CHATMAP?.mapData && window._CHATMAP.mapData();
-    }
+      setShowMessages(false);
+      // Public event for external integratons
+      if (mapData.features.length > 0) {
+        window._CHATMAP?.mapData && window._CHATMAP.mapData();
+      }
   }, [mapData])
 
-  // Map Data Context: Manages map data 
+  // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
 
   // Updates map data context with new map data
@@ -81,6 +82,7 @@ function App() {
   }
 
   return (
+    <>
     <div className="app">
 
         <Header
@@ -89,6 +91,7 @@ function App() {
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
           handleOptionClick={handleOptionClick}
+          showUploadButton={true}
         />
 
         { showMessages && dataAvailable &&
@@ -101,17 +104,17 @@ function App() {
 
         {/* If there're no files, show file upload options */}
         { !files &&
-          <>
+          <div className="indexMain">
             <FileUploadSection
               handleFiles={handleFiles}
               handleDataFile={handleDataFile}
               onError={handleFilesError}
             />
             <Footer />
-          </>
+          </div>
         }
 
-        {/* There's data, show the map! */}
+        {/* Thered's data, show the map! */}
         { dataAvailable && 
           <Map 
             data={data}
@@ -127,6 +130,15 @@ function App() {
           />
         }
     </div>
+    <div className="infoLinks">
+        <div className="copy">
+            <a href="https://github.com/hotosm/chatmap">This is free software</a>
+        </div>
+        <a href="https://www.hotosm.org/privacy">- We collect zero personal data. hotosm.org/privacy -</a>
+        &nbsp;
+        <a href="https://github.com/hotosm/chatmap">v0.4.9</a>
+    </div>
+    </>
   );
 }
 

@@ -5,13 +5,13 @@ function Message({ message, selected, ref, dataFiles }) {
             <div
                 key={message.id}
                 className={`message
-                    ${selected && 'selected'}
-                    ${message.mapped && 'mapped'}
+                    ${selected ? 'selected' : ''}
+                    ${message.mapped ? 'mapped' : ''}
                 `}
                 ref={ref}
             >
                 <p className="userinfo">
-                    <span className="msgUsername">{message.username}</span>
+                    <span className="msgUsername">{message.username.split("@")[0]}</span>
                     <span className="msgDatetime">{formatDate(message.time)}</span>
                 </p>
                 <div>{ getMessage(message, dataFiles) }</div>

@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import JSZip from "jszip";
 import { useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
-// Accepted file tiles
-const fileTypes = ["txt", "zip", "json"];
+// Accepted file types
+const fileTypes = ["zip"];
 
 // Get file format: "chat", "zip" or "media"
 const getFileFormat = (filename) => {
@@ -39,32 +40,20 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
   const [files, setFiles] = useState();
   const [loadedFilesCount, setLoadedFilesCount] = useState(0);
   const [filesCount, setFilesCount] = useState(0);
+  const [zipFilesCount, setZipFilesCount] = useState(0);
+  const [loadedZipFilesCount, setLoadedZipFilesCount] = useState(0);
   const intl = useIntl();
 
   const handleChange = (loadedFiles) => {
+    setZipFilesCount(loadedFiles.length);
     for (let i = 0; i < loadedFiles.length; i++) {
 
       // Get file object
       const file = loadedFiles[i];
       const fileFormat = getFileFormat(file.name);
 
-      // The chat was exported as a single text or JSON file
-      if (fileFormat === "chat") {
-        var reader = new FileReader();
-        reader.readAsText(file, "UTF-8");
-        reader.onload = function (evt) {
-          setFiles(prevFiles => (
-              {...prevFiles, ...{[file.name]: evt.target.result}}
-          ));
-          // Keeps loaded file count
-            setLoadedFilesCount(prev => prev+=1);
-        }
-        reader.onerror = function (evt) {
-          onError(file.name);
-        }
-
-        // The chat was exported as a .zip file
-      } else if (fileFormat === "zip") {
+      // The chat was exported as a .zip file
+      if (fileFormat === "zip") {
         // Un-compress file
         new JSZip().loadAsync( file )
         .then(function(zip) {
@@ -76,10 +65,10 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
               if (fileFormat === "chat") {
                 zip.files[filename].async("string").then(function (data) {
                   setFiles(prevFiles => (
-                  {...prevFiles, ...{[file.name]: data}}
+                    {...prevFiles, ...{[file.name]: data}}
                   ));
                   // Keeps loaded file count
-                setLoadedFilesCount(prev => prev+=1);
+                  setLoadedFilesCount(prev => prev+=1);
                 });
             // Media files (jpg, jpeg, mp4 and audio files)
             } else if (fileFormat === "media") {
@@ -88,7 +77,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
                   const blob = new Blob([buffer.buffer]);
                   onDataFileLoad(filename, blob)
                   // Keeps loaded file count
-                setLoadedFilesCount(prev => prev+=1);
+                  setLoadedFilesCount(prev => prev+=1);
                 });
               } else {
                 // Keeps loaded file count
@@ -96,20 +85,23 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
               }
             })
           });
+          setLoadedZipFilesCount(prev => prev+=1);
       }
     };
   };
 
   // All files are loaded into memory.
   useEffect(() => {
-    if (filesCount > 0 && loadedFilesCount == filesCount) {
+    if (filesCount > 0 && filesCount === loadedFilesCount &&
+        files && zipFilesCount === Object.keys(files).length
+    ) {
       if (files) {
         onFilesLoad(files);
       } else {
         onError && onError();
       }
     }
-  }, [files, filesCount, loadedFilesCount, onFilesLoad]);
+  }, [files, filesCount, loadedFilesCount, loadedZipFilesCount, onFilesLoad]);
 
   const loading = filesCount != loadedFilesCount;
 
@@ -117,18 +109,31 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
     <>
       {/* Loading message */}
     { loading ? <p style={{"textAlign": "center"}}>
-      {intl.formatMessage({id: "app.loading", defaultMessage: "Loading"})} ({loadedFilesCount} / {filesCount})...
+      {intl.formatMessage({
+        id: "app.loading",
+        defaultMessage: "Loading"
+        })} ({loadedFilesCount} / {filesCount})...
       </p> : ""}
 
       {/* File upload area */}
-    <div style={loading ? {display: "none"} : null}>
+    <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>
         <FileUploader
-          classes={"fileUploadDropArea"}
           handleChange={handleChange}
           multiple
-          name="file"
           types={fileTypes}
-      label={intl.formatMessage({id: "app.uploadLabel", defaultMessage: "Upload or drag a file right here"})}
+          name="file"
+          classes="fileUploadMain"
+          children={
+            <sl-button
+              className="fileUploadDropArea"
+              size="large"
+            >
+              <sl-icon name="file-arrow-up-fill" slot="prefix"></sl-icon>
+              <FormattedMessage
+                id = "app.saveYourMapIn"
+                defaultMessage="Upload your .zip file here"
+              />
+          </sl-button>}
         />
       </div>
 
