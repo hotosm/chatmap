@@ -1,0 +1,17 @@
+{
+  "app.subtitle": "Esporta e carica una chat per creare una mappa",
+  "app.uploadNewFile": "Nouvo file",
+  "app.download": "Scaricare",
+  "app.options": "Opzioni",
+  "app.uploadLabel": "Carica qui il tuo file .zip",
+  "app.nolocations": "Nessuna locazione trovata in questo file",
+  "app.loading": "Caricamento in corso",
+  "app.howItWorks": "Come funziona?",
+  "app.supportedApps": "Adesso funziona con WhatsApp, Telegram o Signal!",
+  "app.checkThisQuick": "Controlla questo rapidamente",
+  "app.videoTutorial": "video tutorial",
+  "app.saveYourMapIn": "Salva la tua mappa in",
+  "app.tags": "Tags",
+  "app.yourTagHere": "Tuo tag qui",
+  "app.all": "Tutti"
+}

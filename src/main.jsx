@@ -11,6 +11,7 @@ import Pt from './int/pt.json';
 import De from './int/de.json';
 import Nl from './int/nl.json';
 import Fr from './int/fr.json';
+import It from './int/it.json';
 import { MapDataProvider } from './context/MapDataContext';
 
 // Shoelace UI components
@@ -31,6 +32,7 @@ const locales = {
   "de": De,
   "nl": Nl,
   "fr": Fr,
+  "it": It
 }
 
 const getLocaleMessages = () => {
