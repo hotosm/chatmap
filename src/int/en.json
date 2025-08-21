@@ -10,5 +10,8 @@
     "app.supportedApps": "Now it works with WhatsApp, Telegram or Signal!",
     "app.checkThisQuick": "Check this quick",
     "app.videoTutorial": "video tutorial",
-    "app.saveYourMapIn": "Save your map in"
+    "app.saveYourMapIn": "Save your map in",
+    "app.tags": "Tags",
+    "app.yourTagHere": "Your tag here",
+    "app.all": "All"
 }

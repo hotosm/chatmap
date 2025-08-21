@@ -6,7 +6,8 @@ export default function Tagger({
     onRemoveTag,
     onFocus,
     onBlur,
-    tags
+    tags,
+    placeholder
 }) {
     const textRef = useRef();
 
@@ -33,7 +34,7 @@ export default function Tagger({
                 onClick={() => textRef.current.focus()}
                 onFocus={() => onFocus && onFocus()}
                 onBlur={() => onBlur && onBlur()}
-                placeholder="Your tag here"
+                placeholder={placeholder}
             >
                 <sl-icon name="tags" slot="suffix"></sl-icon>
             </sl-input>

@@ -3,6 +3,7 @@ import { Popup as PopupGL } from "maplibre-gl";
 import { createRoot } from "react-dom/client";
 import Tagger from '../Tagger';
 import Message from '../Message';
+import { useIntl } from 'react-intl';
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
@@ -56,6 +57,7 @@ export default function Popup ({
   onRemoveTag
 }) {
   
+  const intl = useIntl();
   return (
     <PopupGLWrapper
       longitude={feature.geometry.coordinates[0]}
@@ -70,9 +72,16 @@ export default function Popup ({
           dataFiles={dataFiles}
         />
         <Tagger
+          placeholder={
+            intl.formatMessage({
+              id: "app.yourTagHere",
+              defaultMessage: "Your tag here"
+            })
+          }
           tags={feature.properties.tags || []}
           onAddTag={tag => onAddTag(tag, feature)} 
           onRemoveTag={tag => onRemoveTag(tag, feature)} 
+
         />
       </div>
     </PopupGLWrapper>
