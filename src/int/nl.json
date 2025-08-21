@@ -1,0 +1,17 @@
+{
+    "app.subtitle": "Exporteer en upload een chat om een kaart te maken",
+    "app.uploadNewFile": "Nieuw bestand",
+    "app.download": "Downloaden",
+    "app.options": "Opties",
+    "app.uploadLabel": "Hier .zip bestand uploaden",
+    "app.nolocations": "Geen locaties gevonden in dit bestand",
+    "app.loading": "Bezig met uploaden",
+    "app.howItWorks": "Hoe het werkt?",
+    "app.supportedApps": "Nu werkt het met WhatsApp, Telegram of Signal!",
+    "app.checkThisQuick": "Bekijk deze korte",
+    "app.videoTutorial": "video tutorial",
+    "app.saveYourMapIn": "Kaart opslaan in",
+    "app.tags": "Tags",
+    "app.yourTagHere": "Uw tag hier",
+    "app.all": "Alles"
+}
