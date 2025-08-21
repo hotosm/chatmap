@@ -192,7 +192,6 @@ a {
 .infoLinks {
   display: block;
   right: 0;
-  width: 100%;
   text-align: center;
   padding: 2vh;
   font-size: var(--hot-font-size-x-small);
@@ -571,6 +570,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 /* Mobile */
 @media (max-width: 790px) {
+
+  .maplibregl-map {
+    height: 90vh;
+  }
 
   .headerSmall .fileOptions .newFile sl-button::part(base) {
     width: 40px;
