@@ -1,0 +1,1 @@
+function e({text:e}){if(!e)return;const t=JSON.parse(e);return t.features=t.features.map((e=>(e.properties.tags=e.properties.tags?e.properties.tags.split(","):[],e))),{geoJSON:t}}export{e as default};
