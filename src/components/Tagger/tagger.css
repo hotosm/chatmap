@@ -22,8 +22,16 @@
     margin-bottom: 10px;
 }
 
-.tagger.taggerMedia .tags {
+.tagger.taggerImage .tags,
+.tagger.taggerVideo .tags {
     position: absolute;
-    margin-top: -50px;
     margin-bottom: 0;
+}
+
+.tagger.taggerImage .tags {
+    margin-top: -50px;
+}
+
+.tagger.taggerVideo .tags {
+    margin-top: -90px;
 }

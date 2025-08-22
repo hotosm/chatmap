@@ -28,7 +28,7 @@ export default function Tagger({
     }
 
     return (
-        <div className={`tagger ${msgType !== "text" ? "taggerMedia" : ""}`}>
+        <div className={`tagger ${msgType === "image" ? "taggerImage" : ""} ${msgType === "video" ? "taggerVideo" : ""}`}>
             <div className="tags">
                 {tags && tags.map(tag =>
                     <sl-button
