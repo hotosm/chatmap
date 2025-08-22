@@ -15,7 +15,7 @@ const getFileFormat = (filename) => {
   }
   // Get file format from file extension
   const fileName = filename.toLowerCase();
-  if (fileName.endsWith(".txt") || fileName.endsWith(".json")) {
+  if (fileName.endsWith(".txt") || fileName.endsWith(".json") || fileName.endsWith(".geojson")) {
     return "chat";
   } else if (fileName.endsWith(".zip")) {
     return "zip";

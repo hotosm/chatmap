@@ -264,11 +264,6 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   padding: 0;
 }
 
-.popupImage {
-  width: 92%;
-  border-radius: var(--hot-border-radius-medium);
-}
-
 .userinfo {
   font-size: var(--hot-font-size-small);
   text-align: left;
@@ -348,67 +343,33 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 /* Messages */
 
-.messages {
-  position: absolute;
-  right: 0;
-  width: 15vw;
-  min-width: 200px;
-  height: 83vh;
-  z-index: 999;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  background: var(--hot-color-neutral-50);
-  box-shadow: var(--hot-shadow-small);
-  padding-bottom: var(--hot-spacing-x-large);
-}
-
 .message .text {
   text-align: left;
   padding-left: var(--hot-spacing-small);
+  padding-right: var(--hot-spacing-small);
 }
 
-.messages .message {
-  border: 1px solid var(--hot-color-neutral-200);
-  box-shadow: var(--hot-shadow-small);
-  margin: var(--hot-spacing-small);
-  padding: var(--hot-spacing-x-small);
-  border-radius: var(--hot-border-radius-small);
-  opacity: .5;
+.message .media {
+  width: 100%;
+  margin-bottom: var(--hot-spacing-x-small);
 }
 
-.messages .message:hover {
-  box-shadow: var(--hot-shadow-small);
-  border-color: var(--hot-color-neutral-500);
-  cursor: pointer;
-  background-color: var(--hot-color-neutral-0);
+.message .media img,
+.message .media video,
+.message .media audio {
+  width: 100%;
+  max-height: 60vh;
 }
 
-.messages .message.selected {
-  border-color: var(--hot-color-primary-500) !important;
-  border-width: 2px;
-  background-color: var(--hot-color-neutral-0);
+.message .dropdownSelection,
+.dropdownSelection sl-menu {
+  width: 300px;
 }
 
-.messages .message.mapped {
-  opacity: 1;
-}
-
-.messages .message .msgUsername,
-.messages .message .msgDatetime {
-  font-size: var(--hot-font-size-x-small);
-}
-
-.messages .message .time {
-  color: var(--hot-color-neutral-500);
-}
-
-.messages .message .text {
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: var(--hot-font-size-x-small);
-  text-overflow: clip;
-  text-overflow: ellipsis ellipsis;
-  text-overflow: ellipsis " ...";
+.dropdownSelection sl-dropdown,
+.dropdownSelection sl-button,
+.dropdownSelection sl-dropdown::part(panel)  {
+  width: 100%;
 }
 
 /* Connect form */

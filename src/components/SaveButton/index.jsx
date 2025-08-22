@@ -12,21 +12,24 @@ import { saveAs } from 'file-saver';
 function createAndDownloadZip(data, dataFiles) {
   const zip = new JSZip();
 
+  // The name of the file to save
+  const chatmapId = data._chatmapId || (Math.floor(10000 + Math.random() * 90000)).toString();
+
   // Get a list of media files from GeoJSON data
   const media_files = data.features.map(x => x.properties.file);
 
   // Add GeoJSON data to the zip file
   const newData = {
+    _chatmapId: chatmapId,
     ...data
   }
 
   newData.features.forEach(feature => {
     // Delete username for enhanced privacy and security
-    delete feature.properties.username;
+    // delete feature.properties.username;
 
     // Delete unused properties
     delete feature.properties.timeString;
-    delete feature.properties.related;
 
     if (feature.properties.tags) {
       // Convert tags object to string
@@ -48,7 +51,7 @@ function createAndDownloadZip(data, dataFiles) {
 
   // Generate the zip file and trigger the download
   zip.generateAsync({ type: 'blob' }).then((content) => {
-    saveAs(content, `chatmap-${Math.floor(10000 + Math.random() * 90000)}.zip`);
+    saveAs(content, `chatmap-${chatmapId}.zip`);
   });
 }
 

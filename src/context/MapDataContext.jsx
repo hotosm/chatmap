@@ -6,7 +6,8 @@ const MapDataContext = createContext();
 const initialState = {
   type: "FeatureCollection",
   features: [],
-  filterTag: null
+  filterTag: null,
+  _chatmapId: null
 };
 
 // Reducer

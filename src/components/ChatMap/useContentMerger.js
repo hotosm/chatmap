@@ -6,7 +6,8 @@ import getAppParser from "./parsers/getAppParser";
  *
  * This is where the magic happens!  ・• * . ☆ﾟ
  *
- * @param {object} files - Is a dictionary of files, filename is the key ex: myfile = files[filename]
+ * @param {object} files - Is a dictionary of files, filename 
+ * is the key ex: myfile = files[filename]
  * (empty for default) to each location.
  */
 function useContentMerger({ files }) {
@@ -28,22 +29,26 @@ function useContentMerger({ files }) {
             // This way, multiple .zip files with multiple chats
             // can be imported.
             let features = [];
-            let msgs = [];
+            let _chatmapId = null;
+            
             for (let filename in files) {
-
                 // Parse data from chats with the corresponding parser
                 // depending on the chat app (ex: WhatsApp, Telegram or Signal)
                 const parser = await getAppParser(files[filename]);
 
                 // Concatenate data from all uploaded chats
                 const {geoJSON} = parser({ text: files[filename] });
+                if (geoJSON._chatmapId) {
+                    _chatmapId = geoJSON._chatmapId;
+                }
                 features = features.concat(geoJSON.features);
             }
 
             // Build the GeoJSON response with all features
             setGeoJSON((prevState) => ({
                 type: "FeatureCollection",
-                features: [...prevState.features, ...features]
+                features: [...prevState.features, ...features],
+                _chatmapId: _chatmapId || null
             }));
 
         }

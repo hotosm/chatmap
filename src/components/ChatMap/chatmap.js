@@ -232,7 +232,7 @@ export default class ChatMap {
               // Add the GeoJSON feature
               featureObject.properties = {
                 ...message,
-                related: message.id
+                // related: message.id
               };
               this.pairedMessagesIds.push(message.id);
             }

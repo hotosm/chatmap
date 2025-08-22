@@ -18,8 +18,8 @@ function App() {
   // - handleFiles: handle all chat files
   // - handleDataFile: handle all other files (images, videos)
   // - resetFileManager: clear files and data files states
-  // - files: stores all chat files
   // - dataFiles: stores all other files (images, videos)
+  // - files: stores all chat files
   const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
 
   // Content Merger: Handle chat content
