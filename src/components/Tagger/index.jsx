@@ -46,6 +46,7 @@ export default function Tagger({
                     {allTags.map(tag =>
                         <sl-menu-item
                             value={tag}
+                            key={tag}
                             onClick={() => {
                                 if (tags.indexOf(tag) === -1) {
                                     onAddTag(tag)
