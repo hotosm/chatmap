@@ -54,10 +54,12 @@ export default function Popup ({
   popupRef,
   dataFiles,
   onAddTag,
-  onRemoveTag
+  onRemoveTag,
+  allTags
 }) {
   
   const intl = useIntl();
+
   return (
     <PopupGLWrapper
       longitude={feature.geometry.coordinates[0]}
@@ -78,6 +80,7 @@ export default function Popup ({
               defaultMessage: "Your tag here"
             })
           }
+          allTags={allTags}
           tags={feature.properties.tags || []}
           onAddTag={tag => onAddTag(tag, feature)} 
           onRemoveTag={tag => onRemoveTag(tag, feature)} 

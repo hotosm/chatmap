@@ -28,3 +28,7 @@
     margin: 0;
     width: 95%;
 }
+
+.tagger sl-menu-item::part(label) {
+    font-size: var(--hot-font-size-small);
+}

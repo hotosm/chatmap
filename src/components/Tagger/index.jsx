@@ -7,6 +7,7 @@ export default function Tagger({
     onFocus,
     onBlur,
     tags,
+    allTags,
     placeholder
 }) {
     const textRef = useRef();
@@ -27,17 +28,32 @@ export default function Tagger({
 
     return (
         <div className="tagger">
-            <sl-input
-                size="small"
-                onKeyDown={handleKeyDown}
-                ref={textRef}
-                onClick={() => textRef.current.focus()}
-                onFocus={() => onFocus && onFocus()}
-                onBlur={() => onBlur && onBlur()}
-                placeholder={placeholder}
-            >
-                <sl-icon name="tags" slot="suffix"></sl-icon>
-            </sl-input>
+            <sl-dropdown>
+                <sl-input
+                    size="small"
+                    onKeyDown={handleKeyDown}
+                    ref={textRef}
+                    onClick={() => textRef.current.focus()}
+                    onFocus={() => onFocus && onFocus()}
+                    onBlur={() => onBlur && onBlur()}
+                    placeholder={placeholder}
+                    slot="trigger"
+                >
+                    <sl-icon name="tags" slot="suffix"></sl-icon>
+                </sl-input>
+                { allTags && allTags.length > 0 ? 
+                <sl-menu>
+                    {allTags.map(tag =>
+                        <sl-menu-item
+                            value={tag}
+                            onClick={() => onAddTag(tag)}
+                        >
+                            {tag}
+                        </sl-menu-item>
+                    )}
+                </sl-menu>
+                : null}
+            </sl-dropdown>
             <div className="tags">
                 {tags && tags.map(tag =>
                     <sl-button

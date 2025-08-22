@@ -16,15 +16,7 @@ export default function Header({
     subtitle
 }) {
 
-    const { data, mapDataDispatch } = useMapDataContext();
-    const tags = data.features.reduce((accumulator, currentValue) => {
-        if (currentValue.properties.tags) {
-            currentValue.properties.tags.forEach(tag => {
-                accumulator[tag] = (accumulator[tag] || 0) + 1;
-            });
-        }
-        return accumulator;
-    }, {});
+    const { data, tags, mapDataDispatch } = useMapDataContext();
 
     const selectTagHandler = tag => {
         mapDataDispatch({
