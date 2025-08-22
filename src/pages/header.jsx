@@ -9,9 +9,7 @@ export default function Header({
     dataAvailable,
     dataFiles,
     handleNewUploadClick,
-    handleOptionClick,
     showUploadButton,
-    showChatIcon,
     legend,
     subtitle
 }) {
@@ -26,11 +24,6 @@ export default function Header({
     }
 
     const [selected, setSelected] = useState(false);
-
-    const onOptionClick = option => {
-        setSelected(prev => !prev);
-        handleOptionClick(option);
-    }
 
     useEffect(() => {
         setSelected(false);
@@ -76,15 +69,6 @@ export default function Header({
                             selectedTag={data.filterTag}
                         />
                     </div>
-                    { showChatIcon ?
-                    <div className="chatIcon">
-                        <sl-icon-button
-                            name="chat-square-dots"
-                            size="small"
-                            onClick={ () => onOptionClick("chat") }
-                        >
-                        </sl-icon-button>
-                    </div> : null}
                 </div>
             </>
             :

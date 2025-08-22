@@ -173,5 +173,5 @@ export default function whatsAppParser({ text }) {
     const chatmap = new ChatMap(messages, searchLocation);
     const geoJSON = chatmap.pairContentAndLocations();
 
-    return {geoJSON, messages};
+    return { geoJSON };
 }

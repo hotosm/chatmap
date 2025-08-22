@@ -99,5 +99,5 @@ export default function signalParser({ text }) {
     const chatmap = new ChatMap(messages, searchLocation);
     const geoJSON = chatmap.pairContentAndLocations();
 
-    return {geoJSON, messages};
+    return { geoJSON };
 }

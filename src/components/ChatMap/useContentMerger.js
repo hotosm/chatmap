@@ -16,8 +16,6 @@ function useContentMerger({ files }) {
         type: "FeatureCollection",
         features: []
     });
-    // Hook's response: all messages
-    const [chatMessages, setChatMessages] = useState({});
 
     // Receives files and update status
     // with a GeoJSON response and messages
@@ -38,9 +36,8 @@ function useContentMerger({ files }) {
                 const parser = await getAppParser(files[filename]);
 
                 // Concatenate data from all uploaded chats
-                const {geoJSON, messages} = parser({ text: files[filename] });
+                const {geoJSON} = parser({ text: files[filename] });
                 features = features.concat(geoJSON.features);
-                msgs = {...chatMessages, ...messages};
             }
 
             // Build the GeoJSON response with all features
@@ -48,9 +45,6 @@ function useContentMerger({ files }) {
                 type: "FeatureCollection",
                 features: [...prevState.features, ...features]
             }));
-
-            // Build the GeoJSON response with all features
-            setChatMessages((prevState) => ({...prevState, ...msgs}));
 
         }
         parseData();
@@ -62,10 +56,9 @@ function useContentMerger({ files }) {
             type: "FeatureCollection",
             features: []
         });
-        setChatMessages({});
     }
 
-    return [geoJSON, chatMessages, resetMerger];
+    return [geoJSON, resetMerger];
 
 };
 
