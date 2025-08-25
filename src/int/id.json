@@ -1,0 +1,17 @@
+{
+    "app.subtitle": "Ekspor dan unggah percakapan untuk membuat peta",
+    "app.uploadNewFile": "Berkas baru",
+    "app.download": "Unduh",
+    "app.options": "Pilihan",
+    "app.uploadLabel": "Unggah berkas .zip Anda di sini",
+    "app.nolocations": "Tidak ditemukan lokasi pada berkas ini",
+    "app.loading": "Sedang memuat",
+    "app.howItWorks": "Bagaimana cara kerjanya?",
+    "app.supportedApps": "Sekarang mendukung percakapan dari WhatsApp, Telegram, atau Signal!",
+    "app.checkThisQuick": "Periksa ini secara cepat",
+    "app.videoTutorial": "Video panduan",
+    "app.saveYourMapIn": "Simpan peta Anda dalam",
+    "app.tags": "Label",
+    "app.yourTagHere": "Tulis label Anda di sini",
+    "app.all": "Semua"
+}
