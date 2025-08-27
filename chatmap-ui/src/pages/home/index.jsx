@@ -36,6 +36,10 @@ function App() {
 
   useEffect(() => {
       setShowMessages(false);
+      // Public event for external integratons
+      if (mapData.features.length > 0) {
+        window._CHATMAP?.mapData && window._CHATMAP.mapData();
+      }
   }, [mapData])
 
   // Map Data Context: Manages map data

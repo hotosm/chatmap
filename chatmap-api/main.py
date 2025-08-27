@@ -252,12 +252,18 @@ async def get_chatmap(request: Request, session: dict = Depends(get_current_sess
                         # If file was not saved previously, download decrypted image
                         # from connector server and save it to disk
                         if not os.path.exists(target_file):
+                            logger.info(f'Trying to save media file: {target_file}')
                             try:
                                 async with httpx.AsyncClient() as client:
                                     response = await client.get(f'{server_url}/media/{filename}?sessionID={session["user_id"]}')
                                     response.raise_for_status()  # Raise for 4xx/5xx
                                 with open(target_file, "wb") as f:
-                                    f.write(response.content)
+                                    if len(response.content) > 0:
+                                        f.write(response.content)
+                                        logger.info(f'Media file saved: {target_file}')
+                                    else:
+                                        logger.info(f'Media file is empty: {target_file}')
+
                             except httpx.HTTPError as e:
                                 logger.error(f"Failed to download: {str(e)}")
 

@@ -17,7 +17,7 @@ function QRCode({ img }) {
                 </div>
             </div>
             <hr />
-            <small>All your messages, including media, will be stored encrypted. Only locations and related content will be available for your creating your map.
+            <small>All your messages, including media, will be stored encrypted. Only locations and related content will be available for creating your map.
             </small>
         </div>
     )
