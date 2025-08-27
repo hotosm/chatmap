@@ -5,3 +5,4 @@ sessions
 certbot/
 config.json
 nginx/
+letsencrypt/
