@@ -6,7 +6,8 @@ const MapDataContext = createContext();
 const initialState = {
   type: "FeatureCollection",
   features: [],
-  filterTag: null
+  filterTag: null,
+  _chatmapId: null
 };
 
 // Reducer
@@ -35,10 +36,20 @@ const reducer = (state, action) => {
 
 // Provider
 export const MapDataProvider = (props) => {
+  
   const [data, mapDataDispatch] = useReducer(reducer, initialState);
 
+  const tags = data.features.reduce((accumulator, currentValue) => {
+      if (currentValue.properties.tags) {
+          currentValue.properties.tags.forEach(tag => {
+              accumulator[tag] = (accumulator[tag] || 0) + 1;
+          });
+      }
+      return accumulator;
+  }, {});
+
   return (
-    <MapDataContext.Provider value={{ data, mapDataDispatch }}>
+    <MapDataContext.Provider value={{ data, tags, mapDataDispatch }}>
       {props.children}
     </MapDataContext.Provider>
   );

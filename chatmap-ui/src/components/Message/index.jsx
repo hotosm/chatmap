@@ -1,6 +1,6 @@
 import { formatDate, getMessage } from "../Map/utils";
 
-function Message({ message, selected, ref, dataFiles }) {
+function Message({ message, msgType, selected, ref, dataFiles }) {
         return (
             <div
                 key={message.id}
@@ -14,7 +14,7 @@ function Message({ message, selected, ref, dataFiles }) {
                     <span className="msgUsername">{message.username.split("@")[0]}</span>
                     <span className="msgDatetime">{formatDate(message.time)}</span>
                 </p>
-                <div>{ getMessage(message, dataFiles) }</div>
+                <div>{ getMessage(message, msgType, dataFiles) }</div>
             </div>
         )
 

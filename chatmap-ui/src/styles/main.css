@@ -131,15 +131,10 @@ a {
   min-height: 60px;
   justify-content: space-between;
   gap: var(--hot-spacing-x-small);
-  padding-right: var(--hot-spacing-2x-small);
 }
 
 .header.headerSmall h1 {
   align-items: inherit;
-}
-
-.headerSmall .logoLink, .fileOptions {
-  width: 50%;
 }
 
 .headerSmall .logoLink {
@@ -148,34 +143,20 @@ a {
   margin-left: var(--hot-spacing-small);
 }
 
-.headerSmall .fileOptions {
+.headerSmall .mapOptions {
   text-align: right;
   gap: 10px;
   display: flex;
   justify-content: flex-end;
+  padding-right: var(--hot-spacing-small);
 }
 
-.headerSmall .fileOptions sl-button::part(label) {
+.headerSmall .mapOptions sl-button::part(label) {
   font-weight: bold;
 }
 
-/* Nav bar */
-
-.appNav {
-  padding: 1vh;
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 9999;
-}
-
-.appNav span {
-  padding-left: 1vh;
-}
-
-.mapOptions {
-  font-size: var(--hot-font-size-large);
-  margin-top: -3px /* FIXME */
+.headerSmall sl-menu-item::part(base) {
+  font-size: var(--hot-font-size-x-small);
 }
 
 /* Footer */
@@ -192,7 +173,6 @@ a {
 .infoLinks {
   display: block;
   right: 0;
-  width: 100%;
   text-align: center;
   padding: 2vh;
   font-size: var(--hot-font-size-x-small);
@@ -207,17 +187,24 @@ a {
 /* File upload */
 
 .fileUpload {
-  text-align: center;
   justify-content: center;
   display: flex;
   padding-top: var(--hot-spacing-2x-large);
   padding-bottom: var(--hot-spacing-large);
 }
 
+/* Fix a bug with react-drag-drop-files styling
+https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
+.fileUploadMain  {
+  outline: none !important;
+}
+
 .fileUploadDropArea::part(base) {
   border: 2px dashed var(--hot-color-neutral-600);
-  height: calc(var(--hot-spacing-large) * 3.2);
+  /* height: calc(var(--hot-spacing-large) * 3.2); */
   cursor: pointer;
+  font-size: var(--hot-font-size-large);
+  padding: var(--hot-spacing-small) var(--hot-spacing-x-large);
 }
 
 .fileUploadDropArea::part(base):hover {
@@ -227,11 +214,10 @@ a {
 
 .fileUploadDropArea::part(input) {
   height: calc(var(--hot-spacing-large) * 3);
-  text-align: center;
 }
 
-.fileUploadDropArea svg {
-  filter: saturate(0%);
+.fileUploadDropArea::part(prefix) {
+  font-size: var(--hot-font-size-x-large);
 }
 
 /* Info */
@@ -276,11 +262,6 @@ a {
 
 .popup .maplibregl-popup-content {
   padding: 0;
-}
-
-.popupImage {
-  width: 92%;
-  border-radius: var(--hot-border-radius-medium);
 }
 
 .userinfo {
@@ -362,67 +343,33 @@ a {
 
 /* Messages */
 
-.messages {
-  position: absolute;
-  right: 0;
-  width: 15vw;
-  min-width: 200px;
-  height: 83vh;
-  z-index: 999;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  background: var(--hot-color-neutral-50);
-  box-shadow: var(--hot-shadow-small);
-  padding-bottom: var(--hot-spacing-x-large);
-}
-
 .message .text {
   text-align: left;
   padding-left: var(--hot-spacing-small);
+  padding-right: var(--hot-spacing-small);
 }
 
-.messages .message {
-  border: 1px solid var(--hot-color-neutral-200);
-  box-shadow: var(--hot-shadow-small);
-  margin: var(--hot-spacing-small);
-  padding: var(--hot-spacing-x-small);
-  border-radius: var(--hot-border-radius-small);
-  opacity: .5;
+.message .media {
+  width: 100%;
+  margin-bottom: var(--hot-spacing-x-small);
 }
 
-.messages .message:hover {
-  box-shadow: var(--hot-shadow-small);
-  border-color: var(--hot-color-neutral-500);
-  cursor: pointer;
-  background-color: var(--hot-color-neutral-0);
+.message .media img,
+.message .media video,
+.message .media audio {
+  width: 100%;
+  max-height: 60vh;
 }
 
-.messages .message.selected {
-  border-color: var(--hot-color-primary-500) !important;
-  border-width: 2px;
-  background-color: var(--hot-color-neutral-0);
+.message .dropdownSelection,
+.dropdownSelection sl-menu {
+  width: 300px;
 }
 
-.messages .message.mapped {
-  opacity: 1;
-}
-
-.messages .message .msgUsername,
-.messages .message .msgDatetime {
-  font-size: var(--hot-font-size-x-small);
-}
-
-.messages .message .time {
-  color: var(--hot-color-neutral-500);
-}
-
-.messages .message .text {
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: var(--hot-font-size-x-small);
-  text-overflow: clip;
-  text-overflow: ellipsis ellipsis;
-  text-overflow: ellipsis " ...";
+.dropdownSelection sl-dropdown,
+.dropdownSelection sl-button,
+.dropdownSelection sl-dropdown::part(panel)  {
+  width: 100%;
 }
 
 /* Connect form */
@@ -554,6 +501,7 @@ a {
 
 /* Media queries */
 
+/* Desktop */
 @media (min-width: 790px) {
   .connectFormWrapper {
     display: flex;
@@ -562,7 +510,24 @@ a {
   }
 }
 
+/* Mobile */
 @media (max-width: 790px) {
+
+  .maplibregl-map {
+    height: 90vh;
+  }
+
+  .headerSmall .mapOptions .newFile sl-button::part(base),
+  .headerSmall .mapOptions .tagsOptions sl-button::part(base) {
+    width: 40px;
+    padding-inline-start: 0;
+  }
+
+  .headerSmall .mapOptions .newFile sl-button::part(label),
+  .headerSmall .mapOptions .tagsOptions sl-button::part(label) {
+    display: none;
+  }
+
   .connectFormWrapper {
     text-align: center;
   }

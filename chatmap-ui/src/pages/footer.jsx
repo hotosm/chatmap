@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <>
     <p className="info">
-        <strong>¿How it works?</strong> check this quick <strong><a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">video tutorial</a></strong>
+        <strong>How it works?</strong> check this quick <strong><a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">video tutorial</a></strong>
     </p>
     <p className="info">
        Save your map in <a href="https://umap.hotosm.org/chatmap">umap.hotosm.org/chatmap</a>

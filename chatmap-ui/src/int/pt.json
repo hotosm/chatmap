@@ -1,10 +1,17 @@
 {
-    "app.subtitle": "Exportar uma chat da aplicação e visualizar localizações partilhadas na conversa",
-    "app.uploadNewFile": "Carregar um novo ficheiro",
+    "app.subtitle": "Exporte e carregue um chat para criar um mapa",
+    "app.uploadNewFile": "Novo arquivo",
     "app.download": "Descarregar",
     "app.options": "Opções",
-    "app.uploadLabel": "Carregue ou arraste um ficheiro aqui mesmo",
+    "app.uploadLabel": "Faça o upload do seu arquivo .zip aqui",
     "app.nolocations": "Não foram encontrados locais neste arquivo.",
     "app.loading": "Carregando",
-    "app.supportedApps": "Agora funciona com WhatsApp, Telegram e Signal!"
+    "app.supportedApps": "Agora funciona com WhatsApp, Telegram e Signal!",
+    "app.howItWorks": "Como funciona?",
+    "app.checkThisQuick": "Veja este rápido",
+    "app.videoTutorial": "vídeo tutorial",
+    "app.saveYourMapIn": "Guarde seu mapa em",
+    "app.tags": "Etiquetas",
+    "app.yourTagHere": "A sua etiqueta aquí",
+    "app.all": "Tudo"
 }

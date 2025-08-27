@@ -8,7 +8,10 @@
 
 export default async function getAppParser (text) {
     if (!text) return;
-    if (text[0] === "{") { 
+    if (text.indexOf('_chatmapId') > -1) { 
+        const geoJSONParser = (await import('./geojson')).default
+        return geoJSONParser;
+    } else if (text[0] === "{") { 
         const telegramParser = (await import('./telegram')).default
         return telegramParser;
     } else if (text.indexOf("group-v2-change") > -1) {

@@ -3,6 +3,7 @@ import { Popup as PopupGL } from "maplibre-gl";
 import { createRoot } from "react-dom/client";
 import Tagger from '../Tagger';
 import Message from '../Message';
+import { useIntl } from 'react-intl';
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
@@ -53,9 +54,32 @@ export default function Popup ({
   popupRef,
   dataFiles,
   onAddTag,
-  onRemoveTag
+  onRemoveTag,
+  allTags
 }) {
   
+  const intl = useIntl();
+
+  const getMsgType = (message) => {
+    console.log(message)
+    if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
+      return "image";
+    } else if (message.file.endsWith("mp4")) {
+      return "video";
+    } else if (
+      message.file.endsWith("ogg") ||
+      message.file.endsWith("opus") ||
+      message.file.endsWith("mp3") ||
+      message.file.endsWith("m4a") ||
+      message.file.endsWith("wav")
+    ) {
+      return "audio";
+    } else {
+      return "text";
+    }
+  }
+  const msgType = getMsgType(feature.properties);
+
   return (
     <PopupGLWrapper
       longitude={feature.geometry.coordinates[0]}
@@ -68,11 +92,21 @@ export default function Popup ({
         <Message
           message={feature.properties}
           dataFiles={dataFiles}
+          msgType={msgType}
         />
         <Tagger
+          placeholder={
+            intl.formatMessage({
+              id: "app.yourTagHere",
+              defaultMessage: "Your tag here"
+            })
+          }
+          msgType={msgType}
+          allTags={allTags}
           tags={feature.properties.tags || []}
           onAddTag={tag => onAddTag(tag, feature)} 
           onRemoveTag={tag => onRemoveTag(tag, feature)} 
+
         />
       </div>
     </PopupGLWrapper>

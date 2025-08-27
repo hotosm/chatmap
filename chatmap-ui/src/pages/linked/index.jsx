@@ -3,7 +3,6 @@ import useAPI from '../../components/ChatMap/useApi.js'
 import Header from '../header.jsx';
 import NoLocationsSection from '../home/noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
-import Messages from '../../components/Messages';
 import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
@@ -15,7 +14,6 @@ function App() {
 
   const [noLocations, setNoLocations] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState();
-  const [showMessages, setShowMessages] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const alertRef = useRef();
   const navigate = useNavigate();
@@ -118,13 +116,6 @@ function App() {
             <strong>Something went wrong</strong><br />
             {error}
         </sl-alert> : null }
-
-        { showMessages && dataAvailable &&
-          <Messages
-            messages={chatMessages}
-            selectedFeature={selectedFeature}
-          />
-        }
 
         {/* No connected an QR code, show it */}
         { status !== "connected" && QRImgSrc &&

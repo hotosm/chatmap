@@ -5,6 +5,7 @@
 /**
  *
  * @param {object} properties Message properties
+ * @param {string} properties Message type
  * @returns {string} A formatted and padded datetime, ex: 02:15:22
  */
 export const formatDate = (time) => {
@@ -16,32 +17,36 @@ export const formatDate = (time) => {
 
 /**
  *
- * @param {object} properties Properties object for the message
+ * @param {object} message Properties object for the message
  * @param {object} dataFiles Files with data
  * @returns {string} Message (text message or HTML for image, video)
  */
-export const getMessage = (properties, dataFiles) => {
+export const getMessage = (message, msgType, dataFiles) => {
   let content;
-  if (properties.file && dataFiles && properties.file in dataFiles) {
-    if (properties.file.endsWith("jpg") || properties.file.endsWith("jpeg")) {
-      const url = URL.createObjectURL(dataFiles[properties.file]);
-      content = <a href={url} target="_blank"><img className="popupImage" alt="Message attached file" src={url} /></a>
-    } else if (properties.file.endsWith("mp4")) {
-      content = <video controls className="popupImage" alt="Message attached file" src={URL.createObjectURL(dataFiles[properties.file])} />
-    } else if (
-      properties.file.endsWith("ogg") ||
-      properties.file.endsWith("opus") ||
-      properties.file.endsWith("mp3") ||
-      properties.file.endsWith("m4a") ||
-      properties.file.endsWith("wav")
-    ) {
-      content = <audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[properties.file])} />
+  if (message.file && dataFiles && message.file in dataFiles) {
+
+    // Image
+    if (msgType === "image") {
+      const url = URL.createObjectURL(dataFiles[message.file]);
+      content = <img className="popupImage" alt="Message attached file" src={url} />
+
+    // Video
+    } else if (msgType === "video") {
+      content = <video controls className="popupVideo" alt="Message attached file" src={URL.createObjectURL(dataFiles[message.file])} />
+
+    // Audio
+    } else if (msgType === "audio") {
+      content = <audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[message.file])} />
     }
-  } else if (properties.file.indexOf(".jpg") > 0 ) {
-      content = <a href={properties.file} target="_blank"><img className="popupImage" alt="Message attached file" src={properties.file} /></a>
   }
+
   return <>
+      {/* Media */}
+      <div className="media">
       { content ? content : null }
-      { properties.message ? <p className="text">{properties.message}</p> : null}
+      </div>
+      {/* Text */}
+      { message.message && message.message !== " " ?
+      <p className="text">{message.message}</p> : null}
     </>
 }

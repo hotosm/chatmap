@@ -1,0 +1,17 @@
+{
+    "app.subtitle": "Exporter et téléverser une conversation pour créer une carte",
+    "app.uploadNewFile": "Nouveau fichier",
+    "app.download": "Télécharger",
+    "app.options": "Options",
+    "app.uploadLabel": "Télécharger votre fichier .zip ici",
+    "app.nolocations": "No locations found in this file",
+    "app.loading": "Chargement en cours",
+    "app.howItWorks": "Comment ça marche ?",
+    "app.supportedApps": "Il fonctionne désormais avec WhatsApp, Telegram et Signal!",
+    "app.checkThisQuick": "Regardez ce petit",
+    "app.videoTutorial": "tutoriel vidéo",
+    "app.saveYourMapIn": "Enregistrez votre carte dans",
+    "app.tags": "Étiquettes",
+    "app.yourTagHere": "Votre étiquette ici",
+    "app.all": "Tout"
+}

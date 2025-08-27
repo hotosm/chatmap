@@ -22,7 +22,7 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
     const [editingTags, setEditingTags] = useState(false);
     const popupRef = useRef(null);
 
-    const { data, mapDataDispatch } = useMapDataContext();
+    const { data, tags, mapDataDispatch } = useMapDataContext();
 
     useEffect(() => {
       if (map.current) return;
@@ -198,6 +198,7 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
             dataFiles={dataFiles}
             onAddTag={handleAddTag}
             onRemoveTag={handleRemoveTag}
+            allTags={Object.keys(tags)}
           />
         }
       </div>

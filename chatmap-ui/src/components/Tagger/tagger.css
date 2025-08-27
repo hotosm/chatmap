@@ -4,27 +4,34 @@
     text-align: left;
 }
 
-.tagger .tags {
-    display: flex;
-    gap: var(--hot-spacing-x-small);
-    margin-top: var(--hot-spacing-x-small);
-    width: 90%;
-    flex-wrap: wrap;
-}
-
-.tagger .tag {
-    border: 1px solid var(--hot-color-blue-500);
-    text-decoration: none;
-    display: inline-block;
-    font-weight: var(--hot-font-weight-bold);
-    box-shadow: none;
-    cursor: pointer;
-    padding: var(--hot-spacing-3x-small) var(--hot-spacing-x-small);
-    border-radius: var(--hot-border-radius-small);
-    font-size: var(--hot-font-size-small);
-}
-
 .tagger .textInput {
     margin: 0;
     width: 95%;
+}
+
+.tagger sl-menu-item::part(label) {
+    font-size: var(--hot-font-size-small);
+}
+
+.tagger .tags {
+    display: flex;
+    gap: var(--hot-spacing-x-small);
+    width: 90%;
+    flex-wrap: wrap;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.tagger.taggerImage .tags,
+.tagger.taggerVideo .tags {
+    position: absolute;
+    margin-bottom: 0;
+}
+
+.tagger.taggerImage .tags {
+    margin-top: -50px;
+}
+
+.tagger.taggerVideo .tags {
+    margin-top: -90px;
 }

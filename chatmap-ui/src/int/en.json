@@ -1,1 +1,17 @@
-{}
+{
+    "app.subtitle": "Export and upload a chat to create a map",
+    "app.uploadNewFile": "New file",
+    "app.download": "Download",
+    "app.options": "Options",
+    "app.uploadLabel": "Upload your .zip file here",
+    "app.nolocations": "No locations found in this file",
+    "app.loading": "Loading",
+    "app.howItWorks": "How it works?",
+    "app.supportedApps": "Now it works with WhatsApp, Telegram or Signal!",
+    "app.checkThisQuick": "Check this quick",
+    "app.videoTutorial": "video tutorial",
+    "app.saveYourMapIn": "Save your map in",
+    "app.tags": "Tags",
+    "app.yourTagHere": "Your tag here",
+    "app.all": "All"
+}

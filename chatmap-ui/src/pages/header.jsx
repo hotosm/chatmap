@@ -4,32 +4,17 @@ import SaveButton from '../components/SaveButton/index.jsx';
 import TagsOptions from "../components/TagsOptions/index.jsx";
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
-import NavBar from '../components/NavBar/index.jsx';
 
 export default function Header({
     dataAvailable,
     dataFiles,
     handleNewUploadClick,
-    handleOptionClick,
-    handleSettingsClick,
-    showLogoutIcon,
-    showSettingsIcon,
-    handleLogoutClick,
     showUploadButton,
-    showChatIcon,
     legend,
     subtitle
 }) {
 
-    const { data, mapDataDispatch } = useMapDataContext();
-    const tags = data.features.reduce((accumulator, currentValue) => {
-        if (currentValue.properties.tags) {
-            currentValue.properties.tags.forEach(tag => {
-                accumulator[tag] = (accumulator[tag] || 0) + 1;
-            });
-        }
-        return accumulator;
-    }, {});
+    const { data, tags, mapDataDispatch } = useMapDataContext();
 
     const selectTagHandler = tag => {
         mapDataDispatch({
@@ -39,19 +24,6 @@ export default function Header({
     }
 
     const [selected, setSelected] = useState(false);
-
-    const onOptionClick = option => {
-        setSelected(prev => !prev);
-        handleOptionClick(option);
-    }
-
-    const onSettingsClick = () => {
-        handleSettingsClick();
-    }
-
-    const onLogoutClick = () => {
-        handleLogoutClick();
-    }
 
     useEffect(() => {
         setSelected(false);
@@ -73,52 +45,30 @@ export default function Header({
             {/* Options: upload new file, download */}
             { dataAvailable ?
             <>
-                <div className="fileOptions">
+                <div className="mapOptions">
                     <SaveButton data={data} dataFiles={dataFiles} />
                     { showUploadButton ?
-                    <sl-button
-                        variant="success"
-                        outline
-                        size="small"
-                        onClick={handleNewUploadClick}
-                    >
-                        <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
-                        <FormattedMessage
-                            id = "app.uploadNewFile"
-                            defaultMessage="New file"
-                        /> 
-                    </sl-button> : null}
-                    <div className="mapOptions">
-                        { showSettingsIcon &&
-                        <sl-icon-button
-                            name="gear"
-                            label="Settings"
-                            onClick={ () => onSettingsClick() }
-                        ></sl-icon-button>
-                        }
-                        { showLogoutIcon &&
-                        <sl-icon-button
-                            name="box-arrow-right"
-                            label="Logout"
-                            onClick={ () => onLogoutClick() }
-                        ></sl-icon-button>
-                        }
-                        { showChatIcon &&
-                        <sl-icon-button
-                            name="chat-square-dots"
+                    <div className="newFile">
+                        <sl-button
+                            variant="success"
+                            outline
                             size="small"
-                            onClick={ () => onOptionClick("chat") }
+                            onClick={handleNewUploadClick}
                         >
-                        </sl-icon-button>
-                        }
+                            <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
+                            <FormattedMessage
+                                id = "app.uploadNewFile"
+                                defaultMessage="New file"
+                            /> 
+                        </sl-button>
+                    </div> : null}
+                    <div className="tagsOptions">
+                        <TagsOptions
+                            onSelectTag={selectTagHandler}
+                            tags={tags}
+                            selectedTag={data.filterTag}
+                        />
                     </div>
-                </div>
-                <div className="tagsOptions">
-                    <NavBar
-                        selected={selected}
-                    >
-                        <TagsOptions onSelectTag={selectTagHandler} tags={tags} selectedTag={data.filterTag} />
-                    </NavBar>
                 </div>
             </>
             :

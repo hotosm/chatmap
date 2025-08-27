@@ -6,7 +6,10 @@ export default function Tagger({
     onRemoveTag,
     onFocus,
     onBlur,
-    tags
+    tags,
+    allTags,
+    msgType,
+    placeholder
 }) {
     const textRef = useRef();
 
@@ -25,24 +28,12 @@ export default function Tagger({
     }
 
     return (
-        <div className="tagger">
-            <sl-input
-                size="small"
-                onKeyDown={handleKeyDown}
-                ref={textRef}
-                onClick={() => textRef.current.focus()}
-                onFocus={() => onFocus && onFocus()}
-                onBlur={() => onBlur && onBlur()}
-                placeholder="Your tag here"
-            >
-                <sl-icon name="tags" slot="suffix"></sl-icon>
-            </sl-input>
+        <div className={`tagger ${msgType === "image" ? "taggerImage" : ""} ${msgType === "video" ? "taggerVideo" : ""}`}>
             <div className="tags">
                 {tags && tags.map(tag =>
                     <sl-button
-                        variant="neutral"
+                        variant="primary"
                         size="small"
-                        outline
                         onClick={() => removeTagHandler(tag)}
                         pill
                         key={`${tag}`}
@@ -51,6 +42,39 @@ export default function Tagger({
                         {tag}
                     </sl-button>
                 )}
+            </div>
+            <div className="dropdownSelection">
+                <sl-dropdown className="taggerDropdown">
+                    <sl-input
+                        size="small"
+                        onKeyDown={handleKeyDown}
+                        ref={textRef}
+                        onClick={() => textRef.current.focus()}
+                        onFocus={() => onFocus && onFocus()}
+                        onBlur={() => onBlur && onBlur()}
+                        placeholder={placeholder}
+                        slot="trigger"
+                    >
+                        <sl-icon name="tags" slot="suffix"></sl-icon>
+                    </sl-input>
+                    { allTags && allTags.length > 0 ? 
+                    <sl-menu>
+                        {allTags.map(tag =>
+                            <sl-menu-item
+                                value={tag}
+                                key={tag}
+                                onClick={() => {
+                                    if (tags.indexOf(tag) === -1) {
+                                        onAddTag(tag)
+                                    }
+                                }}
+                            >
+                                {tag}
+                            </sl-menu-item>
+                        )}
+                    </sl-menu>
+                    : null}
+                </sl-dropdown>
             </div>
         </div>
     );
