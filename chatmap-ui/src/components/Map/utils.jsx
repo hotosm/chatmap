@@ -24,13 +24,18 @@ export const formatDate = (time) => {
 export const getMessage = (message, msgType, dataFiles) => {
   let content;
   if (message.file && (
-        message.file.slice(0, 8) == "https://" || 
+        msgType === "imageURL" || 
         (dataFiles && message.file in dataFiles)
       )
     ) {
 
+
+    // Image URL
+    if (msgType === "imageURL") {
+      content = <img className="popupImage" alt="Message attached file" src={message.file} />
+
     // Image
-    if (msgType === "image") {
+    } else if (msgType === "image") {
       const url = URL.createObjectURL(dataFiles[message.file]);
       content = <img className="popupImage" alt="Message attached file" src={url} />
 
