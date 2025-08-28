@@ -23,7 +23,11 @@ export const formatDate = (time) => {
  */
 export const getMessage = (message, msgType, dataFiles) => {
   let content;
-  if (message.file && dataFiles && message.file in dataFiles) {
+  if (message.file && (
+        message.file.slice(0, 8) == "https://" || 
+        (dataFiles && message.file in dataFiles)
+      )
+    ) {
 
     // Image
     if (msgType === "image") {

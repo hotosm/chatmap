@@ -61,7 +61,6 @@ export default function Popup ({
   const intl = useIntl();
 
   const getMsgType = (message) => {
-    console.log(message)
     if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
       return "image";
     } else if (message.file.endsWith("mp4")) {

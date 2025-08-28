@@ -30,9 +30,9 @@ function Settings({
         })
     }
 
-    useEffect(() => {
-        console.log(settings)
-    }, [settings]);
+    // useEffect(() => {
+    //     console.log(settings)
+    // }, [settings]);
 
     return (
         <div className="settings">
