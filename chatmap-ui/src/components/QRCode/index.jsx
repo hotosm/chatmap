@@ -86,7 +86,12 @@ function QRCode({ img }) {
                                 />
                             </strong>
                         </li>
-                        <li>Scan the QR code and start mapping!</li>
+                        <li>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.scanQRCode"
+                                defaultMessage="Scan the QR code and start mapping!"
+                            />
+                        </li>
                     </ol>
                 </div>
                 <div>

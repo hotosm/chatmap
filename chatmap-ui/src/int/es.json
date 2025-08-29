@@ -17,7 +17,7 @@
     "app.experimental": "Experimental",
     "app.linked.subtitle": "Mapas actualizados en tiempo real",
     "app.linked.legend": "Vincula una cuenta de mensajería instantánea (sólo WhatsApp por el momento)",
-    "app.linked.linkYourDevice": "Vincula tu dispositivo",
+    "app.linked.linkYourDevice": "Vincula un dispositivo",
     "app.linked.linkYourDevice.legend": "Recive todos tus mensajes de chat y conviertelos en un mapa",
     "app.linked.linkYourDevice.open": "Abre",
     "app.linked.linkYourDevice.onYourPhone": "En tu teléfono",
@@ -28,5 +28,6 @@
     "app.linked.linkYourDevice.oniPhone": "en iPhone",
     "app.linked.linkYourDevice.linkedDevices": "Dispositivos vinculados",
     "app.linked.linkYourDevice.then": "luego",
-    "app.linked.linkYourDevice.LinkDevice": "Vincular un dispositivo"
+    "app.linked.linkYourDevice.LinkDevice": "Vincular un dispositivo",
+    "app.linked.linkYourDevice.scanQRCode": "Escanea el código QR y empieza crea el mapa!"
 }

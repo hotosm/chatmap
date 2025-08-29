@@ -28,6 +28,6 @@
     "app.linked.linkYourDevice.oniPhone": "on iPhone",
     "app.linked.linkYourDevice.linkedDevices": "Linked devices",
     "app.linked.linkYourDevice.then": "then",
-    "app.linked.linkYourDevice.LinkDevice": "Link device"
-
+    "app.linked.linkYourDevice.LinkDevice": "Link device",
+    "app.linked.linkYourDevice.scanQRCode": "Scan the QR code and start mapping!"
 }
