@@ -1,3 +1,5 @@
+import { FormattedMessage } from 'react-intl';
+
 function QRCode({ img }) {
     return (
         <div className="connectForm">
