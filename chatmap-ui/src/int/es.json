@@ -24,10 +24,10 @@
     "app.linked.linkYourDevice.tap": "Tap",
     "app.linked.linkYourDevice.menu": "menu",
     "app.linked.linkYourDevice.onAndroidOr": "en Android o",
-    "app.linked.linkYourDevice.settings": "Configuración",
+    "app.linked.linkYourDevice.settings": "Ajustes",
     "app.linked.linkYourDevice.oniPhone": "en iPhone",
     "app.linked.linkYourDevice.linkedDevices": "Dispositivos vinculados",
     "app.linked.linkYourDevice.then": "luego",
-    "app.linked.linkYourDevice.LinkDevice": "Vincular un dispositivo",
+    "app.linked.linkYourDevice.LinkDevice": "Vincular dispositivo",
     "app.linked.linkYourDevice.scanQRCode": "Escanea el código QR y empieza crea el mapa!"
 }
