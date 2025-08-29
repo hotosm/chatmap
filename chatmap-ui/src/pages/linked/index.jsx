@@ -6,10 +6,13 @@ import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
 import { useNavigate } from "react-router-dom";
+import { useIntl } from 'react-intl';
 
 const Map = lazy(() => import('../../components/Map'));
 
 function App() {
+
+  const intl = useIntl();
 
   const [, setSelectedFeature] = useState();
   const [showSettings, setShowSettings] = useState(false);
