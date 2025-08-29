@@ -1,7 +1,6 @@
-import { lazy, useState, useEffect, useRef } from 'react';
+import { lazy, useState, useEffect } from 'react';
 import useAPI from '../../components/ChatMap/useApi.js'
 import Header from '../header.jsx';
-import NoLocationsSection from '../home/noLocations.section.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
 import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
@@ -12,10 +11,8 @@ const Map = lazy(() => import('../../components/Map'));
 
 function App() {
 
-  const [noLocations, setNoLocations] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState();
+  const [, setSelectedFeature] = useState();
   const [showSettings, setShowSettings] = useState(false);
-  const alertRef = useRef();
   const navigate = useNavigate();
 
   // Get data from API
@@ -33,24 +30,23 @@ function App() {
     fetchStatus
   } = useAPI();
 
+  // If connected, fetch map data every 10 sec
   useInterval(() => { status === "connected" && fetchMapData() }, 10000);
-
-  useInterval(() => fetchStatus(), session && status !== "connected" ? 1000 : null);
-
-  useEffect(() => {
-    if (error) {
-      alertRef.current.toast()
-    }
-  }, [error, alertRef]);
- 
+  // If connected, fetch map data
   useEffect(() => {
     status === "connected" && fetchMapData();
   }, [status]);
 
+  // If not connected, fetch status every 1 sec
+  useInterval(() => fetchStatus(), session && status !== "connected" ? 1000 : null);
+
+  // Fetch user session
   useEffect(() => {
       fetchSession();
   }, []);
 
+  // If session not found or waiting for connection
+  // but no QR code available, fetch a QR code
   useEffect(() => {
     if (
       (status === "not_found" && session) ||
@@ -101,21 +97,32 @@ function App() {
           showLogoutIcon={true}
           handleLogoutClick={handleLogoutClick}
           mode="linked"
-          subtitle={"Live updated maps with linked devices"}
-          legend={"Only WhatsApp is supported for now, more apps coming soon!"}
+          subtitle={
+            intl.formatMessage({
+              id: "app.linked.subtitle",
+              defaultMessage: "Live updated maps with linked devices"
+            })
+          }
+          legend={
+            intl.formatMessage({
+              id: "app.linked.legend",
+              defaultMessage: "Only WhatsApp is supported for now, more apps coming soon!"
+            })            
+          }
         />
 
+        {/* Loading message */}
         <div className={`loading ${
           (isLoading && !QRImgSrc) ? 'loading-show' : 'loading-hide'}`}>
           <sl-badge className="loadingBadge" variant="neutral" pill>Loading ...</sl-badge>
         </div>
 
-        { error ? 
-          <sl-alert ref={alertRef} variant="primary" duration="3000" closable>
+        {/* Error alerts */}
+        <sl-alert open={error ? true : false} variant="primary" duration="3000" closable>
             <sl-icon slot="icon" name="info-circle"></sl-icon>
             <strong>Something went wrong</strong><br />
             {error}
-        </sl-alert> : null }
+        </sl-alert>
 
         {/* No connected an QR code, show it */}
         { status !== "connected" && QRImgSrc &&
@@ -152,13 +159,6 @@ function App() {
             <Map center={[1,1]} zoom={1} />
           </div>
         </>
-        }
-
-        {/* If there are no locations, show a message */}
-        { noLocations &&
-          <NoLocationsSection
-            handleNewUploadClick={handleNewUploadClick}
-          />
         }
 
         {/* Settings window */}

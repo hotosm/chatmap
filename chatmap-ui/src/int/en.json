@@ -13,5 +13,21 @@
     "app.saveYourMapIn": "Save your map in",
     "app.tags": "Tags",
     "app.yourTagHere": "Your tag here",
-    "app.all": "All"
+    "app.all": "All",
+    "app.experimental": "Experimental",
+    "app.linked.subtitle": "Live updated maps with linked devices",
+    "app.linked.legend": "Only WhatsApp is supported for now, more apps coming soon!",
+    "app.linked.linkYourDevice": "Link your device",
+    "app.linked.linkYourDevice.legend": "Receive all your chat messages and convert them into a map",
+    "app.linked.linkYourDevice.open": "Open",
+    "app.linked.linkYourDevice.onYourPhone": "On your phone",
+    "app.linked.linkYourDevice.tap": "Tap",
+    "app.linked.linkYourDevice.menu": "menu",
+    "app.linked.linkYourDevice.onAndroidOr": "on Android or",
+    "app.linked.linkYourDevice.settings": "settings",
+    "app.linked.linkYourDevice.oniPhone": "on iPhone",
+    "app.linked.linkYourDevice.linkedDevices": "Linked devices",
+    "app.linked.linkYourDevice.then": "then",
+    "app.linked.linkYourDevice.LinkDevice": "Link device"
+
 }

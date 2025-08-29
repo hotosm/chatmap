@@ -1,4 +1,4 @@
-
+import { FormattedMessage } from 'react-intl';
 
 export default function Footer() {
 
@@ -7,19 +7,52 @@ export default function Footer() {
   return (
     <>
     <p className="info">
-        <strong>How it works?</strong> check this quick <strong><a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">video tutorial</a></strong>
+        <strong>
+            <FormattedMessage
+              id = "app.howItWorks"
+              defaultMessage="How it works?"
+            />
+          </strong>
+          &nbsp;
+          <FormattedMessage
+            id = "app.checkThisQuick"
+            defaultMessage="Check this quick"
+          />
+          &nbsp;
+          <strong><a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">
+          <FormattedMessage
+            id = "app.videoTutorial"
+            defaultMessage="video tutorial"
+          />
+          </a></strong>
     </p>
     <p className="info">
-       Save your map in <a href="https://umap.hotosm.org/chatmap">umap.hotosm.org/chatmap</a>
+          <FormattedMessage
+            id = "app.saveYourMapIn"
+            defaultMessage="Save your map in"
+          />
+          &nbsp;
+          <a href="https://umap.hotosm.org/chatmap">umap.hotosm.org/chatmap</a>
     </p>
     { ENABLE_LIVE ?
-        <p className="info info-top-spaced">
-            <sl-button size="medium" href="#linked">
-              <i className="bi bi-qr-code-scan"></i>
-              <sl-icon name="qr-code-scan" slot="prefix"></sl-icon> <strong>Link your device</strong>
-              <sl-badge variant="success" pill>New!</sl-badge>
-            </sl-button>
-        </p>
+    <p className="info info-top-spaced">
+        <sl-button size="medium" href="#linked">
+          <i className="bi bi-qr-code-scan"></i>
+          <sl-icon name="qr-code-scan" slot="prefix"></sl-icon>
+          <strong>
+            <FormattedMessage
+              id = "app.linked.linkYourDevice"
+              defaultMessage="Link your device"
+            />
+          </strong>
+          <sl-badge variant="success" pill>
+            <FormattedMessage
+              id = "app.experimental"
+              defaultMessage="Experimental"
+            />
+          </sl-badge>
+        </sl-button>
+    </p>
     : null }
     </>
   );

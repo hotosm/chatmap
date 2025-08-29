@@ -15,7 +15,6 @@ const useApi = (params = {}) => {
         type: "FeatureCollection",
         features: []
     });
-    const [files, setFiles] = useState();
     const [QRImgSrc, setQRImgSrc] = useState();
     const [session, setSession] = useState();
     const [status, setStatus] = useState();
@@ -119,7 +118,7 @@ const useApi = (params = {}) => {
             });
             if (!response.ok) {
                 if (response.status === 401) {
-                    logoutSession();
+                    sessionStorage.removeItem("chatmap_access_token");
                     fetchSession();
                 }
                 throw new Error('Failed to fetch status');
@@ -138,7 +137,6 @@ const useApi = (params = {}) => {
         QRImgSrc,
         session,
         status,
-        files,
         isLoading,
         error,
         fetchMapData,

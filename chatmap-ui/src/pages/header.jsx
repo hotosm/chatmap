@@ -77,15 +77,15 @@ export default function Header({
             <h2 className="subtitle">
                 {subtitle ? subtitle :
                 <FormattedMessage
-                id = "app.subtitle"
-                defaultMessage="Export and upload a chat to create a map"
+                    id = "app.subtitle"
+                    defaultMessage="Export and upload a chat to create a map"
                 />}
             </h2>
             <p className="highlighted">
                 { legend ? legend :
                 <FormattedMessage
-                id = "app.supportedApps"
-                defaultMessage="Now it works with WhatsApp, Telegram or Signal!"
+                    id = "app.supportedApps"
+                    defaultMessage="Now it works with WhatsApp, Telegram or Signal!"
                 />}
             </p>
             </>

@@ -3,12 +3,87 @@ function QRCode({ img }) {
         <div className="connectForm">
             <div className="connectFormWrapper">
                 <div>
-                    <h2>Link your device</h2>
-                    <h3>Receive all your chat messages and convert them into a map</h3>
+                    <h2>
+                        <FormattedMessage
+                            id = "app.linked.linkYourDevice"
+                            defaultMessage="Link your device"
+                        />
+                    </h2>
+                    <h3>
+                        <FormattedMessage
+                            id = "app.linked.linkYourDevice.legend"
+                            defaultMessage="Receive all your chat messages and convert them into a map"
+                        />
+                    </h3>
                     <ol>
-                        <li>Open <strong>WhatsApp</strong> on your phone</li>
-                        <li>Tap <strong>Menu</strong> on Android or <strong>Settings</strong> on iPhone</li>
-                        <li>Tap <strong>Linked devices</strong> then <strong>Link device</strong></li>
+                        <li>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.open"
+                                defaultMessage="Open"
+                            />
+                            &nbsp;
+                            <strong>WhatsApp</strong>
+                            &nbsp;
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.onYourPhone"
+                                defaultMessage="on your phone"
+                            />
+                        </li>
+                        <li>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.tap"
+                                defaultMessage="Tap"
+                            />
+                            &nbsp;
+                            <strong>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.menu"
+                                defaultMessage="menu"
+                            />
+                            </strong>
+                            &nbsp;
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.onAndroidOr"
+                                defaultMessage="on Android or"
+                            />
+                            &nbsp;
+                            <strong>
+                                <FormattedMessage
+                                    id = "app.linked.linkYourDevice.settings"
+                                    defaultMessage="settings"
+                                />
+                            </strong>
+                            &nbsp;
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.onIphone"
+                                defaultMessage="on iPhone"
+                            />
+                        </li>
+                        <li>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.tap"
+                                defaultMessage="Tap"
+                            />
+                            &nbsp;
+                            <strong>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.linkedDevices"
+                                defaultMessage="Linked devices"
+                            />
+                            </strong>
+                            &nbsp;
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.then"
+                                defaultMessage="then"
+                            />
+                            &nbsp;
+                            <strong>
+                                <FormattedMessage
+                                    id = "app.linked.linkYourDevice.LinkDevice"
+                                    defaultMessage="Link device"
+                                />
+                            </strong>
+                        </li>
                         <li>Scan the QR code and start mapping!</li>
                     </ol>
                 </div>
