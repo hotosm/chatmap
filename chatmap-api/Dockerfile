@@ -11,6 +11,9 @@ COPY db.py ./db.py
 COPY models.py ./models.py
 COPY run.py ./run.py
 COPY main.py ./main.py
+COPY chatmap_data.py ./chatmap_data.py
+COPY chatmap_stream.py ./chatmap_stream.py
+COPY db.py ./db.py
 
 FROM python:3.11-slim-buster
 
