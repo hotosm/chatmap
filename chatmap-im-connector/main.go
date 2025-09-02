@@ -64,6 +64,7 @@ type SessionMeta struct {
     QRCode   string
     Connected bool
     User string
+    SessionID string
 }
 
 // Status
@@ -202,6 +203,7 @@ func initClient(sessionID string) {
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].Connected = true
                     sessionMeta[sessionID].User = client.Store.ID.User
+                    sessionMeta[sessionID].SessionID = sessionID
                     log.Printf("Session %s CONNECTED (1) ClientID: %s\n", sessionID,  client.Store.ID.User)
                     sessionMetaMu.Unlock()
                     break
@@ -213,6 +215,7 @@ func initClient(sessionID string) {
         sessionMetaMu.Lock()
         sessionMeta[sessionID].Connected = true
         sessionMeta[sessionID].User = client.Store.ID.User
+        sessionMeta[sessionID].SessionID = sessionID
         log.Printf("Session %s CONNECTED (2) ClientID: %s\n", sessionID,  client.Store.ID.User)
         sessionMetaMu.Unlock()
     }
@@ -319,6 +322,19 @@ func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte
     return data, nil
 }
 
+// Getr session by user
+func getSessionByUser(user string) (*SessionMeta, bool) {
+    sessionMetaMu.RLock()
+    defer sessionMetaMu.RUnlock()
+
+    for _, meta := range sessionMeta {
+        if meta.User == user {
+            return meta, true
+        }
+    }
+    return nil, false
+}
+
 // Get a message id and a sessionID and serves a media file
 func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -328,12 +344,13 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
     // Extract the file name from the path
     msgID := strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
 
-    sessionID := r.URL.Query().Get("sessionID")
-    client := clients[sessionID]
+    user := r.URL.Query().Get("user")
+    session, _ := getSessionByUser(user)
+    client := clients[session.SessionID]
     ctx := context.Background()
 
     // Get media reference data from Redis
-    res, _ := redisClient.XRange(ctx, fmt.Sprintf("messages:%s", client.Store.ID.User), msgID, msgID).Result()
+    res, _ := redisClient.XRange(ctx, fmt.Sprintf("messages:%s", user), msgID, msgID).Result()
 
     if (len(res) > 0) {
         photoJSON, _ := res[0].Values["photo"].(string)

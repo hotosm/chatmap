@@ -1,13 +1,9 @@
 import os
 import httpx
 import logging
-import redis.asyncio as redis
-import time
 import json
 import uuid
-import base64
-from chatmap_py import parser as chatmap_parser
-from Crypto.Cipher import AES
+import asyncio
 from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
 from fastapi.responses import StreamingResponse, FileResponse
 from typing import Dict
@@ -17,47 +13,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import UserChatMap, Base, engine, SessionLocal, init_db, load_session, save_session, remove_session
+from db import UserChatMap, SessionLocal, init_db, load_session, save_session, remove_session, get_db
 from sqlalchemy.orm import Session
-from sqlalchemy import delete
 from datetime import datetime, timedelta, timezone
-
-# Settings
-MEDIA_FOLDER="media"
+from chatmap_stream import stream_listener
+from settings import API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL
 
 # Logs
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='chatmap-api.log', level=logging.INFO)
 
-# Debug
-DEBUG = False
-
-# API
-API_URL = os.getenv("CHATMAP_API_URL", "http://localhost:8000")
-API_VERSION = os.getenv("CHATMAP_API_VERSION", "1")
 app = FastAPI()
 prefix = f"v{API_VERSION}"
 api_router = APIRouter(prefix=f"/{prefix}")
-
-# Security
-SECRET_KEY = os.getenv("CHATMAP_SECRET_KEY", "4sup3rs3cret5up3rdummykey")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
-CHATMAP_ENC_KEY=os.getenv("CHATMAP_ENC_KEY", "0123456789ABCDEF0123456789ABCDEF")
-
-# Configure Redis connection
-redis_host = os.getenv("REDIS_HOST", "localhost")
-redis_port = int(os.getenv("REDIS_PORT", 6379))
-redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
-
-# Redis key for filtering
-STREAM_KEY = "messages"
-# Expiring time for messages (in minutes)
-EXPIRING_MIN = 120
-EXPIRING_MIN_MS = EXPIRING_MIN * 60 * 1000
-
-# Linked devices server
-server_url = os.getenv("SERVER_URL", "http://localhost:8001")
 
 # DB
 init_db()
@@ -77,24 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 security = HTTPBearer()
-
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def decrypt(encoded_data: str) -> str:
-    key = CHATMAP_ENC_KEY.encode('utf-8')
-    raw = base64.b64decode(encoded_data)
-    nonce_size = 12
-    nonce = raw[:nonce_size]
-    ciphertext = raw[nonce_size:]
-    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
-    plaintext = cipher.decrypt_and_verify(ciphertext[:-16], ciphertext[-16:])
-    return plaintext.decode('utf-8')
 
 # Create auth token
 def create_token(data: dict):
@@ -133,7 +83,7 @@ def get_current_session(
 @api_router.get("/qr", response_class=StreamingResponse)
 async def qr(session: dict = Depends(get_current_session)):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f'{server_url}/start-qr?session={session["user_id"]}')
+        response = await client.get(f'{SERVER_URL}/start-qr?session={session["user_id"]}')
         if response.status_code != 200:
             logger.info(f'Failed to get QR code: {session["user_id"]}')
             raise HTTPException(status_code=502, detail="Failed to get QR code")
@@ -147,7 +97,7 @@ async def qr(session: dict = Depends(get_current_session)):
 @api_router.get("/status")
 async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db)) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f'{server_url}/status?session={session["user_id"]}')
+        response = await client.get(f'{SERVER_URL}/status?session={session["user_id"]}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to get session")
         status_response = response.json()
@@ -162,143 +112,29 @@ async def status(session: dict = Depends(get_current_session), db: Session = Dep
 @api_router.get("/logout")
 async def logout(session: dict = Depends(get_current_session), db: Session = Depends(get_db)) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f'{server_url}/logout?session={session["user_id"]}')
+        response = await client.get(f'{SERVER_URL}/logout?session={session["user_id"]}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to logout")
         remove_session(db, session)
         return {'status': "logged out"}
 
-# Cleanup old messages
-async def cleanup(user: str):
-    cutoff_time_ms = int(time.time() * 1000) - EXPIRING_MIN_MS
-    cutoff_id = f"{cutoff_time_ms}-0"
-    entries = await redis_client.xrange(f"{STREAM_KEY}:{user}", min='-', max=cutoff_id)
-    # Remove data older than (EXPIRING_MIN_MS) minutes
-    for entry_id, _ in entries:
-        await redis_client.xdel(f"{STREAM_KEY}:{user}", entry_id)
-    logger.info(f'cleanup: {len(entries)} messages deleted')
-
-# Merge two GeoJSON objects, prevent duplicates
-def merge_geojson(currentGeoJSON, newGeoJSON):
-    merged = []
-    for item in newGeoJSON["features"]:
-        merged.append(item)
-    for item in currentGeoJSON["features"]:
-        if not any(i["properties"]["id"] == item["properties"]["id"] for i in merged):
-            if not any(i["properties"]["related"] == item["properties"]["id"] for i in merged):
-                merged.append(item)
-    return merged
-
 # Get GeoJSON generated by ChatMap
 @api_router.get("/chatmap")
-async def get_chatmap(request: Request, session: dict = Depends(get_current_session), db: Session = Depends(get_db)) -> GeoJson:
-    logger.info(f'get_chatmap: session {session.get("user")}')
-    try:
-        # Get all available messages
-        entries = await redis_client.xrange(f'{STREAM_KEY}:{session["user"]}', min='-', max='+')
-        # Cleanup old messages
-        await cleanup(session["user"])
-    except Exception as e:
-        print(f"Error getting entries: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+async def get_chatmap(
+    request: Request,
+    session: dict = Depends(get_current_session),
+    db: Session = Depends(get_db),
+) -> GeoJson:
+    user = session["user"]
+    userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
+    if userChatmap:
+        geoJSON = json.loads(userChatmap.geojson)
+        return geoJSON
+    return {
+        "type": "FeatureCollection",
+        "features": []
+    }
 
-    # Convert to list of dictionaries and add index as id
-    data = [
-        {
-            **{bytes.decode(k): bytes.decode(v) \
-                if isinstance(v, bytes) \
-                    else v for k, v in entry.items()},
-            'id': idx
-        }
-        for idx, (_, entry) in enumerate(entries)
-    ]
-
-    geoJSON = {}
-    # Get GeoJSON from ChatMap
-    try:
-        geoJSON = chatmap_parser.streamParser(data)
-    except Exception as e:
-        print(f"Error parsing chat: {e}")
-
-    if 'user' in session:
-        user = session["user"]
-        if 'features' in geoJSON:
-            filtered_features = []
-            for feature in geoJSON['features']:
-                # Text message
-                if 'message' in feature['properties'] and feature['properties']['message'] != "":
-                    # Decrypt it
-                    feature['properties']['message'] = decrypt(feature['properties']['message'])
-                    filtered_features.append(feature)
-
-                # Image file
-                if 'file' in feature['properties'] and feature['properties']['file'] != "":
-                    # and feature['properties']['related'] not in related_ids:
-                    # If image, get the decrypted file from the connector sever
-                    # and save it to local directory
-                    if feature['properties']['file'].endswith(".jpg"):
-                        filename = feature['properties']['file']
-
-                        # Check: using session could result in dupicates?
-                        session_folder = os.path.join(MEDIA_FOLDER, user)
-
-                        # Create session folder if not exists
-                        if not os.path.exists(session_folder):
-                            os.mkdir(session_folder)
-
-                        # File to save
-                        target_file = os.path.join(session_folder, f"{filename}")
-
-                        # If file was not saved previously, download decrypted image
-                        # from connector server and save it to disk
-                        if not os.path.exists(target_file):
-                            logger.info(f'Trying to save media file: {target_file}')
-                            try:
-                                async with httpx.AsyncClient() as client:
-                                    response = await client.get(f'{server_url}/media/{filename}?sessionID={session["user_id"]}')
-                                    response.raise_for_status()  # Raise for 4xx/5xx
-                                with open(target_file, "wb") as f:
-                                    if len(response.content) > 0:
-                                        f.write(response.content)
-                                        logger.info(f'Media file saved: {target_file}')
-                                    else:
-                                        logger.info(f'Media file is empty: {target_file}')
-
-                            except httpx.HTTPError as e:
-                                logger.error(f"Failed to download: {str(e)}")
-
-                        # Set signed URL for image, using sessionId
-                        url = f"{API_URL}/{prefix}/media?user={user}&filename={filename}"
-                        feature['properties']['file'] = url
-                        filtered_features.append(feature)
-
-        try:
-            userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
-            if userChatmap:
-                # Merge new GeoJSON with existing one and update DB
-                currentGeoJSON = json.loads(userChatmap.geojson)
-                if 'features' in geoJSON and len(geoJSON['features']) > 0:
-                    mergedGeoJSON = {
-                        "type": "FeatureCollection",
-                        "features": merge_geojson(currentGeoJSON, geoJSON)
-                    }
-                    userChatmap.geojson = json.dumps(mergedGeoJSON)
-                    db.commit()
-                    db.refresh(userChatmap)
-                    return mergedGeoJSON
-                else:
-                    return json.loads(userChatmap.geojson)
-            else:
-                # Create new entry
-                newUserChatmap = UserChatMap(id=user, geojson=json.dumps(geoJSON))
-                db.add(newUserChatmap)
-                db.commit()
-                db.refresh(newUserChatmap)
-        except Exception as e:
-            print(f"Error getting chatmap: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
-    # print(geoJSON)
-    return geoJSON
 
 @api_router.get("/media")
 async def media(filename: str, user: str) -> Dict[str, str]:
@@ -313,112 +149,8 @@ async def media(filename: str, user: str) -> Dict[str, str]:
 async def status():
     return {'version': "0.0.1"}
 
-# ----- (FOR DEBUGGING) -----
-
-# if DEBUG:
-
-#     # Get GeoJSON generated by ChatMap
-#     @api_router.get("/debug/chatmap")
-#     async def get_chatmap(user: str, db: Session = Depends(get_db)):
-#         session = {
-#             'user': user,
-#         }
-#         logger.info(f'get_chatmap: session {session.get("user")}')
-#         try:
-#             # Get all available messages
-#             entries = await redis_client.xrange(f'{STREAM_KEY}:{session["user"]}', min='-', max='+')
-#         except Exception as e:
-#             print(f"Error getting entries: {e}")
-#             raise HTTPException(status_code=500, detail=str(e))
-
-#         # Convert to list of dictionaries and add index as id
-#         data = [
-#             {
-#                 **{bytes.decode(k): bytes.decode(v) \
-#                     if isinstance(v, bytes) \
-#                         else v for k, v in entry.items()},
-#                 'id': idx
-#             }
-#             for idx, (_, entry) in enumerate(entries)
-#         ]
-
-#         geoJSON = {}
-#         # Get GeoJSON from ChatMap
-#         geoJSON = chatmap_parser.streamParser(data)
-#         return geoJSON
-
-#     # Get raw messages
-#     @api_router.get("/debug/messages")
-#     async def messages(user: str):
-#         try:
-#             entries = await redis_client.xrange(f"{STREAM_KEY}:{user}", min='-', max='+')
-#         except Exception as e:
-#             raise HTTPException(status_code=500, detail=str(e))
-#         data = [{**fields} for _, fields in entries]
-#         return data
-
-#     # Get user session
-#     @api_router.get("/debug/me")
-#     def read_me(session: dict = Depends(get_current_session)):
-#         return session
-
-#     # Get map for user
-#     @api_router.get("/debug/map")
-#     async def clean(user: str, db: Session = Depends(get_db)):
-#         userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
-#         if userChatmap:
-#             return json.loads(userChatmap.geojson)
-#         return {}
-
-#     # Remove all maps
-#     @api_router.get("/debug/clean")
-#     async def clean(db: Session = Depends(get_db)):
-#         query = delete(UserChatMap)
-#         db.execute(query)
-#         db.commit()
-#         return {"message": "All records deleted"}
-
-#     # Get GeoJSON generated by ChatMap
-#     @api_router.get("/debug/geojson")
-#     async def geojson(user: str, db: Session = Depends(get_db)) -> GeoJson:
-#         logger.info(f'get_chatmap: session {user}')
-#         try:
-#             # Get all available messages
-#             entries = await redis_client.xrange(f"{STREAM_KEY}:{user}", min='-', max='+')
-#             # Cleanup old messages
-#             # await cleanup(user)
-#         except Exception as e:
-#             print(f"Error getting entries: {e}")
-#             raise HTTPException(status_code=500, detail=str(e))
-#         data = [
-#             {bytes.decode(k): bytes.decode(v) if isinstance(v, bytes) else v
-#             for k, v in entry.items()}
-#             for _, entry in entries
-#         ]
-#         geoJSON = {}
-#         # Get GeoJSON from ChatMap
-#         try:
-#             geoJSON = chatmap_parser.streamParser(data)
-#         except Exception as e:
-#             print(f"Error parsing chat: {e}")
-#         return geoJSON
-
-# -------------
-
 # API Router
 app.include_router(api_router)
-
-# Get all sessions
-async def get_sessions():
-    sessions = await redis_client.scan(0, match="messages:*", type="stream")
-    return [item[0].decode('utf-8').replace("messages:", "") for item in sessions if type(item) != int]
-
-# Update all sessions every (EXPIRING_MIN) minutes
-@scheduler.scheduled_job('interval', minutes=EXPIRING_MIN)
-async def update():
-    sessions = get_sessions()
-    for session in sessions:
-        await get_chatmap(session)
 
 # On API startup
 @api_router.on_event("startup")
@@ -426,17 +158,9 @@ async def startup_event():
     global scheduler
     if not os.path.exists("media"):
         os.mkdir("media")
-    try:
-        Base.metadata.create_all(bind=engine)
-        scheduler.start()
-    except Exception as e:
-        print(f"Error starting scheduler: {e}")
+    asyncio.create_task(stream_listener())
 
 # On API shutdown
 @api_router.on_event("shutdown")
 async def shutdown_event():
-    global scheduler
-    try:
-        scheduler.shutdown(wait=True)
-    except Exception as e:
-        print(f"Error shutting down scheduler: {e}")
+    print(f"Shutting down ...")

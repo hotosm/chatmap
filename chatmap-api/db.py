@@ -53,3 +53,17 @@ def remove_session(db: Session, session: Dict):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+# Dependency to get DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_db_session() -> Session:
+    """
+    Return a fresh Session object.  Call it wherever you need a DB connection.
+    """
+    return SessionLocal()
