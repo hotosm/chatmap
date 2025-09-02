@@ -63,13 +63,11 @@ async def process_chat_entries(
         print(f"Error parsing chat: {e}")
 
     if 'features' in geoJSON:
-        filtered_features = []
         for feature in geoJSON['features']:
             # Text message
             if 'message' in feature['properties'] and feature['properties']['message'] != "":
                 # Decrypt it
                 feature['properties']['message'] = decrypt(feature['properties']['message'])
-                filtered_features.append(feature)
 
             # Image file
             if 'file' in feature['properties'] and feature['properties']['file'] != "":
@@ -110,17 +108,16 @@ async def process_chat_entries(
                     # Image URL
                     url = f"{API_URL}/{prefix}/media?user={user}&filename={filename}"
                     feature['properties']['file'] = url
-                    filtered_features.append(feature)
 
         try:
             userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
             if userChatmap:
                 # Merge new GeoJSON with existing one and update DB
                 currentGeoJSON = json.loads(userChatmap.geojson)
-                if 'features' in filtered_features and len(filtered_features['features']) > 0:
+                if 'features' in geoJSON and len(geoJSON['features']) > 0:
                     mergedGeoJSON = {
                         "type": "FeatureCollection",
-                        "features": merge_geojson(currentGeoJSON, filtered_features)
+                        "features": merge_geojson(currentGeoJSON, geoJSON)
                     }
                     userChatmap.geojson = json.dumps(mergedGeoJSON)
                     db.commit()
@@ -130,7 +127,7 @@ async def process_chat_entries(
                     return
             else:
                 # Create new entry
-                newUserChatmap = UserChatMap(id=user, geojson=json.dumps(filtered_features))
+                newUserChatmap = UserChatMap(id=user, geojson=json.dumps(geoJSON))
                 db.add(newUserChatmap)
                 db.commit()
                 db.refresh(newUserChatmap)
