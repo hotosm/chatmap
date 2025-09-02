@@ -133,4 +133,3 @@ async def process_chat_entries(
                 db.refresh(newUserChatmap)
         except Exception as e:
             print(f"Error getting chatmap: {e}")
-            raise Exception(status_code=500, detail=str(e))
