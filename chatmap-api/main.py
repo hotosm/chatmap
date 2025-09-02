@@ -124,7 +124,7 @@ async def get_chatmap(
     request: Request,
     session: dict = Depends(get_current_session),
     db: Session = Depends(get_db),
-) -> GeoJson:
+):
     user = session["user"]
     userChatmap = db.query(UserChatMap).filter(UserChatMap.id == user).first()
     if userChatmap:
