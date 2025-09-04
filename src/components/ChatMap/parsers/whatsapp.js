@@ -110,7 +110,7 @@ export const parseTimeString = (dateStr) => {
     dateTimeStr = dateTimeStr.replace("a.m.", "AM").replace("p.m.", "PM")
     let dateTime = dateTimeStr.split(" ");
     const now = new Date();
-    let fmtDate = [[now.getFullYear(), now.getMonth() + 1, now.getDate()].join("/"), dateTime[1]].join(" ")
+    let fmtDate = [[now.getFullYear(), now.getMonth() + 1, now.getDate()].join("/"), dateTime[1]].join(" ").replace(".", ":")
     return new Date(fmtDate);
 }
 
