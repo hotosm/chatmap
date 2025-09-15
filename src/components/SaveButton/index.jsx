@@ -15,14 +15,15 @@ function createAndDownloadZip(data, dataFiles) {
   // The name of the file to save
   const chatmapId = data._chatmapId || (Math.floor(10000 + Math.random() * 90000)).toString();
 
-  // Get a list of media files from GeoJSON data
-  const media_files = data.features.map(x => x.properties.file);
-
   // Add GeoJSON data to the zip file
   const newData = {
     _chatmapId: chatmapId,
-    ...data
+    ...data,
+    features: data.features.filter(feature => !feature.properties.removed),
   }
+
+  // Get a list of media files from GeoJSON data
+  const media_files = newData.features.map(x => x.properties.file);
 
   newData.features.forEach(feature => {
     // Delete username for enhanced privacy and security

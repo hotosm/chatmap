@@ -274,6 +274,8 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   font-size: var(--hot-font-size-small);
   text-align: left;
   padding-left: var(--hot-spacing-medium);
+  margin-top:  var(--hot-spacing-small);
+  display: flex;
 }
 
 .msgUsername {
@@ -349,6 +351,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 /* Messages */
 
+.message {
+  width: 300px;
+}
+
 .message .text {
   text-align: left;
   padding-left: var(--hot-spacing-small);
@@ -376,6 +382,26 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 .dropdownSelection sl-button,
 .dropdownSelection sl-dropdown::part(panel)  {
   width: 100%;
+}
+
+.message.removed {
+  opacity: .5;
+}
+
+.message.removed img {
+  filter: grayscale(1);
+}
+
+.message.removed .removeIcon {
+  color: var(--hot-color-primary-400);
+}
+
+.removeIcon::part(base) {
+  height: 20px;
+}
+
+.message .removedLabel {
+  font-size: var(--hot-font-size-x-small);
 }
 
 /* Connect form */
