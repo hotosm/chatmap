@@ -187,8 +187,11 @@ a {
 /* File upload */
 
 .fileUpload {
+<<<<<<< HEAD
   justify-content: center;
   display: flex;
+=======
+>>>>>>> origin/develop-merge
   padding-top: var(--hot-spacing-2x-large);
   padding-bottom: var(--hot-spacing-large);
 }
@@ -220,6 +223,17 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   font-size: var(--hot-font-size-x-large);
 }
 
+<<<<<<< HEAD
+=======
+.fileUploadWrapper {
+  margin-bottom: var(--hot-spacing-large);
+}
+
+.fileUploadOptions {
+  color: var(--hot-color-neutral-900);
+}
+
+>>>>>>> origin/develop-merge
 /* Info */
 
 .info {

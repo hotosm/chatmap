@@ -3,7 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Route, Routes, HashRouter } from 'react-router-dom';
 import Home from './pages/home';
+<<<<<<< HEAD
 import Linked from './pages/linked';
+=======
+>>>>>>> origin/develop-merge
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
 import En from './int/en.json';
@@ -20,6 +23,7 @@ import { MapDataProvider } from './context/MapDataContext';
 
 // Shoelace UI components
 import '@shoelace-style/shoelace/dist/components/button/button.js';
+<<<<<<< HEAD
 import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js';
 import '@shoelace-style/shoelace/dist/components/popup/popup.js';
 import '@shoelace-style/shoelace/dist/components/radio/radio.js';
@@ -35,6 +39,16 @@ import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/animation/animation.js';
 
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
+=======
+import '@shoelace-style/shoelace/dist/components/icon-button/icon-button.js';
+import '@shoelace-style/shoelace/dist/components/input/input.js';
+import '@shoelace-style/shoelace/dist/components/menu/menu.js';
+import '@shoelace-style/shoelace/dist/components/menu-item/menu-item.js';
+import '@shoelace-style/shoelace/dist/components/dropdown/dropdown.js';
+import '@shoelace-style/shoelace/dist/components/switch/switch.js';
+import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
+
+>>>>>>> origin/develop-merge
 setBasePath("/shoelace/");
 
 const locales = {
@@ -59,6 +73,7 @@ const getLocaleMessages = () => {
 }
 
 async function init() {
+<<<<<<< HEAD
   const response = await fetch('/config.json');
   const config = await response.json();
   const getConfig = window._CHATMAP_CONFIG = (label, default_val) => (
@@ -67,6 +82,8 @@ async function init() {
   )
   const ENABLE_LIVE = getConfig("ENABLE_LIVE", false);
 
+=======
+>>>>>>> origin/develop-merge
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
     <React.StrictMode>
@@ -76,9 +93,12 @@ async function init() {
             <HashRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
+<<<<<<< HEAD
                 { ENABLE_LIVE ?
                 <Route path="/linked" element={<Linked />} />
                 : null}
+=======
+>>>>>>> origin/develop-merge
               </Routes>
             </HashRouter>
           </MapDataProvider>

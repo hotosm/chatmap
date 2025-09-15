@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+=======
+# dependencies
+node_modules
+
+# production
+build
+
+# misc
+>>>>>>> origin/develop-merge
 .DS_Store
 data
 sessions

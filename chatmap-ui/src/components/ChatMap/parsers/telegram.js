@@ -59,26 +59,25 @@ const parseTimeString = (dateStr) => {
 // Parse messages from lines and create an index
 const parseAndIndex = (lines) => {
     let index = 0;
-    const result = {};
+    const result = [];
     lines.forEach((line) => {
         const msg = parseMessage(line);
         if (msg) {
-            result[index] = msg;
-            result[index].id = index;
+            result.push(msg);
             index++;
         }
     })
     return result;
 }
 
-export default function telegramParser({ text }) {
+export default function telegramParser({ text, options }) {
     if (!text) return;
     const json = JSON.parse(text);
 
     // Get message objects
     const messages = parseAndIndex(json.messages);
-    const chatmap = new ChatMap(messages, searchLocation);
+    const chatmap = new ChatMap(messages, searchLocation, options);
     const geoJSON = chatmap.pairContentAndLocations();
 
-    return {geoJSON, messages};
+    return { geoJSON };
 }

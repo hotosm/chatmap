@@ -47,7 +47,7 @@ Check docs for each instant messaging app [here](https://github.com/hotosm/chatm
 
 Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
-## Product roadmap
+## Latest features
 
 Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
 
@@ -66,10 +66,18 @@ Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
 |⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+<<<<<<< HEAD
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) |
+=======
+| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
+
+Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming features.
+
+Contributors are welcome!
+>>>>>>> origin/develop-merge
 
 ## Licensing
 
 Copyright 2024 Emilio Mariscal
 
-This is free software! you may use this project under the terms of the GNU General Public License (GPL) Version 3.
+This is free software! you may use this project under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

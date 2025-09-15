@@ -60,7 +60,7 @@ const parseTimeString = (dateStr) => {
 
 // Parse messages from lines and create an index
 const parseAndIndex = (lines) => {
-    const result = {};
+    const result = [];
     let msg = {};
     let started = false;
     let lastUsername;
@@ -70,8 +70,7 @@ const parseAndIndex = (lines) => {
         let isFrom = line.indexOf("From: ") === 0;
         if (started) {
             if (isFrom) {
-                result[msgIndex] = msg;
-                result[msgIndex].id = msgIndex;
+                result.push(msg);
                 lastUsername = msg.username;
                 msg = {};
                 msgIndex++;
@@ -90,14 +89,14 @@ const parseAndIndex = (lines) => {
 }
 
 
-export default function signalParser({ text }) {
+export default function signalParser({ text, options}) {
     if (!text) return;
     const lines = text.split("\n");
 
     // Get message objects
     const messages = parseAndIndex(lines);
-    const chatmap = new ChatMap(messages, searchLocation);
+    const chatmap = new ChatMap(messages, searchLocation, options);
     const geoJSON = chatmap.pairContentAndLocations();
 
-    return {geoJSON, messages};
+    return { geoJSON };
 }
