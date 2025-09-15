@@ -7,13 +7,12 @@ import asyncio
 from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
 from fastapi.responses import StreamingResponse, FileResponse
 from typing import Dict
-from models import GeoJson
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import UserChatMap, SessionLocal, init_db, load_session, save_session, remove_session, get_db
+from db import UserChatMap, init_db, load_session, save_session, remove_session, get_db
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from chatmap_stream import stream_listener

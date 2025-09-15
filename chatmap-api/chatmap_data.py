@@ -7,7 +7,6 @@ from db import UserChatMap, get_db_session
 from Crypto.Cipher import AES
 from typing import Dict, Sequence, Tuple
 from chatmap_py import parser as chatmap_parser
-from sqlalchemy.orm import Session
 from settings import MEDIA_FOLDER, API_URL, CHATMAP_ENC_KEY, SERVER_URL, API_VERSION
 
 # Logs

@@ -4,8 +4,7 @@ import os
 import logging
 import asyncio
 from chatmap_data import process_chat_entries
-from db import get_db
-from settings import STREAM_KEY, CONSUMER_GROUP, EXPIRING_MIN_MS, CONSUMER_NAME
+from settings import STREAM_KEY, EXPIRING_MIN_MS
 
 # Logs
 logger = logging.getLogger(__name__)

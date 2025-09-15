@@ -1,20 +1,37 @@
-from sqlalchemy import create_engine, Column, String, select
+from sqlalchemy import create_engine, Column, String, select, text
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from typing import Dict
+from settings import DEBUG, CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
 
-DATABASE_URL = "sqlite:///./data/chatmap.sqlite3"
-
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
+DATABASE_URL = (
+    f"psql://{CHATMAP_DB_USER}:{CHATMAP_DB_PASSWORD}"
+    f"@{CHATMAP_DB_HOST}:{CHATMAP_DB_PORT}/{CHATMAP_DB}"
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(
+    DATABASE_URL,
+    echo=DEBUG,
+)
+
+with engine.begin() as conn:
+    conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+
 Base = declarative_base()
 
-class UserChatMap(Base):
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
+
+class Map(Base):
     __tablename__ = "user_chatmap"
     id = Column(String, primary_key=True, index=True)
-    geojson = Column(String, index=True)
+
+class Point(Base):
+    __tablename__ = "point"
+    id = Column(String, primary_key=True, index=True)
+    map = Column(Map ...)
 
 class SessionData(Base):
     __tablename__ = "sessions"

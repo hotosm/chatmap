@@ -9,9 +9,9 @@ DEBUG = False
 # API
 API_URL = os.getenv("CHATMAP_API_URL", "http://localhost:8000")
 API_VERSION = os.getenv("CHATMAP_API_VERSION", "1")
+
 # Linked devices server
 SERVER_URL = os.getenv("SERVER_URL", "http://localhost:8001")
-
 
 # Security
 SECRET_KEY = os.getenv("CHATMAP_SECRET_KEY", "4sup3rs3cret5up3rdummykey")
@@ -27,3 +27,10 @@ CONSUMER_NAME = "messages-01"
 # Expiring time for messages (in minutes)
 EXPIRING_MIN = 120
 EXPIRING_MIN_MS = EXPIRING_MIN * 60 * 1000
+
+# Database
+CHATMAP_DB=os.getenv("CHATMAP_DB", "chatmap")
+CHATMAP_DB_USER=os.getenv("CHATMAP_DB_USER", "admin")
+CHATMAP_DB_PASSWORD=os.getenv("CHATMAP_DB_PASSWORD", "0123456789ABCDEF0123456789ABCDEF")
+CHATMAP_DB_PORT=os.getenv("CHATMAP_DB_PORT", 5432)
+CHATMAP_DB_HOST=os.getenv("CHATMAP_DB_HOST", "localhost")
