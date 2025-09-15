@@ -304,7 +304,7 @@ func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte
     if err != nil {
         return nil, fmt.Errorf("failed to decode FileEncSHA256: %w", err)
     }
-    // Create ImageMessage from metdata
+    // Create ImageMessage from metadata
     imgMsg := waProto.ImageMessage{
         MediaKey:   mediaKey,
         DirectPath: &meta.DirectPath,
@@ -314,6 +314,7 @@ func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte
         Mimetype:   &meta.Mimetype,
     }
     // Download & decrypt
+    // FIXME: client is nil
     data, err := client.Download(context.Background(), &imgMsg)
     if err != nil {
         log.Printf("download error: %w", err)

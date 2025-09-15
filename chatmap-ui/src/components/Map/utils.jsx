@@ -23,29 +23,20 @@ export const formatDate = (time) => {
  */
 export const getMessage = (message, msgType, dataFiles) => {
   let content;
-  if (message.file && (
-        msgType === "imageURL" || 
-        (dataFiles && message.file in dataFiles)
-      )
-    ) {
-
-
-    // Image URL
-    if (msgType === "imageURL") {
-      content = <img className="popupImage" alt="Message attached file" src={message.file} />
+  if (message.file && dataFiles && message.file in dataFiles) {
 
     // Image
-    } else if (msgType === "image") {
+    if (msgType === "image") {
       const url = URL.createObjectURL(dataFiles[message.file]);
-      content = <img className="popupImage" alt="Message attached file" src={url} />
+      content = <img className="popupImage" alt={message.file} src={url} />
 
     // Video
     } else if (msgType === "video") {
-      content = <video controls className="popupVideo" alt="Message attached file" src={URL.createObjectURL(dataFiles[message.file])} />
+      content = <video controls className="popupVideo" alt={message.file} src={URL.createObjectURL(dataFiles[message.file])} />
 
     // Audio
     } else if (msgType === "audio") {
-      content = <audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[message.file])} />
+      content = <audio controls className="popupAudio" alt={message.file} src={URL.createObjectURL(dataFiles[message.file])} />
     }
   }
 

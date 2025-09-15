@@ -55,15 +55,13 @@ export default function Popup ({
   dataFiles,
   onAddTag,
   onRemoveTag,
+  onRemoveMessage,
   allTags
 }) {
   
   const intl = useIntl();
 
   const getMsgType = (message) => {
-    if (message.file.slice(0, 4) == "http" ) {
-      return "imageURL";
-    }
     if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
       return "image";
     } else if (message.file.endsWith("mp4")) {
@@ -95,7 +93,9 @@ export default function Popup ({
           message={feature.properties}
           dataFiles={dataFiles}
           msgType={msgType}
+          onRemove={tag => onRemoveMessage(feature)} 
         />
+        { !feature.properties.removed ?
         <Tagger
           placeholder={
             intl.formatMessage({
@@ -108,8 +108,7 @@ export default function Popup ({
           tags={feature.properties.tags || []}
           onAddTag={tag => onAddTag(tag, feature)} 
           onRemoveTag={tag => onRemoveTag(tag, feature)} 
-
-        />
+        /> : "" }
       </div>
     </PopupGLWrapper>
   )
