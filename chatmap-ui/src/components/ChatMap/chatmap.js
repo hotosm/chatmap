@@ -132,33 +132,7 @@ export default class ChatMap {
       nextMessage = null;
     }
 
-    const prevPaired = prevMessage && this.pairedMessagesIds.indexOf(prevMessage.index) > -1
-    const nextPaired = nextMessage && this.pairedMessagesIds.indexOf(nextMessage.index) > -1
-
     // If there are prev and next messages
-<<<<<<< HEAD
-    // check the time difference between the two
-    // to decide which to return
-    if (prevMessage && nextMessage) {
-
-      // Prev and next message are in the same distance
-      if (prevMessage.delta === nextMessage.delta) {
-
-        if (!prevPaired) {
-          return messages[prevMessage.index];
-        } else if (!nextPaired) {
-          return messages[nextMessage.index];
-        }
-
-      } else if (prevMessage.delta < nextMessage.delta) {
-        if (!prevPaired) {
-          return messages[prevMessage.index];
-        }
-      } else if (prevMessage.delta > nextMessage.delta) {
-        if (!nextPaired) {
-          return messages[nextMessage.index];
-        }
-=======
     if (prevMessage && nextMessage) {
 
       // Return prev or next depending on which one is closer
@@ -166,22 +140,13 @@ export default class ChatMap {
         return messages[prevMessage.index];
       } else if (prevMessage.delta >= nextMessage.delta) {
         return messages[nextMessage.index];
->>>>>>> origin/develop-merge
       }
 
     // If only prev or next
     } else if (prevMessage) {
-      if (!prevPaired) {
-        return messages[prevMessage.index];
-      }
+      return messages[prevMessage.index];
     } else if (nextMessage) {
-<<<<<<< HEAD
-      if (!nextPaired) {
         return messages[nextMessage.index];
-      }
-=======
-        return messages[nextMessage.index];
->>>>>>> origin/develop-merge
     }
 
     // No message to pair has been found, return same message
@@ -266,32 +231,7 @@ export default class ChatMap {
             properties: {},
             geometry: {
                 type: "Point",
-<<<<<<< HEAD
-                coordinates: this.locationMessages[index]
-            }
-        }
-
-        const message = this.getClosestMessage(messages, index);
-
-        if (message) {
-            if (
-              this.pairedMessagesIds.indexOf(message.id) === -1
-            ) {
-              // Add the GeoJSON feature
-              featureObject.properties = {
-                ...message,
-                related: message.id
-              };
-              this.pairedMessagesIds.push(message.id);
-            }
-        } else {
-            // No related message
-            featureObject.properties = {
-                username: msgObject.username,
-                time: msgObject.time
-=======
                 coordinates: msg.location
->>>>>>> origin/develop-merge
             }
         }
 

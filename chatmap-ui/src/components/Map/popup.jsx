@@ -61,12 +61,9 @@ export default function Popup ({
   const intl = useIntl();
 
   const getMsgType = (message) => {
-<<<<<<< HEAD
     if (message.file.slice(0, 4) == "http" ) {
       return "imageURL";
     }
-=======
->>>>>>> origin/develop-merge
     if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
       return "image";
     } else if (message.file.endsWith("mp4")) {

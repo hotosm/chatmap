@@ -14,7 +14,6 @@
     "app.tags": "Etiquetas",
     "app.yourTagHere": "Tu etiqueta aquí",
     "app.all": "Todo",
-<<<<<<< HEAD
     "app.experimental": "Experimental",
     "app.linked.subtitle": "Mapas actualizados en tiempo real",
     "app.linked.legend": "Vincula una cuenta de mensajería instantánea (sólo WhatsApp por el momento)",
@@ -30,8 +29,6 @@
     "app.linked.linkYourDevice.linkedDevices": "Dispositivos vinculados",
     "app.linked.linkYourDevice.then": "luego",
     "app.linked.linkYourDevice.LinkDevice": "Vincular dispositivo",
-    "app.linked.linkYourDevice.scanQRCode": "Escanea el código QR y empieza crea el mapa!"
-=======
+    "app.linked.linkYourDevice.scanQRCode": "Escanea el código QR y empieza crea el mapa!",
     "app.mediaOnly": "Agrega sólo archivos multimedia al mapa (no texto)"
->>>>>>> origin/develop-merge
 }

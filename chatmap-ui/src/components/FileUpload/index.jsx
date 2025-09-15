@@ -42,10 +42,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
   const [filesCount, setFilesCount] = useState(0);
   const [zipFilesCount, setZipFilesCount] = useState(0);
   const [loadedZipFilesCount, setLoadedZipFilesCount] = useState(0);
-<<<<<<< HEAD
-=======
   const mediaOnlySwitchRef = useRef();
->>>>>>> origin/develop-merge
   const intl = useIntl();
 
   // Handle media only switch change event
@@ -130,11 +127,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
       </p> : ""}
 
       {/* File upload area */}
-<<<<<<< HEAD
-    <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>
-=======
       <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>
->>>>>>> origin/develop-merge
         <FileUploader
           handleChange={handleChange}
           multiple
@@ -151,11 +144,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
                 id = "app.uploadLabel"
                 defaultMessage="Upload your .zip file here"
               />
-<<<<<<< HEAD
-          </sl-button>}
-=======
             </sl-button>}
->>>>>>> origin/develop-merge
         />
       </div>
       <div className="fileUploadOptions">

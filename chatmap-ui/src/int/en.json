@@ -14,7 +14,6 @@
     "app.tags": "Tags",
     "app.yourTagHere": "Your tag here",
     "app.all": "All",
-<<<<<<< HEAD
     "app.experimental": "Experimental",
     "app.linked.subtitle": "Live updated maps with linked devices",
     "app.linked.legend": "Only WhatsApp is supported for now, more apps coming soon!",
@@ -30,8 +29,6 @@
     "app.linked.linkYourDevice.linkedDevices": "Linked devices",
     "app.linked.linkYourDevice.then": "then",
     "app.linked.linkYourDevice.LinkDevice": "Link device",
-    "app.linked.linkYourDevice.scanQRCode": "Scan the QR code and start mapping!"
-=======
+    "app.linked.linkYourDevice.scanQRCode": "Scan the QR code and start mapping!",
     "app.mediaOnly": "Add only media files to the map (no text)"
->>>>>>> origin/develop-merge
 }
