@@ -28,15 +28,15 @@ export const getMessage = (message, msgType, dataFiles) => {
     // Image
     if (msgType === "image") {
       const url = URL.createObjectURL(dataFiles[message.file]);
-      content = <img className="popupImage" alt="Message attached file" src={url} />
+      content = <img className="popupImage" alt={message.file} src={url} />
 
     // Video
     } else if (msgType === "video") {
-      content = <video controls className="popupVideo" alt="Message attached file" src={URL.createObjectURL(dataFiles[message.file])} />
+      content = <video controls className="popupVideo" alt={message.file} src={URL.createObjectURL(dataFiles[message.file])} />
 
     // Audio
     } else if (msgType === "audio") {
-      content = <audio controls className="popupAudio" src={URL.createObjectURL(dataFiles[message.file])} />
+      content = <audio controls className="popupAudio" alt={message.file} src={URL.createObjectURL(dataFiles[message.file])} />
     }
   }
 

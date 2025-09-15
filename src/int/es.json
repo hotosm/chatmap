@@ -13,5 +13,6 @@
     "app.saveYourMapIn": "Guarda tu mapa en",
     "app.tags": "Etiquetas",
     "app.yourTagHere": "Tu etiqueta aquí",
-    "app.all": "Todo"
+    "app.all": "Todo",
+    "app.mediaOnly": "Agrega sólo archivos multimedia al mapa (no texto)"
 }

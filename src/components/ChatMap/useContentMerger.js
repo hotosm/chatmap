@@ -10,7 +10,7 @@ import getAppParser from "./parsers/getAppParser";
  * is the key ex: myfile = files[filename]
  * (empty for default) to each location.
  */
-function useContentMerger({ files }) {
+function useContentMerger({ files, options }) {
 
     // Hook's response: a GeoJSON object
     const [geoJSON, setGeoJSON] = useState({
@@ -37,7 +37,7 @@ function useContentMerger({ files }) {
                 const parser = await getAppParser(files[filename]);
 
                 // Concatenate data from all uploaded chats
-                const {geoJSON} = parser({ text: files[filename] });
+                const {geoJSON} = parser({ text: files[filename], options });
                 if (geoJSON._chatmapId) {
                     _chatmapId = geoJSON._chatmapId;
                 }

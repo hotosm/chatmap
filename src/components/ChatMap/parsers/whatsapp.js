@@ -67,6 +67,7 @@ export const searchLocation = msgObject => {
     return null;
 }
 
+// Check if message is in list of ignored strings
 const isInTheIgnoreList = msg => {
     for (let i = 0; i < ignore.length; i++) {
         if (msg.indexOf(ignore[i]) > -1) {
@@ -117,7 +118,7 @@ export const parseTimeString = (dateStr) => {
 // Parse messages from lines and create an index
 export const parseAndIndex = (lines, system) => {
     let index = 0;
-    const result = {};
+    const result = [];
     lines.forEach((line) => {
 
         // Clean unicode from line
@@ -126,14 +127,12 @@ export const parseAndIndex = (lines, system) => {
         const msg = parseMessage(line, system);
 
         if (msg && !isInTheIgnoreList(msg.message)) {
-            result[index] = msg;
-            result[index].id = index;
-            index++;
+            result.push(msg);
         } else {
             // If message is just text without datestring,
             // append it to the previous message.
             if (result[index - 1] &&
-
+                // FIXME: check asian date formate
                 (system == "ANDROID" && line.substring(2,1) !== "/" &&
                     line.indexOf("a. m.") == -1 &&
                     line.indexOf("p. m.") == -1) ||
@@ -141,7 +140,7 @@ export const parseAndIndex = (lines, system) => {
                 (system == "IOS" &&
                 line.indexOf("[") == -1))
             {
-                result[index - 1].message += " " + line;
+                result[result.length - 1].message += " " + line;
             }
         }
     })
@@ -153,7 +152,7 @@ export const parseAndIndex = (lines, system) => {
  * @param {string} text
  * @returns {object} GeoJSON
  */
-export default function whatsAppParser({ text }) {
+export default function whatsAppParser({ text, options }) {
     if (!text) return;
 
     // Split the full text in lines
@@ -170,7 +169,7 @@ export default function whatsAppParser({ text }) {
 
     // Get message objects from text lines
     const messages = parseAndIndex(lines, system);
-    const chatmap = new ChatMap(messages, searchLocation);
+    const chatmap = new ChatMap(messages, searchLocation, options);
     const geoJSON = chatmap.pairContentAndLocations();
 
     return { geoJSON };

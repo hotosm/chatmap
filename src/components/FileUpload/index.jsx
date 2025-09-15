@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import JSZip from "jszip";
 import { useIntl } from 'react-intl';
@@ -36,13 +36,24 @@ const getFileFormat = (filename) => {
 // Upload a file to the app
 // It shows an upload area, reacts when files are uploaded.
 // It can manage all file formats ("chat", "zip" or "media")
-const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
+const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOnlyChange}) => {
   const [files, setFiles] = useState();
   const [loadedFilesCount, setLoadedFilesCount] = useState(0);
   const [filesCount, setFilesCount] = useState(0);
   const [zipFilesCount, setZipFilesCount] = useState(0);
   const [loadedZipFilesCount, setLoadedZipFilesCount] = useState(0);
+  const mediaOnlySwitchRef = useRef();
   const intl = useIntl();
+
+  // Handle media only switch change event
+  useEffect(() => {
+    const mediaOnlyEl = mediaOnlySwitchRef.current;
+    if (!mediaOnlyEl) return;
+    mediaOnlyEl.addEventListener("sl-change", onMediaOnlyChange);
+    return () => {
+      mediaOnlyEl.removeEventListener("sl-change", onMediaOnlyChange);
+    };
+  }, []);
 
   const handleChange = (loadedFiles) => {
     setZipFilesCount(loadedFiles.length);
@@ -116,7 +127,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
       </p> : ""}
 
       {/* File upload area */}
-    <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>
+      <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>
         <FileUploader
           handleChange={handleChange}
           multiple
@@ -133,8 +144,20 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
                 id = "app.uploadLabel"
                 defaultMessage="Upload your .zip file here"
               />
-          </sl-button>}
+            </sl-button>}
         />
+      </div>
+      <div className="fileUploadOptions">
+        <sl-switch
+          size="small"
+          checked={mediaOnly && "checked"}
+          ref={mediaOnlySwitchRef}
+        >
+          <FormattedMessage
+            id = "app.mediaOnly"
+            defaultMessage="Add only media files to the map (no text)"
+          />
+        </sl-switch>
       </div>
 
     </>
