@@ -80,6 +80,7 @@ function App() {
     mapDataDispatch({
       type: 'reset'
     })
+    window.removeEventListener('beforeunload', confirmPageLeave);
   }
 
   // Handle uploaded files error (ex: invalid chat export)
