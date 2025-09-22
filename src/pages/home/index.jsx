@@ -50,13 +50,36 @@ function App() {
     });
   }, [mapData]);
 
+  const confirmPageLeave = (e) => {
+    e.preventDefault();
+    if (window.confirm("Are you sure?")) {
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    if (data.hasChanged === true) {
+      window.addEventListener('beforeunload', confirmPageLeave);
+    } else {
+      window.removeEventListener('beforeunload', confirmPageLeave);
+    }
+  }, [data.hasChanged]);
+
   // The user wants to upload a new file, clear everything
   // (files, map data, errors)
   const handleNewUploadClick = () => {
+    if (data.hasChanged === true) {
+      if (!window.confirm("Are you sure?")) {
+        return;
+      }
+    }
     resetFileManager();
     resetMerger();
     setNoLocations(false);
     setSelectedFeature()
+    mapDataDispatch({
+      type: 'reset'
+    })
   }
 
   // Handle uploaded files error (ex: invalid chat export)

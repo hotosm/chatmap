@@ -7,6 +7,7 @@ const initialState = {
   type: "FeatureCollection",
   features: [],
   filterTag: null,
+  hasChanged: false,
   _chatmapId: null
 };
 
@@ -17,7 +18,7 @@ const reducer = (state, action) => {
       return { ...state, ...action.payload };
 
     case 'update_feature_props': {
-      const newState = { ...state };
+      const newState = { ...state, ...{ hasChanged: true } };
       newState.features.forEach((feature) => {
         if (feature.properties.id === action.payload.id) {
           feature.properties = action.payload.properties;
@@ -27,7 +28,10 @@ const reducer = (state, action) => {
     }
 
     case 'set_filter_tag':
-      return { ...state, ...{filterTag: action.payload.tag } };
+      return { ...state, ...{filterTag: action.payload.tag}};
+
+    case 'reset':
+      return { ...initialState };
 
     default:
       throw new Error();
