@@ -28,17 +28,7 @@ SessionLocal = sessionmaker(
     bind=engine,
 )
 
-class PointOut(BaseModel):
-    id: str
-    coordinates: List[float]
-    message: str | None = None
-    username: str | None = None
-    time: datetime
-    file: str | None = None
-
-    class Config:
-        orm_mode = True 
-
+# ChatMap Points
 class Point(Base):
     __tablename__ = "points"
     id = Column(String, primary_key=True, index=True)
@@ -65,12 +55,25 @@ def add_points(db: Session, points):
     db.execute(stmt)
     db.commit()
 
+class PointOut(BaseModel):
+    id: str
+    coordinates: List[float]
+    message: str | None = None
+    username: str | None = None
+    time: datetime
+    file: str | None = None
+
+    class Config:
+        orm_mode = True 
+
+# User Session Data
 class SessionData(Base):
     __tablename__ = "sessions"
     user_id = Column(String, primary_key=True)
     key = Column(String, primary_key=True)
     value = Column(String)
 
+# Load user session
 def load_session(db: Session, user_id: str) -> Dict:
     result = db.execute(
         select(SessionData.key, SessionData.value).where(SessionData.user_id == user_id)
@@ -80,6 +83,7 @@ def load_session(db: Session, user_id: str) -> Dict:
         session_dict[key] = value
     return session_dict
 
+# Save user session
 def save_session(db: Session, session: Dict):
     user_id = session.get("user_id")
     if not user_id:
@@ -91,6 +95,7 @@ def save_session(db: Session, session: Dict):
         db.merge(obj)
     db.commit()
 
+# Remove user session
 def remove_session(db: Session, session: Dict):
     user_id = session.get("user_id")
     if not user_id:
@@ -100,19 +105,13 @@ def remove_session(db: Session, session: Dict):
     )
     db.commit()
 
+# Initialize database
 def init_db():
     Base.metadata.create_all(bind=engine)
 
 # Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 def get_db_session() -> Session:
     """
-    Return a fresh Session object.  Call it wherever you need a DB connection.
+    Return a fresh Session object.
     """
     return SessionLocal()

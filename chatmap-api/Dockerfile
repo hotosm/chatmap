@@ -8,11 +8,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip freeze > requirements.lock
 
 COPY db.py ./db.py
-COPY models.py ./models.py
 COPY run.py ./run.py
 COPY main.py ./main.py
-COPY chatmap_data.py ./chatmap_data.py
-COPY chatmap_stream.py ./chatmap_stream.py
+COPY data.py ./data.py
+COPY stream.py ./stream.py
 COPY db.py ./db.py
 COPY settings.py ./settings.py
 

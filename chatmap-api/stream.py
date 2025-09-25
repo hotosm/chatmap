@@ -3,7 +3,7 @@ import time
 import os
 import logging
 import asyncio
-from chatmap_data import process_chat_entries
+from data import process_chat_entries
 from settings import STREAM_KEY, EXPIRING_MIN_MS
 
 # Logs

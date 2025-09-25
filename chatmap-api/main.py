@@ -11,10 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, PointOut, init_db, load_session, save_session, remove_session, get_db
+from db import Point, PointOut, init_db, load_session, save_session, remove_session, get_db_session
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
-from chatmap_stream import stream_listener
+from stream import stream_listener
 from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL
 from sqlalchemy import func
 
@@ -73,7 +73,7 @@ def get_current_session(credentials: HTTPAuthorizationCredentials = Depends(secu
 
 def get_current_session(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_session)
 ) -> dict:
     payload = decode_token(credentials.credentials)
     return load_session(db, payload["user_id"])
@@ -94,7 +94,7 @@ async def qr(session: dict = Depends(get_current_session)):
 
 # Get Status
 @api_router.get("/status")
-async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db)) -> Dict[str, str]:
+async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
         response = await client.get(f'{SERVER_URL}/status?session={session["user_id"]}')
         if response.status_code != 200:
@@ -109,7 +109,7 @@ async def status(session: dict = Depends(get_current_session), db: Session = Dep
 
 # Logout
 @api_router.get("/logout")
-async def logout(session: dict = Depends(get_current_session), db: Session = Depends(get_db)) -> Dict[str, str]:
+async def logout(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
         response = await client.get(f'{SERVER_URL}/logout?session={session["user_id"]}')
         if response.status_code != 200:
@@ -117,13 +117,13 @@ async def logout(session: dict = Depends(get_current_session), db: Session = Dep
         remove_session(db, session)
         return {'status': "logged out"}
 
-# Get save map for user
+# Get map points for user
 @api_router.get("/map/{user}", response_model=List[PointOut])
 async def get_chatmap(
     request: Request,
     user,
     #     session: dict = Depends(get_current_session),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_session),
 ):
     points = (
         db.query(
@@ -150,6 +150,7 @@ async def get_chatmap(
         for point in points
     ]
 
+# Get media file (image/jpeg)
 @api_router.get("/media")
 async def media(filename: str, user: str) -> Dict[str, str]:
     folder_path = os.path.join(MEDIA_FOLDER, user)
