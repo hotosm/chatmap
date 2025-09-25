@@ -1,7 +1,7 @@
 from typing import List, Union
 from enum import Enum
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
 '''
 {
@@ -31,8 +31,6 @@ from typing import List, Optional
 '''
 
 class GeometryType(Enum):
-    MULTI_POLYGON = "MultiPolygon"
-    POLYGON = "Polygon"
     POINT = "Point"
 
 class Properties(BaseModel):
@@ -42,22 +40,16 @@ class Properties(BaseModel):
     time: str = ""
     file: str = ""
     location: str = ""
-    related: Union[int, str]
     id: Union[int, str]
 
-class Geometries(BaseModel):
-    type: GeometryType
+class PointGeometry(BaseModel):
+    type: GeometryType.POINT
     coordinates: List[float]
-
-class ISOCodeResponse(BaseModel):
-    id: str
-    name: str
-    geometries: Optional[Geometries]
 
 class Feature(BaseModel):
     type: str
     properties: Properties
-    geometry: Geometries
+    geometry: List[PointGeometry]
 
 class GeoJson(BaseModel):
     type: str

@@ -36,8 +36,9 @@ async def stream_listener() -> None:
         sessions = await get_sessions()
         for user in sessions:
             entries = await redis_client.xrange(f'{STREAM_KEY}:{user}', min='-', max='+')
+            print(f"[stream_listener] {len(entries)} entries for user {user}")
             await process_chat_entries(user, entries)
             # Cleanup old messages
-            await cleanup(user)
+            # await cleanup(user)
 
         await asyncio.sleep(5)

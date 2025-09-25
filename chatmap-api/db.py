@@ -1,10 +1,14 @@
-from sqlalchemy import create_engine, Column, String, select, text
+from sqlalchemy import create_engine, Column, String, select, DateTime, text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from typing import Dict
+from geoalchemy2 import Geometry
+from typing import Dict, List
 from settings import DEBUG, CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
+from datetime import datetime
+from pydantic import BaseModel
 
 DATABASE_URL = (
-    f"psql://{CHATMAP_DB_USER}:{CHATMAP_DB_PASSWORD}"
+    f"postgresql://{CHATMAP_DB_USER}:{CHATMAP_DB_PASSWORD}"
     f"@{CHATMAP_DB_HOST}:{CHATMAP_DB_PORT}/{CHATMAP_DB}"
 )
 
@@ -24,14 +28,42 @@ SessionLocal = sessionmaker(
     bind=engine,
 )
 
-class Map(Base):
-    __tablename__ = "user_chatmap"
-    id = Column(String, primary_key=True, index=True)
+class PointOut(BaseModel):
+    id: str
+    coordinates: List[float]
+    message: str | None = None
+    username: str | None = None
+    time: datetime
+    file: str | None = None
+
+    class Config:
+        orm_mode = True 
 
 class Point(Base):
-    __tablename__ = "point"
+    __tablename__ = "points"
     id = Column(String, primary_key=True, index=True)
-    map = Column(Map ...)
+    geom = Column(Geometry(geometry_type="POINT", srid=4326))
+    message = Column(String)
+    user = Column(String)
+    username = Column(String)
+    time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
+    file = Column(String)
+    
+def add_points(db: Session, points):
+    stmt = insert(Point).values(points)
+    update_dict = {
+        "geom":    stmt.excluded.geom,
+        "message": stmt.excluded.message,
+        "file": stmt.excluded.file,
+        "user": stmt.excluded.user,
+        "username": stmt.excluded.username
+    }
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["id"],
+        set_=update_dict
+    )
+    db.execute(stmt)
+    db.commit()
 
 class SessionData(Base):
     __tablename__ = "sessions"
