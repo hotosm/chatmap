@@ -148,7 +148,6 @@ func initClient(sessionID string) {
     store.DeviceProps.PlatformType = waProto.DeviceProps_DESKTOP.Enum()
     store.DeviceProps.Os = proto.String("ChatMap")
 
-    var path string
     // Sessions directory
     if err := os.MkdirAll("sessions", 0755); err != nil {
         fmt.Printf("Failed to create sessions directory: %v\n", err)
@@ -156,7 +155,7 @@ func initClient(sessionID string) {
     }
 
     // Open DB
-    path = fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
+    path := fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
     container, err := sqlstore.New(ctx, "sqlite3", path, waLog.Noop)
     if err != nil {
         log.Fatalf("failed to open db: %v", err)
@@ -251,8 +250,7 @@ func getExistingSessionId(phoneNumber string, currentSessionId string) (string) 
         ctx := context.Background()
 
         // Open DB
-        var path string
-        path = fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
+        path := fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
         container, err := sqlstore.New(ctx, "sqlite3", path, waLog.Noop)
         if err != nil {
             log.Fatalf("failed to open db: %v", err)
