@@ -15,6 +15,8 @@ DATABASE_URL = (
 engine = create_engine(
     DATABASE_URL,
     echo=DEBUG,
+    pool_size=20,
+    max_overflow=0
 )
 
 with engine.begin() as conn:
