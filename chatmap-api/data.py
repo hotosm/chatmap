@@ -27,30 +27,32 @@ def decrypt_message(encoded_data: str) -> str:
         return plaintext.decode('utf-8')
 
 async def download_and_decrypt_file(file: str, user: str) -> str:
-    # Check: using session could result in dupicates?
-    session_folder = os.path.join(MEDIA_FOLDER, user)
-     # Create session folder if not exists
-    if not os.path.exists(session_folder):
-        os.mkdir(session_folder)
-    # File to save
-    target_file = os.path.join(session_folder, file)
-    if not os.path.exists(target_file):
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(f'{SERVER_URL}/media/{file}?user={user}')
-                response.raise_for_status()  # Raise for 4xx/5xx
-            with open(target_file, "wb") as f:
-                if len(response.content) > 0:
-                    f.write(response.content)
-                    logger.info(f'File saved: {target_file}')
-                else:
-                    logger.info(f'File is empty: {target_file}')
+    if file:
+        # Check: using session could result in dupicates?
+        session_folder = os.path.join(MEDIA_FOLDER, user)
+        # Create session folder if not exists
+        if not os.path.exists(session_folder):
+            os.mkdir(session_folder)
+        # File to save
+        target_file = os.path.join(session_folder, file)
+        if not os.path.exists(target_file):
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(f'{SERVER_URL}/media/{file}?user={user}')
+                    response.raise_for_status()  # Raise for 4xx/5xx
+                with open(target_file, "wb") as f:
+                    if len(response.content) > 0:
+                        f.write(response.content)
+                        logger.info(f'File saved: {target_file}')
+                    else:
+                        logger.info(f'File is empty: {target_file}')
 
-        except httpx.HTTPError as e:
-            logger.error(f"Failed to download: {str(e)}")
-        
-    url = f"{API_URL}/{prefix}/media?user={user}&filename={file}"
-    return url
+            except httpx.HTTPError as e:
+                logger.error(f"Failed to download: {str(e)}")
+
+        url = f"{API_URL}/{prefix}/media?user={user}&filename={file}"
+        return url
+    return None
 
 async def process_chat_entries(
     user: str,
@@ -76,15 +78,16 @@ async def process_chat_entries(
         coords = feature.get("geometry").get("coordinates")
         props = feature.get("properties")
         file = await download_and_decrypt_file(props.get("file"), user)
-        points.append(
-        {
-            "id":      props.get("id"),
-            "geom":    f"POINT({coords[0]} {coords[1]})",
-            "message": decrypt_message(props.get("message")),
-            "file": file,
-            "time": props.get("time"),
-            "username": props.get("username"),
-            "user": user,
-        }
+        if props.get("id"):
+            points.append(
+            {
+                "id":      props.get("id"),
+                "geom":    f"POINT({coords[0]} {coords[1]})",
+                "message": decrypt_message(props.get("message")),
+                "file": file,
+                "time": props.get("time"),
+                "username": props.get("username"),
+                "user": user,
+            }
     )
     add_points(db=db, points=points)

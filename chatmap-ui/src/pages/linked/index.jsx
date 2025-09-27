@@ -110,7 +110,7 @@ function App() {
             intl.formatMessage({
               id: "app.linked.legend",
               defaultMessage: "Only WhatsApp is supported for now, more apps coming soon!"
-            })            
+            })
           }
         />
 

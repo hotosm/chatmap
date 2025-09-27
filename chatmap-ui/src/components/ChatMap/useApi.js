@@ -67,7 +67,7 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/chatmap`, {
+            const response = await fetch(`${API_URL}/map`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`

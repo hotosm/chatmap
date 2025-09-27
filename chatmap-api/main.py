@@ -5,13 +5,13 @@ import uuid
 import asyncio
 from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
 from fastapi.responses import StreamingResponse, FileResponse
-from typing import Dict, List
+from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, PointOut, init_db, load_session, save_session, remove_session, get_db_session
+from db import Point, FeatureCollection, init_db, load_session, save_session, remove_session, get_db_session
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from stream import stream_listener
@@ -118,37 +118,47 @@ async def logout(session: dict = Depends(get_current_session), db: Session = Dep
         return {'status': "logged out"}
 
 # Get map points for user
-@api_router.get("/map/{user}", response_model=List[PointOut])
+@api_router.get("/map", response_model=FeatureCollection)
 async def get_chatmap(
     request: Request,
-    user,
-    #     session: dict = Depends(get_current_session),
+    session: dict = Depends(get_current_session),
     db: Session = Depends(get_db_session),
 ):
     points = (
         db.query(
             Point.id,
             Point.message,
-            func.ST_X(Point.geom).label("lon"),
             func.ST_Y(Point.geom).label("lat"),
+            func.ST_X(Point.geom).label("lon"),
             Point.username,
             Point.time,
             Point.file,
         )
-        .filter(Point.user == user)
+        .filter(Point.user == session["user"])
         .all()
     )
-    return [
-        {
-            "id": point.id,
-            "coordinates": [point.lat, point.lon],
-            "message": point.message,
-            "username": point.username,
-            "time": point.time,
-            "file": point.file,
-        }
-        for point in points
-    ]
+
+    return {
+        "_chatmapId": "dev",
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "time": point.time,
+                    "username": point.username,
+                    "message": point.message,
+                    "file": point.file,
+                    "id": point.id,
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [point.lon, point.lat],
+                }
+            }
+            for point in points
+        ]
+    }
 
 # Get media file (image/jpeg)
 @api_router.get("/media")

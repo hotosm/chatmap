@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, String, select, DateTime, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from geoalchemy2 import Geometry
-from typing import Dict, List
+from typing import Dict, List, Literal, Tuple
 from settings import DEBUG, CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
 from datetime import datetime
 from pydantic import BaseModel
@@ -65,6 +65,27 @@ class PointOut(BaseModel):
 
     class Config:
         orm_mode = True 
+
+class FeatureGeometry(BaseModel):
+    type: Literal["Point"]
+    coordinates: Tuple[float, float]  # GeoJSON is [lon, lat]
+
+class FeatureProperties(BaseModel):
+    id: str
+    time: datetime
+    username: str
+    message: str | None = None
+    file: str
+
+class Feature(BaseModel):
+    type: Literal["Feature"]
+    geometry: FeatureGeometry
+    properties: FeatureProperties
+
+class FeatureCollection(BaseModel):
+    _chatmapId: str
+    type: Literal["FeatureCollection"]
+    features: List[Feature]
 
 # User Session Data
 class SessionData(Base):
