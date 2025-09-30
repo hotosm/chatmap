@@ -56,6 +56,7 @@ Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
 ✅ Done
 ⚙️ In progress
 
+
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
@@ -64,6 +65,7 @@ Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
 |✅| Backend with user authentication and saved maps |
 |⚙️| [Map settings](https://github.com/hotosm/chatmap/issues/37)
 |⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
+| | Form for user content licensing |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
