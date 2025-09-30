@@ -77,17 +77,17 @@ async def process_chat_entries(
     for feature in geoJSON.get('features'):
         coords = feature.get("geometry").get("coordinates")
         props = feature.get("properties")
+        geom = f"POINT({coords[0]} {coords[1]})"
+        message = decrypt_message(props.get("message"))
         file = await download_and_decrypt_file(props.get("file"), user)
         if props.get("id"):
-            points.append(
-            {
-                "id":      props.get("id"),
-                "geom":    f"POINT({coords[0]} {coords[1]})",
-                "message": decrypt_message(props.get("message")),
+            points.append({
+                "id": props.get("id"),
+                "geom": geom,
+                "message": message,
                 "file": file,
                 "time": props.get("time"),
                 "username": props.get("username"),
                 "user": user,
-            }
-    )
+            })
     add_points(db=db, points=points)
