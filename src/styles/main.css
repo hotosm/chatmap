@@ -330,6 +330,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   font-size: var(--hot-spacing-x-large);
 }
 
+.errorMessage.noLocations h2 {
+   margin-bottom: var(--hot-spacing-small);
+}
+
+.errorMessage.noLocations h3 {
+  margin-bottom: var(--hot-spacing-x-large);
+}
+
 .errorMessage h3 {
   font-weight: var(--hot-font-weight-normal);
   font-size: var(--hot-font-size-large);
@@ -347,6 +355,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .errorMessage .logo {
   height: var(--hot-font-size-3x-large);
+}
+
+.errorMessage .iconTitle {
+  font-size: 3rem;
 }
 
 /* Messages */
@@ -457,6 +469,12 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .loading-hide {
   display: none;
+}
+
+.loadingMessage {
+  display: inline-grid;
+  width: 300px;
+  padding-bottom: 25px;
 }
 
 .loadingBadge::part(base) {

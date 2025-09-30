@@ -93,6 +93,12 @@ function App() {
     setMediaOnly(prevState => !prevState);
   }
 
+  useEffect(() => {
+    if (files !== null && data._chatmapId != null && data.features.length === 0) {
+      setNoLocations(true);
+    }
+  }, [files, data]);
+
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
 
