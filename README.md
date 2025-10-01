@@ -47,30 +47,13 @@ Check docs for each instant messaging app [here](https://github.com/hotosm/chatm
 
 Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
-## Latest features
+## Roadmap
 
-Check [here](https://github.com/orgs/hotosm/projects/46/views/1)
+* [Live Stream of Data](https://github.com/hotosm/chatmap/milestone/1)
+* [Save and serve data directly in ChatMap](https://github.com/hotosm/chatmap/milestone/2)
+* [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 
-### Latest features
-
-✅ Done
-⚙️ In progress
-
-
-<!-- prettier-ignore-start -->
-| Status | Feature |
-|:--:| :-- |
-|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
-|✅| Link a device and get a stream of locations + content (live community reporting)|
-|✅| Backend with user authentication and saved maps |
-|⚙️| [Map settings](https://github.com/hotosm/chatmap/issues/37)
-|⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
-| | Form for user content licensing |
-| | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
-| | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
-| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
-
-Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming features.
+See also the [roadmap board](https://github.com/orgs/hotosm/projects/46).
 
 Contributors are welcome!
 
