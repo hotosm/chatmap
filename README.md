@@ -43,7 +43,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 * [Save and serve data directly in ChatMap](https://github.com/hotosm/chatmap/milestone/2)
 * [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 
-Contributors are welcome!
+See also the [roadmap board](https://github.com/orgs/hotosm/projects/46).
 
 ## Licensing
 
