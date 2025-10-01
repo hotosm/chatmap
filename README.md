@@ -39,9 +39,9 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
 # Roadmap
 
-[Live Stream of Data](https://github.com/hotosm/chatmap/milestone/1)
-[Save and serve data directly in ChatMap](https://github.com/hotosm/chatmap/milestone/2)
-[Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
+* [Live Stream of Data](https://github.com/hotosm/chatmap/milestone/1)
+* [Save and serve data directly in ChatMap](https://github.com/hotosm/chatmap/milestone/2)
+* [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 
 Contributors are welcome!
 
