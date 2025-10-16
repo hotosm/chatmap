@@ -5,36 +5,44 @@
 
 export default class ChatMap {
 
-  constructor (messages, searchLocation) {
+  constructor (messages, searchLocation, options) {
     this.messages = messages;
     this.searchLocation = searchLocation;
-    this.msgObjects = Object.values(messages);
+    this.options = options;
+    this.notMediaFileMessages = {};
   }
 
   // An dictionary to keep track of location messages
   locationMessages = {};
 
   // An array to keep track of the paired messages
-  pairedMessagesIds = [];
+  pairedMessagesIds = {};
 
-  getMessageFromSameUser = (index, username, msgIndex) => {
+  getMessageFromSameUser = (nextOrPrevMsgIndex, username, currentMsgIndex) => {
       const messages = this.messages;
-        // If message is from the same user
-      if (messages[index]?.username === username) {
-        // Calculate time passed between current and previous message.
-        const delta_diff = Math.abs(messages[msgIndex].time - messages[index].time);
+      const message = messages[currentMsgIndex];
+      const nextOrPrevMsg = messages[nextOrPrevMsgIndex];
+      // If message is from the same user
+      if (nextOrPrevMsg?.username === username) {
+        // Message is not paired yet
         if (
-          messages[index] &&
-          delta_diff < 1800000 && // 30 min tolerance
-          (
-            messages[index].file || (
-              messages[index]?.message
-            )
-          )
+          !this.pairedMessagesIds[nextOrPrevMsg.id]
         ) {
-          return {
-            index: index, 
-            delta: delta_diff
+          // Calculate time passed between current and previous message.
+          const delta_diff = Math.abs(message.time - nextOrPrevMsg.time);
+          if (
+            nextOrPrevMsg &&
+            delta_diff < 1800000 && // 30 min tolerance
+            (
+              nextOrPrevMsg.file || (
+                nextOrPrevMsg?.message
+              )
+            )
+          ) {
+            return {
+              index: nextOrPrevMsgIndex,
+              delta: delta_diff
+            }
           }
         }
       }
@@ -67,8 +75,9 @@ export default class ChatMap {
     let stopNext = false;
     let stopPrev = false;
 
-    while (
+    const messagesCount = messages.length + 1;
 
+    while (
       // There's a prev or next message, but no both
       (messages[prevIndex] || messages[nextIndex]) && 
       !(nextMessage && prevMessage) ) {
@@ -80,8 +89,9 @@ export default class ChatMap {
           message.username,
           msgIndex
         );
+
         if (prevMessageFromSameUser) {
-          if (this.locationMessages[prevMessageFromSameUser.index]) {
+          if (prevMessageFromSameUser.location) {
             stopPrev = true;
           } else {
             prevMessage = prevMessageFromSameUser;
@@ -96,8 +106,9 @@ export default class ChatMap {
           message.username,
           msgIndex
         );
+
         if (nextMessageFromSameUser) {
-          if (this.locationMessages[nextMessageFromSameUser.index]) {
+          if (nextMessageFromSameUser.location) {
             stopNext = true;
           } else {
             nextMessage = nextMessageFromSameUser;
@@ -105,49 +116,42 @@ export default class ChatMap {
         }
       }
 
-      prevIndex--;
-      nextIndex++;
+      if (prevIndex > -1 && !stopPrev) {
+        prevIndex--;
+      }
+      if (nextIndex < messagesCount && !stopNext) {
+        nextIndex++;
+      }
     }
 
-    const prevPaired = prevMessage && this.pairedMessagesIds.indexOf(prevMessage.index) > -1
-    const nextPaired = nextMessage && this.pairedMessagesIds.indexOf(nextMessage.index) > -1
+    // Remove location messages
+    if (messages[prevMessage?.index]?.location) {
+      prevMessage = null;
+    }
+    if (messages[nextMessage?.index]?.location) {
+      nextMessage = null;
+    }
 
     // If there are prev and next messages
-    // check the time difference between the two
-    // to decide which to return
     if (prevMessage && nextMessage) {
 
-      // Prev and next message are in the same distance
-      if (prevMessage.delta === nextMessage.delta) {
-
-        if (!prevPaired) {
-          return messages[prevMessage.index];
-        } else if (!nextPaired) {
-          return messages[nextMessage.index];
-        }
-
-      } else if (prevMessage.delta < nextMessage.delta) {
-        if (!prevPaired) {
-          return messages[prevMessage.index];
-        }
-      } else if (prevMessage.delta > nextMessage.delta) {
-        if (!nextPaired) {
-          return messages[nextMessage.index];
-        }
-      }
-
-    } else if (prevMessage) {
-      if (!prevPaired) {
+      // Return prev or next depending on which one is closer
+      if (prevMessage.delta <= nextMessage.delta) {
         return messages[prevMessage.index];
-      }
-    } else if (nextMessage) {
-      if (!nextPaired) {
+      } else if (prevMessage.delta >= nextMessage.delta) {
         return messages[nextMessage.index];
       }
+
+    // If only prev or next
+    } else if (prevMessage) {
+      return messages[prevMessage.index];
+    } else if (nextMessage) {
+        return messages[nextMessage.index];
     }
+
+    // No message to pair has been found, return same message
     return message;
   }
-
 
   // Get closest next/prev message from the same user
   getClosestMessageByDirection = (messages, msgIndex, direction) => {
@@ -169,7 +173,7 @@ export default class ChatMap {
       nextIndex += direction;
     }
     if (nextMessage) {
-      return messages[nextMessage.index];
+      return messages[nextMessage.id];
     }
     return message;
   }
@@ -177,23 +181,18 @@ export default class ChatMap {
 
   pairContentAndLocations = () => {
 
-    const msgObjects = this.msgObjects;
-    const messages = this.messages;
-    const searchLocation = this.searchLocation;
-
     // Initialize the GeoJSON response
     const geoJSON = {
         type: "FeatureCollection",
         features: []
     };
 
-    // A GeoJSON Feature for storing a message
-    let featureObject = {}
-
-    // Index all messages with location
-    msgObjects.forEach((msgObject, index) => {
+    // Index messages, add location
+    this.messages.forEach((msg, index) => {
+      // Save index
+      msg.id = index;
       // Check if there's a location in the message
-      const location = searchLocation(msgObject);
+      const location = this.searchLocation(msg);
       // If there's a location, create a Point.
       if (location) {
           const coordinates = [
@@ -205,53 +204,62 @@ export default class ChatMap {
               coordinates[0] / Math.round(coordinates[0]) !== 1 &&
               coordinates[1] / Math.round(coordinates[1]) !== 0
           ) {
-              this.locationMessages[index] = [coordinates[0], coordinates[1]];
+              msg.location = [coordinates[0], coordinates[1]];
           }
       }
     });
 
+    if (this.options.mediaOnly) {
+      // Filter messages, keep only the ones with a file or location
+      this.messages = this.messages.filter(msg => (
+        msg.file || msg.location
+      ))
+      // Re-index messages
+      this.messages = this.messages.map((msg, index) => ({
+        ...msg,
+        id: index
+      }))
+    }
+
     // When a location has been found, look for the closest
     // content from the same user and pair it to the message.
-    msgObjects.forEach((msgObject, index) => {
-      if (this.locationMessages[index]) {
-        featureObject = {
+    this.messages.forEach((msg) => {
+
+      if (msg.location) {
+        const featureObject = {
             type: "Feature",
             properties: {},
             geometry: {
                 type: "Point",
-                coordinates: this.locationMessages[index]
+                coordinates: msg.location
             }
         }
 
-        const message = this.getClosestMessage(messages, index);
+        // Get closest message to the location
+        const message = this.getClosestMessage(this.messages, msg.id);
+        this.pairedMessagesIds[message.id] = true;
 
-        if (message) {
-            if (
-              this.pairedMessagesIds.indexOf(message.id) === -1
-            ) {
-              // Add the GeoJSON feature
-              featureObject.properties = {
-                ...message,
-                // related: message.id
-              };
-              this.pairedMessagesIds.push(message.id);
-            }
-        } else {
-            // No related message
-            featureObject.properties = {
-                username: msgObject.username,
-                time: msgObject.time
-            }
+        // Check if mediaOnly is enabled before adding the feature
+        if (!(this.options.mediaOnly && !message.file)) {
+
+          // Add the GeoJSON feature
+          featureObject.properties = {
+            ...message,
+            message: message.location ? "(Location only)" : message.message
+          };
+          if (!isNaN(featureObject.properties.time)) {
+            geoJSON.features.push(featureObject);
+          }
         }
 
-        featureObject.properties.id = index;
-        if (!isNaN(featureObject.properties.time)) {
-          geoJSON.features.push(featureObject);
-        }
       }
     });
     return geoJSON;
   }
 
+}
+
+export const createChatMapId = () => {
+  return (Math.floor(10000 + Math.random() * 90000)).toString();
 }
 

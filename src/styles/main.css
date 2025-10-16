@@ -187,8 +187,6 @@ a {
 /* File upload */
 
 .fileUpload {
-  justify-content: center;
-  display: flex;
   padding-top: var(--hot-spacing-2x-large);
   padding-bottom: var(--hot-spacing-large);
 }
@@ -218,6 +216,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .fileUploadDropArea::part(prefix) {
   font-size: var(--hot-font-size-x-large);
+}
+
+.fileUploadWrapper {
+  margin-bottom: var(--hot-spacing-large);
+}
+
+.fileUploadOptions {
+  color: var(--hot-color-neutral-900);
 }
 
 /* Info */
@@ -268,6 +274,8 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   font-size: var(--hot-font-size-small);
   text-align: left;
   padding-left: var(--hot-spacing-medium);
+  margin-top:  var(--hot-spacing-small);
+  display: flex;
 }
 
 .msgUsername {
@@ -322,6 +330,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   font-size: var(--hot-spacing-x-large);
 }
 
+.errorMessage.noLocations h2 {
+   margin-bottom: var(--hot-spacing-small);
+}
+
+.errorMessage.noLocations h3 {
+  margin-bottom: var(--hot-spacing-x-large);
+}
+
 .errorMessage h3 {
   font-weight: var(--hot-font-weight-normal);
   font-size: var(--hot-font-size-large);
@@ -341,7 +357,15 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   height: var(--hot-font-size-3x-large);
 }
 
+.errorMessage .iconTitle {
+  font-size: 3rem;
+}
+
 /* Messages */
+
+.message {
+  width: 300px;
+}
 
 .message .text {
   text-align: left;
@@ -370,6 +394,26 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 .dropdownSelection sl-button,
 .dropdownSelection sl-dropdown::part(panel)  {
   width: 100%;
+}
+
+.message.removed {
+  opacity: .5;
+}
+
+.message.removed img {
+  filter: grayscale(1);
+}
+
+.message.removed .removeIcon {
+  color: var(--hot-color-primary-400);
+}
+
+.removeIcon::part(base) {
+  height: 20px;
+}
+
+.message .removedLabel {
+  font-size: var(--hot-font-size-x-small);
 }
 
 /* Connect form */
@@ -425,6 +469,12 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .loading-hide {
   display: none;
+}
+
+.loadingMessage {
+  display: inline-grid;
+  width: 300px;
+  padding-bottom: 25px;
 }
 
 .loadingBadge::part(base) {

@@ -13,5 +13,6 @@
     "app.saveYourMapIn": "Save your map in",
     "app.tags": "Tags",
     "app.yourTagHere": "Your tag here",
-    "app.all": "All"
+    "app.all": "All",
+    "app.mediaOnly": "Add only media files to the map (no text)"
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import getAppParser from "./parsers/getAppParser";
+import { createChatMapId } from "../ChatMap/chatmap";
 
 /**
  * Hook for parsing messages from a text
@@ -10,7 +11,7 @@ import getAppParser from "./parsers/getAppParser";
  * is the key ex: myfile = files[filename]
  * (empty for default) to each location.
  */
-function useContentMerger({ files }) {
+function useContentMerger({ files, options }) {
 
     // Hook's response: a GeoJSON object
     const [geoJSON, setGeoJSON] = useState({
@@ -37,7 +38,7 @@ function useContentMerger({ files }) {
                 const parser = await getAppParser(files[filename]);
 
                 // Concatenate data from all uploaded chats
-                const {geoJSON} = parser({ text: files[filename] });
+                const {geoJSON} = parser({ text: files[filename], options });
                 if (geoJSON._chatmapId) {
                     _chatmapId = geoJSON._chatmapId;
                 }
@@ -48,7 +49,7 @@ function useContentMerger({ files }) {
             setGeoJSON((prevState) => ({
                 type: "FeatureCollection",
                 features: [...prevState.features, ...features],
-                _chatmapId: _chatmapId || null
+                _chatmapId: _chatmapId || createChatMapId()
             }));
 
         }

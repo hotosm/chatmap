@@ -20,7 +20,7 @@ function stripPath(filename) {
 function useFileManager() {
 
     const [dataFiles, setDataFiles] = useState();
-    const [files, setFiles] = useState();
+    const [files, setFiles] = useState(null);
 
     // Files handler
     const handleFiles = (files) => {

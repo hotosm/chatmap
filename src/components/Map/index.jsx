@@ -68,7 +68,12 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
             'source': 'locations',
             'layout': {},
             'paint': {
-                'circle-color': '#D63F40',
+                'circle-color': [
+                  "case",
+                    ["boolean", ["get", "removed"], false],
+                    '#9A969B', // --hot-color-neutral-400
+                    '#D73F3F' // --hot-color-red-600
+                ],
                 'circle-radius': 10
             }
         });
@@ -177,6 +182,11 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
         setEditingTags(false);
     }
 
+    const handleRemoveMessage = (feature) => {
+      feature.properties.removed = !feature.properties.removed;
+      handleChange(feature);
+    }
+
     const handleChange = (feature) => {
       mapDataDispatch({
         type: "update_feature_props",
@@ -198,6 +208,7 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
             dataFiles={dataFiles}
             onAddTag={handleAddTag}
             onRemoveTag={handleRemoveTag}
+            onRemoveMessage={handleRemoveMessage}
             allTags={Object.keys(tags)}
           />
         }
