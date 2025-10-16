@@ -28,7 +28,11 @@ export const getMessage = (message, msgType, dataFiles) => {
     // Image
     if (msgType === "image") {
       const url = URL.createObjectURL(dataFiles[message.file]);
-      content = <img className="popupImage" alt="Message attached file" src={url} />
+      const urlParams = new URLSearchParams(url.split("?")[1]);
+      const phoneNumber = urlParams.get("user");
+      const hash = phoneNumber ? btoa(phoneNumber) : "unknown";
+      const urlWithHash = url.replace(/user=([^&]*)/, 'h=' + hash);
+      content = <img className="popupImage" alt="Message attached file" src={urlWithHash} />
 
     // Video
     } else if (msgType === "video") {
