@@ -62,18 +62,20 @@ export default function Popup ({
   const intl = useIntl();
 
   const getMsgType = (message) => {
-    if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
-      return "image";
-    } else if (message.file.endsWith("mp4")) {
-      return "video";
-    } else if (
-      message.file.endsWith("ogg") ||
-      message.file.endsWith("opus") ||
-      message.file.endsWith("mp3") ||
-      message.file.endsWith("m4a") ||
-      message.file.endsWith("wav")
-    ) {
-      return "audio";
+    if (message.file) {
+      if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
+        return "image";
+      } else if (message.file.endsWith("mp4")) {
+        return "video";
+      } else if (
+        message.file.endsWith("ogg") ||
+        message.file.endsWith("opus") ||
+        message.file.endsWith("mp3") ||
+        message.file.endsWith("m4a") ||
+        message.file.endsWith("wav")
+      ) {
+        return "audio";
+      }
     } else {
       return "text";
     }

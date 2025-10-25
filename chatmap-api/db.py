@@ -77,7 +77,7 @@ class FeatureProperties(BaseModel):
     time: datetime
     username: str
     message: str | None = None
-    file: str
+    file: str | None
 
 class Feature(BaseModel):
     type: Literal["Feature"]
