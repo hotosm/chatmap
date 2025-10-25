@@ -1,29 +1,27 @@
-FROM python:3.11-slim-buster AS builder
+# Backend Dockerfile with multi-stage build using uv
+
+# Development stage
+FROM python:3.12-slim AS development
 
 WORKDIR /app
 
-COPY db.py ./db.py
-COPY run.py ./run.py
-COPY main.py ./main.py
-COPY data.py ./data.py
-COPY stream.py ./stream.py
-COPY db.py ./db.py
-COPY settings.py ./settings.py
-COPY uv.lock ./uv.lock
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM python:3.11-slim-buster
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-WORKDIR /app
+# Copy backend application code
+COPY . .
 
-COPY --from=builder /app .
-COPY --from=builder /app/uv.lock .
-RUN uv sync --locked
-RUN groupadd -r admin && useradd -r -g admin admin
+# Install dependencies with uv (including dev dependencies)
+RUN uv sync
 
-RUN chown -R admin:admin /app
+# Expose port
+EXPOSE 8000
 
-USER admin
+# Run with uvicorn (hot-reload enabled in docker-compose)
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-ENV UVICORN_HOST="0.0.0.0"
-
-CMD uv run uvicorn main:app --host "$UVICORN_HOST" --port 8000 --log-level info
