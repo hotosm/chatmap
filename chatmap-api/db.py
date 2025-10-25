@@ -133,8 +133,10 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 # Dependency to get DB session
-def get_db_session() -> Session:
-    """
-    Return a fresh Session object.
-    """
-    return SessionLocal()
+
+def get_db_session():
+    db = SessionLocal()
+    try:
+        return db
+    finally:
+        db.close()
