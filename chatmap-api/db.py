@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, String, select, DateTime, text
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from geoalchemy2 import Geometry
 from typing import Dict, List, Literal, Tuple
@@ -15,8 +16,7 @@ DATABASE_URL = (
 engine = create_engine(
     DATABASE_URL,
     echo=DEBUG,
-    pool_size=20,
-    max_overflow=0
+    poolclass=NullPool
 )
 
 with engine.begin() as conn:
