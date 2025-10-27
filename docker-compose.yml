@@ -66,6 +66,7 @@ services:
 
     depends_on:
       - chatmap-ui
+      - chatmap-api
     networks:
       - appnet
 
