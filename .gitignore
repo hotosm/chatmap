@@ -13,3 +13,5 @@ certbot/
 config.json
 nginx/
 letsencrypt/
+media
+

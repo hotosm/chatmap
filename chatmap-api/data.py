@@ -80,7 +80,7 @@ async def process_chat_entries(
         geom = f"POINT({coords[0]} {coords[1]})"
         message = decrypt_message(props.get("message"))
         file = await download_and_decrypt_file(props.get("file"), user)
-        if props.get("id"):
+        if props.get("id") is not None:
             points.append({
                 "id": props.get("id"),
                 "geom": geom,

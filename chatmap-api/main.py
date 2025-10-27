@@ -180,6 +180,7 @@ app.include_router(api_router)
 # On API startup
 @api_router.on_event("startup")
 async def startup_event():
+    print(f"Starting ...")
     global scheduler
     if not os.path.exists("media"):
         os.mkdir("media")
