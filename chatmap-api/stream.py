@@ -33,7 +33,9 @@ async def get_sessions():
 async def stream_listener() -> None:
     while True:
         # try:
+        print(f"[stream_listener] Getting sessions ...")
         sessions = await get_sessions()
+        print(f"[stream_listener] {len(sessions)} sessions found")
         for user in sessions:
             entries = await redis_client.xrange(f'{STREAM_KEY}:{user}', min='-', max='+')
             print(f"[stream_listener] {len(entries)} entries for user {user}")
