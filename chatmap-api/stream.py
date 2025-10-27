@@ -33,12 +33,12 @@ async def get_sessions():
 async def stream_listener() -> None:
     while True:
         # try:
-        print(f"[stream_listener] Getting sessions ...")
+        logger.info("[stream_listener] Getting sessions ...")
         sessions = await get_sessions()
-        print(f"[stream_listener] {len(sessions)} sessions found")
+        logger.info(f"[stream_listener] {len(sessions)} sessions found")
         for user in sessions:
             entries = await redis_client.xrange(f'{STREAM_KEY}:{user}', min='-', max='+')
-            print(f"[stream_listener] {len(entries)} entries for user {user}")
+            logger.info(f"[stream_listener] {len(entries)} entries for user {user}")
             await process_chat_entries(user, entries)
             # Cleanup old messages
             # await cleanup(user)
