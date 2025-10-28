@@ -67,16 +67,10 @@ def get_token():
     return {"access_token": token}
 
 # Dependency to extract user from token
-def get_current_session(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_session(
+    credentials: HTTPAuthorizationCredentials = Depends(security)):
     payload = decode_token(credentials.credentials)
     return payload
-
-def get_current_session(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db_session)
-) -> dict:
-    payload = decode_token(credentials.credentials)
-    return load_session(db, payload["user_id"])
 
 # Get QR code
 @api_router.get("/qr", response_class=StreamingResponse)

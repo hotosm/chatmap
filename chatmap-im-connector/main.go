@@ -185,12 +185,15 @@ func initClient(sessionID string) {
         // If no client store, get QR
         log.Printf("No client store found for session: %s , returning QR \n", sessionID)
         qrChan, _ := client.GetQRChannel(context.Background())
+        log.Printf("[GetQRChannel]")
         go func() {
             for evt := range qrChan {
+                log.Printf("[QR Event]: %s \n", evt.Event)
                 if evt.Event == "code" {
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].QRCode = evt.Code
                     sessionMetaMu.Unlock()
+                    log.Printf("QR code generated sucessfully")
                 } else if evt.Event == "success" {
                     // Logout existing sessions of the same user
                     existingSessionId := getExistingSessionId(client.Store.ID.User, sessionID)
@@ -480,16 +483,19 @@ func qrHandler(w http.ResponseWriter, r *http.Request) {
     sessionMetaMu.RUnlock()
 
     if !ok || meta.QRCode == "" {
+        log.Printf("QR not generated")
         http.Error(w, "QR not generated", http.StatusNotFound)
         return
     }
 
     png, err := qrcode.Encode(meta.QRCode, qrcode.Medium, 256)
     if err != nil {
+        log.Printf("QR encode error")
         http.Error(w, "QR encode error", http.StatusInternalServerError)
         return
     }
 
+    log.Printf("Returning QR")
     w.Header().Set("Content-Type", "image/png")
     w.Write(png)
 }
