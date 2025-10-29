@@ -119,12 +119,17 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
   return (
     <>
       {/* Loading message */}
-    { loading ? <p style={{"textAlign": "center"}}>
-      {intl.formatMessage({
-        id: "app.loading",
-        defaultMessage: "Loading"
-        })} ({loadedFilesCount} / {filesCount})...
-      </p> : ""}
+    { loading ?
+      <div className="loadingMessage">
+        <p style={{"textAlign": "center"}}>
+          {intl.formatMessage({
+            id: "app.loading",
+            defaultMessage: "Loading"
+            })} ({loadedFilesCount} / {filesCount})...
+          </p>
+          <sl-progress-bar value={(loadedFilesCount * 100) / filesCount}></sl-progress-bar>
+      </div>
+      : ""}
 
       {/* File upload area */}
       <div className="fileUploadWrapper" style={loading ? {display: "none"} : null}>

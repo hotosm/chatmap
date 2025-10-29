@@ -7,6 +7,7 @@ const initialState = {
   type: "FeatureCollection",
   features: [],
   filterTag: null,
+  filterDate: null,
   _chatmapId: null
 };
 
@@ -21,6 +22,7 @@ const reducer = (state, action) => {
       newState.features.forEach((feature) => {
         if (feature.properties.id === action.payload.id) {
           feature.properties = action.payload.properties;
+          feature.properties.time = new Date(feature.properties.time);
         }
       });
       return newState;
@@ -29,7 +31,10 @@ const reducer = (state, action) => {
     case 'set_filter_tag':
       return { ...state, ...{filterTag: action.payload.tag } };
 
-    default:
+    case 'set_filter_date':
+      return { ...state, ...{filterDate: action.payload.date } };
+
+      default:
       throw new Error();
   }
 }

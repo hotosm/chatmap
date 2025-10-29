@@ -36,6 +36,7 @@ function App() {
       // Public event for external integratons
       if (mapData.features.length > 0) {
         window._CHATMAP?.mapData && window._CHATMAP.mapData();
+        console.log(`${mapData.features.length} features parsed`)
       }
   }, [mapData])
 

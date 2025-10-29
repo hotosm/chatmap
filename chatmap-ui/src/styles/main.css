@@ -276,6 +276,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   padding-left: var(--hot-spacing-medium);
   margin-top:  var(--hot-spacing-small);
   display: flex;
+  max-width: 85%;
 }
 
 .msgUsername {

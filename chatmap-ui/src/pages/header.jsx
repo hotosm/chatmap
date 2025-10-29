@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import logo from '../assets/hot-logo.svg';
 import SaveButton from '../components/SaveButton/index.jsx';
 import TagsOptions from "../components/TagsOptions/index.jsx";
+import DateOptions from "../components/DateOptions/index.jsx";
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 
@@ -20,6 +21,13 @@ export default function Header({
         mapDataDispatch({
             type: 'set_filter_tag',
             payload: {tag: tag},
+        });
+    }
+
+    const selectDateHandler = date => {
+        mapDataDispatch({
+            type: 'set_filter_date',
+            payload: {date: date},
         });
     }
 
@@ -62,6 +70,15 @@ export default function Header({
                             /> 
                         </sl-button>
                     </div> : null}
+
+                    <div className="dateOptions">
+                        <DateOptions
+                            onSelectDate={selectDateHandler}
+                            tags={tags}
+                            selectedDate={data.filterDate}
+                        />
+                    </div>
+
                     <div className="tagsOptions">
                         <TagsOptions
                             onSelectTag={selectTagHandler}

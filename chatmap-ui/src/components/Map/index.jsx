@@ -130,18 +130,29 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
 
     useEffect(() => {
       if (map.current.getSource("locations")) {
+
         // Add geojson data source
         if (data.filterTag) {
           {
             map.current.getSource('locations').setData({
               ...data,
               features: [
-                ...data.features.filter(feature => 
+                  ...data.features.filter(feature => 
                   feature.properties.tags && feature.properties.tags.indexOf(data.filterTag) > -1
                 )
               ]
             });
           }
+        } else if (data.filterDate) {
+            const hoursAgo = Date.now() - data.filterDate * 60 * 60 * 1000; 
+            map.current.getSource('locations').setData({
+              ...data,
+              features: [
+                  ...data.features.filter(feature => 
+                  feature.properties.time >= hoursAgo
+                )
+              ]
+            });
         } else {
           map.current.getSource('locations').setData(data);
         }
@@ -164,6 +175,15 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
         popupRef.current.remove()
       }
     }, [data.filterTag])
+
+    // Filter by date
+    useEffect(() => {
+      if (!map.current || !activePopupFeature) return;
+      if (data.filterDate) {
+        setActivePopupFeature(null);
+        popupRef.current.remove()
+      }
+    }, [data.filterDate])
 
     // Tag handlers
 
@@ -191,6 +211,7 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
       mapDataDispatch({
         type: "update_feature_props",
         payload: {
+            ...feature,
             properties: feature.properties,
             id: feature.properties.id
         }
