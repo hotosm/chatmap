@@ -112,6 +112,13 @@ function App() {
           />
         }
 
+        {/* Count message */}
+        <div className="count">
+          {dataAvailable && 
+          <sl-badge className="countBadge" variant="neutral" pill>{data.features.length} points</sl-badge>
+          }
+        </div>
+
         {/* If there are no locations, show a message */}
         { noLocations && 
           <NoLocationsSection

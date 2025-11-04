@@ -8,7 +8,11 @@ from settings import STREAM_KEY, EXPIRING_MIN_MS
 
 # Logs
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='chatmap-stream.log', level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 # Redis config
 redis_host = os.getenv("REDIS_HOST", "localhost")
@@ -32,15 +36,17 @@ async def get_sessions():
 
 async def stream_listener() -> None:
     while True:
-        # try:
-        logger.info("[stream_listener] Getting sessions ...")
-        sessions = await get_sessions()
-        logger.info(f"[stream_listener] {len(sessions)} sessions found")
-        for user in sessions:
-            entries = await redis_client.xrange(f'{STREAM_KEY}:{user}', min='-', max='+')
-            logger.info(f"[stream_listener] {len(entries)} entries for user {user}")
-            await process_chat_entries(user, entries)
-            # Cleanup old messages
-            # await cleanup(user)
-
+        try:
+            logger.info("[stream_listener] Getting sessions ...")
+            sessions = await get_sessions()
+            logger.info(f"[stream_listener] {len(sessions)} sessions found")
+            for user in sessions:
+                entries = await redis_client.xrange(f'{STREAM_KEY}:{user}', min='-', max='+')
+                logger.info(f"[stream_listener] {len(entries)} entries for user {user}")
+                await process_chat_entries(user, entries)
+                # Cleanup old messages
+                # await cleanup(user)
+        except:
+            logger.info("[stream_listener] Error processing data")
+            pass
         await asyncio.sleep(5)

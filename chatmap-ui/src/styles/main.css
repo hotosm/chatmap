@@ -449,18 +449,27 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 /* Messages */
 
-.loading {
+.count, .loading {
   position: absolute;
+  z-index: 9999;
+}
+
+.count {
+  left: var(--hot-spacing-medium);
+  bottom: var(--hot-spacing-medium);
+}
+
+.loading {
   bottom: var(--hot-spacing-medium);
   right: var(--hot-spacing-medium);
-  z-index: 9999;
 }
 
 .loading-hide {
   display: none;
 }
 
-.loadingBadge::part(base) {
+.loadingBadge::part(base),
+.countBadge::part(base) {
   background-color: var(--hot-color-neutral-0);
   color: var(--hot-color-neutral-700);
 }
