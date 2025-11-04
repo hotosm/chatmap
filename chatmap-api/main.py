@@ -173,7 +173,7 @@ async def media(filename: str, user: str) -> Dict[str, str]:
 # Get Status
 @api_router.get("/version")
 async def status():
-    return {'version': "0.0.2"}
+    return {'version': "0.0.3"}
 
 # API Router
 app.include_router(api_router)
