@@ -10,7 +10,7 @@ dependencies = [
     "anyio==4.9.0",
     "apscheduler==3.11.0",
     "certifi==2025.7.14",
-    "chatmap-py==0.0.7",
+    "chatmap-py==0.0.8",
     "click==8.2.1",
     "ecdsa==0.19.1",
     "fastapi==0.116.1",
