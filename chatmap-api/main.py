@@ -19,13 +19,13 @@ from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXP
 from sqlalchemy import func
 
 # Logs
-logger = logging.getLogger(__name__)
 logging.basicConfig(
     filename='chatmap-api.log',
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+logger = logging.getLogger(__name__)
 
 app = FastAPI(debug=DEBUG)
 prefix = f"v{API_VERSION}"

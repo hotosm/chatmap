@@ -8,12 +8,6 @@ from settings import STREAM_KEY, EXPIRING_MIN_MS
 
 # Logs
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    filename='chatmap-DEBUG.log',
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 
 # Redis config
 redis_host = os.getenv("REDIS_HOST", "localhost")

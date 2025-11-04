@@ -10,12 +10,6 @@ from settings import CHATMAP_ENC_KEY, API_VERSION, MEDIA_FOLDER, API_URL, SERVER
 
 # Logs
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    filename='chatmap-data.log',
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 
 # Prefix for media files
 prefix = f"v{API_VERSION}"
