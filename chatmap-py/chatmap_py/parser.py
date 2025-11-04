@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 from .chatmap import ChatMap
 
@@ -8,26 +7,13 @@ from .chatmap import ChatMap
  for creating a map from a custom conversation log.
 '''
 
-LOCATION_PATTERN = re.compile(
-    r"""[-+]? (?: [1-8]?\d(?:\.\d+)? | 90(?:\.0+)? ),\s* [-+]? (?: 180(?:\.0+)? | (?:1[0-7]\d|[1-9]?\d)(?:\.\d+)? )""",
-    re.VERBOSE,
-)
-
 def strip_path(filename):
     return filename.split('/')[-1]
 
 def searchLocation(msg):
     if 'location' in msg and msg['location'] != "" and msg['location'] != None:
         return msg['location'].split(',')
-    match = LOCATION_PATTERN.search(msg['message'])
-    if not match:
-        return None
-    lat_lon_str = match.group(0).strip()
-    try:
-        lat_str, lon_str = lat_lon_str.split(",")
-        return [float(lat_str), float(lon_str)]
-    except ValueError:
-        return None
+    return None
 
 # Parse time, username and message
 def parseMessage(line):
