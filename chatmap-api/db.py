@@ -38,7 +38,7 @@ class Point(Base):
     message = Column(String)
     user = Column(String)
     username = Column(String)
-    time = Column(DateTime(timezone=False), default=datetime.now(), server_onupdate=datetime.now(), nullable=False)
+    time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     file = Column(String)
     
 def add_points(db: Session, points):
