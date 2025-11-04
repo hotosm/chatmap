@@ -7,7 +7,7 @@ on:
     paths:
       - "chatmap-api/Dockerfile"
       - "chatmap-api/*.py"
-      - "chatmap-api/requirements.txt"
+      - "chatmap-api/uv.lock"
       - "chatmap-im-connector/Dockerfile"
       - "chatmap-im-connector/*.go"
       - "chatmap-im-connector/*.mod"
