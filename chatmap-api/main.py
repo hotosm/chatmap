@@ -20,7 +20,12 @@ from sqlalchemy import func
 
 # Logs
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='chatmap-api.log', level=logging.INFO)
+logging.basicConfig(
+    filename='chatmap-api.log',
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 app = FastAPI(debug=DEBUG)
 prefix = f"v{API_VERSION}"
