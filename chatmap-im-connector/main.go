@@ -4,6 +4,8 @@ import (
     "context"
     "encoding/json"
     "fmt"
+	"regexp"
+	"strconv"
     "io"
     "log"
     "net/http"
@@ -83,6 +85,39 @@ var (
     mu           sync.Mutex
     redisClient  *redis.Client
 )
+
+var locationPattern = regexp.MustCompile(`[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*`)
+
+// Searches for a lat/lon pair
+func SearchLocation(messageText string) (string, error) {
+	if messageText == "" {
+		return "", nil
+	}
+
+	// Grab the full matched substring
+	match := locationPattern.FindString(messageText)
+	if match == "" {
+		return "", nil // no coordinates
+	}
+
+	// Split on the comma
+	parts := strings.SplitN(match, ",", 2)
+	if len(parts) != 2 {
+		return "", fmt.Errorf("unexpected match format: %q", match)
+	}
+
+	// Convert both parts to float64
+	lat, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid latitude %q: %w", parts[0], err)
+	}
+	lon, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid longitude %q: %w", parts[1], err)
+	}
+
+	return fmt.Sprintf("%g,%g", lat, lon), nil
+}
 
 // Converts a datetime string into a JavaScript compatible one
 func ConvertToJSDateFormat(input string) (string) {
@@ -405,15 +440,25 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
 
     // Text message
     if msg.GetConversation() != "" {
-        message_text := encrypt([]byte(msg.GetConversation()), []byte(enc_key))
-        message.Text = message_text
-        hasContent = true
+        message_text := msg.GetConversation()
+        loc, _ := SearchLocation(message_text)
+        if loc != "" {
+            location := loc
+            message.Location = &location
+            fmt.Printf("Location: %s\n", loc)
+            hasContent = true
+        } else {
+            enc_message_text := encrypt([]byte(message_text), []byte(enc_key))
+            message.Text = enc_message_text
+            hasContent = true
+        }
 
     // Location
     } else if msg.LocationMessage != nil {
         loc := msg.GetLocationMessage()
         if loc != nil {
             location := fmt.Sprintf("%.5f,%.5f", loc.GetDegreesLatitude(), loc.GetDegreesLongitude())
+            fmt.Printf("Location: %s\n", location)
             message.Location = &location
             hasContent = true
         }
