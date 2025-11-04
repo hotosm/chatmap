@@ -89,4 +89,13 @@ async def process_chat_entries(
                 "username": props.get("username"),
                 "user": user,
             })
-    add_points(db=db, points=points)
+            logger.info("Adding point")
+            logger.info(f"id {props.get("id")}")
+            logger.info(f"geom {props.get("geom")}")
+            logger.info(f"message {props.get("message")}")
+            logger.info(f"file {props.get("file")}")
+            logger.info(f"time {props.get("time")}")
+            logger.info(f"username {props.get("username")}")
+            logger.info(f"user {props.get("user")}")
+    if len(points) > 0:
+        add_points(db=db, points=points)
