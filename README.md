@@ -2,7 +2,7 @@
 
 ## Field mapping has never been easier!
 
-Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize locations, messages and media.
+Convert chats (WhatsApp, Telegram or Signal) to maps with messages and media.
 
 ### Try it here! [chatmap.hotosm.org](https://chatmap.hotosm.org)
 
@@ -37,11 +37,29 @@ Check docs for each instant messaging app [here](https://github.com/hotosm/chatm
 
 Login into umap.hotosm.org, click "Upload" and upload the .zip !
 
-# Roadmap
+## Roadmap
 
-* [Live Stream of Data](https://github.com/hotosm/chatmap/milestone/1)
-* [Save and serve data directly in ChatMap](https://github.com/hotosm/chatmap/milestone/2)
-* [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
+✅ Done
+⚙️ In progress
+
+<!-- prettier-ignore-start -->
+| Status | Feature |
+|:--:| :-- |
+|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
+|✅| Link a device and get a stream of locations + content (live community reporting)|
+|✅| Backend with user authentication and saved maps |
+|⚙️| [Live Stream of Data](https://github.com/hotosm/chatmap/milestone/1)
+|⚙️| [Save and serve data directly in ChatMap](https://github.com/hotosm/chatmap/milestone/2)
+|⚙️| [Map settings](https://github.com/hotosm/chatmap/issues/37)
+|⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
+|⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+| | Form for user content licensing |
+| | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
+| | ChatBot for creating automated surveys
+| | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
+| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
+
+Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming features.
 
 See also the [roadmap board](https://github.com/orgs/hotosm/projects/46).
 
