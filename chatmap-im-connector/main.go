@@ -4,8 +4,8 @@ import (
     "context"
     "encoding/json"
     "fmt"
-	"regexp"
-	"strconv"
+    "regexp"
+    "strconv"
     "io"
     "log"
     "net/http"
@@ -90,33 +90,33 @@ var locationPattern = regexp.MustCompile(`[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[
 
 // Searches for a lat/lon pair
 func SearchLocation(messageText string) (string, error) {
-	if messageText == "" {
-		return "", nil
-	}
+    if messageText == "" {
+        return "", nil
+    }
 
-	// Grab the full matched substring
-	match := locationPattern.FindString(messageText)
-	if match == "" {
-		return "", nil // no coordinates
-	}
+    // Grab the full matched substring
+    match := locationPattern.FindString(messageText)
+    if match == "" {
+        return "", nil // no coordinates
+    }
 
-	// Split on the comma
-	parts := strings.SplitN(match, ",", 2)
-	if len(parts) != 2 {
-		return "", fmt.Errorf("unexpected match format: %q", match)
-	}
+    // Split on the comma
+    parts := strings.SplitN(match, ",", 2)
+    if len(parts) != 2 {
+        return "", fmt.Errorf("unexpected match format: %q", match)
+    }
 
-	// Convert both parts to float64
-	lat, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
-	if err != nil {
-		return "", fmt.Errorf("invalid latitude %q: %w", parts[0], err)
-	}
-	lon, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
-	if err != nil {
-		return "", fmt.Errorf("invalid longitude %q: %w", parts[1], err)
-	}
+    // Convert both parts to float64
+    lat, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+    if err != nil {
+        return "", fmt.Errorf("invalid latitude %q: %w", parts[0], err)
+    }
+    lon, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+    if err != nil {
+        return "", fmt.Errorf("invalid longitude %q: %w", parts[1], err)
+    }
 
-	return fmt.Sprintf("%g,%g", lat, lon), nil
+    return fmt.Sprintf("%g,%g", lat, lon), nil
 }
 
 // Converts a datetime string into a JavaScript compatible one
@@ -325,6 +325,7 @@ func mediaReference(msg *waProto.ImageMessage) string {
     return string(data)
 }
 
+// TODO: support video
 // Download and decrypt media file using reference data
 func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte, error) {
     // Decode metadata
@@ -375,11 +376,22 @@ func getSessionByUser(user string) (*SessionMeta, bool) {
 // Get a message id and a sessionID and serves a media file
 func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
-    // Get the full path (e.g., "/filename.jpg")
+    // Get the full path (e.g., "/filename.jpg" or "/filename.mp4")
     urlPath := r.URL.Path
 
     // Extract the file name from the path
-    msgID := strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
+    msgID := ""
+    mediaType := ""
+    if strings.HasSuffix(urlPath, ".jpg") {
+        strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
+        mediaType = "jpg"
+    } else if strings.HasSuffix(urlPath, ".mp4") {
+        strings.ReplaceAll(path.Base(urlPath), ".mp4", "")
+        mediaType = "mp4"
+    } else {
+        log.Printf("unknown media format")
+        return
+    }
 
     user := r.URL.Query().Get("user")
     session, _ := getSessionByUser(user)
@@ -390,12 +402,18 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
     res, _ := redisClient.XRange(ctx, fmt.Sprintf("messages:%s", user), msgID, msgID).Result()
 
     if (len(res) > 0) {
-        photoJSON, _ := res[0].Values["photo"].(string)
+        mediaJSON, _ := "",""
+        if if (mediaType == "jpg") {
+            mediaJSON, _ = res[0].Values["photo"].(string)
+        }
+        //  else {
+        //     mediaJSON, _ = res[0].Values["video"].(string)
+        // }
 
         // De-serialize media reference
         var meta MediaReference
-        if err := json.Unmarshal([]byte(photoJSON), &meta); err != nil {
-            log.Printf("failed to unmarshal image message JSON: %w", err)
+        if err := json.Unmarshal([]byte(mediaJSON), &meta); err != nil {
+            log.Printf("failed to unmarshal media message JSON: %w", err)
         }
 
         // Download decrypted media
@@ -405,8 +423,12 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
-
-        w.Header().Set("Content-Type", "image/jpeg")
+        if (mediaType == "jpg") {
+            w.Header().Set("Content-Type", "image/jpeg")
+        }
+        //  else {
+        //     w.Header().Set("Content-Type", "video/mp4")
+        // }
         w.WriteHeader(http.StatusOK)
         _, _ = w.Write(data)
     }
@@ -471,7 +493,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             message.File = fmt.Sprintf("%s.jpg", streamID)
             hasContent = true
         }
-        // else {
+        //  else {
         //     video := msg.GetVideoMessage()
         //     message.Video = mediaReference(video)
         //     message.File = fmt.Sprintf("%s.mp4", streamID)
