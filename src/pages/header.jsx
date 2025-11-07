@@ -81,13 +81,6 @@ export default function Header({
                 defaultMessage="Export and upload a chat to create a map"
                 />}
             </h2>
-            <p className="highlighted">
-                { legend ? legend :
-                <FormattedMessage
-                id = "app.supportedApps"
-                defaultMessage="Now it works with WhatsApp, Telegram or Signal!"
-                />}
-            </p>
             </>
             }
         </header>

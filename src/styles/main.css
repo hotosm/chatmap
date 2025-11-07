@@ -108,7 +108,6 @@ a {
   font-size: calc(var(--hot-font-size-medium) + 1vmin);
   font-weight: var(--hot-font-weight-normal);
   margin-top: var(--hot-spacing-large);
-  margin-bottom: 0;
 }
 
 /* Compact header */
