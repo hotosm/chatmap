@@ -5,24 +5,27 @@ export default function Footer() {
   return (
     <>
     <p className="info">
-        <strong>
-            <FormattedMessage
-              id = "app.howItWorks"
-              defaultMessage="How it works?"
-            />
-          </strong>
-          &nbsp;
-          <FormattedMessage
-            id = "app.checkThisQuick"
-            defaultMessage="Check this quick"
-          />
-          &nbsp;
-          <strong><a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">
-          <FormattedMessage
-            id = "app.videoTutorial"
-            defaultMessage="video tutorial"
-          />
-          </a></strong>
+        <strong><i>News: Jamaican 🇯🇲 citizens are chat-mapping<br />
+        in response for Hurricane Melissa, check <a href="https://umap.hotosm.org/en/map/jamaica-public-response-for-hurricane-melissa_1428">the map</a></i></strong>
+    </p>
+    <br />
+    <p className="info">
+      <FormattedMessage
+        id = "app.howItWorks"
+        defaultMessage="How it works?"
+      />
+      &nbsp;
+      <FormattedMessage
+        id = "app.checkThisQuick"
+        defaultMessage="Check this quick"
+      />
+      &nbsp;
+      <a href="https://www.youtube.com/watch?v=ScHgVhyj1aw">
+        <FormattedMessage
+          id = "app.videoTutorial"
+          defaultMessage="video tutorial"
+        />
+      </a>
     </p>
     <p className="info">
           <FormattedMessage
