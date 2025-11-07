@@ -247,6 +247,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
   font-size: var(--hot-font-size-x-small);
 }
 
+.info.news {
+  font-style: italic;
+  line-height: var(--hot-line-height-normal);
+}
+
 /* Map */
 
 .map {

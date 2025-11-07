@@ -4,9 +4,12 @@ export default function Footer() {
 
   return (
     <>
-    <p className="info">
-        <span className="highlighted"><i><strong>News:</strong> Jamaican 🇯🇲 citizens are chat-mapping<br />
-        in response for Hurricane Melissa, check <a href="https://umap.hotosm.org/en/map/jamaica-public-response-for-hurricane-melissa_1428">the map</a></i></span>
+    <p className="info news">
+        <span className="highlighted">
+          <strong>News:</strong> Jamaican 🇯🇲 citizens are chat-mapping<br />
+          in response for Melissa, check&nbsp;
+          <a href="https://umap.hotosm.org/en/map/jamaica-public-response-for-hurricane-melissa_1428">the map</a>
+        </span>
     </p>
     <br />
     <p className="info">
