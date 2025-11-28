@@ -137,23 +137,23 @@ func ConvertToJSDateFormat(input string) (string) {
     return t.Format(time.RFC3339)
 }
 
-// Encript text (for messages)
+// Encrypt text (for messages)
 func encrypt(plaintext []byte, key []byte) (string) {
     block, err := aes.NewCipher(key)
     if err != nil {
-        fmt.Printf("Encryption error: %v\n", err)
+        log.Printf("Encryption error: %v\n", err)
         return "1"
     }
 
     aesGCM, err := cipher.NewGCM(block)
     if err != nil {
-        fmt.Printf("Encryption error: %v\n", err)
+        log.Printf("Encryption error: %v\n", err)
         return "2"
     }
 
     nonce := make([]byte, aesGCM.NonceSize())
     if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-        fmt.Printf("Encryption error: %v\n", err)
+        log.Printf("Encryption error: %v\n", err)
         return "3"
     }
 
@@ -185,7 +185,7 @@ func initClient(sessionID string) {
 
     // Sessions directory
     if err := os.MkdirAll("sessions", 0755); err != nil {
-        fmt.Printf("Failed to create sessions directory: %v\n", err)
+        log.Printf("Failed to create sessions directory: %v\n", err)
         return
     }
 
@@ -233,7 +233,7 @@ func initClient(sessionID string) {
                     // Logout existing sessions of the same user
                     existingSessionId := getExistingSessionId(client.Store.ID.User, sessionID)
                     if (existingSessionId != "") {
-                        log.Printf("Logout existing SessionId %s \n", existingSessionId)
+                        log.Printf("Logging out existing SessionId %s \n", existingSessionId)
                         logout(existingSessionId)
                     }
                     // Connected client session
@@ -301,6 +301,7 @@ func getExistingSessionId(phoneNumber string, currentSessionId string) (string) 
         }
 
         // Initialize whatsmeow client
+        log.Printf("Initializing new whatsmeow client (sessionID: %s)", sessionID)
         client := whatsmeow.NewClient(deviceStore, nil)
 
         // If same phone number, return sessionID
@@ -309,6 +310,43 @@ func getExistingSessionId(phoneNumber string, currentSessionId string) (string) 
         }
     }
     return ""
+
+}
+
+// Clean empty sessions
+func cleanEmptySessions() {
+    files, err := filepath.Glob("sessions/session_*.db")
+    if err != nil {
+        log.Printf("Failed to list DB files: %v", err)
+    }
+    for _, file := range files {
+        sessionID := strings.TrimSuffix(strings.TrimPrefix(file, "sessions/session_"), ".db")
+
+        // Create new DB storage
+        ctx := context.Background()
+
+        // Open DB
+        path := fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID)
+        container, err := sqlstore.New(ctx, "sqlite3", path, waLog.Noop)
+        if err != nil {
+            log.Fatalf("failed to open db: %v", err)
+        }
+
+        // Get device from storage
+        deviceStore, err := container.GetFirstDevice(ctx)
+        if err != nil {
+            log.Fatalf("failed to get device: %v", err)
+        }
+
+        // Initialize whatsmeow client
+        client := whatsmeow.NewClient(deviceStore, nil)
+
+        // If same phone number, return sessionID
+        if client.Store.ID == nil {
+            log.Printf("Removing session: %s", sessionID)
+            logout(sessionID);
+        }
+    }
 
 }
 
@@ -376,6 +414,8 @@ func getSessionByUser(user string) (*SessionMeta, bool) {
 // Get a message id and a sessionID and serves a media file
 func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
+    log.Printf("mediaHandler: %s", r.URL.Path)
+
     // Get the full path (e.g., "/filename.jpg" or "/filename.mp4")
     urlPath := r.URL.Path
 
@@ -383,10 +423,10 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
     msgID := ""
     mediaType := ""
     if strings.HasSuffix(urlPath, ".jpg") {
-        strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
+        msgID = strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
         mediaType = "jpg"
     } else if strings.HasSuffix(urlPath, ".mp4") {
-        strings.ReplaceAll(path.Base(urlPath), ".mp4", "")
+        msgID = strings.ReplaceAll(path.Base(urlPath), ".mp4", "")
         mediaType = "mp4"
     } else {
         log.Printf("unknown media format")
@@ -403,7 +443,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
     if (len(res) > 0) {
         mediaJSON, _ := "",""
-        if if (mediaType == "jpg") {
+        if (mediaType == "jpg") {
             mediaJSON, _ = res[0].Values["photo"].(string)
         }
         //  else {
@@ -423,6 +463,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
+        log.Printf("Media saved.")
         if (mediaType == "jpg") {
             w.Header().Set("Content-Type", "image/jpeg")
         }
@@ -431,6 +472,8 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
         // }
         w.WriteHeader(http.StatusOK)
         _, _ = w.Write(data)
+    } else {
+        log.Printf("WARNING: no media reference")
     }
 }
 
@@ -467,7 +510,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
         if loc != "" {
             location := loc
             message.Location = &location
-            fmt.Printf("Location: %s\n", loc)
+            log.Printf("Location: %s\n", loc)
             hasContent = true
         } else {
             enc_message_text := encrypt([]byte(message_text), []byte(enc_key))
@@ -480,7 +523,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
         loc := msg.GetLocationMessage()
         if loc != nil {
             location := fmt.Sprintf("%.5f,%.5f", loc.GetDegreesLatitude(), loc.GetDegreesLongitude())
-            fmt.Printf("Location: %s\n", location)
+            log.Printf("Location: %s\n", location)
             message.Location = &location
             hasContent = true
         }
@@ -760,12 +803,13 @@ func main() {
     if (redis_port == "") {
         redis_port = "6379"
     }
-    fmt.Printf("Connecting to Redis %s:%s \n", redis_host, redis_port)
+    log.Printf("Connecting to Redis %s:%s \n", redis_host, redis_port)
     redisClient = redis.NewClient(&redis.Options{
         Addr: redis_host + ":" + redis_port,
     })
 
     // Re-init sessions
+    cleanEmptySessions()
     reInitSessions()
 
     // FOR DEBUGGING

@@ -27,6 +27,7 @@ def decrypt_message(encoded_data: str) -> str:
 
 async def download_and_decrypt_file(file: str, user: str) -> str:
     if file:
+        logger.debug("download_and_decrypt_file")
         # Check: using session could result in dupicates?
         session_folder = os.path.join(MEDIA_FOLDER, user)
         # Create session folder if not exists
@@ -39,25 +40,28 @@ async def download_and_decrypt_file(file: str, user: str) -> str:
                 async with httpx.AsyncClient() as client:
                     response = await client.get(f'{SERVER_URL}/media/{file}?user={user}')
                     response.raise_for_status()  # Raise for 4xx/5xx
-                with open(target_file, "wb") as f:
-                    if len(response.content) > 0:
+                if len(response.content) > 0:
+                    with open(target_file, "wb") as f:
                         f.write(response.content)
-                        logger.info(f'File saved: {target_file}')
-                    else:
-                        logger.info(f'File is empty: {target_file}')
+                        logger.debug(f'File saved: {target_file}')
+                else:
+                    logger.warning(f'File is empty: {target_file}')
 
             except httpx.HTTPError as e:
                 logger.error(f"Failed to download: {str(e)}")
-
+        else:
+            logger.debug(f'Path already exists: {session_folder}/{file}')
         url = f"{API_URL}/{prefix}/media?user={user}&filename={file}"
         return url
+    else:
+        logger.debug(f'No file')
     return None
 
 async def process_chat_entries(
     user: str,
     entries: Sequence[Tuple[str, Dict[str, bytes]]]
 ) -> None:
-    logger.info(f'get_chatmap: session {user}')
+    logger.debug(f'get_chatmap: session {user}')
     db = get_db_session()
 
     # Convert to list of dictionaries (from Redis) and add index as id
@@ -74,6 +78,7 @@ async def process_chat_entries(
     # Create Points from Features
     points = []
     for feature in geoJSON.get('features'):
+        logging.debug("Processing feature ...")
         coords = feature.get("geometry").get("coordinates")
         props = feature.get("properties")
         geom = f"POINT({coords[0]} {coords[1]})"
@@ -89,13 +94,13 @@ async def process_chat_entries(
                 "username": props.get("username"),
                 "user": user,
             })
-            logger.info("Adding point")
-            logger.info(f"id {props.get("id")}")
-            logger.info(f"geom {props.get("geom")}")
-            logger.info(f"message {props.get("message")}")
-            logger.info(f"file {props.get("file")}")
-            logger.info(f"time {props.get("time")}")
-            logger.info(f"username {props.get("username")}")
-            logger.info(f"user {props.get("user")}")
+            logger.debug("Adding point")
+            logger.debug(f"id {props.get("id")}")
+            logger.debug(f"geom {props.get("geom")}")
+            logger.debug(f"message {props.get("message")}")
+            logger.debug(f"file {props.get("file")}")
+            logger.debug(f"time {props.get("time")}")
+            logger.debug(f"username {props.get("username")}")
+            logger.debug(f"user {props.get("user")}")
     if len(points) > 0:
         add_points(db=db, points=points)

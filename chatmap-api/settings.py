@@ -16,7 +16,7 @@ SERVER_URL = os.getenv("SERVER_URL", "http://localhost:8001")
 # Security
 SECRET_KEY = os.getenv("CHATMAP_SECRET_KEY", "4sup3rs3cret5up3rdummykey")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
+ACCESS_TOKEN_EXPIRE_MINUTES = 480
 CHATMAP_ENC_KEY=os.getenv("CHATMAP_ENC_KEY", "0123456789ABCDEF0123456789ABCDEF")
 
 # Redis
@@ -25,7 +25,7 @@ CONSUMER_GROUP = "messages-proc"
 CONSUMER_NAME = "messages-01"
 
 # Expiring time for messages (in minutes)
-EXPIRING_MIN = 120
+EXPIRING_MIN = 15
 EXPIRING_MIN_MS = EXPIRING_MIN * 60 * 1000
 
 # Database

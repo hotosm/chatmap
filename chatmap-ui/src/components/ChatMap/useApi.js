@@ -73,11 +73,19 @@ const useApi = (params = {}) => {
                     'Authorization': `Bearer ${token}`
                 },
             });
+            if (response.status === 401) {
+                console.log("Session expired")
+                sessionStorage.removeItem("chatmap_access_token");
+                setSession();
+                setStatus();
+                setMapData();
+                await fetchQRCode();
+            }
             if (!response.ok) throw new Error('Failed to fetch data');
             const result = await response.json();
             setMapData(result);
         } catch (err) {
-            setError(err.message);
+            // setError(err.message);
         } finally {
             setIsLoading(false);
         }

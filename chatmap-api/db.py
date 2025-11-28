@@ -15,7 +15,7 @@ DATABASE_URL = (
 
 engine = create_engine(
     DATABASE_URL,
-    echo=DEBUG,
+    echo=False,
     poolclass=NullPool
 )
 
@@ -66,7 +66,7 @@ class PointOut(BaseModel):
     file: str | None = None
 
     class Config:
-        orm_mode = True 
+        from_attributes = True
 
 class FeatureGeometry(BaseModel):
     type: Literal["Point"]

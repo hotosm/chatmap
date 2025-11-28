@@ -20,7 +20,6 @@ from sqlalchemy import func
 
 # Logs
 logging.basicConfig(
-    filename='chatmap-api.log',
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S'
@@ -85,7 +84,7 @@ async def qr(session: dict = Depends(get_current_session)):
     async with httpx.AsyncClient() as client:
         response = await client.get(f'{SERVER_URL}/start-qr?session={session["user_id"]}')
         if response.status_code != 200:
-            logger.info(f'Failed to get QR code: {session["user_id"]}')
+            logger.warning(f'Failed to get QR code: {session["user_id"]}')
             raise HTTPException(status_code=502, detail="Failed to get QR code")
 
         if "image" not in response.headers.get("Content-Type", ""):
