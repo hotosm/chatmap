@@ -65,7 +65,8 @@ locations using the `chatmap-py` package and saves them in the database.
 
 ```bash
 cd chatmap-api
-uvicorn main:app --reload
+uv sync
+uv run uvicorn main:app --reload
 ```
 
 ## Run ChatMap Frontend

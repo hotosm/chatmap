@@ -389,7 +389,6 @@ func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte
         Mimetype:   &meta.Mimetype,
     }
     // Download & decrypt
-    // FIXME: client is nil
     data, err := client.Download(context.Background(), &imgMsg)
     if err != nil {
         log.Printf("download error: %w", err)
