@@ -91,7 +91,7 @@ with Signal and Telegram.
 
 ## How it works?
 
-ChatMap Live uses a bridge to WhatsApp based on [whatsmeow](https://github.com/tulir/whatsmeow) for receiving messages and store them in a Redis stream. Media files are not downloaded, but a reference to them is stored, while text messages are encrypted. A Python API periodically get messages from the stream and parse them using [chatmap-py](https://pypi.org/project/chatmap-py/), saving the resulting points in a Postgres/PostGIS database. Only text and media messages for map points are decrypted and stored, all other messages are not stored and deleted from the Redis stream.
+ChatMap Live uses a bridge to WhatsApp based on [whatsmeow](https://github.com/tulir/whatsmeow) for receiving messages and store them in a Redis stream. Media files are not downloaded, but a reference to them is stored, while text messages are encrypted. A Python API periodically get messages from the stream and parse them using [chatmap-py](https://pypi.org/project/chatmap-py/), saving the resulting points in a Postgres/PostGIS database. Only text and media messages for map points are decrypted and stored, all other messages are not stored and deleted from the Redis stream. Finally, the UI make requests to the API for getting a QR code, request a session and display the points into the map.
 
 We plan to add more bridges in the future, to support Telegram and Signal, but maybe also other apps. 
 
