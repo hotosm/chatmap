@@ -93,5 +93,7 @@ with Signal and Telegram.
 
 ChatMap Live uses a bridge to WhatsApp based on [whatsmeow](https://github.com/tulir/whatsmeow) for receiving messages and store them in a Redis stream. Media files are not downloaded, but a reference to them is stored, while text messages are encrypted. A Python API periodically get messages from the stream and parse them using [chatmap-py](https://pypi.org/project/chatmap-py/), saving the resulting points in a Postgres/PostGIS database. Only text and media messages for map points are decrypted and stored, all other messages are not stored and deleted from the Redis stream.
 
+We plan to add more bridges in the future, to support Telegram and Signal, but maybe also other apps. 
+
 <img width="1510" height="907" alt="Screenshot 2025-11-29 at 12 47 46 PM" src="https://github.com/user-attachments/assets/33cca86a-e63d-4369-aa79-aff117470654" />
 
