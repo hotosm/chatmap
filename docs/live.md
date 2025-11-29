@@ -3,7 +3,7 @@
 In this advanced mode users will be able to link devices to ChatMap
 for creating live-updated maps.
 
-<img width="542" alt="Screenshot 2025-07-30 at 2 58 23 PM" src="https://github.com/user-attachments/assets/e867eae1-1788-4ab8-a2a4-968a33e1c275" />
+<img width="906" height="426" alt="Screenshot 2025-11-29 at 12 45 41 PM" src="https://github.com/user-attachments/assets/18677508-035c-407b-aa22-58fba537de0f" />
 
 # Setup (with Docker)
 
@@ -77,3 +77,8 @@ all incoming messages and update the map in real-time.
 
 It only works with WhatsApp for now, but other connectors will be developed, starting
 with Signal and Telegram.
+
+# How it works?
+
+<img width="1510" height="907" alt="Screenshot 2025-11-29 at 12 47 46 PM" src="https://github.com/user-attachments/assets/33cca86a-e63d-4369-aa79-aff117470654" />
+
