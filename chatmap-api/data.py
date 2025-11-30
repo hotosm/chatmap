@@ -38,7 +38,7 @@ async def download_and_decrypt_file(file: str, user: str) -> str:
         if not os.path.exists(target_file):
             try:
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f'{SERVER_URL}/media/{file}?user={user}')
+                    response = await client.get(f'{SERVER_URL}/media/{file}')
                     response.raise_for_status()  # Raise for 4xx/5xx
                 if len(response.content) > 0:
                     with open(target_file, "wb") as f:
@@ -50,8 +50,8 @@ async def download_and_decrypt_file(file: str, user: str) -> str:
             except httpx.HTTPError as e:
                 logger.error(f"Failed to download: {str(e)}")
         else:
-            logger.debug(f'Path already exists: {session_folder}/{file}')
-        url = f"{API_URL}/{prefix}/media?user={user}&filename={file}"
+            logger.debug(f'File already exists: {file}')
+        url = f"{API_URL}/{prefix}/media/{file}"
         return url
     else:
         logger.debug(f'No file')
