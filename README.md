@@ -71,6 +71,4 @@ Contributors are welcome!
 
 ## Licensing
 
-Copyright 2024 Emilio Mariscal
-
 This is free software! you may use this project under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
