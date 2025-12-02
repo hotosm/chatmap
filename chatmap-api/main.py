@@ -21,7 +21,7 @@ from sqlalchemy import func
 # Logs
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO,
+    level=logging.DEBUG if DEBUG else logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)

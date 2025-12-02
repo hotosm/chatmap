@@ -4,7 +4,7 @@ import os
 MEDIA_FOLDER="media"
 
 # Debug
-DEBUG = True
+DEBUG = (os.getenv('CHATMAP_API_DEBUG', 'false').lower() == 'true')
 
 # API
 API_URL = os.getenv("CHATMAP_API_URL", "http://localhost:8000")

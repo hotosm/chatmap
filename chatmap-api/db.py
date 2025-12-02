@@ -4,9 +4,12 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from geoalchemy2 import Geometry
 from typing import Dict, List, Literal, Tuple
-from settings import DEBUG, CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
+from settings import CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
 from datetime import datetime
 from pydantic import BaseModel
+
+# Logs
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = (
     f"postgresql://{CHATMAP_DB_USER}:{CHATMAP_DB_PASSWORD}"
@@ -50,6 +53,7 @@ def add_points(db: Session, points):
         "username": stmt.excluded.username
     }
     if stmt.excluded.file:
+        logger.debug("A file property is available for updating")
         update_dict['file'] = stmt.excluded.file
     stmt = stmt.on_conflict_do_update(
         index_elements=["id"],

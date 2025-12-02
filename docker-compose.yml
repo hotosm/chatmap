@@ -21,6 +21,7 @@ services:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - SERVER_URL=http://chatmap-go:8001
+      - CHATMAP_API_DEBUG=${CHATMAP_API_DEBUG:-false}
       - CHATMAP_API_URL=${CHATMAP_API_URL:-http://localhost:8000}
       - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
       - CHATMAP_SECRET_KEY=${CHATMAP_SECRET_KEY:-4sup3rs3cret5up3rdummykey}
