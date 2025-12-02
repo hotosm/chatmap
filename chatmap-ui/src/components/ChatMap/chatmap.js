@@ -248,13 +248,7 @@ export default class ChatMap {
             message: message.location ? "(Location only)" : message.message,
           };
           if (!isNaN(featureObject.properties.time)) {
-            geoJSON.features.push({
-              ...featureObject,
-              properties: {
-                ...featureObject.properties,
-                index: geoJSON.features.length
-              }
-            });
+            geoJSON.features.push(featureObject);
           }
         }
 

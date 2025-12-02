@@ -74,7 +74,6 @@ const useApi = (params = {}) => {
                 },
             });
             if (response.status === 401) {
-                console.log("Session expired")
                 sessionStorage.removeItem("chatmap_access_token");
                 setSession();
                 setStatus();

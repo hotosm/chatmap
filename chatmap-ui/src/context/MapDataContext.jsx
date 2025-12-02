@@ -53,8 +53,21 @@ export const MapDataProvider = (props) => {
       return accumulator;
   }, {});
 
+  const indexedData = {
+    ...data,
+    features: data.features.map( (feature, index) => {
+      return {
+        ...feature,
+        properties: {
+          ...feature.properties,
+          index: index
+        }
+      }
+    })
+  }
+
   return (
-    <MapDataContext.Provider value={{ data, tags, mapDataDispatch }}>
+    <MapDataContext.Provider value={{ data: indexedData, tags, mapDataDispatch }}>
       {props.children}
     </MapDataContext.Provider>
   );
