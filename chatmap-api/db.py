@@ -43,7 +43,12 @@ class Point(Base):
     
 def add_points(db: Session, points):
     stmt = insert(Point).values(points)
-    update_dict = {'message': stmt.excluded.message}
+    update_dict = {
+        "geom":    stmt.excluded.geom,
+        "message": stmt.excluded.message,
+        "user": stmt.excluded.user,
+        "username": stmt.excluded.username
+    }
     if stmt.excluded.file:
         update_dict['file'] = stmt.excluded.file
     stmt = stmt.on_conflict_do_update(
