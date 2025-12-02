@@ -46,6 +46,8 @@ class Point(Base):
     time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     file = Column(String)
 
+# Run insert queries for points, including on_conflict,
+# coalescing messages and files
 def add_points(db: Session, points):
     stmt = insert(Point).values(points)
     update_dict = {
@@ -62,17 +64,8 @@ def add_points(db: Session, points):
     db.execute(stmt)
     db.commit()
 
-class PointOut(BaseModel):
-    id: str
-    coordinates: List[float]
-    message: str | None = None
-    username: str | None = None
-    time: datetime
-    file: str | None = None
 
-    class Config:
-        from_attributes = True
-
+# GeoJson models
 class FeatureGeometry(BaseModel):
     type: Literal["Point"]
     coordinates: Tuple[float, float]  # GeoJSON is [lon, lat]
@@ -138,7 +131,6 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 # Dependency to get DB session
-
 def get_db_session():
     db = SessionLocal()
     try:
