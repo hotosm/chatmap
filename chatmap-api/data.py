@@ -25,9 +25,10 @@ def decrypt_message(encoded_data: str) -> str:
         plaintext = cipher.decrypt_and_verify(ciphertext[:-16], ciphertext[-16:])
         return plaintext.decode('utf-8')
 
-async def download_and_decrypt_file(file: str, user: str) -> str:
+# Download and save media files
+async def download_media_file(file: str, user: str) -> str:
     if file:
-        logger.debug("download_and_decrypt_file")
+        logger.debug("download_media_file")
         # Check: using session could result in dupicates?
         session_folder = os.path.join(MEDIA_FOLDER, user)
         # Create session folder if not exists
@@ -37,6 +38,7 @@ async def download_and_decrypt_file(file: str, user: str) -> str:
         target_file = os.path.join(session_folder, file)
         if not os.path.exists(target_file):
             try:
+                # Get file from IM connector server
                 async with httpx.AsyncClient() as client:
                     response = await client.get(f'{SERVER_URL}/media/{file}?user={user}')
                     response.raise_for_status()  # Raise for 4xx/5xx
@@ -83,7 +85,7 @@ async def process_chat_entries(
         props = feature.get("properties")
         geom = f"POINT({coords[0]} {coords[1]})"
         message = decrypt_message(props.get("message"))
-        file = await download_and_decrypt_file(props.get("file"), user)
+        file = await download_media_file(props.get("file"), user)
         if props.get("id") is not None:
             logger.debug("Adding point")
             logger.debug(f"id {props.get("id")}")

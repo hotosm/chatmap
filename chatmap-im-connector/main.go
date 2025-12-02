@@ -365,7 +365,7 @@ func mediaReference(msg *waProto.ImageMessage) string {
 
 // TODO: support video
 // Download and decrypt media file using reference data
-func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte, error) {
+func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference) ([]byte, error) {
     // Decode metadata
     mediaKey, err := base64.StdEncoding.DecodeString(meta.MediaKey)
     if err != nil {
@@ -397,7 +397,7 @@ func downloadMediaFromMsg(client *whatsmeow.Client, meta MediaReference) ([]byte
     return data, nil
 }
 
-// Getr session by user
+// Get session by user
 func getSessionByUser(user string) (*SessionMeta, bool) {
     sessionMetaMu.RLock()
     defer sessionMetaMu.RUnlock()
@@ -456,7 +456,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
         }
 
         // Download decrypted media
-        data, err := downloadMediaFromMsg(client, meta)
+        data, err := decryptAndDownloadMedia(client, meta)
         if err != nil {
             log.Printf("error downloading media: %w", err)
             http.Error(w, err.Error(), http.StatusInternalServerError)
