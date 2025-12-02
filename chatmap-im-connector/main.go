@@ -462,7 +462,6 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
-        log.Printf("Media saved.")
         if (mediaType == "jpg") {
             w.Header().Set("Content-Type", "image/jpeg")
         }

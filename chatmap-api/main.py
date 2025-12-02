@@ -162,9 +162,8 @@ async def get_chatmap(
 
 # Get media file (image/jpeg)
 @api_router.get("/media")
-async def media(filename: str, user: str) -> Dict[str, str]:
-    folder_path = os.path.join(MEDIA_FOLDER, user)
-    file_path = os.path.join(folder_path, filename)
+async def media(filename: str) -> Dict[str, str]:
+    file_path = os.path.join(MEDIA_FOLDER, filename)
     if not os.path.isfile(file_path):
         return {"error": "File not found"}
     return FileResponse(path=file_path, media_type="image/jpeg")

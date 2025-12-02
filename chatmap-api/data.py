@@ -2,6 +2,7 @@ import os
 import logging
 import httpx
 import base64
+import hashlib
 from db import add_points, get_db_session
 from Crypto.Cipher import AES
 from typing import Dict, Sequence, Tuple
@@ -29,31 +30,28 @@ def decrypt_message(encoded_data: str) -> str:
 async def download_media_file(file: str, user: str) -> str:
     if file:
         logger.debug("download_media_file")
-        # Check: using session could result in dupicates?
-        session_folder = os.path.join(MEDIA_FOLDER, user)
-        # Create session folder if not exists
-        if not os.path.exists(session_folder):
-            os.mkdir(session_folder)
-        # File to save
-        target_file = os.path.join(session_folder, file)
+        file_ext = file.split('.')[-1]
+        file_name = f"{hashlib.sha256(f"{user}-{file}".encode()).hexdigest()}.{file_ext}"
+        target_file = os.path.join(MEDIA_FOLDER, file_name)
+        url = f"{API_URL}/{prefix}/media?filename={file_name}"
         if not os.path.exists(target_file):
             try:
-                # Get file from IM connector server
+                # Download file from IM connector server
                 async with httpx.AsyncClient() as client:
                     response = await client.get(f'{SERVER_URL}/media/{file}?user={user}')
                     response.raise_for_status()  # Raise for 4xx/5xx
+                # Save file
                 if len(response.content) > 0:
                     with open(target_file, "wb") as f:
                         f.write(response.content)
                         logger.debug(f'File saved: {target_file}')
                 else:
-                    logger.warning(f'File is empty: {target_file}')
+                    logger.warning(f'File is empty: {file}')
 
             except httpx.HTTPError as e:
                 logger.error(f"Failed to download: {str(e)}")
         else:
-            logger.debug(f'Path already exists: {session_folder}/{file}')
-        url = f"{API_URL}/{prefix}/media?user={user}&filename={file}"
+            logger.info(f'File exists: {target_file}')
         return url
     else:
         logger.debug(f'No file')
