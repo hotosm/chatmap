@@ -4,7 +4,7 @@ import os
 import logging
 import asyncio
 from data import process_chat_entries
-from settings import STREAM_KEY, EXPIRING_MIN_MS
+from settings import STREAM_KEY, EXPIRING_MIN_MS, STREAM_LISTENER_TIME
 
 # Logs
 logger = logging.getLogger(__name__)
@@ -29,6 +29,12 @@ async def get_sessions():
     sessions = await redis_client.scan(0, match="messages:*", type="stream")
     return [item[0].decode('utf-8').replace("messages:", "") for item in sessions if item]
 
+# This function runs every (STREAM_LISTENER_TIME) seconds.
+# It gets a list of user sessions and then messages
+# from the Redis queue for processing them with ChatMap by
+# calling process_chat_entries , which will also update
+# the database and download media files
+# It also cleanup old messages from the queue.
 async def stream_listener() -> None:
     while True:
         try:
@@ -43,4 +49,4 @@ async def stream_listener() -> None:
                 await cleanup(user)
         except Exception as e:
             logger.info("[stream_listener] Error processing data %s", e)
-        await asyncio.sleep(5)
+        await asyncio.sleep(STREAM_LISTENER_TIME)

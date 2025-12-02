@@ -45,7 +45,7 @@ class Point(Base):
     username = Column(String)
     time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     file = Column(String)
-    
+
 def add_points(db: Session, points):
     stmt = insert(Point).values(points)
     update_dict = {
