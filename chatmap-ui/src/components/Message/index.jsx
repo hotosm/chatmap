@@ -13,8 +13,7 @@ function Message({ message, msgType, selected, ref, dataFiles, onRemove }) {
             >
                 <p className="userinfo">
                     <span className="msgUsername">{message.username.split("@")[0]}</span>
-                    {/* <span className="msgDatetime">{formatDate(message.time)}</span> */}
-                    <span className="msgDatetime">Index: {message.index}</span>
+                    <span className="msgDatetime">{formatDate(message.time)}</span>
                     <sl-icon-button
                         className="removeIcon"
                         name="trash"
