@@ -50,7 +50,7 @@ def add_points(db: Session, points):
     stmt = insert(Point).values(points)
     update_dict = {
         "geom":    stmt.excluded.geom,
-        "message": stmt.excluded.message,
+        "message": func.coalesce(stmt.excluded.message, Point.message),
         "user": stmt.excluded.user,
         "username": stmt.excluded.username,
         "file": func.coalesce(stmt.excluded.file, Point.file),
