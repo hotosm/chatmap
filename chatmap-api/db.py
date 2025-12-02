@@ -7,6 +7,7 @@ from typing import Dict, List, Literal, Tuple
 from settings import CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
 from datetime import datetime
 from pydantic import BaseModel
+import logging
 
 # Logs
 logger = logging.getLogger(__name__)
