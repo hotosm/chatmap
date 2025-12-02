@@ -12,7 +12,6 @@ const Map = lazy(() => import('../../components/Map/index.jsx'));
 function App() {
 
   const [noLocations, setNoLocations] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState();
   const [mediaOnly, setMediaOnly] = useState(true);
 
   // File Manager: Manages files and data files.
@@ -31,15 +30,6 @@ function App() {
     options: { mediaOnly }
   });
   
-
-  useEffect(() => {
-      // Public event for external integratons
-      if (mapData.features.length > 0) {
-        window._CHATMAP?.mapData && window._CHATMAP.mapData();
-        console.log(`${mapData.features.length} features parsed`)
-      }
-  }, [mapData])
-
   // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
 
@@ -49,6 +39,10 @@ function App() {
       type: 'set',
       payload: mapData,
     });
+    // Public event for external integratons
+    if (mapData.features.length > 0) {
+      window._CHATMAP?.mapData && window._CHATMAP.mapData();
+    }
   }, [mapData]);
 
   // The user wants to upload a new file, clear everything
@@ -57,7 +51,6 @@ function App() {
     resetFileManager();
     resetMerger();
     setNoLocations(false);
-    setSelectedFeature()
   }
 
   // Handle uploaded files error (ex: invalid chat export)
@@ -72,10 +65,6 @@ function App() {
 
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
-
-  const handleFeatureSelect = (feature) => {
-    setSelectedFeature(feature.properties);
-  }
 
   return (
     <>
@@ -103,12 +92,10 @@ function App() {
           </div>
         }
 
-        {/* Thered's data, show the map! */}
+        {/* There's data, show the map! */}
         { dataAvailable && 
           <Map 
-            data={data}
             dataFiles={dataFiles}
-            onSelectFeature={handleFeatureSelect}
           />
         }
 

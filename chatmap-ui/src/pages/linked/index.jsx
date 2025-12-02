@@ -137,7 +137,6 @@ function App() {
         {/* There's data, show the map! */}
         { dataAvailable &&
           <Map
-            data={data}
             onSelectFeature={handleFeatureSelect}
           />
         }

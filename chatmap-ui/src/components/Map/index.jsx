@@ -11,14 +11,13 @@ import { useMapDataContext } from '../../context/MapDataContext';
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
  */
-export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
+export default function Map({ dataFiles, center, zoom }) {
     // A div for the map
     const mapContainer = useRef(null);
     // The Map obejct
     const map = useRef(null);
     // Map popup
     const [activePopupFeature, setActivePopupFeature] = useState(null);
-    const [featureIndex, setFeatureIndex] = useState(0);
     const [editingTags, setEditingTags] = useState(false);
     const popupRef = useRef(null);
 
@@ -85,11 +84,11 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
           if (feature.properties["tags"]) {
             feature.properties.tags = JSON.parse(feature.properties.tags);
           }
-          data.features.forEach((item, index) => {
-            if (feature.properties.id == item.properties.id) {
-              setFeatureIndex(index);
-            }
-          });
+          // data.features.forEach((item, index) => {
+          //   if (feature.properties.id == item.properties.id) {
+          //     setFeatureIndex(index);
+          //   }
+          // });
 
           setActivePopupFeature(feature);
         });
@@ -102,15 +101,21 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
       const handleKeyDownNextPrev = (event) => {
         if (!editingTags) {
           if (event.key === 'ArrowLeft') {
+            const featureIndex = activePopupFeature.properties.index
             if (featureIndex > 0) {
               setActivePopupFeature(data.features[featureIndex - 1]);
-              setFeatureIndex(featureIndex - 1);  
             }
+            map.current.flyTo({
+              center: data.features[featureIndex].geometry.coordinates
+            });
           } else if (event.key === 'ArrowRight') {
+            const featureIndex = activePopupFeature.properties.index
             if (featureIndex < data.features.length - 1) {
               setActivePopupFeature(data.features[featureIndex + 1]);
-              setFeatureIndex(featureIndex + 1);
             }
+            map.current.flyTo({
+              center: data.features[featureIndex].geometry.coordinates
+            });
           }
         }
       };
@@ -118,15 +123,7 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
       return () => {
         window.removeEventListener("keydown", handleKeyDownNextPrev);
       };
-    }, [featureIndex, editingTags]);
-
-    useEffect(() => {
-      if (!activePopupFeature) return;
-      map.current.flyTo({
-        center: data.features[featureIndex].geometry.coordinates
-      });
-      onSelectFeature && onSelectFeature(activePopupFeature);
-    }, [activePopupFeature]); 
+    }, [editingTags, activePopupFeature]);
 
     useEffect(() => {
       if (map.current.getSource("locations")) {
@@ -143,16 +140,6 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
               ]
             });
           }
-        } else if (data.filterDate) {
-            const hoursAgo = Date.now() - data.filterDate * 60 * 60 * 1000; 
-            map.current.getSource('locations').setData({
-              ...data,
-              features: [
-                  ...data.features.filter(feature => 
-                  feature.properties.time >= hoursAgo
-                )
-              ]
-            });
         } else {
           map.current.getSource('locations').setData(data);
         }
@@ -175,15 +162,6 @@ export default function Map({ dataFiles, onSelectFeature, center, zoom }) {
         popupRef.current.remove()
       }
     }, [data.filterTag])
-
-    // Filter by date
-    useEffect(() => {
-      if (!map.current || !activePopupFeature) return;
-      if (data.filterDate) {
-        setActivePopupFeature(null);
-        popupRef.current.remove()
-      }
-    }, [data.filterDate])
 
     // Tag handlers
 

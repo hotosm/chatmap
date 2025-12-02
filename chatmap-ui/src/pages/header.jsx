@@ -71,13 +71,14 @@ export default function Header({
                         </sl-button>
                     </div> : null}
 
+                    {/* 
                     <div className="dateOptions">
                         <DateOptions
                             onSelectDate={selectDateHandler}
                             tags={tags}
                             selectedDate={data.filterDate}
                         />
-                    </div>
+                    </div> */}
 
                     <div className="tagsOptions">
                         <TagsOptions

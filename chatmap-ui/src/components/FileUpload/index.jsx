@@ -147,7 +147,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
               <sl-icon name="file-arrow-up-fill" slot="prefix"></sl-icon>
               <FormattedMessage
                 id = "app.uploadLabel"
-                defaultMessage="Upload your .zip file here"
+                defaultMessage="Open your .zip file"
               />
             </sl-button>}
         />

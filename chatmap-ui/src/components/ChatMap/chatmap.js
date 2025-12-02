@@ -245,10 +245,16 @@ export default class ChatMap {
           // Add the GeoJSON feature
           featureObject.properties = {
             ...message,
-            message: message.location ? "(Location only)" : message.message
+            message: message.location ? "(Location only)" : message.message,
           };
           if (!isNaN(featureObject.properties.time)) {
-            geoJSON.features.push(featureObject);
+            geoJSON.features.push({
+              ...featureObject,
+              properties: {
+                ...featureObject.properties,
+                index: geoJSON.features.length
+              }
+            });
           }
         }
 
