@@ -73,7 +73,7 @@ class FeatureGeometry(BaseModel):
 class FeatureProperties(BaseModel):
     id: str
     time: datetime
-    username: str
+    username_id: str
     message: str | None = None
     file: str | None
 

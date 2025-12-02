@@ -29,7 +29,6 @@ def decrypt_message(encoded_data: str) -> str:
 # Download and save media files
 async def download_media_file(file: str, user: str) -> str:
     if file:
-        logger.debug("download_media_file")
         file_ext = file.split('.')[-1]
         file_name = f"{hashlib.sha256(f"{user}-{file}".encode()).hexdigest()}.{file_ext}"
         target_file = os.path.join(MEDIA_FOLDER, file_name)

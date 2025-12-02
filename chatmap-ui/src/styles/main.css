@@ -281,11 +281,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .msgUsername {
   font-weight: var(--hot-font-weight-bold);
+  padding-right: var(--hot-spacing-small)
 }
 
 .msgDatetime {
   color: var(--hot-color-neutral-300);
-  padding-left: var(--hot-spacing-small)
 }
 
 .maplibregl-popup-close-button {

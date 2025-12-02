@@ -19,6 +19,8 @@ import (
     "crypto/cipher"
     "crypto/rand"
     "encoding/base64"
+    "crypto/sha256"
+    "encoding/hex"
 
     "google.golang.org/protobuf/proto"
 
@@ -137,7 +139,7 @@ func ConvertToJSDateFormat(input string) (string) {
     return t.Format(time.RFC3339)
 }
 
-// Encrypt text (for messages)
+// Encrypt text (for messages) using AES
 func encrypt(plaintext []byte, key []byte) (string) {
     block, err := aes.NewCipher(key)
     if err != nil {
@@ -164,10 +166,16 @@ func encrypt(plaintext []byte, key []byte) (string) {
     return encoded
 }
 
+// Hash text using AES
+func hash(plaintext string) (string) {
+    hash := sha256.Sum256([]byte(plaintext))
+    return hex.EncodeToString(hash[:])
+}
+
 // Initialize client with sessionId
 func initClient(sessionID string) {
 
-    // Encryption key
+    // Encryption key (32 bytes for AES-256)
     enc_key := os.Getenv("CHATMAP_ENC_KEY")
     if enc_key == "" {
         enc_key = "0123456789ABCDEF0123456789ABCDEF"
@@ -230,8 +238,9 @@ func initClient(sessionID string) {
                     sessionMetaMu.Unlock()
                     log.Printf("QR code generated sucessfully")
                 } else if evt.Event == "success" {
+                    userID := hash(client.Store.ID.User)
                     // Logout existing sessions of the same user
-                    existingSessionId := getExistingSessionId(client.Store.ID.User, sessionID)
+                    existingSessionId := getExistingSessionId(userID, sessionID)
                     if (existingSessionId != "") {
                         log.Printf("Logging out existing SessionId %s \n", existingSessionId)
                         logout(existingSessionId)
@@ -239,9 +248,9 @@ func initClient(sessionID string) {
                     // Connected client session
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].Connected = true
-                    sessionMeta[sessionID].User = client.Store.ID.User
+                    sessionMeta[sessionID].User = userID
                     sessionMeta[sessionID].SessionID = sessionID
-                    log.Printf("Session %s CONNECTED (1) ClientID: %s\n", sessionID,  client.Store.ID.User)
+                    log.Printf("Session %s CONNECTED (1) ClientID: %s\n", sessionID,  userID)
                     sessionMetaMu.Unlock()
                     break
                 }
@@ -250,10 +259,11 @@ func initClient(sessionID string) {
     } else {
         // Connected client session
         sessionMetaMu.Lock()
+        userID := hash(client.Store.ID.User)
         sessionMeta[sessionID].Connected = true
-        sessionMeta[sessionID].User = client.Store.ID.User
+        sessionMeta[sessionID].User = userID
         sessionMeta[sessionID].SessionID = sessionID
-        log.Printf("Session %s CONNECTED (2) ClientID: %s\n", sessionID,  client.Store.ID.User)
+        log.Printf("Session %s CONNECTED (2) ClientID: %s\n", sessionID,  userID)
         sessionMetaMu.Unlock()
     }
 
@@ -274,8 +284,8 @@ func initClient(sessionID string) {
     }()
 }
 
-// Get previously created sessions for the same phone number
-func getExistingSessionId(phoneNumber string, currentSessionId string) (string) {
+// Get previously created sessions for the userId
+func getExistingSessionId(userId string, currentSessionId string) (string) {
     files, err := filepath.Glob("sessions/session_*.db")
     if err != nil {
         log.Printf("Failed to list DB files: %v", err)
@@ -304,8 +314,8 @@ func getExistingSessionId(phoneNumber string, currentSessionId string) (string) 
         log.Printf("Initializing new whatsmeow client (sessionID: %s)", sessionID)
         client := whatsmeow.NewClient(deviceStore, nil)
 
-        // If same phone number, return sessionID
-        if (client.Store.ID != nil && client.Store.ID.User == phoneNumber && sessionID != currentSessionId) {
+        // If same userId, return sessionID
+        if (client.Store.ID != nil && hash(client.Store.ID.User) == userId && sessionID != currentSessionId) {
             return sessionID
         }
     }
@@ -341,7 +351,7 @@ func cleanEmptySessions() {
         // Initialize whatsmeow client
         client := whatsmeow.NewClient(deviceStore, nil)
 
-        // If same phone number, return sessionID
+        // Logout empty sessions
         if client.Store.ID == nil {
             log.Printf("Removing session: %s", sessionID)
             logout(sessionID);
@@ -543,14 +553,15 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
 
     // Save data into Redis queue
     if (hasContent) {
+        userId := hash(client.Store.ID.User)
         redisClient.XAdd(ctx, &redis.XAddArgs{
-            Stream: fmt.Sprintf("messages:%s", client.Store.ID.User),
+            Stream: fmt.Sprintf("messages:%s", userId),
             ID:     streamID,
             Values: map[string]interface{}{
                 "id":      streamID,
-                "user":    client.Store.ID.User,
-                "from":    message.From,
-                "chat":    message.Chat,
+                "user":    userId,
+                "from":    hash(message.From),
+                "chat":    hash(message.Chat),
                 "text":    message.Text,
                 "date":    message.Date,
                 "location": message.Location,
@@ -559,7 +570,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
                 "file": message.File,
             },
         })
-        log.Printf("Saved received message from: %s", message.From)
+        log.Printf("Saved received message")
     }
 
 }
@@ -774,8 +785,10 @@ func messagesHandler(w http.ResponseWriter, r *http.Request) {
 
         message := Message{
             Id:       get("id"),
+
             From:     get("from"),
             Chat:     get("chat"),
+
             Text:     get("text"),
             Location: locationPtr,
             Date:     get("date"),

@@ -146,7 +146,7 @@ async def get_chatmap(
                 "type": "Feature",
                 "properties": {
                     "time": point.time,
-                    "username": point.username,
+                    "username_id": point.username,
                     "message": point.message,
                     "file": point.file,
                     "id": point.id,
