@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, String, select, DateTime, text
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import func
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from geoalchemy2 import Geometry
@@ -52,7 +53,7 @@ def add_points(db: Session, points):
         "message": stmt.excluded.message,
         "user": stmt.excluded.user,
         "username": stmt.excluded.username,
-        "file": stmt.coalesce(stmt.excluded.file, Point.file),
+        "file": func.coalesce(stmt.excluded.file, Point.file),
     }
     stmt = stmt.on_conflict_do_update(
         index_elements=["id"],
