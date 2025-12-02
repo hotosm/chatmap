@@ -51,11 +51,9 @@ def add_points(db: Session, points):
         "geom":    stmt.excluded.geom,
         "message": stmt.excluded.message,
         "user": stmt.excluded.user,
-        "username": stmt.excluded.username
+        "username": stmt.excluded.username,
+        "file": stmt.excluded.file
     }
-    if stmt.excluded.file:
-        logger.debug("A file property is available for updating")
-        update_dict['file'] = stmt.excluded.file
     stmt = stmt.on_conflict_do_update(
         index_elements=["id"],
         set_=update_dict

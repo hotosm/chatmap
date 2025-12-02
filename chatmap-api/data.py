@@ -85,6 +85,14 @@ async def process_chat_entries(
         message = decrypt_message(props.get("message"))
         file = await download_and_decrypt_file(props.get("file"), user)
         if props.get("id") is not None:
+            logger.debug("Adding point")
+            logger.debug(f"id {props.get("id")}")
+            logger.debug(f"geom {geom}")
+            logger.debug(f"message {message}")
+            logger.debug(f"file {file}")
+            logger.debug(f"time {props.get("time")}")
+            logger.debug(f"username {props.get("username")}")
+            logger.debug(f"user {user}")
             points.append({
                 "id": props.get("id"),
                 "geom": geom,
@@ -94,13 +102,5 @@ async def process_chat_entries(
                 "username": props.get("username"),
                 "user": user,
             })
-            logger.debug("Adding point")
-            logger.debug(f"id {props.get("id")}")
-            logger.debug(f"geom {props.get("geom")}")
-            logger.debug(f"message {props.get("message")}")
-            logger.debug(f"file {props.get("file")}")
-            logger.debug(f"time {props.get("time")}")
-            logger.debug(f"username {props.get("username")}")
-            logger.debug(f"user {props.get("user")}")
     if len(points) > 0:
         add_points(db=db, points=points)
