@@ -53,6 +53,7 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |⚙️| [Map settings](https://github.com/hotosm/chatmap/issues/37)
 |⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
 |⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+|⚙️| Website re-design
 | | Form for user content licensing |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
 | | ChatBot for creating automated surveys
