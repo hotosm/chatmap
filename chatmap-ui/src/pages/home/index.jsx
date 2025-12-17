@@ -5,8 +5,7 @@ import useFileManager from "../../components/FileUpload/useFileManager.js";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
-import FileUploadSection from "./fileUpload.section.jsx";
-import NoLocationsSection from "./noLocations.section.jsx";
+import FileUpload from "../../components/FileUpload/index.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import "../../styles/home.css";
 import logo from "../../assets/chatmap-home.png";
@@ -85,10 +84,13 @@ function App() {
             <div className="home__actions">
               <h1 className="home__title">ChatMap</h1>
               <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
-              <sl-button size="large" className="featured">
-                <sl-icon slot="prefix" name="file-earmark-plus-fill"></sl-icon>
-                <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
-              </sl-button>
+              <FileUpload
+                mediaOnly={mediaOnly}
+                onFilesLoad={handleFiles}
+                onDataFileLoad={handleDataFile}
+                handleMediaOnlyChange={handleMediaOnlyChange}
+                onError={handleFilesError}
+              />
               <p className="home__note">
                 <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
                 <sl-icon-button name="plus-circle-dotted" />
