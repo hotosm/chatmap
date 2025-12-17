@@ -85,6 +85,10 @@ a {
     gap: var(--hot-spacing-2x-large);
 }
 
+.header .login-btn::part(base) {
+    background-color: var(--hot-color-gray-950);
+}
+
 /* Footer */
 
 .footer {

@@ -1,13 +1,17 @@
-import { lazy, useState, useEffect } from 'react';
-import useFileManager from '../../components/FileUpload/useFileManager.js';
-import useContentMerger from '../../components/ChatMap/useContentMerger.js';
-import Header from '../header.jsx';
-import Footer from '../footer.jsx';
-import FileUploadSection from './fileUpload.section.jsx';
-import NoLocationsSection from './noLocations.section.jsx';
-import { useMapDataContext } from '../../context/MapDataContext.jsx';
+import { lazy, useState, useEffect } from "react";
+import { FormattedMessage } from "react-intl";
 
-const Map = lazy(() => import('../../components/Map/index.jsx'));
+import useFileManager from "../../components/FileUpload/useFileManager.js";
+import useContentMerger from "../../components/ChatMap/useContentMerger.js";
+import Header from "../header.jsx";
+import Footer from "../footer.jsx";
+import FileUploadSection from "./fileUpload.section.jsx";
+import NoLocationsSection from "./noLocations.section.jsx";
+import { useMapDataContext } from "../../context/MapDataContext.jsx";
+import "../../styles/home.css";
+import logo from "../../assets/chatmap-home.png";
+
+const Map = lazy(() => import("../../components/Map/index.jsx"));
 
 function App() {
   const [noLocations, setNoLocations] = useState(false);
@@ -76,7 +80,23 @@ function App() {
           showUploadButton={true}
         />
 
-        <section className="landing">
+        <section className="home">
+          <div className="home__center">
+            <div className="home__actions">
+              <h1 className="home__title">ChatMap</h1>
+              <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
+              <sl-button size="large" className="featured">
+                <sl-icon slot="prefix" name="file-earmark-plus-fill"></sl-icon>
+                <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
+              </sl-button>
+              <p className="home__note">
+                <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
+              </p>
+            </div>
+            <div className="home__image">
+              <img src={logo} />
+            </div>
+          </div>
         </section>
 
         <Footer />

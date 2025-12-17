@@ -39,8 +39,8 @@ export default function Header({
         <div className="header__rest">
           <a href=""><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a>
           <a href=""><FormattedMessage id="app.navigation.blog" defaultMessage="Blog" /></a>
-          <a href=""><sl-icon name="translate"></sl-icon></a>
-          <sl-button variant="neutral" size="small"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
+          <sl-icon-button name="translate" />
+          <sl-button variant="neutral" size="small" className="login-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
           <a href=""><sl-icon name="grid-3x3-gap"></sl-icon></a>
         </div>
       </header>
