@@ -10,7 +10,6 @@ import { useMapDataContext } from '../../context/MapDataContext.jsx';
 const Map = lazy(() => import('../../components/Map/index.jsx'));
 
 function App() {
-
   const [noLocations, setNoLocations] = useState(false);
   const [mediaOnly, setMediaOnly] = useState(true);
 
@@ -29,7 +28,7 @@ function App() {
     files: files,
     options: { mediaOnly }
   });
-  
+
   // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
 
@@ -68,8 +67,7 @@ function App() {
 
   return (
     <>
-    <div className="app">
-
+      <div className="app">
         <Header
           dataAvailable={dataAvailable}
           dataFiles={dataFiles}
@@ -78,49 +76,11 @@ function App() {
           showUploadButton={true}
         />
 
-        {/* If there're no files, show file upload options */}
-        { !files &&
-          <div className="indexMain">
-            <FileUploadSection
-              mediaOnly={mediaOnly}
-              handleFiles={handleFiles}
-              handleDataFile={handleDataFile}
-              handleMediaOnlyChange={handleMediaOnlyChange}
-              onError={handleFilesError}
-            />
-            <Footer />
-          </div>
-        }
+        <section className="landing">
+        </section>
 
-        {/* There's data, show the map! */}
-        { dataAvailable && 
-          <Map 
-            dataFiles={dataFiles}
-          />
-        }
-
-        {/* Count message */}
-        <div className="count">
-          {dataAvailable && 
-          <sl-badge className="countBadge" variant="neutral" pill>{data.features.length} points</sl-badge>
-          }
-        </div>
-
-        {/* If there are no locations, show a message */}
-        { noLocations && 
-          <NoLocationsSection
-            handleNewUploadClick={handleNewUploadClick}
-          />
-        }
-    </div>
-    <div className="infoLinks">
-        <div className="copy">
-            <a href="https://github.com/hotosm/chatmap">This is free software</a>
-        </div>
-        <a href="https://www.hotosm.org/privacy">- We collect zero personal data. hotosm.org/privacy -</a>
-        &nbsp;
-        <a href="https://github.com/hotosm/chatmap">v0.4.13</a>
-    </div>
+        <Footer />
+      </div>
     </>
   );
 }

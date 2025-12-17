@@ -189,7 +189,8 @@
   /* Font weights */
   --hot-font-weight-light: 300;
   --hot-font-weight-normal: 400;
-  --hot-font-weight-semibold: 500;
+  --hot-font-weight-medium: 500;
+  --hot-font-weight-semibold: 600;
   --hot-font-weight-bold: 700;
 
   /* Letter spacings */
@@ -237,6 +238,4 @@
    */
 
    --hot-shadow-small: 2px 2px 2px rgba(0,0,0,0.1);
-
 }
-

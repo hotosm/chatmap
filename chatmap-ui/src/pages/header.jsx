@@ -1,114 +1,49 @@
 import { useState, useEffect } from 'react';
-import logo from '../assets/hot-logo.svg';
-import SaveButton from '../components/SaveButton/index.jsx';
-import TagsOptions from "../components/TagsOptions/index.jsx";
-import DateOptions from "../components/DateOptions/index.jsx";
+import logo from '../assets/hot-logo-gray.svg';
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 
 export default function Header({
-    dataAvailable,
-    dataFiles,
-    handleNewUploadClick,
-    showUploadButton,
-    legend,
-    subtitle
+  dataAvailable,
+  dataFiles,
+  handleNewUploadClick,
+  showUploadButton,
+  legend,
+  subtitle
 }) {
+  const { data, tags, mapDataDispatch } = useMapDataContext();
 
-    const { data, tags, mapDataDispatch } = useMapDataContext();
+  const selectTagHandler = tag => {
+    mapDataDispatch({
+      type: 'set_filter_tag',
+      payload: {tag: tag},
+    });
+  }
 
-    const selectTagHandler = tag => {
-        mapDataDispatch({
-            type: 'set_filter_tag',
-            payload: {tag: tag},
-        });
-    }
+  const [selected, setSelected] = useState(false);
 
-    const selectDateHandler = date => {
-        mapDataDispatch({
-            type: 'set_filter_date',
-            payload: {date: date},
-        });
-    }
+  useEffect(() => {
+    setSelected(false);
+  }, [data])
 
-    const [selected, setSelected] = useState(false);
+  return (
+    <>
+      <header className="header">
+        {/* Logo */}
+        <div className="header__title">
+          <a href="/" className="header__logo-link">
+            <img src={logo} className="header__logo" alt="hot logo" />
+          </a>
+        </div>
 
-    useEffect(() => {
-        setSelected(false);
-    }, [data])
-
-    return (
-        <>
-
-        <header className={`header ${dataAvailable && "headerSmall"}`}>
-
-            {/* Logo */}
-            <a href="/" className="logoLink">
-                <h1 className={dataAvailable ? "titleSmall" : "title"} >
-                    <img src={logo} className="logo" alt="logo" />
-                    <span><strong>ChatMap</strong></span>
-                </h1>
-            </a>
-
-            {/* Options: upload new file, download */}
-            { dataAvailable ?
-            <>
-                <div className="mapOptions">
-                    <SaveButton data={data} dataFiles={dataFiles} />
-                    { showUploadButton ?
-                    <div className="newFile">
-                        <sl-button
-                            variant="success"
-                            outline
-                            size="small"
-                            onClick={handleNewUploadClick}
-                        >
-                            <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
-                            <FormattedMessage
-                                id = "app.uploadNewFile"
-                                defaultMessage="New file"
-                            /> 
-                        </sl-button>
-                    </div> : null}
-
-                    {/* 
-                    <div className="dateOptions">
-                        <DateOptions
-                            onSelectDate={selectDateHandler}
-                            tags={tags}
-                            selectedDate={data.filterDate}
-                        />
-                    </div> */}
-
-                    <div className="tagsOptions">
-                        <TagsOptions
-                            onSelectTag={selectTagHandler}
-                            tags={tags}
-                            selectedTag={data.filterTag}
-                        />
-                    </div>
-                </div>
-            </>
-            :
-            <>
-            {/* Main legend */}
-            <h2 className="subtitle">
-                {subtitle ? subtitle :
-                <FormattedMessage
-                    id = "app.subtitle"
-                    defaultMessage="Export and upload a chat to create a map"
-                />}
-            </h2>
-            <p className="highlighted">
-                { legend ? legend :
-                <FormattedMessage
-                    id = "app.supportedApps"
-                    defaultMessage="Now it works with WhatsApp, Telegram or Signal!"
-                />}
-            </p>
-            </>
-            }
-        </header>
+        <div className="header__rest">
+          <a href=""><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a>
+          <a href=""><FormattedMessage id="app.navigation.blog" defaultMessage="Blog" /></a>
+          <a href=""><sl-icon name="translate"></sl-icon></a>
+          <sl-button variant="neutral" size="small"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
+          <a href=""><sl-icon name="grid-3x3-gap"></sl-icon></a>
+        </div>
+      </header>
     </>
-    );
+  );
 }
