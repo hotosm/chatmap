@@ -79,28 +79,36 @@ function App() {
           showUploadButton={true}
         />
 
-        <section className="home">
-          <div className="home__center">
-            <div className="home__actions">
-              <h1 className="home__title">ChatMap</h1>
-              <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
-              <FileUpload
-                mediaOnly={mediaOnly}
-                onFilesLoad={handleFiles}
-                onDataFileLoad={handleDataFile}
-                handleMediaOnlyChange={handleMediaOnlyChange}
-                onError={handleFilesError}
-              />
-              <p className="home__note">
-                <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
-                <sl-icon-button name="plus-circle-dotted" />
-              </p>
+        {!dataAvailable &&
+          <section className="home">
+            <div className="home__center">
+              <div className="home__actions">
+                <h1 className="home__title">ChatMap</h1>
+                <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
+                <FileUpload
+                  mediaOnly={mediaOnly}
+                  onFilesLoad={handleFiles}
+                  onDataFileLoad={handleDataFile}
+                  handleMediaOnlyChange={handleMediaOnlyChange}
+                  onError={handleFilesError}
+                />
+                <p className="home__note">
+                  <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
+                  <sl-icon-button name="plus-circle-dotted" />
+                </p>
+              </div>
+              <div className="home__image">
+                <img src={logo} />
+              </div>
             </div>
-            <div className="home__image">
-              <img src={logo} />
-            </div>
-          </div>
-        </section>
+          </section>
+        }
+
+        {dataAvailable &&
+          <Map
+            dataFiles={dataFiles}
+          />
+        }
 
         <Footer />
       </div>
