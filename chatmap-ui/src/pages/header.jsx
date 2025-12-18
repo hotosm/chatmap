@@ -9,8 +9,6 @@ export default function Header({
   dataFiles,
   handleNewUploadClick,
   showUploadButton,
-  legend,
-  subtitle
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
 
