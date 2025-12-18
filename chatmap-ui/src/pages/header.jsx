@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import logo from '../assets/hot-logo-gray.svg';
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
+import SaveButton from '../components/SaveButton';
 
 export default function Header({
   dataAvailable,
@@ -40,6 +41,7 @@ export default function Header({
           <a href=""><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a>
           <a href=""><FormattedMessage id="app.navigation.blog" defaultMessage="Blog" /></a>
           <sl-icon-button name="translate" />
+          {dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
           <sl-button variant="neutral" size="small" className="login-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
           <a href=""><sl-icon name="grid-3x3-gap"></sl-icon></a>
         </div>
