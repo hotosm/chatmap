@@ -233,6 +233,9 @@ a {
 https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 .fileUploadMain  {
     outline: none !important;
+    height: 100%;
+    display: block;
+    width: auto;
 }
 
 .fileUploadDropArea::part(base) {

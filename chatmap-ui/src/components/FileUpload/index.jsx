@@ -110,6 +110,11 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
 
   const loading = filesCount != loadedFilesCount;
 
+  const hoverTitle = intl.formatMessage({
+    id: "app.home.dropHere",
+    defaultMessage: "Drop your zip file here",
+  });
+
   return (
     <>
       {/* Loading message */}
@@ -139,6 +144,8 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
               <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
             </sl-button>
           }
+          dropMessageStyle={{height: "100%"}}
+          hoverTitle={hoverTitle}
         />
       </div>
     </>
