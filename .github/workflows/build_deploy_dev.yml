@@ -110,9 +110,9 @@ jobs:
             git reset --hard origin/develop
             echo "✅ Updated to latest develop"
             # Create config.json file for the frontend
-            envsubst deploy/frontend/config.tpl.json > deploy/frontend/config.json
+            envsubst < deploy/frontend/config.tpl.json > deploy/frontend/config.json
             echo "✅ Created frontend config file"
-            envsubst 'CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
+            envsubst '$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
             echo "✅ Created Nginx config file"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
