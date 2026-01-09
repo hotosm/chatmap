@@ -113,9 +113,14 @@ jobs:
             envsubst < deploy/frontend/config.tpl.json > deploy/frontend/config.json
             echo "✅ Created frontend config file"
             envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
-            echo "✅ Created Nginx config file"
+            envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default-init.tpl.conf > deploy/nginx/default-init.conf
+            echo "✅ Created Nginx config files"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
+            # Pull and deploy init (certbot)
+            docker compose -f compose-init.yml pull
+            docker compose -f compose-init.yml up --force-recreate
+            echo "✅ Init deploy
             # Pull and deploy
             docker compose -f compose.yml pull
             docker compose -f compose.yml up -d --force-recreate

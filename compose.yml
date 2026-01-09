@@ -87,25 +87,6 @@ services:
     networks:
       - appnet
 
-  chatmap-certbot:
-     image: certbot/certbot
-     restart: "no"
-     volumes:
-       - ./deploy/certbot/conf:/etc/letsencrypt
-       - ./deploy/certbot/www:/var/www/certbot
-     command: >
-      certonly 
-      --webroot 
-      --webroot-path=/var/www/certbot 
-      --email ${SITE_ADMIN_EMAIL} 
-      --agree-tos 
-      --no-eff-email 
-      -d ${SITE_DOMAIN}
-      --keep-until-expiring
-      --non-interactive
-     depends_on:
-      - chatmap-nginx
-
 networks:
   appnet:
 
