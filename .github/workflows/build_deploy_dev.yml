@@ -85,6 +85,7 @@ jobs:
           CHATMAP_SITE_ADMIN_EMAIL: ${{ vars.CHATMAP_SITE_ADMIN_EMAIL }}
           CHATMAP_SITE_DOMAIN: ${{ vars.CHATMAP_SITE_DOMAIN }}
           CHATMAP_API_URL: ${{ vars.CHATMAP_API_URL }}
+          CHATMAP_API_URL_SUFFIX: ${{ vars.CHATMAP_API_URL_SUFFIX }}
           CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ vars.CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES }}
           CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
         run: |
@@ -105,6 +106,13 @@ jobs:
             echo "✓ Updated to latest develop"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
+            # Create config.json file for the frontend
+            cat > config.json << EOF
+            {
+                "API_URL": "$CHATMAP_API_URL/$CHATMAP_API_URL_SUFFIX",
+                "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE,
+            }
+            EOF
             # Pull and deploy
             docker compose -f compose.yml pull
             docker compose -f compose.yml up -d --force-recreate
