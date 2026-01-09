@@ -97,21 +97,21 @@ jobs:
               sudo mkdir -p \$APP_DIR
               sudo chown \$USER:\$USER \$APP_DIR
               git clone -b develop https://github.com/hotosm/chatmap.git \$APP_DIR
-              echo "✓ Cloned repository"
+              echo "✅ Cloned repository"
             fi
             cd \$APP_DIR
             # Pull latest changes
             git fetch origin develop
             git reset --hard origin/develop
-            echo "✓ Updated to latest develop"
+            echo "✅ Updated to latest develop"
             # Create config.json file for the frontend
-            cat > .env << EOF
+            cat > config.json <<'EOF'
           {
           "API_URL": "$CHATMAP_API_URL/$CHATMAP_API_URL_SUFFIX",
           "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE
           }
           EOF
-            echo "✓ Created frontend config file"
+            echo "✅ Created frontend config file"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
             # Pull and deploy
@@ -119,5 +119,5 @@ jobs:
             docker compose -f compose.yml up -d --force-recreate
             # Cleanup
             docker image prune -af
-            echo "✓ Deployment complete"
+            echo "✅ Deployment complete"
           ENDSSH
