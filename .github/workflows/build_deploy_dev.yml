@@ -88,6 +88,7 @@ jobs:
           CHATMAP_API_URL_SUFFIX: ${{ vars.CHATMAP_API_URL_SUFFIX }}
           CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ vars.CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES }}
           CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
+          CHATMAP_ENABLE_LIVE: ${{ vars.CHATMAP_ENABLE_LIVE }}
         run: |
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
