@@ -10,8 +10,8 @@ data
 sessions
 .env
 certbot/
-config.json
-nginx/
+deploy/frontend/config.json
+deploy/nginx/default.conf
 letsencrypt/
 media
 
