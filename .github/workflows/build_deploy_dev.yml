@@ -120,7 +120,8 @@ jobs:
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
             # Pull and deploy init (certbot)
             docker compose -f compose-init.yml pull
-            docker compose -f compose-init.yml up --force-recreate
+            docker compose -f compose-init.yml up --abort-on-container-exit
+            docker compose -f compose-init.yml down
             echo "✅ Init deploy
             # Pull and deploy
             docker compose -f compose.yml pull
