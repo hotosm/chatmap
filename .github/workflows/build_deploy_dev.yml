@@ -105,11 +105,11 @@ jobs:
             git reset --hard origin/develop
             echo "✓ Updated to latest develop"
             # Create config.json file for the frontend
-            cat > config.json << EOF
-            {
-                "API_URL": "$CHATMAP_API_URL/$CHATMAP_API_URL_SUFFIX",
-                "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE,
-            }
+            cat > config.json <<-EOF
+                {
+                    "API_URL": "$CHATMAP_API_URL/$CHATMAP_API_URL_SUFFIX",
+                    "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE
+                }
             EOF
             echo "✓ Created frontend config file"
             # Login to GHCR
