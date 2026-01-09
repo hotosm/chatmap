@@ -104,8 +104,6 @@ jobs:
             git fetch origin develop
             git reset --hard origin/develop
             echo "✓ Updated to latest develop"
-            # Login to GHCR
-            echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
             # Create config.json file for the frontend
             cat > config.json << EOF
             {
@@ -113,6 +111,8 @@ jobs:
                 "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE,
             }
             EOF
+            # Login to GHCR
+            echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
             echo "✓ Created frontend config file"
             # Pull and deploy
             docker compose -f compose.yml pull
