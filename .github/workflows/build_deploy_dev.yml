@@ -94,6 +94,7 @@ jobs:
             set -e
             APP_DIR="/home/$EC2_USER/chatmap"
             export CHATMAP_SITE_DOMAIN=$CHATMAP_SITE_DOMAIN
+            export CHATMAP_SITE_ADMIN_EMAIL=$CHATMAP_SITE_ADMIN_EMAIL
             export CHATMAP_API_URL=$CHATMAP_API_URL
             export CHATMAP_API_URL_SUFFIX=$CHATMAP_API_URL_SUFFIX
             export CHATMAP_ENABLE_LIVE=$CHATMAP_ENABLE_LIVE
