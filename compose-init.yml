@@ -16,10 +16,10 @@ services:
       certonly 
       --webroot 
       --webroot-path=/var/www/certbot 
-      --email ${SITE_ADMIN_EMAIL} 
+      --email ${CHATMAP_SITE_ADMIN_EMAIL} 
       --agree-tos 
       --no-eff-email 
-      -d ${SITE_DOMAIN}
+      -d ${CHATMAP_SITE_DOMAIN}
       --keep-until-expiring
       --non-interactive
      depends_on:
