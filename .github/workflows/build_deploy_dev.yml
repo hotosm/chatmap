@@ -93,6 +93,10 @@ jobs:
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
             APP_DIR="/home/$EC2_USER/chatmap"
+            export CHATMAP_SITE_DOMAIN=$CHATMAP_SITE_DOMAIN
+            export CHATMAP_API_URL=$CHATMAP_API_URL
+            export CHATMAP_API_URL_SUFFIX=$CHATMAP_API_URL_SUFFIX
+            export CHATMAP_ENABLE_LIVE=$CHATMAP_ENABLE_LIVE
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR
@@ -108,7 +112,7 @@ jobs:
             # Create config.json file for the frontend
             envsubst deploy/frontend/config.tpl.json > deploy/frontend/config.json
             echo "✅ Created frontend config file"
-            envsubst '$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
+            envsubst 'CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
             echo "✅ Created Nginx config file"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
