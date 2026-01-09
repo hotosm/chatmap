@@ -111,9 +111,9 @@ jobs:
                 "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE,
             }
             EOF
+            echo "✓ Created frontend config file"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
-            echo "✓ Created frontend config file"
             # Pull and deploy
             docker compose -f compose.yml pull
             docker compose -f compose.yml up -d --force-recreate
