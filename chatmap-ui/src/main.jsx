@@ -17,6 +17,7 @@ import Ne from './int/ne.json';
 import Hi from './int/hi.json';
 import Id from './int/id.json';
 import { MapDataProvider } from './context/MapDataContext';
+import { ConfigProvider } from './context/ConfigContext';
 
 // Shoelace UI components
 import '@shoelace-style/shoelace/dist/components/button/button.js';
@@ -60,28 +61,29 @@ const getLocaleMessages = () => {
 }
 
 async function init() {
-  const response = await fetch('/config.json');
-  const config = await response.json();
-  const getConfig = window._CHATMAP_CONFIG = (label, default_val) => (
-    import.meta.env[`VITE_${label}`] ||
-    config[label] || default_val
-  )
-  const ENABLE_LIVE = getConfig("ENABLE_LIVE", false);
+  
+  const resp = await fetch('/config.json');
+  const config = await resp.json();
+
+  // console.log("HANKO_API_URL:", getConfig("HANKO_API_URL"))
 
   const root = ReactDOM.createRoot(document.getElementById('root'));
+
   root.render(
     <React.StrictMode>
       <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
         <ErrorBoundary>
           <MapDataProvider>
+          <ConfigProvider initialConfig={config}>
             <HashRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
-                { ENABLE_LIVE ?
+                { config.ENABLE_LIVE ?
                 <Route path="/linked" element={<Linked />} />
                 : null}
               </Routes>
             </HashRouter>
+          </ConfigProvider>
           </MapDataProvider>
         </ErrorBoundary>
       </IntlProvider>

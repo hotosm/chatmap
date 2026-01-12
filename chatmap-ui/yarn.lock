@@ -10,6 +10,20 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
+"@awesome.me/webawesome@3.0.0-beta.1":
+  version "3.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@awesome.me/webawesome/-/webawesome-3.0.0-beta.1.tgz#9732e4c8b73052ca977b561c3fd163d0afd6b5c3"
+  integrity sha512-pHER462/pQrEEiHkmx6HtAcFu4VOCm+El0LxwufrxfMqnLMiXbHYFnBI4cnVbPFwcdycLGZZ4IKx/bzC8AA/EA==
+  dependencies:
+    "@ctrl/tinycolor" "^4.1.0"
+    "@floating-ui/dom" "^1.6.13"
+    "@shoelace-style/animations" "^1.2.0"
+    "@shoelace-style/localize" "^3.2.1"
+    composed-offset-position "^0.0.6"
+    lit "^3.2.1"
+    qr-creator "^1.0.0"
+    style-observer "^0.0.7"
+
 "@babel/code-frame@^7.27.1":
   version "7.27.1"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.27.1.tgz#200f715e66d52a23b221a9435534a91cc13ad5be"
@@ -242,6 +256,11 @@
   resolved "https://registry.yarnpkg.com/@ctrl/tinycolor/-/tinycolor-4.1.0.tgz#91a8f8120ffc9da2feb2a38f7862b300d5e9691a"
   integrity sha512-WyOx8cJQ+FQus4Mm4uPIZA64gbk3Wxh0so5Lcii0aJifqwoVOlfFtorjLE0Hen4OYyHZMXDWqMmaQemBhgxFRQ==
 
+"@denysvuika/preact-translate@^0.5.0":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@denysvuika/preact-translate/-/preact-translate-0.5.1.tgz#53e2dbc01ba66f9183818a32207eb29ccb1e0674"
+  integrity sha512-qqKkpjzR8E55nlLA+H3gP9Q99mCCWiTtRupVQBh8YRZljX+Q8YbsaJtV3F+TX4DR4lV8NLgvv2+sSUcHoWvNtQ==
+
 "@emotion/is-prop-valid@1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-1.2.2.tgz#d4175076679c6a26faa92b03bb786f9e52612337"
@@ -396,7 +415,7 @@
   dependencies:
     "@floating-ui/utils" "^0.2.10"
 
-"@floating-ui/dom@^1.6.12":
+"@floating-ui/dom@^1.6.12", "@floating-ui/dom@^1.6.13":
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/@floating-ui/dom/-/dom-1.7.4.tgz#ee667549998745c9c3e3e84683b909c31d6c9a77"
   integrity sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA==
@@ -479,6 +498,13 @@
     "@formatjs/intl-listformat" "7.7.5"
     intl-messageformat "10.7.7"
     tslib "2"
+
+"@hotosm/hanko-auth@file:./../../../shared/hot-auth-libs/web-component":
+  version "0.2.0"
+  dependencies:
+    "@awesome.me/webawesome" "3.0.0-beta.1"
+    "@teamhanko/hanko-elements" "^1.0.0"
+    lit "^3.3.1"
 
 "@jridgewell/gen-mapping@^0.3.12", "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.13"
@@ -734,6 +760,29 @@
     lit "^3.2.1"
     qr-creator "^1.0.0"
 
+"@teamhanko/hanko-elements@^1.0.0":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@teamhanko/hanko-elements/-/hanko-elements-1.5.2.tgz#37e6437f80ccba90d01e1b41d8abc0140bb10843"
+  integrity sha512-RrOgSoKwHbysDOOffOHn3p8s/zXxY2qvWwZFQdMeEP8Qp/C/RQBwGOzax0Y2gySWflDHM2uu4+tW8dXB+mZfQg==
+  dependencies:
+    "@denysvuika/preact-translate" "^0.5.0"
+    "@teamhanko/hanko-frontend-sdk" "^1.5.2"
+    "@teamhanko/preact-custom-element" "^4.2.2"
+    classnames "^2.3.2"
+    preact "^10.13.1"
+
+"@teamhanko/hanko-frontend-sdk@^1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@teamhanko/hanko-frontend-sdk/-/hanko-frontend-sdk-1.5.2.tgz#2c03bc5db6eb1cc3d6eab236f7bd86eba0df9fc6"
+  integrity sha512-sSY2NGsJRndrC4HwxBIdog9gOGUzJ3EGKmEn7p+rzXzJaLik3ywJb25DloegPekMZQ8hwOzliF0uJh7kNxFgTA==
+  dependencies:
+    "@types/js-cookie" "^3.0.3"
+
+"@teamhanko/preact-custom-element@^4.2.2":
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/@teamhanko/preact-custom-element/-/preact-custom-element-4.2.2.tgz#67e9ebb54da2607e818f360be0b69e9fde9c01ee"
+  integrity sha512-3djCQr25IxQIgpidxD8J0fTQ7/hMuoa5Nmv7delQc6sX4kXgv9e/pE01cywpmGZLi69H1KUH4dmZ4cPPJQrsQQ==
+
 "@types/babel__core@^7.20.5":
   version "7.20.5"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.20.5.tgz#3df15f27ba85319caa07ba08d0721889bb39c017"
@@ -802,6 +851,11 @@
   integrity sha512-PQTyIulDkIDro8P+IHbKCsw7U2xxBYflVzW/FgWdCAePD9xGSidgA76/GeJ6lBKoblyhf9pBY763gbrN+1dI8g==
   dependencies:
     hoist-non-react-statics "^3.3.0"
+
+"@types/js-cookie@^3.0.3":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@types/js-cookie/-/js-cookie-3.0.6.tgz#a04ca19e877687bd449f5ad37d33b104b71fdf95"
+  integrity sha512-wkw9yd1kEXOPnvEeEV1Go1MmxtBJL0RR79aOTAApecWFVu7w0NNXNqhcWgvw2YgZDYadliXkl14pa3WXw5jlCQ==
 
 "@types/mapbox__point-geometry@*", "@types/mapbox__point-geometry@^0.1.4":
   version "0.1.4"
@@ -997,6 +1051,11 @@ check-error@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/check-error/-/check-error-2.1.1.tgz#87eb876ae71ee388fa0471fe423f494be1d96ccc"
   integrity sha512-OAlb+T7V4Op9OwdkjmguYRqncdlx5JiofwOAUkmTF+jNdHwzTaTs4sRAGpzLF3oOz5xAyDGrPgeIDFQmDOTiJw==
+
+classnames@^2.3.2:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.5.1.tgz#ba774c614be0f016da105c858e7159eae8e7687b"
+  integrity sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==
 
 commander@^13.0.0:
   version "13.1.0"
@@ -1451,6 +1510,15 @@ lit@^3.2.1:
     lit-element "^4.2.0"
     lit-html "^3.3.0"
 
+lit@^3.3.1:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/lit/-/lit-3.3.2.tgz#d9230ebbf237bfd3d2091bc0b56c576a470ac4d7"
+  integrity sha512-NF9zbsP79l4ao2SNrH3NkfmFgN/hBYSQo90saIVI1o5GpjAdCPVstVzO1MrLOakHoEhYkrtRjPK6Ob521aoYWQ==
+  dependencies:
+    "@lit/reactive-element" "^2.1.0"
+    lit-element "^4.2.0"
+    lit-html "^3.3.0"
+
 locate-path@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-5.0.0.tgz#1afba396afd676a6d42504d0a67a3a7eb9f62aa0"
@@ -1672,6 +1740,11 @@ potpack@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/potpack/-/potpack-2.1.0.tgz#fe548e2f9061e9937f17191c1ab6dd98ca30e02f"
   integrity sha512-pcaShQc1Shq0y+E7GqJqvZj8DTthWV1KeHGdi0Z6IAin2Oi3JnLCOfwnCo84qc+HAp52wT9nK9H7FAJp5a44GQ==
+
+preact@^10.13.1:
+  version "10.28.2"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-10.28.2.tgz#4b668383afa4b4a2546bbe4bd1747e02e2360138"
+  integrity sha512-lbteaWGzGHdlIuiJ0l2Jq454m6kcpI1zNje6d8MlGAFlYvP2GO4ibnat7P74Esfz4sPTdM6UxtTwh/d3pwM9JA==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
@@ -1942,6 +2015,11 @@ strip-outer@^1.0.1:
   integrity sha512-k55yxKHwaXnpYGsOzg4Vl8+tDrWylxDEpknGjhTiZB8dFRU5rTo9CAzeycivxV3s+zlTKwrs6WxMxR95n26kwg==
   dependencies:
     escape-string-regexp "^1.0.2"
+
+style-observer@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/style-observer/-/style-observer-0.0.7.tgz#8071ebb48e8cc1378dcac12b49e8ecfbfd12c1f3"
+  integrity sha512-t75H3CRy+vd5q3yqyrf/De4tkz33hPQTiCcfh0NTesI5G7kJnZ227LEYTwqjKTtaFOCJvqZcYFHpJlF8bsk3bQ==
 
 styled-components@^6.1.11:
   version "6.1.19"

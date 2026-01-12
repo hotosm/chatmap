@@ -1,8 +1,9 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 import logo from '../assets/hot-logo-text.svg';
+// import { useConfigContext } from '../context/ConfigContext.jsx';
 
 export default function Footer() {
-  const ENABLE_LIVE = window._CHATMAP_CONFIG("ENABLE_LIVE", false);
+  // const { config } = useConfigContext();
   const intl = useIntl();
 
   const msg = intl.formatMessage({

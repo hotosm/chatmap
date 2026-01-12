@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useConfigContext } from '../../context/ConfigContext.jsx'
 
 /**
  * Get ChatMap data from an API
@@ -7,7 +8,7 @@ import { useState, useCallback } from "react";
  */
 const useApi = (params = {}) => {
 
-    const API_URL = window._CHATMAP_CONFIG("API_URL", 'http://localhost:8000/api');
+    const { config } = useConfigContext();
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -23,7 +24,7 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         const token = sessionStorage.getItem("chatmap_access_token")
         try {
-            const response = await fetch(`${API_URL}/logout`, {
+            const response = await fetch(`${config.API_URL}/logout`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -46,7 +47,7 @@ const useApi = (params = {}) => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(`${API_URL}/get-token`, {
+                const response = await fetch(`${config.API_URL}/get-token`, {
                     method: 'GET',
                 });
                 if (!response.ok) throw new Error('Failed to fetch data');
@@ -67,7 +68,7 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/map`, {
+            const response = await fetch(`${config.API_URL}/map`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -95,7 +96,7 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/qr`, {
+            const response = await fetch(`${config.API_URL}/qr`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -117,7 +118,7 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/status`, {
+            const response = await fetch(`${config.API_URL}/status`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
