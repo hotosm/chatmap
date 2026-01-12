@@ -1,4 +1,7 @@
 {
     "API_URL": "http://localhost:8000/v1",
-    "ENABLE_LIVE": false
+    "ENABLE_LIVE": false,
+    "HANKO_API_URL": "https://dev.login.hotosm.org",
+    "PORTAL_SSO_URL": "https://dev.login.hotosm.org",
+    "FRONTEND_URL": "https://localhost:5173"
 }

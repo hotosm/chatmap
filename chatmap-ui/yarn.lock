@@ -500,7 +500,7 @@
     tslib "2"
 
 "@hotosm/hanko-auth@file:./../../../shared/hot-auth-libs/web-component":
-  version "0.2.0"
+  version "0.2.1"
   dependencies:
     "@awesome.me/webawesome" "3.0.0-beta.1"
     "@teamhanko/hanko-elements" "^1.0.0"

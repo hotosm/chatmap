@@ -4,6 +4,7 @@ import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
+import '@hotosm/hanko-auth';
 
 export default function Header({
   dataAvailable,
@@ -44,6 +45,7 @@ export default function Header({
           {dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
 
           <hotosm-auth
+            osmRequired={false}
             hanko-url={config.HANKO_API_URL}
             base-path={config.PORTAL_SSO_URL}
             redirect-after-login={config.FRONTEND_URL}

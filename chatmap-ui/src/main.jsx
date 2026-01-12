@@ -64,9 +64,6 @@ async function init() {
   
   const resp = await fetch('/config.json');
   const config = await resp.json();
-
-  // console.log("HANKO_API_URL:", getConfig("HANKO_API_URL"))
-
   const root = ReactDOM.createRoot(document.getElementById('root'));
 
   root.render(
