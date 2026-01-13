@@ -19,6 +19,12 @@ import Id from './int/id.json';
 import { MapDataProvider } from './context/MapDataContext';
 import { ConfigProvider } from './context/ConfigContext';
 
+// Web Awesome UI components (needed for hanko-auth web component)
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/dropdown/dropdown.js';
+import '@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js';
+import '@awesome.me/webawesome/dist/components/icon/icon.js';
+
 // Shoelace UI components
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js';
