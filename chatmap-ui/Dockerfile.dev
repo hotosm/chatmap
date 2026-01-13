@@ -1,0 +1,25 @@
+# ChatMap Web UI - Development Dockerfile
+# Build context: HOT/ (parent directory)
+
+FROM node:22-alpine3.21 AS development
+
+WORKDIR /app
+
+RUN npm install -g npm@11.5.2
+RUN npm install -g --force yarn
+
+# Copy auth-libs web-component (required for @hotosm/hanko-auth dependency)
+# auth-libs now lives inside login repo
+COPY login/auth-libs/web-component /shared/hot-auth-libs/web-component
+
+# Copy chatmap-ui package files
+COPY chatmap/chatmap-ui/package*.json chatmap/chatmap-ui/yarn.lock ./
+
+RUN yarn install
+
+# Copy chatmap-ui source
+COPY chatmap/chatmap-ui/ .
+
+EXPOSE 5173
+
+CMD ["yarn", "start", "--host", "0.0.0.0"]

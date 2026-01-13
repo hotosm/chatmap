@@ -6,6 +6,9 @@
  * http://github.com/hotosm/ui-design
  */
 
+/* Web Awesome styles (needed for hanko-auth web component) */
+@import url("https://early.webawesome.com/webawesome@3.0.0-beta.1/dist/styles/webawesome.css");
+
 @import url(./hot.css);
 @import url(./hot-sl.css);
 @import url(./hot-font-face.css);
