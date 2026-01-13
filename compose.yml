@@ -8,7 +8,7 @@ services:
     volumes:
       - ./deploy/frontend/config.json:/usr/share/nginx/html/config.json
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-api:
     image: ghcr.io/hotosm/chatmap-api:latest
@@ -35,7 +35,7 @@ services:
       - ./media:/app/media:rw
       - ./data:/app/data:rw
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-go:
     image: ghcr.io/hotosm/chatmap-im-connector:latest
@@ -48,14 +48,14 @@ services:
     volumes:
       - ./sessions:/app/sessions
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-redis:
     image: redis:latest
     ports:
       - "6379:6379"
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-nginx:
     image: nginx:latest
@@ -70,7 +70,7 @@ services:
       - chatmap-ui
       - chatmap-api
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-db:
     image: postgis/postgis:14-3.5-alpine
@@ -84,10 +84,10 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - appnet
+      - chatmap_net
 
 networks:
-  appnet:
+  chatmap_net:
 
 volumes:
   data:
