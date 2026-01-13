@@ -15,14 +15,20 @@ const Map = lazy(() => import("../../components/Map/index.jsx"));
 function App() {
   const [noLocations, setNoLocations] = useState(false);
   const [mediaOnly, setMediaOnly] = useState(true);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   // File Manager: Manages files and data files.
-  // - handleFiles: handle all chat files
+  // - setFiles: handle all chat files
   // - handleDataFile: handle all other files (images, videos)
   // - resetFileManager: clear files and data files states
   // - dataFiles: stores all other files (images, videos)
   // - files: stores all chat files
-  const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
+  const [setFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
+
+  function handleFiles(files) {
+    setFiles(files);
+    setSettingsDialogOpen(true);
+  }
 
   // Content Merger: Handle chat content
   // - mapData: ready to use GeoJSON data created from chats
@@ -112,6 +118,75 @@ function App() {
 
         <Footer />
       </div>
+
+      <sl-dialog open={settingsDialogOpen} onSLAfterHide={() => setSettingsDialogOpen(false)}>
+        <h2 slot="label" className="dialog__title">
+          <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
+        </h2>
+
+        <p className="dialog__locations">
+          <FormattedMessage
+            id="app.home.dialog.locations"
+            defaultMessage="{num} location points found"
+            values={{ num: 54 }}
+          />
+        </p>
+        <p className="dialog__exporttype">
+          <FormattedMessage
+            id="app.home.dialog.exporttype"
+            defaultMessage="File is a {type} export"
+            values={{ type: "WhatsApp" }}
+          />
+        </p>
+
+        <div className="dialog__switchcontainer">
+          <sl-switch size="small" checked>
+            <span className="dialog__switchtext">
+              <FormattedMessage
+                id="app.home.dialog.options.photos"
+                defaultMessage="Include photos"
+              />
+            </span>
+          </sl-switch>
+        </div>
+        <div className="dialog__switchcontainer">
+          <sl-switch size="small" checked>
+            <span className="dialog__switchtext">
+              <FormattedMessage
+                id="app.home.dialog.options.videos"
+                defaultMessage="Include videos"
+              />
+            </span>
+          </sl-switch>
+        </div>
+        <div className="dialog__switchcontainer">
+          <sl-switch size="small" checked>
+            <span className="dialog__switchtext">
+              <FormattedMessage
+                id="app.home.dialog.options.audios"
+                defaultMessage="Include audios"
+              />
+            </span>
+          </sl-switch>
+        </div>
+        <div className="dialog__switchcontainer">
+          <sl-switch size="small">
+            <span className="dialog__switchtext">
+              <FormattedMessage
+                id="app.home.dialog.options.text"
+                defaultMessage="Include text messages"
+              />
+            </span>
+          </sl-switch>
+        </div>
+
+        <sl-button variant="primary" className="dialog__btn dark-btn">
+          <FormattedMessage
+            id="app.home.dialog.continue"
+            defaultMessage="Continue"
+          />
+        </sl-button>
+      </sl-dialog>
     </>
   );
 }

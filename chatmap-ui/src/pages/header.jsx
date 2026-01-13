@@ -40,7 +40,7 @@ export default function Header({
           <a href=""><FormattedMessage id="app.navigation.blog" defaultMessage="Blog" /></a>
           <sl-icon-button name="translate" />
           {dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
-          <sl-button variant="neutral" size="small" className="login-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
+          <sl-button variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
           <a href=""><sl-icon name="grid-3x3-gap"></sl-icon></a>
         </div>
       </header>

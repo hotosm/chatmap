@@ -38,18 +38,7 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOn
   const [filesCount, setFilesCount] = useState(0);
   const [zipFilesCount, setZipFilesCount] = useState(0);
   const [loadedZipFilesCount, setLoadedZipFilesCount] = useState(0);
-  const mediaOnlySwitchRef = useRef();
   const intl = useIntl();
-
-  // Handle media only switch change event
-  useEffect(() => {
-    const mediaOnlyEl = mediaOnlySwitchRef.current;
-    if (!mediaOnlyEl) return;
-    mediaOnlyEl.addEventListener("sl-change", onMediaOnlyChange);
-    return () => {
-      mediaOnlyEl.removeEventListener("sl-change", onMediaOnlyChange);
-    };
-  }, []);
 
   const handleChange = (loadedFiles) => {
     setZipFilesCount(loadedFiles.length);

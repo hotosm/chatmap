@@ -38,6 +38,42 @@
     max-width: 25rem;
 }
 
+.dialog__title {
+    margin: 0;
+    font-family: var(--hot-font-sans-variant);
+    font-weight: var(--hot-font-weight-normal);
+}
+
+.dialog__locations {
+    margin: 0;
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.dialog__exporttype {
+    margin-top: 0;
+    margin-bottom: var(--hot-spacing-large);
+    color: var(--hot-color-gray-500);
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.dialog__switchtext {
+    font-weight: var(--hot-font-weight-bold);
+    font-size: var(--hot-font-size-small);
+}
+
+.dialog__switchcontainer {
+    margin-top: var(--hot-spacing-small);
+}
+
+.dialog__btn {
+    margin-top: var(--hot-spacing-large);
+}
+
+sl-dialog::part(overlay) {
+    background-color: rgba(0, 0, 0, 0.80);
+}
+
 sl-button.featured::part(base) {
     background: linear-gradient(270deg, #E3F8F8 0%, #FFF7F9 100%);
     font-size: var(--hot-font-size-large);
