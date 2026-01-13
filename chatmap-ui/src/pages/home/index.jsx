@@ -1,6 +1,8 @@
 import { lazy, useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 
+import SlSwitch from "@shoelace-style/shoelace/dist/react/switch/index.js";
+
 import useFileManager from "../../components/FileUpload/useFileManager.js";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import Header from "../header.jsx";
@@ -14,8 +16,11 @@ const Map = lazy(() => import("../../components/Map/index.jsx"));
 
 function App() {
   const [noLocations, setNoLocations] = useState(false);
-  const [mediaOnly, setMediaOnly] = useState(true);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [withPhotos, setWithPhotos] = useState(true);
+  const [withVideos, setWithVideos] = useState(true);
+  const [withAudios, setWithAudios] = useState(true);
+  const [withText, setWithText] = useState(false);
 
   // File Manager: Manages files and data files.
   // - setFiles: handle all chat files
@@ -35,7 +40,9 @@ function App() {
   // - resetMerger: clean everthing to upload a new file
   const [mapData, resetMerger] = useContentMerger({
     files: files,
-    options: { mediaOnly }
+    options: {
+      withPhotos, withVideos, withAudios, withText,
+    }
   });
 
   // Map Data Context: Manages map data
@@ -66,13 +73,13 @@ function App() {
     setNoLocations(true);
   }
 
-  // Handle media only switch
-  const handleMediaOnlyChange = () => {
-    setMediaOnly(prevState => !prevState);
-  }
-
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
+
+  const handleWithPhotosChange = () => setWithPhotos((val) => !val);
+  const handleWithVideosChange = () => setWithVideos((val) => !val);
+  const handleWithAudiosChange = () => setWithAudios((val) => !val);
+  const handleWithTextChange = () => setWithText((val) => !val);
 
   return (
     <>
@@ -92,10 +99,8 @@ function App() {
                 <h1 className="home__title">ChatMap</h1>
                 <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
                 <FileUpload
-                  mediaOnly={mediaOnly}
                   onFilesLoad={handleFiles}
                   onDataFileLoad={handleDataFile}
-                  handleMediaOnlyChange={handleMediaOnlyChange}
                   onError={handleFilesError}
                 />
                 <p className="home__note">
@@ -119,7 +124,10 @@ function App() {
         <Footer />
       </div>
 
-      <sl-dialog open={settingsDialogOpen} onSLAfterHide={() => setSettingsDialogOpen(false)}>
+      <sl-dialog
+        open={settingsDialogOpen}
+        onSlAfterHide={() => setSettingsDialogOpen(false)}
+      >
         <h2 slot="label" className="dialog__title">
           <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
         </h2>
@@ -128,7 +136,7 @@ function App() {
           <FormattedMessage
             id="app.home.dialog.locations"
             defaultMessage="{num} location points found"
-            values={{ num: 54 }}
+            values={{ num: data.features.length }}
           />
         </p>
         <p className="dialog__exporttype">
@@ -140,47 +148,47 @@ function App() {
         </p>
 
         <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked>
+          <SlSwitch size="small" checked={withPhotos && "checked"} onSlChange={handleWithPhotosChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.photos"
                 defaultMessage="Include photos"
               />
             </span>
-          </sl-switch>
+          </SlSwitch>
         </div>
         <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked>
+          <SlSwitch size="small" checked={withVideos && "checked"} onSlChange={handleWithVideosChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.videos"
                 defaultMessage="Include videos"
               />
             </span>
-          </sl-switch>
+          </SlSwitch>
         </div>
         <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked>
+          <SlSwitch size="small" checked={withAudios && "checked"} onSlChange={handleWithAudiosChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.audios"
                 defaultMessage="Include audios"
               />
             </span>
-          </sl-switch>
+          </SlSwitch>
         </div>
         <div className="dialog__switchcontainer">
-          <sl-switch size="small">
+          <SlSwitch size="small" checked={withText && "checked"} onSlChange={handleWithTextChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.text"
                 defaultMessage="Include text messages"
               />
             </span>
-          </sl-switch>
+          </SlSwitch>
         </div>
 
-        <sl-button variant="primary" className="dialog__btn dark-btn">
+        <sl-button variant="primary" className="dialog__btn dark-btn" onClick={() => setSettingsDialogOpen(false)}>
           <FormattedMessage
             id="app.home.dialog.continue"
             defaultMessage="Continue"

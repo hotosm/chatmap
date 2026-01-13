@@ -32,7 +32,7 @@ const getFileFormat = (filename) => {
 // Upload a file to the app
 // It shows an upload area, reacts when files are uploaded.
 // It can manage all file formats ("chat", "zip" or "media")
-const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, mediaOnly, onMediaOnlyChange}) => {
+const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
   const [files, setFiles] = useState();
   const [loadedFilesCount, setLoadedFilesCount] = useState(0);
   const [filesCount, setFilesCount] = useState(0);
