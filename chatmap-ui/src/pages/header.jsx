@@ -7,8 +7,7 @@ import SaveButton from '../components/SaveButton';
 export default function Header({
   dataAvailable,
   dataFiles,
-  handleNewUploadClick,
-  showUploadButton,
+  mode
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
 
@@ -38,10 +37,9 @@ export default function Header({
         <div className="header__rest">
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
           {/* <sl-icon-button name="translate" /> */}
-          {dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
-          <sl-button href="#linked" variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.live" defaultMessage="Live" /></sl-button>
+          {mode !== 'linked' && dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
+          {!dataAvailable && <sl-button href="#linked" variant="default" outline size="small"><FormattedMessage id="app.navigation.live" defaultMessage="Live" /></sl-button>}
           {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
-          <a href=""><sl-icon name="grid-3x3-gap"></sl-icon></a>
         </div>
       </header>
     </>

@@ -6,9 +6,10 @@
  * http://github.com/hotosm/ui-design
  */
 
-@import url(./hot.css);
-@import url(./hot-sl.css);
-@import url(./hot-font-face.css);
+@import url('hotosm-ui-design/dist/hot.css');
+@import url('hotosm-ui-design/dist/hot-sl.css');
+@import url('hotosm-ui-design/dist/hot-wa.css');
+@import url('hotosm-ui-design/dist/hot-font-face.css');
 
 /* defaults */
 
