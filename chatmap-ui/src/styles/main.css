@@ -300,6 +300,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     display: flex;
 }
 
+.mapFull {
+    height: calc(100vh);
+}
+
 .mapDisabled {
     opacity: .5;
 }
@@ -576,6 +580,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     position: absolute;
     right: 0;
     top: 0;
+}
+
+.pageContent {
+    padding: var(--hot-spacing-2x-large);
 }
 
 /* Media queries */

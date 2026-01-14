@@ -36,11 +36,11 @@ export default function Header({
         </div>
 
         <div className="header__rest">
-          <a href=""><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a>
-          <a href=""><FormattedMessage id="app.navigation.blog" defaultMessage="Blog" /></a>
-          <sl-icon-button name="translate" />
+          {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
+          {/* <sl-icon-button name="translate" /> */}
           {dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
-          <sl-button variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button>
+          <sl-button href="#linked" variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.live" defaultMessage="Live" /></sl-button>
+          {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
           <a href=""><sl-icon name="grid-3x3-gap"></sl-icon></a>
         </div>
       </header>

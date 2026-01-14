@@ -78,9 +78,7 @@ async function init() {
             <HashRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
-                { ENABLE_LIVE ?
                 <Route path="/linked" element={<Linked />} />
-                : null}
               </Routes>
             </HashRouter>
           </MapDataProvider>

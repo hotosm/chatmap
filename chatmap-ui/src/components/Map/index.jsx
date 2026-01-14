@@ -11,7 +11,7 @@ import { useMapDataContext } from '../../context/MapDataContext';
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
  */
-export default function Map({ dataFiles, center, zoom }) {
+export default function Map({ dataFiles, center, zoom, className}) {
     // A div for the map
     const mapContainer = useRef(null);
     // The Map obejct
@@ -199,7 +199,7 @@ export default function Map({ dataFiles, center, zoom }) {
 
     return (
       <div className="map-wrap">
-        <div ref={mapContainer} className="map" />
+        <div ref={mapContainer} className={["map", className].join(" ")} />
         {map.current && activePopupFeature &&
           <Popup
             popupRef={popupRef}

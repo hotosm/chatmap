@@ -105,7 +105,7 @@ function App() {
                 />
                 <p className="home__note">
                   <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
-                  <sl-icon-button name="plus-circle-dotted" />
+                  {/* <sl-icon-button name="plus-circle-dotted" /> */}
                 </p>
               </div>
               <div className="home__image">
