@@ -37,3 +37,6 @@ CHATMAP_DB_HOST=os.getenv("CHATMAP_DB_HOST", "localhost")
 
 # Stream listener time
 STREAM_LISTENER_TIME=int(os.getenv("CHATMAP_STREAM_LISTENER_TIME", 10))
+
+# CORS setup
+CORS_ORIGINS = os.getenv("CHATMAP_CORS_ORIGINS", "localhost,127.0.0.1").split(",")

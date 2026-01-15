@@ -15,7 +15,7 @@ from db import Point, FeatureCollection, init_db, load_session, save_session, re
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from stream import stream_listener
-from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL
+from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
 from sqlalchemy import func
 
 # Logs
@@ -38,7 +38,7 @@ scheduler = AsyncIOScheduler()
 
 # Access config
 origins = [
-    "*",
+    CORS_ORIGINS
 ]
 app.add_middleware(
     CORSMiddleware,

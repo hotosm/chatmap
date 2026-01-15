@@ -68,7 +68,6 @@ async function init() {
     import.meta.env[`VITE_${label}`] ||
     config[label] || default_val
   )
-  const ENABLE_LIVE = getConfig("ENABLE_LIVE", false);
 
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
