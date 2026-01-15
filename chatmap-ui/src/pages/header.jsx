@@ -40,8 +40,8 @@ export default function Header({
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
           {/* <sl-icon-button name="translate" /> */}
           {showDownloadButton && mode !== 'linked' && dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
-          {mode == 'linked' ? <ShareButton sharing={data.sharing} /> : null }
-          {!dataAvailable && <sl-button href="#linked" variant="default" outline size="small"><FormattedMessage id="app.navigation.live" defaultMessage="Live" /></sl-button>}
+          {mode === 'linked' && dataAvailable ? <ShareButton sharing={data.sharing} /> : null }
+          {mode !== 'linked' && !dataAvailable && <sl-button href="#linked" variant="default" outline size="small"><FormattedMessage id="app.navigation.live" defaultMessage="Live" /></sl-button>}
           {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
         </div>
       </header>

@@ -90,6 +90,7 @@ function App() {
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
           showUploadButton={true}
+          showDownloadButton={true}
         />
 
         {!dataAvailable &&
