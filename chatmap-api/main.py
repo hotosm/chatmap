@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, FeatureCollection, init_db, load_session, save_session, remove_session, get_db_session
+from db import Point, FeatureCollection, init_db, load_session, save_session, remove_session, get_db_session, get_or_create_map
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from stream import stream_listener
@@ -20,7 +20,7 @@ from sqlalchemy import func
 
 # Logs
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
+    format='[API] %(levelname)s: %(message)s',
     level=logging.DEBUG if DEBUG else logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -124,6 +124,7 @@ async def get_chatmap(
     session: dict = Depends(get_current_session),
     db: Session = Depends(get_db_session),
 ):
+    map_id = get_or_create_map(db, session["user"])
     points = (
         db.query(
             Point.id,
@@ -134,12 +135,12 @@ async def get_chatmap(
             Point.time,
             Point.file,
         )
-        .filter(Point.user == session["user"])
+        .filter(Point.map_id == map_id)
         .all()
     )
 
     return {
-        "_chatmapId": "dev",
+        "_chatmapId": map_id or "",
         "type": "FeatureCollection",
         "features": [
             {
@@ -159,6 +160,11 @@ async def get_chatmap(
             for point in points
         ]
     }
+
+# Get share code
+@api_router.get("/shareCode")
+async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
+    return {'code': '1234'}
 
 # Get media file (image/jpeg)
 @api_router.get("/media")
