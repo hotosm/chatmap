@@ -85,6 +85,16 @@ a {
     gap: var(--hot-spacing-2x-large);
 }
 
+.header__title {
+    display: flex;
+    column-gap: var(--hot-spacing-small);
+}
+
+.header__title-text {
+    font-size: var(--hot-font-size-medium);
+    color: var(--hot-color-gray-950);
+}
+
 .dark-btn::part(base) {
     background-color: var(--hot-color-gray-950);
     border-color: var(--hot-color-gray-800);

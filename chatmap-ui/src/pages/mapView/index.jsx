@@ -7,8 +7,6 @@ import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import Map from "../../components/Map";
 import useAPI from '../../components/ChatMap/useApi.js'
 
-import "../../styles/home.css";
-
 function MapView() {
 
   const {
@@ -50,6 +48,7 @@ function MapView() {
           dataAvailable={dataAvailable}
           mapData={data}
           showDownloadButton={false}
+          title={mapData.title || "Untitled"}
         />
 
         {dataAvailable &&

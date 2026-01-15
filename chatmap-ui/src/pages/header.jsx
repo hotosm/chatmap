@@ -9,7 +9,8 @@ export default function Header({
   dataAvailable,
   dataFiles,
   mode,
-  showDownloadButton
+  showDownloadButton,
+  title
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
 
@@ -34,6 +35,7 @@ export default function Header({
           <a href="/" className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
+          <h1 className="header__title-text">{title}</h1>
         </div>
 
         <div className="header__rest">
