@@ -62,20 +62,8 @@ class Map(Base):
         back_populates="map",
         cascade="all, delete-orphan",
     )
-
-# Point (related to a map)
-class Point(Base):
-    __tablename__ = "points"
-    id = Column(String, primary_key=True, index=True)
-    geom = Column(Geometry(geometry_type="POINT", srid=4326))
-    message = Column(String)
-    username = Column(String)
-    time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
-    file = Column(String)
-
-    map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
-    map    = relationship("Map", back_populates="points")
-
+    
+    
 # Get map id for user or create a new one if it doesn't exist
 def get_or_create_map(db, user_id: str) -> str:
     # Get map
@@ -97,6 +85,19 @@ def get_or_create_map(db, user_id: str) -> str:
         map_id = new_map.id
 
     return map_id
+
+# Point (related to a map)
+class Point(Base):
+    __tablename__ = "points"
+    id = Column(String, primary_key=True, index=True)
+    geom = Column(Geometry(geometry_type="POINT", srid=4326))
+    message = Column(String)
+    username = Column(String)
+    time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
+    file = Column(String)
+
+    map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
+    map    = relationship("Map", back_populates="points")
 
 # Run insert queries for points, including on_conflict,
 # coalescing messages and files
@@ -138,7 +139,8 @@ class Feature(BaseModel):
     properties: FeatureProperties
 
 class FeatureCollection(BaseModel):
-    _chatmapId: str
+    id: str
+    sharing: str
     type: Literal["FeatureCollection"]
     features: List[Feature]
 

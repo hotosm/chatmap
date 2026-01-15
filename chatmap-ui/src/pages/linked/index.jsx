@@ -68,6 +68,9 @@ function App() {
       type: 'set',
       payload: mapData,
     });
+    if (mapData.id) {
+      history.replaceState(null, '', `/#map/${mapData.id}`);
+    }
   }, [mapData]);
 
   // There's data for the map!

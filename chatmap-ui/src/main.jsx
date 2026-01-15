@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { Route, Routes, HashRouter } from 'react-router-dom';
 import Home from './pages/home';
 import Linked from './pages/linked';
+import MapView from './pages/mapView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
 import En from './int/en.json';
@@ -79,6 +80,7 @@ async function init() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/linked" element={<Linked />} />
+                <Route path="/map/:id" element={<MapView />} />
               </Routes>
             </HashRouter>
           </MapDataProvider>

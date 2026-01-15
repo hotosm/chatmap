@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 
 /**
- * Get ChatMap data from an API
+ *  ChatMap API
  *
  * @param {object} params - Parameters
  */
@@ -18,7 +18,9 @@ const useApi = (params = {}) => {
     const [QRImgSrc, setQRImgSrc] = useState();
     const [session, setSession] = useState();
     const [status, setStatus] = useState();
+    const [mapShare, setMapShare] = useState({});
 
+    // Logout session
     const logoutSession = useCallback(async () => {
         setIsLoading(true);
         const token = sessionStorage.getItem("chatmap_access_token")
@@ -38,6 +40,7 @@ const useApi = (params = {}) => {
         }
     });
 
+    // Fetch a new session
     const fetchSession = useCallback(async () => {
         const stored_session = sessionStorage.getItem("chatmap_access_token");
         if (stored_session) {
@@ -62,23 +65,21 @@ const useApi = (params = {}) => {
         return;
     }, []);
 
-    const fetchMapData = useCallback(async () => {
+    // Fetch map data related to a session
+    const fetchMapData = useCallback(async (id) => {
         const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
+        const url = id ? `${API_URL}/map/${id}` : `${API_URL}/map`;
         try {
-            const response = await fetch(`${API_URL}/map`, {
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
             });
             if (response.status === 401) {
-                sessionStorage.removeItem("chatmap_access_token");
-                setSession();
-                setStatus();
-                setMapData();
-                await fetchQRCode();
+                console.log("Not authorized")
             }
             if (!response.ok) throw new Error('Failed to fetch data');
             const result = await response.json();
@@ -90,6 +91,7 @@ const useApi = (params = {}) => {
         }
     }, [params]);
 
+    // Fetch a new QR code for linking a device
     const fetchQRCode = useCallback(async () => {
         const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
@@ -112,6 +114,7 @@ const useApi = (params = {}) => {
         }
     }, []);
 
+    // Fetch status of linking a device
     const fetchStatus = useCallback(async () => {
         const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
@@ -139,6 +142,34 @@ const useApi = (params = {}) => {
         }
     }, []);
 
+     // Fetch a sharing code for accessing the map
+    const updateMapShare = useCallback(async () => {
+        const token = sessionStorage.getItem("chatmap_access_token")
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`${API_URL}/map/share`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+            if (!response.ok) {
+                if (response.status === 401) {
+                    sessionStorage.removeItem("chatmap_access_token");
+                    fetchSession();
+                }
+                throw new Error('Failed to fetch share');
+            }
+            const result = await response.json();
+            setMapShare(result);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
     return {
         mapData,
         QRImgSrc,
@@ -150,7 +181,9 @@ const useApi = (params = {}) => {
         fetchSession,
         logoutSession,
         fetchQRCode,
-        fetchStatus
+        fetchStatus,
+        updateMapShare,
+        mapShare
     };
 
 };
