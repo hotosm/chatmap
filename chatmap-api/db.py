@@ -50,7 +50,7 @@ class Map(Base):
     __table_args__ = (
         UniqueConstraint("owner_id", name="uq_maps_owner_id"),
     )
-    id =  id = Column(String, primary_key=True, index=True, default=uuid.uuid4)
+    id = Column(String, primary_key=True, index=True, default=str(uuid.uuid4))
     name = Column(String, default="Untitled")
     sharing = Column(SqlEnum(SharePermission, name="sharing_permission"),
                      nullable=False,
