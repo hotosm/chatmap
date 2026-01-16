@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from 'react-router-dom';
 import { useInterval } from '../../hooks/useInterval.js';
 import Header from "../header.jsx";
@@ -14,8 +14,10 @@ function MapView() {
     mapData
   } = useAPI();
 
+  const [footerVisible, setFooterVisible] = useState(true);
+
   // If connected, fetch map data every 10 sec
-  useInterval(() => { id && fetchMapData(id) }, 10000);
+  // useInterval(() => { id && fetchMapData(id) }, 10000);
 
   const { id } = useParams();
 
@@ -53,11 +55,15 @@ function MapView() {
 
         {dataAvailable &&
           <Map
+            onInteract={() => setFooterVisible(false)}
           />
         }
-
-        <Footer />
       </div>
+
+      <Footer
+        visible={footerVisible}
+        className="footer__floating"
+      />
     </>
   );
 }

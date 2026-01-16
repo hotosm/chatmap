@@ -41,9 +41,21 @@ export default function Header({
         <div className="header__rest">
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
           {/* <sl-icon-button name="translate" /> */}
-          {showDownloadButton && mode !== 'linked' && dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
-          {mode === 'linked' && dataAvailable ? <ShareButton sharing={data.sharing} /> : null }
-          {mode !== 'linked' && !dataAvailable && <sl-button href="#linked" variant="default" outline size="small"><FormattedMessage id="app.navigation.live" defaultMessage="Live" /></sl-button>}
+
+          {showDownloadButton && mode !== 'linked' && dataAvailable && 
+          <SaveButton data={data} dataFiles={dataFiles} />
+          }
+
+          {mode === 'linked' && dataAvailable &&
+          <ShareButton sharing={data.sharing} />
+          }
+
+          {mode !== 'linked' && !dataAvailable &&
+          <sl-button href="#linked" variant="default" outline size="small">
+            <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
+          </sl-button>
+          }
+
           {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
         </div>
       </header>

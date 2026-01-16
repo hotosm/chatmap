@@ -2,16 +2,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 320px);
 }
 
 .home__center {
-    margin: 0 auto;
+    margin: var(--hot-spacing-x-large) auto;
     padding: var(--hot-spacing-2x-large);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--hot-spacing-large);
+    gap: var(--hot-spacing-4x-large);
 }
 
 .home__title {
@@ -24,6 +23,7 @@
     font-size: var(--hot-font-size-2x-large);
     font-family: var(--hot-font-sans-variant);
     margin: var(--hot-spacing-medium) 0;
+    max-width: 18rem;
 }
 
 .home__note {
@@ -40,44 +40,86 @@
 
 .dialog__title {
     margin: 0;
+    padding: 0;
     font-family: var(--hot-font-sans-variant);
+    font-size: var(--hot-font-size-2x-large);
     font-weight: var(--hot-font-weight-normal);
 }
 
 .dialog__locations {
-    margin: 0;
+    font-size: var(--hot-font-size-large);
+    margin: 0 0 var(--hot-spacing-medium) 0;
     font-weight: var(--hot-font-weight-bold);
 }
 
 .dialog__exporttype {
     margin-top: 0;
-    margin-bottom: var(--hot-spacing-large);
+    margin-bottom: var(--hot-spacing-2x-large);
     color: var(--hot-color-gray-500);
     font-size: var(--hot-font-size-small);
     font-weight: var(--hot-font-weight-bold);
 }
 
+sl-switch::part(control) {
+    background-color: var(--hot-color-neutral-100);
+    border-color: var(--hot-color-neutral-200);
+}
+
+sl-switch::part(thumb) {
+    border-color: var(--hot-color-neutral-200);
+}
+
+sl-switch[checked]::part(thumb) {
+    border-color: var(--hot-color-danger-700);
+}
+
+sl-switch[checked]::part(control) {
+    background-color: var(--hot-color-danger-700);
+    border-color: var(--hot-color-danger-700);
+}
+
 .dialog__switchtext {
     font-weight: var(--hot-font-weight-bold);
-    font-size: var(--hot-font-size-small);
+    font-size: var(--hot-font-size-medium);
+    margin-left: var(--hot-spacing-small);
 }
 
 .dialog__switchcontainer {
-    margin-top: var(--hot-spacing-small);
+    margin-top: var(--hot-spacing-medium);
 }
 
 .dialog__btn {
     margin-top: var(--hot-spacing-large);
 }
 
+sl-dialog::part(panel) {
+    border-radius: var(--hot-border-radius-x-large);
+    padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+}
+
 sl-dialog::part(overlay) {
     background-color: rgba(0, 0, 0, 0.80);
 }
 
+sl-dialog::part(close-button) {
+  color: transparent;
+  background-size: 2em;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/></svg>');
+}
+
 sl-button.featured::part(base) {
     background: linear-gradient(270deg, #E3F8F8 0%, #FFF7F9 100%);
-    font-size: var(--hot-font-size-large);
+    font-size: var(--hot-font-size-x-large);
     font-weight: var(--hot-font-weight-bold);
     color: var(--hot-color-gray-950);
-    padding: var(--hot-spacing-small) var(--hot-spacing-large);
+    padding: var(--hot-spacing-medium) var(--hot-spacing-large);
+    box-shadow: 2px 2px 10px color-mix(in srgb, var(--hot-color-neutral-1000) 10%, transparent);
+    border-radius: var(--hot-border-radius-large);
 }
+
+sl-button.featured::part(prefix) {
+    font-size: var(--hot-font-size-2x-large);
+}
+

@@ -1,8 +1,6 @@
 import { lazy, useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 
-import SlSwitch from "@shoelace-style/shoelace/dist/react/switch/index.js";
-
 import useFileManager from "../../components/FileUpload/useFileManager.js";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import Header from "../header.jsx";
@@ -122,7 +120,10 @@ function App() {
           />
         }
 
-        <Footer />
+        <Footer
+          visible={!dataAvailable}
+          className={dataAvailable ? "footer__floating" : ""}
+        />
       </div>
 
       <sl-dialog
@@ -149,47 +150,47 @@ function App() {
         </p>
 
         <div className="dialog__switchcontainer">
-          <SlSwitch size="small" checked={withPhotos && "checked"} onSlChange={handleWithPhotosChange}>
+          <sl-switch size="small" checked={withPhotos && "checked"} onSlChange={handleWithPhotosChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.photos"
                 defaultMessage="Include photos"
               />
             </span>
-          </SlSwitch>
+          </sl-switch>
         </div>
         <div className="dialog__switchcontainer">
-          <SlSwitch size="small" checked={withVideos && "checked"} onSlChange={handleWithVideosChange}>
+          <sl-switch size="small" checked={withVideos && "checked"} onSlChange={handleWithVideosChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.videos"
                 defaultMessage="Include videos"
               />
             </span>
-          </SlSwitch>
+          </sl-switch>
         </div>
         <div className="dialog__switchcontainer">
-          <SlSwitch size="small" checked={withAudios && "checked"} onSlChange={handleWithAudiosChange}>
+          <sl-switch size="small" checked={withAudios && "checked"} onSlChange={handleWithAudiosChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.audios"
                 defaultMessage="Include audios"
               />
             </span>
-          </SlSwitch>
+          </sl-switch>
         </div>
         <div className="dialog__switchcontainer">
-          <SlSwitch size="small" checked={withText && "checked"} onSlChange={handleWithTextChange}>
+          <sl-switch size="small" checked={withText && "checked"} onSlChange={handleWithTextChange}>
             <span className="dialog__switchtext">
               <FormattedMessage
                 id="app.home.dialog.options.text"
                 defaultMessage="Include text messages"
               />
             </span>
-          </SlSwitch>
+          </sl-switch>
         </div>
 
-        <sl-button variant="primary" className="dialog__btn dark-btn" onClick={() => setSettingsDialogOpen(false)}>
+        <sl-button slot="footer" variant="primary" className="dialog__btn dark-btn" onClick={() => setSettingsDialogOpen(false)}>
           <FormattedMessage
             id="app.home.dialog.continue"
             defaultMessage="Continue"
