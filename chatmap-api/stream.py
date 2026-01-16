@@ -4,7 +4,7 @@ import os
 import logging
 import asyncio
 from data import process_chat_entries
-from settings import STREAM_KEY, EXPIRING_MIN_MS, STREAM_LISTENER_TIME
+from settings import STREAM_KEY, EXPIRING_MIN_MS, STREAM_LISTENER_TIME, DISABLE_STREAM_CLEANUP
 
 # Logs
 logger = logging.getLogger(__name__)
@@ -26,8 +26,10 @@ async def cleanup(user: str):
 
 # Get all sessions
 async def get_sessions():
-    sessions = await redis_client.scan(0, match="messages:*", type="stream")
-    return [item[0].decode('utf-8').replace("messages:", "") for item in sessions if item]
+    keys = []
+    async for key in redis_client.scan_iter(match="messages:*", type="stream"):
+        keys.append(key.decode("utf-8").replace("messages:", ""))
+    return keys
 
 # This function runs every (STREAM_LISTENER_TIME) seconds.
 # It gets a list of user sessions and then messages
@@ -44,7 +46,8 @@ async def stream_listener() -> None:
                 logger.info(f"{len(entries)} entries for user {user}")
                 await process_chat_entries(user, entries)
                 # Cleanup old messages
-                await cleanup(user)
+                if not DISABLE_STREAM_CLEANUP:
+                    await cleanup(user)
         except Exception as e:
             logger.info("[stream_listener] Error processing data %s", e)
         await asyncio.sleep(STREAM_LISTENER_TIME)
