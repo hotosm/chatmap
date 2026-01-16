@@ -8,7 +8,6 @@
   "dependencies": {
     "@awesome.me/webawesome": "3.0.0-beta.1",
     "@babel/core": "^7.26.10",
-    "@hotosm/hanko-auth": "file:./../../../shared/hot-auth-libs/web-component",
     "@shoelace-style/shoelace": "^2.20.1",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",

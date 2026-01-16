@@ -4,7 +4,8 @@ import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
-import '@hotosm/hanko-auth';
+import { useAuth } from '../context/AuthContext.jsx';
+import('@AuthLibs/web-component/dist/hanko-auth.esm.js');
 
 export default function Header({
   dataAvailable,
@@ -14,6 +15,7 @@ export default function Header({
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
   const { config } = useConfigContext();
+  const { isLogin, user } = useAuth();
 
   const selectTagHandler = tag => {
     mapDataDispatch({
@@ -45,11 +47,10 @@ export default function Header({
           {dataAvailable ? <SaveButton data={data} dataFiles={dataFiles} /> : null }
 
           <hotosm-auth
-            osmRequired={false}
             hanko-url={config.HANKO_API_URL}
-            base-path={config.PORTAL_SSO_URL}
-            redirect-after-login={config.FRONTEND_URL}
-            redirect-after-logout={config.FRONTEND_URL}
+            login-url={config.LOGIN_URL}
+            redirect-after-login={window.location.origin}
+            redirect-after-logout={window.location.origin}
           />
           
           {/* <sl-button variant="neutral" size="small" className="login-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}

@@ -31,6 +31,10 @@ services:
       - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
       - CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES=${CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES:-120}
       - CHATMAP_EXPIRING_MIN=${CHATMAP_EXPIRING_MIN:-30}
+      # Hanko Auth
+      - HANKO_API_URL=${HANKO_API_URL:-https://dev.login.hotosm.org}
+      - JWT_ISSUER=${JWT_ISSUER:-}
+      - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
     volumes:
       - ./media:/app/media:rw
       - ./data:/app/data:rw
@@ -87,9 +91,89 @@ services:
     networks:
       - appnet
 
+  # Hanko Auth (standalone mode only)
+  # Comment out these services when using SSO mode (login.hotosm.org)
+
+  # Process Hanko config template with environment variables
+  chatmap-hanko-config:
+    image: alpine:latest
+    command: sh -c "apk add --no-cache gettext && envsubst < /config/hanko-config.template.yaml > /config-out/hanko-config.yaml"
+    environment:
+      - GOOGLE_ENABLED=${GOOGLE_ENABLED:-false}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-placeholder}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-placeholder}
+      # SMTP config (set in .env for production)
+      - SMTP_ENABLED=${SMTP_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:-noreply@chatmap.hotosm.org}
+    volumes:
+      - ./config/hanko-config.yaml:/config/hanko-config.template.yaml:ro
+      - hanko_config:/config-out
+    networks:
+      - appnet
+    profiles:
+      - standalone
+
+  chatmap-hanko-migrate:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    command: migrate up --config /config/hanko-config.yaml
+    volumes:
+      - hanko_config:/config:ro
+    depends_on:
+      chatmap-hanko-config:
+        condition: service_completed_successfully
+      chatmap-hanko-db:
+        condition: service_healthy
+    networks:
+      - appnet
+    profiles:
+      - standalone
+
+  chatmap-hanko:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    restart: unless-stopped
+    command: serve --config /config/hanko-config.yaml all
+    ports:
+      - "8002:8002"
+    volumes:
+      - hanko_config:/config:ro
+    depends_on:
+      chatmap-hanko-migrate:
+        condition: service_completed_successfully
+      chatmap-hanko-db:
+        condition: service_healthy
+    networks:
+      - appnet
+    profiles:
+      - standalone
+
+  chatmap-hanko-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=hanko
+      - POSTGRES_PASSWORD=hanko
+      - POSTGRES_DB=hanko
+    volumes:
+      - hanko_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hanko -d hanko"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - appnet
+    profiles:
+      - standalone
+
 networks:
   appnet:
 
 volumes:
   data:
   media:
+  hanko_data:
+  hanko_config:

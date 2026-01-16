@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { Route, Routes, HashRouter } from 'react-router-dom';
 import Home from './pages/home';
 import Linked from './pages/linked';
+import LoginPage from './pages/login';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
 import En from './int/en.json';
@@ -18,6 +19,7 @@ import Hi from './int/hi.json';
 import Id from './int/id.json';
 import { MapDataProvider } from './context/MapDataContext';
 import { ConfigProvider } from './context/ConfigContext';
+import { AuthProvider } from './context/AuthContext';
 
 // Web Awesome UI components (needed for hanko-auth web component)
 import '@awesome.me/webawesome/dist/components/button/button.js';
@@ -76,18 +78,21 @@ async function init() {
     <React.StrictMode>
       <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocaleMessages()}>
         <ErrorBoundary>
-          <MapDataProvider>
-          <ConfigProvider initialConfig={config}>
-            <HashRouter>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                { config.ENABLE_LIVE ?
-                <Route path="/linked" element={<Linked />} />
-                : null}
-              </Routes>
-            </HashRouter>
-          </ConfigProvider>
-          </MapDataProvider>
+          <AuthProvider>
+            <MapDataProvider>
+              <ConfigProvider initialConfig={config}>
+                <HashRouter>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/app" element={<LoginPage />} />
+                    { config.ENABLE_LIVE ?
+                    <Route path="/linked" element={<Linked />} />
+                    : null}
+                  </Routes>
+                </HashRouter>
+              </ConfigProvider>
+            </MapDataProvider>
+          </AuthProvider>
         </ErrorBoundary>
       </IntlProvider>
     </React.StrictMode>
