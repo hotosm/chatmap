@@ -89,6 +89,7 @@ jobs:
           CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ vars.CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES }}
           CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
           CHATMAP_ENABLE_LIVE: ${{ vars.CHATMAP_ENABLE_LIVE }}
+          HANKO_API_URL: ${{ vars.HANKO_API_URL }}
         run: |
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
@@ -98,6 +99,7 @@ jobs:
             export CHATMAP_API_URL=$CHATMAP_API_URL
             export CHATMAP_API_URL_SUFFIX=$CHATMAP_API_URL_SUFFIX
             export CHATMAP_ENABLE_LIVE=$CHATMAP_ENABLE_LIVE
+            export HANKO_API_URL=$HANKO_API_URL
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR

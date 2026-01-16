@@ -88,6 +88,18 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 
 5. Restart services to apply changes
 
+### Deploy Configuration
+
+For CI/CD deployment, configure these GitHub variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `HANKO_API_URL` | Hanko auth endpoint | `https://dev.login.hotosm.org` |
+| `CHATMAP_API_URL` | API base URL | `https://chatmap-dev.hotosm.org` |
+| `CHATMAP_ENABLE_LIVE` | Enable live mode | `true` / `false` |
+
+For standalone deployment, also configure SMTP and optionally Google OAuth secrets.
+
 ## ChatMap Live + linked devices
 
 In Live mode, people can link a device to get a live stream of data and update maps in real-time,
