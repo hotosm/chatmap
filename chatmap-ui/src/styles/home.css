@@ -22,7 +22,7 @@
 .home__subtitle {
     font-size: var(--hot-font-size-2x-large);
     font-family: var(--hot-font-sans-variant);
-    margin: var(--hot-spacing-medium) 0;
+    margin: var(--hot-spacing-small) 0 var(--hot-spacing-large);
     max-width: 18rem;
 }
 
@@ -31,7 +31,7 @@
     margin-top: var(--hot-spacing-small);
     font-size: var(--hot-font-size-small);
     font-family: var(--hot-font-sans);
-    color: var(--hot-color-gray-500);
+    color: var(--hot-color-gray-600);
 }
 
 .home__image img {
