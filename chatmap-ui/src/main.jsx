@@ -61,11 +61,6 @@ const getLocaleMessages = () => {
 async function init() {
   const response = await fetch('/config.json');
   const config = await response.json();
-  const getConfig = window._CHATMAP_CONFIG = (label, default_val) => (
-    import.meta.env[`VITE_${label}`] ||
-    config[label] || default_val
-  )
-
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
     <React.StrictMode>
