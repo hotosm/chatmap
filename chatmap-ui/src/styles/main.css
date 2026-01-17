@@ -108,6 +108,7 @@ a {
     max-width: 20rem;
 }
 
+
 .footer__top-left h2 {
     font-size: var(--hot-font-size-2x-large);
     font-weight: var(--hot-font-weight-medium);
@@ -559,6 +560,28 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 /* Mobile */
 @media (max-width: 790px) {
+
+    body {
+        min-width: 430px;
+    }
+
+    .footer__top-left h2,
+    .footer__top-right h3 {
+        font-size: var(--hot-font-size-x-large);
+    }
+    .footer__copy {
+        font-size: var(--hot-font-size-2x-small);
+    }
+    .footer__top-right a span {
+        font-size: var(--hot-font-size-large);
+    }
+    .footer__top-right a span::after {
+        bottom: 3px
+    }
+
+    .fileUploadWrapper {
+        text-align: center;
+    }
 
     .maplibregl-map {
         height: 90vh;
