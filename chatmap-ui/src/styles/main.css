@@ -563,6 +563,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
     body {
         min-width: 430px;
+        overflow-x: hidden;
     }
 
     .footer__top-left h2,
