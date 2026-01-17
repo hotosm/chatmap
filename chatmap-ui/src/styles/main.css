@@ -78,9 +78,10 @@ a {
 
 .footer {
     box-sizing: border-box;
+    border-top: 1px solid color-mix(in srgb, var(--hot-color-yellow-50) 100%, var(--hot-color-neutral-0) 100%);
     background: linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--hot-color-yellow-50) 50%, var(--hot-color-neutral-0) 100%),
+        color-mix(in srgb, var(--hot-color-yellow-50) 20%, var(--hot-color-neutral-0) 100%),
         color-mix(in srgb, var(--hot-color-yellow-50) 15%, var(--hot-color-neutral-0) 100%) 100%
     );
     padding: var(--hot-spacing-x-large);
@@ -91,6 +92,7 @@ a {
 
 .footer__floating {
     width: 100vw;
+    border-top: 1px solid var(--hot-color-neutral-0);
     box-shadow: 0 -5px 5px color-mix(in srgb, var(--hot-color-neutral-1000) 2%, transparent);
     position: fixed;
     bottom: 0;
