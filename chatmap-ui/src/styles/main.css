@@ -561,8 +561,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 /* Mobile */
 @media (max-width: 790px) {
 
-    body {
-        min-width: 430px;
+    body, .app {
         overflow-x: hidden;
     }
 
