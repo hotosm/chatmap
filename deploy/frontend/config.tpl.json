@@ -1,4 +1,5 @@
 {
     "API_URL": "$CHATMAP_API_URL/$CHATMAP_API_URL_SUFFIX",
-    "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE
+    "ENABLE_LIVE": $CHATMAP_ENABLE_LIVE,
+    "HANKO_API_URL": "${HANKO_API_URL:-https://dev.login.hotosm.org}"
 }

@@ -1,0 +1,161 @@
+# Development compose with hot reload
+# Usage: docker compose -f compose.dev.yml up
+
+services:
+  # Frontend with Vite hot reload
+  chatmap-ui:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install --legacy-peer-deps && npm run start -- --host"
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./chatmap-ui:/app
+      - /app/node_modules
+    networks:
+      - appnet
+
+  # Backend API with uvicorn hot reload
+  chatmap-api:
+    image: python:3.13-slim
+    working_dir: /app
+    command: sh -c "apt-get update && apt-get install -y git && pip install uv && uv sync && uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8001:8000"
+    depends_on:
+      - chatmap-redis
+      - chatmap-db
+      - chatmap-hanko
+    environment:
+      - REDIS_HOST=chatmap-redis
+      - REDIS_PORT=6379
+      - CHATMAP_API_DEBUG=true
+      - CHATMAP_API_URL=http://localhost:8001
+      - CHATMAP_ENC_KEY=0123456789ABCDEF0123456789ABCDEF
+      - CHATMAP_SECRET_KEY=4sup3rs3cret5up3rdummykey
+      - CHATMAP_DB_HOST=chatmap-db
+      - CHATMAP_DB=chatmap
+      - CHATMAP_DB_USER=admin
+      - CHATMAP_DB_PASSWORD=0123456789ABCDEF0123456789ABCDEF
+      - HANKO_API_URL=http://chatmap-hanko:8002
+      - JWT_ISSUER=http://localhost:8002
+      - COOKIE_SECRET=dev-secret-key-min-32-bytes-long!
+    volumes:
+      - ./chatmap-api:/app
+      - ./media:/app/media:rw
+    networks:
+      - appnet
+
+  # Redis
+  chatmap-redis:
+    image: redis:latest
+    ports:
+      - "6380:6379"
+    networks:
+      - appnet
+
+  # ChatMap Database
+  chatmap-db:
+    image: postgis/postgis:14-3.5-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=chatmap
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=0123456789ABCDEF0123456789ABCDEF
+    volumes:
+      - chatmap_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - appnet
+
+  # MailHog for capturing emails in dev
+  chatmap-mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - appnet
+
+  # Process Hanko config template with environment variables
+  chatmap-hanko-config:
+    image: alpine:latest
+    command: sh -c "apk add --no-cache gettext && envsubst < /config/hanko-config.template.yaml > /config-out/hanko-config.yaml && cat /config-out/hanko-config.yaml"
+    environment:
+      - GOOGLE_ENABLED=${GOOGLE_ENABLED:-false}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-placeholder}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-placeholder}
+      # SMTP config for MailHog
+      - SMTP_ENABLED=true
+      - SMTP_HOST=chatmap-mailhog
+      - SMTP_PORT=1025
+      - SMTP_USER=
+      - SMTP_PASSWORD=
+      - SMTP_FROM_ADDRESS=noreply@chatmap.local
+    volumes:
+      - ./config/hanko-config.yaml:/config/hanko-config.template.yaml:ro
+      - hanko_config:/config-out
+    depends_on:
+      - chatmap-mailhog
+    networks:
+      - appnet
+
+  # Hanko Migrations (runs once before server starts)
+  chatmap-hanko-migrate:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    command: migrate up --config /config/hanko-config.yaml
+    volumes:
+      - hanko_config:/config:ro
+    depends_on:
+      chatmap-hanko-config:
+        condition: service_completed_successfully
+      chatmap-hanko-db:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  # Hanko Auth
+  chatmap-hanko:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    restart: unless-stopped
+    command: serve --config /config/hanko-config.yaml all
+    ports:
+      - "8002:8002"
+    volumes:
+      - hanko_config:/config:ro
+    depends_on:
+      chatmap-hanko-migrate:
+        condition: service_completed_successfully
+      chatmap-hanko-db:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  # Hanko Database
+  chatmap-hanko-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=hanko
+      - POSTGRES_PASSWORD=hanko
+      - POSTGRES_DB=hanko
+    volumes:
+      - hanko_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hanko -d hanko"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - appnet
+
+networks:
+  appnet:
+
+volumes:
+  chatmap_data:
+  hanko_data:
+  hanko_config:

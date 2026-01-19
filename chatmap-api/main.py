@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 from stream import stream_listener
 from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL
 from sqlalchemy import func
+from hotosm_auth_fastapi import setup_auth, CurrentUser
 
 # Logs
 logging.basicConfig(
@@ -29,6 +30,9 @@ logger = logging.getLogger(__name__)
 app = FastAPI(debug=DEBUG)
 prefix = f"v{API_VERSION}"
 api_router = APIRouter(prefix=f"/{prefix}")
+
+# Setup Hanko auth (loads config from .env: HANKO_API_URL)
+setup_auth(app)
 
 # DB
 init_db()
@@ -172,6 +176,16 @@ async def media(filename: str) -> Dict[str, str]:
 @api_router.get("/version")
 async def status():
     return {'version': "0.0.4"}
+
+# Protected endpoint example (requires Hanko auth)
+@api_router.get("/me")
+async def me(user: CurrentUser):
+    """Get current authenticated user info. Requires valid Hanko session."""
+    return {
+        'user_id': user.id,
+        'email': user.email,
+        'username': user.username,
+    }
 
 # API Router
 app.include_router(api_router)

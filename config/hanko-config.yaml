@@ -1,0 +1,95 @@
+# Hanko configuration for ChatMap standalone mode
+# This allows ChatMap to run independently without login.hotosm.org
+
+server:
+  public:
+    address: ":8002"
+    cors:
+      allow_origins:
+        - "http://localhost:5173"
+        - "http://localhost:80"
+      allow_credentials: true
+      unsafe_wildcard_origin_allowed: true
+
+database:
+  database: hanko
+  user: hanko
+  password: hanko
+  host: chatmap-hanko-db
+  port: 5432
+
+secrets:
+  keys:
+    - "abcdefghijklmnopqrstuvwxyz123456"  # Change this for production
+
+service:
+  name: "ChatMap"
+
+webauthn:
+  enabled: true
+  relying_party:
+    id: "localhost"
+    display_name: "ChatMap"
+    origins:
+      - "http://localhost:5173"
+      - "http://localhost:80"
+
+# Passkeys enabled but not prompted
+passkey:
+  enabled: true
+  optional: true
+  acquire_on_registration: never
+  acquire_on_login: never
+
+email:
+  require_verification: false  # Disabled for local dev
+
+passcode:
+  enabled: true
+  ttl: 300  # 5 minutes
+
+password:
+  enabled: true
+  min_length: 8
+  recovery: true
+
+# Email delivery (use MailHog for dev, real SMTP for production)
+email_delivery:
+  enabled: $SMTP_ENABLED
+  smtp:
+    host: $SMTP_HOST
+    port: $SMTP_PORT
+    user: $SMTP_USER
+    password: $SMTP_PASSWORD
+  from_address: $SMTP_FROM_ADDRESS
+  from_name: "ChatMap"
+
+session:
+  lifespan: 24h
+  issuer: "http://localhost:8002"
+  audience:
+    - "http://localhost:5173"
+    - "http://localhost:80"
+  cookie:
+    name: "hanko"
+    domain: "localhost"
+    http_only: true
+    same_site: lax
+    secure: false  # false for localhost
+
+# Google OAuth (optional)
+# Create credentials at: https://console.cloud.google.com/apis/credentials
+# Redirect URI: http://localhost:8002/thirdparty/callback
+# Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env to enable
+third_party:
+  redirect_url: "http://localhost:8002/thirdparty/callback"
+  error_redirect_url: "http://localhost:5173/login?error=auth_failed"
+  allowed_redirect_urls:
+    - "http://localhost:5173/**"
+    - "http://localhost:80/**"
+  providers:
+    google:
+      enabled: $GOOGLE_ENABLED
+      client_id: "$GOOGLE_CLIENT_ID"
+      secret: "$GOOGLE_CLIENT_SECRET"
+      allow_linking: true
