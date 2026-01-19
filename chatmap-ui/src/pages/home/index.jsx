@@ -6,6 +6,7 @@ import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
 import FileUpload from "../../components/FileUpload/index.jsx";
+import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import "../../styles/home.css";
 import logo from "../../assets/chatmap-home.png";
@@ -74,11 +75,6 @@ function App() {
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
 
-  const handleWithPhotosChange = () => setWithPhotos((val) => !val);
-  const handleWithVideosChange = () => setWithVideos((val) => !val);
-  const handleWithAudiosChange = () => setWithAudios((val) => !val);
-  const handleWithTextChange = () => setWithText((val) => !val);
-
   return (
     <>
       <div className="app">
@@ -126,77 +122,15 @@ function App() {
         />
       </div>
 
-      <sl-dialog
+      <SettingsDialog
         open={settingsDialogOpen}
-        onSlAfterHide={() => setSettingsDialogOpen(false)}
-      >
-        <h2 slot="label" className="dialog__title">
-          <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
-        </h2>
-
-        <p className="dialog__locations">
-          <FormattedMessage
-            id="app.home.dialog.locations"
-            defaultMessage="{num} location points found"
-            values={{ num: data.features.length }}
-          />
-        </p>
-        <p className="dialog__exporttype">
-          <FormattedMessage
-            id="app.home.dialog.exporttype"
-            defaultMessage="File is a {type} export"
-            values={{ type: "WhatsApp" }}
-          />
-        </p>
-
-        <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked={withPhotos && "checked"} onSlChange={handleWithPhotosChange}>
-            <span className="dialog__switchtext">
-              <FormattedMessage
-                id="app.home.dialog.options.photos"
-                defaultMessage="Include photos"
-              />
-            </span>
-          </sl-switch>
-        </div>
-        <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked={withVideos && "checked"} onSlChange={handleWithVideosChange}>
-            <span className="dialog__switchtext">
-              <FormattedMessage
-                id="app.home.dialog.options.videos"
-                defaultMessage="Include videos"
-              />
-            </span>
-          </sl-switch>
-        </div>
-        <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked={withAudios && "checked"} onSlChange={handleWithAudiosChange}>
-            <span className="dialog__switchtext">
-              <FormattedMessage
-                id="app.home.dialog.options.audios"
-                defaultMessage="Include audios"
-              />
-            </span>
-          </sl-switch>
-        </div>
-        <div className="dialog__switchcontainer">
-          <sl-switch size="small" checked={withText && "checked"} onSlChange={handleWithTextChange}>
-            <span className="dialog__switchtext">
-              <FormattedMessage
-                id="app.home.dialog.options.text"
-                defaultMessage="Include text messages"
-              />
-            </span>
-          </sl-switch>
-        </div>
-
-        <sl-button slot="footer" variant="primary" className="dialog__btn dark-btn" onClick={() => setSettingsDialogOpen(false)}>
-          <FormattedMessage
-            id="app.home.dialog.continue"
-            defaultMessage="Continue"
-          />
-        </sl-button>
-      </sl-dialog>
+        setOpen={setSettingsDialogOpen}
+        numFeatures={data.features.length}
+        withPhotos={withPhotos} setWithPhotos={setWithPhotos}
+        withVideos={withVideos} setWithVideos={setWithVideos}
+        withAudios={withAudios} setWithAudios={setWithAudios}
+        withText={withText} setWithText={setWithText}
+      ></SettingsDialog>
     </>
   );
 }
