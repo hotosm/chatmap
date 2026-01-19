@@ -68,6 +68,9 @@ function App() {
       type: 'set',
       payload: mapData,
     });
+    if (mapData.id) {
+      history.replaceState(null, '', `/#map/${mapData.id}`);
+    }
   }, [mapData]);
 
   // There's data for the map!
@@ -161,6 +164,7 @@ function App() {
           <div className="mapDisabled">
             <Map className="mapFull" center={[1,1]} zoom={1} />
           </div>
+
         </>
         }
 

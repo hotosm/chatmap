@@ -1,7 +1,7 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 import logo from '../assets/hot-logo-text.svg';
 
-export default function Footer() {
+export default function Footer({ className, visible = true }) {
   const intl = useIntl();
 
   const msg = intl.formatMessage({
@@ -11,8 +11,8 @@ export default function Footer() {
     chatmapper: "<i>ChatMapper</i>",
   });
 
-  return (
-    <footer className="footer">
+  return visible ? (
+    <footer className={["footer", className].join(" ")}>
       <div className="footer__top">
         <div className="footer__top-left">
           <h2 dangerouslySetInnerHTML={{__html: msg}}></h2>
@@ -36,5 +36,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
+  ) : ''
 };

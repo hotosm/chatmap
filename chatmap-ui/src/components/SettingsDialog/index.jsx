@@ -80,7 +80,7 @@ export default function SettingsDialog({
         </SlSwitch>
       </div>
 
-      <sl-button variant="primary" className="dialog__btn dark-btn" onClick={() => setOpen(false)}>
+      <sl-button slot="footer" variant="primary" className="dialog__btn dark-btn" onClick={() => setOpen(false)}>
         <FormattedMessage
           id="app.home.dialog.continue"
           defaultMessage="Continue"

@@ -3,7 +3,7 @@ import logging
 import httpx
 import base64
 import hashlib
-from db import add_points, get_db_session
+from db import add_points, get_db_session, Map
 from Crypto.Cipher import AES
 from typing import Dict, Sequence, Tuple
 from chatmap_py import parser as chatmap_parser
@@ -99,7 +99,6 @@ async def process_chat_entries(
                 "file": file,
                 "time": props.get("time"),
                 "username": props.get("username"),
-                "user": user,
             })
     if len(points) > 0:
-        add_points(db=db, points=points)
+        add_points(db=db, points=points, user_id=user)

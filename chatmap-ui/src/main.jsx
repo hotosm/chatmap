@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { Route, Routes, HashRouter } from 'react-router-dom';
 import Home from './pages/home';
 import Linked from './pages/linked';
+import MapView from './pages/mapView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
 import En from './int/en.json';
@@ -20,10 +21,8 @@ import { MapDataProvider } from './context/MapDataContext';
 
 // Shoelace UI components
 import '@shoelace-style/shoelace/dist/components/alert/alert.js';
-import '@shoelace-style/shoelace/dist/components/animation/animation.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
-import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js';
 import '@shoelace-style/shoelace/dist/components/dialog/dialog.js';
 import '@shoelace-style/shoelace/dist/components/dropdown/dropdown.js';
 import '@shoelace-style/shoelace/dist/components/icon-button/icon-button.js';
@@ -34,7 +33,6 @@ import '@shoelace-style/shoelace/dist/components/menu/menu.js';
 import '@shoelace-style/shoelace/dist/components/popup/popup.js';
 import '@shoelace-style/shoelace/dist/components/radio/radio.js';
 import '@shoelace-style/shoelace/dist/components/switch/switch.js';
-import '@shoelace-style/shoelace/dist/components/tooltip/tooltip.js';
 
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 setBasePath("/shoelace/");
@@ -67,7 +65,6 @@ async function init() {
     import.meta.env[`VITE_${label}`] ||
     config[label] || default_val
   )
-  const ENABLE_LIVE = getConfig("ENABLE_LIVE", false);
 
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
@@ -79,6 +76,7 @@ async function init() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/linked" element={<Linked />} />
+                <Route path="/map/:id" element={<MapView />} />
               </Routes>
             </HashRouter>
           </MapDataProvider>

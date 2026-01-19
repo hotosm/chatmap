@@ -84,6 +84,7 @@ function App() {
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
           showUploadButton={true}
+          showDownloadButton={true}
         />
 
         {!dataAvailable &&
@@ -115,7 +116,10 @@ function App() {
           />
         }
 
-        <Footer />
+        <Footer
+          visible={!dataAvailable}
+          className={dataAvailable ? "footer__floating" : ""}
+        />
       </div>
 
       <SettingsDialog

@@ -11,16 +11,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, FeatureCollection, init_db, load_session, save_session, remove_session, get_db_session
+from db import Point, FeatureCollection, init_db, load_session, save_session, remove_session, get_db_session, get_or_create_map, SharePermission, Map
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from stream import stream_listener
-from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL
+from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
 from sqlalchemy import func
 
 # Logs
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
+    format='[API] %(levelname)s: %(message)s',
     level=logging.DEBUG if DEBUG else logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -36,13 +36,9 @@ init_db()
 # Scheduler
 scheduler = AsyncIOScheduler()
 
-# Access config
-origins = [
-    "*",
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -117,6 +113,58 @@ async def logout(session: dict = Depends(get_current_session), db: Session = Dep
         remove_session(db, session)
         return {'status': "logged out"}
 
+# Get public map
+@api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
+async def get_public_chatmap(
+    map_id: str,
+    request: Request,
+    db: Session = Depends(get_db_session),
+):
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and map_obj.sharing == SharePermission.PUBLIC:
+        points = (
+            db.query(
+                Point.id,
+                Point.message,
+                func.ST_Y(Point.geom).label("lat"),
+                func.ST_X(Point.geom).label("lon"),
+                Point.username,
+                Point.time,
+                Point.file,
+            )
+            .filter(Point.map_id == map_id)
+            .all()
+        )
+
+        return {
+            "id": map_id,
+            "sharing": map_obj.sharing.value,
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "time": point.time,
+                        "username_id": point.username,
+                        "message": point.message,
+                        "file": point.file,
+                        "id": point.id,
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [point.lon, point.lat],
+                    }
+                }
+                for point in points
+            ]
+        }
+    else:
+        # Map is not public – reject the request
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: the requested map is not publicly shared."
+        )
+
 # Get map points for user
 @api_router.get("/map", response_model=FeatureCollection)
 async def get_chatmap(
@@ -124,6 +172,8 @@ async def get_chatmap(
     session: dict = Depends(get_current_session),
     db: Session = Depends(get_db_session),
 ):
+    map_id = get_or_create_map(db, session["user"])
+    map_obj: Map = db.get(Map, map_id)
     points = (
         db.query(
             Point.id,
@@ -134,12 +184,13 @@ async def get_chatmap(
             Point.time,
             Point.file,
         )
-        .filter(Point.user == session["user"])
+        .filter(Point.map_id == map_id)
         .all()
     )
 
     return {
-        "_chatmapId": "dev",
+        "id": map_id,
+        "sharing": map_obj.sharing.value,
         "type": "FeatureCollection",
         "features": [
             {
@@ -159,6 +210,20 @@ async def get_chatmap(
             for point in points
         ]
     }
+
+# Update map sharing permissions
+@api_router.put("/map/share")
+async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
+    map_id = get_or_create_map(db, session["user"])
+    map_obj: Map = db.get(Map, map_id)
+    sharing = (
+        SharePermission.PUBLIC
+        if map_obj.sharing == SharePermission.PRIVATE
+        else SharePermission.PRIVATE
+    )
+    map_obj.sharing = sharing
+    db.commit()
+    return {"map_id": map_id, "sharing": map_obj.sharing.value}
 
 # Get media file (image/jpeg)
 @api_router.get("/media")
