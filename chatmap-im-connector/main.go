@@ -502,18 +502,6 @@ func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference) ([]b
     return data, nil
 }
 
-// Get session by user
-func getSessionByUser(user string) (*SessionMeta, bool) {
-    sessionMetaMu.RLock()
-    defer sessionMetaMu.RUnlock()
-
-    for _, meta := range sessionMeta {
-        if meta.User == user {
-            return meta, true
-        }
-    }
-    return nil, false
-}
 
 /***
     HTTP handlers
@@ -544,8 +532,7 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     user := r.URL.Query().Get("user")
-    session, _ := getSessionByUser(user)
-    client := clients[session.SessionID]
+    client := clients[user]
     ctx := context.Background()
 
     // Get media reference data from Redis
