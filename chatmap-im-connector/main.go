@@ -1,3 +1,21 @@
+// Package main implements a lightweight WhatsApp server that
+// forwards encrypted chats and media to a Redis stream.
+//
+// The server exposes a small REST API:
+//
+//   /status      – returns the connection status for a session
+//   /logout      – logs out a specific session
+//   /media/…     – streams an image or video referenced by a message ID
+//   /start-qr?session=<id>    – starts a session and streams the QR code that the
+//                               user must scan to authenticate
+//
+// Redis is used as a message store.  Each user has its own stream
+// (``messages:<userID>``) where every message is stored as a
+// Redis Stream entry.
+//
+// Each session is stored as a file, the server automatically cleans up empty
+// session files on startup.
+
 package main
 
 import (
@@ -35,39 +53,98 @@ import (
     waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
+
+const (
+    // DefaultRedisPort is the port used when ``REDIS_PORT`` is not set.
+    DefaultRedisPort = "6379"
+
+    // DefaultRedisHost is the host used when ``REDIS_HOST`` is not set.
+    DefaultRedisHost = "localhost"
+
+    // QRCodeExpiry is the maximum duration the client will wait for a
+    // QR code to be generated before giving up.
+    QRCodeExpiry = 10 * time.Second
+)
+
 // List of messages
 type Response struct {
     Messages []Message `json:"messages"`
 }
 
-// Message
+// Message represents an incoming chat message.  All fields
+// that may be missing for a particular message type are represented by
+// a zero value or a ``nil`` pointer (for optional values).
 type Message struct {
-    Id string `json:"id"`
-    From string `json:"from"`
-    Chat string `json:"chat"`
-    Text string `json:"text"`
-    Location *string `json:"location"`
-    Date string `json:"date"`
-    Photo string `json:"photo"`
-    Video string `json:"video"`
-    File string `json:"file"`
+    // Id is the Redis stream identifier of the message.
+    Id string
+
+    // From is the encrypted JID of the sender.
+    From string
+
+    // Chat is the encrypted JID of the chat (group or private).
+    Chat string
+
+    // Text holds the encrypted conversation or an empty string for
+    // non‑text messages.
+    Text string
+
+    // Location is a pointer to a latitude,longitude string.  It is
+    // ``nil`` if the message does not contain location data.
+    Location *string
+
+    // Date is the ISO‑8601 UTC timestamp of the message.
+    Date string
+
+    // Photo is a JSON‑encoded media reference to an image.
+    Photo string
+
+    // Video is a JSON‑encoded media reference to a video (not yet used).
+    Video string
+
+    // Audio is a JSON‑encoded media reference to an audio (not yet used).
+    Audio string
+
+    // File is the local file name for the downloaded media.
+    File string
 }
 
-// MediaReference
+// MediaReference describes the metadata needed to re‑download and
+// decrypt a media file.  The fields are base64 encoded because they
+// come directly from the WhatsApp protocol buffer.
 type MediaReference struct {
-    MediaKey   string `json:"media_key"`
-    DirectPath string `json:"direct_path"`
-    FileSHA256 string `json:"file_sha256"`
-    FileEncSHA256 string `json:"file_sha256"`
-    FileLength uint64 `json:"file_length"`
-    Mimetype   string `json:"mimetype"`
+    // MediaKey is the base64 encoding of the 32‑byte media key.
+    MediaKey string
+
+    // DirectPath is the relative download URL for the media.
+    DirectPath string
+
+    // FileSHA256 is the base64 encoding of the file’s SHA‑256 hash.
+    FileSHA256 string
+
+    // FileEncSHA256 is the base64 encoding of the encrypted file’s
+    // SHA‑256 hash.
+    FileEncSHA256 string
+
+    // FileLength is the length of the file in bytes.
+    FileLength uint64
+
+    // Mimetype is the media MIME type (e.g. “image/jpeg”).
+    Mimetype string
 }
 
-// Session
+// SessionMeta contains the runtime state of a WhatsApp session.
 type SessionMeta struct {
-    QRCode   string
+    // QRCode is the raw QR string that the user scans to log in.
+    QRCode string
+
+    // Connected indicates whether the session is fully authenticated
+    // and a JID is available.
     Connected bool
+
+    // User is the SHA‑256 hash of the authenticated WhatsApp JID.
     User string
+
+    // SessionID is the unique identifier for the session file.
     SessionID string
 }
 
@@ -77,6 +154,7 @@ type Status struct {
     User string `json:"user"`
 }
 
+// Package‑level variables
 var (
     clients       = make(map[string]*whatsmeow.Client)
     clientsMu     sync.RWMutex
@@ -88,9 +166,14 @@ var (
     redisClient  *redis.Client
 )
 
+
 var locationPattern = regexp.MustCompile(`[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*`)
 
-// Searches for a lat/lon pair
+
+
+// SearchLocation looks for a pair of decimal coordinates in the
+// supplied string.  It returns the coordinates as a string
+// (``latitude,longitude``) or an empty string if no match is found.
 func SearchLocation(messageText string) (string, error) {
     if messageText == "" {
         return "", nil
@@ -121,7 +204,8 @@ func SearchLocation(messageText string) (string, error) {
     return fmt.Sprintf("%g,%g", lat, lon), nil
 }
 
-// Converts a datetime string into a JavaScript compatible one
+// ConvertToJSDateFormat converts a Go ``time.Time`` string to an
+// ISO‑8601 UTC timestamp suitable for JavaScript.
 func ConvertToJSDateFormat(input string) (string) {
     if len(input) < 25 {
         return ""
@@ -139,7 +223,8 @@ func ConvertToJSDateFormat(input string) (string) {
     return t.Format(time.RFC3339)
 }
 
-// Encrypt text (for messages) using AES
+// encrypt encrypts the supplied message using AES‑256 in GCM mode
+// with the provided key.  The key must be exactly 32 bytes.
 func encrypt(plaintext []byte, key []byte) (string) {
     block, err := aes.NewCipher(key)
     if err != nil {
@@ -166,13 +251,17 @@ func encrypt(plaintext []byte, key []byte) (string) {
     return encoded
 }
 
-// Hash text using AES
+// hash returns the SHA‑256 digest of the supplied string as a
+// hexadecimal representation.
 func hash(plaintext string) (string) {
     hash := sha256.Sum256([]byte(plaintext))
     return hex.EncodeToString(hash[:])
 }
 
-// Initialize client with sessionId
+// initClient creates or restores a WhatsApp session from the SQLite
+// database identified by ``sessionID``.  The function configures the
+// client, logs in, handles QR code generation and stores the
+// session in the global maps.  It runs in a separate goroutine.
 func initClient(sessionID string) {
 
     // Encryption key (32 bytes for AES-256)
@@ -284,7 +373,9 @@ func initClient(sessionID string) {
     }()
 }
 
-// Get previously created sessions for the userId
+// getExistingSessionId scans all session files for the same
+// authenticated user and returns the ID of a session that is not
+// the current one.  It returns an empty string if no match is found.
 func getExistingSessionId(userId string, currentSessionId string) (string) {
     files, err := filepath.Glob("sessions/session_*.db")
     if err != nil {
@@ -323,7 +414,8 @@ func getExistingSessionId(userId string, currentSessionId string) (string) {
 
 }
 
-// Clean empty sessions
+// cleanEmptySessions removes all session databases that have no
+// authenticated user (i.e. the client’s Store.ID is ``nil``).
 func cleanEmptySessions() {
     files, err := filepath.Glob("sessions/session_*.db")
     if err != nil {
@@ -360,7 +452,9 @@ func cleanEmptySessions() {
 
 }
 
-// Build serialized media reference
+// mediaReference serialises the given ImageMessage into a JSON‑encoded
+// ``MediaReference`` string.  It is used when storing media URLs in
+// Redis.
 func mediaReference(msg *waProto.ImageMessage) string {
     ref := MediaReference{
         MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
@@ -373,8 +467,9 @@ func mediaReference(msg *waProto.ImageMessage) string {
     return string(data)
 }
 
-// TODO: support video
-// Download and decrypt media file using reference data
+// decryptAndDownloadMedia downloads an encrypted media file and
+// decrypts it using the supplied ``MediaReference``.  It returns the
+// raw file bytes or an error if the download or decryption fails.
 func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference) ([]byte, error) {
     // Decode metadata
     mediaKey, err := base64.StdEncoding.DecodeString(meta.MediaKey)
@@ -401,7 +496,7 @@ func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference) ([]b
     // Download & decrypt
     data, err := client.Download(context.Background(), &imgMsg)
     if err != nil {
-        log.Printf("download error: %w", err)
+        log.Printf("download error: %v", err)
         return nil, fmt.Errorf("download error: %w", err)
     }
     return data, nil
@@ -420,7 +515,13 @@ func getSessionByUser(user string) (*SessionMeta, bool) {
     return nil, false
 }
 
-// Get a message id and a sessionID and serves a media file
+/***
+    HTTP handlers
+***/
+
+// mediaHandler serves an image, video or audio that belongs to a message.
+// It looks up the media reference in Redis, re‑downloads the file
+// from WhatsApp and streams the decrypted bytes to the client.
 func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
     log.Printf("mediaHandler: %s", r.URL.Path)
@@ -462,13 +563,13 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
         // De-serialize media reference
         var meta MediaReference
         if err := json.Unmarshal([]byte(mediaJSON), &meta); err != nil {
-            log.Printf("failed to unmarshal media message JSON: %w", err)
+            log.Printf("failed to unmarshal media message JSON: %v", err)
         }
 
         // Download decrypted media
         data, err := decryptAndDownloadMedia(client, meta)
         if err != nil {
-            log.Printf("error downloading media: %w", err)
+            log.Printf("error downloading media: %v", err)
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -575,7 +676,9 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
 
 }
 
-// Re-init sessions
+// reInitSessions scans the *sessions* directory for existing SQLite
+// files and re‑initialises a WhatsApp client for each one in its
+// own goroutine.  It is normally invoked from `main()` on startup
 func reInitSessions() {
     files, err := filepath.Glob("sessions/session_*.db")
     if err != nil {
@@ -588,7 +691,7 @@ func reInitSessions() {
     }
 }
 
-// Handler for QR endpoint
+// qrHandler returns the QR code image for a given session.
 func qrHandler(w http.ResponseWriter, r *http.Request) {
     sessionID := r.URL.Query().Get("session")
     if sessionID == "" {
@@ -619,7 +722,9 @@ func qrHandler(w http.ResponseWriter, r *http.Request) {
     w.Write(png)
 }
 
-// Handler for start session endpoint
+// startHandler initiates a new WhatsApp session with the supplied
+// ``session`` query parameter.  The response is a plain text
+// acknowledgement.
 func startHandler(w http.ResponseWriter, r *http.Request) {
     sessionID := r.URL.Query().Get("session")
     if sessionID == "" {
@@ -641,7 +746,9 @@ func startHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Initializing session %s\n", sessionID)
 }
 
-// Handler for start session and QR endpoint
+// startAndQRHandler starts a session if necessary and streams the
+// QR code image once it has been generated.  The QR is returned
+// after at most 10 seconds, polling every 100 ms.
 func startAndQRHandler(w http.ResponseWriter, r *http.Request) {
     sessionID := r.URL.Query().Get("session")
     if sessionID == "" {
@@ -657,7 +764,7 @@ func startAndQRHandler(w http.ResponseWriter, r *http.Request) {
         go initClient(sessionID)
     }
 
-    timeout := time.After(10 * time.Second)
+    timeout := time.After(QRCodeExpiry)
     ticker := time.NewTicker(100 * time.Millisecond)
     defer ticker.Stop()
 
@@ -684,7 +791,8 @@ func startAndQRHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-// Handler for session status endpoint
+// statusHandler returns a JSON object describing the state of a
+// session (``connected``, ``waiting`` or ``not_found``).
 func statusHandler(w http.ResponseWriter, r *http.Request) {
     sessionID := r.URL.Query().Get("session")
     if sessionID == "" {
@@ -711,16 +819,9 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(status)
 }
 
-// Handler for list of sessions endpoint
-func sessionsHandler(w http.ResponseWriter, r *http.Request) {
-    sessionMetaMu.RLock()
-    defer sessionMetaMu.RUnlock()
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(sessionMeta)
-}
-
-// Logout session
+// logout terminates the WhatsApp session identified by ``sessionID``
+// and deletes its database file.  It also removes the session from
+// the global maps.
 func logout(sessionID string) {
     ctx := context.Background()
     container, _ := sqlstore.New(ctx, "sqlite3", fmt.Sprintf("file:sessions/session_%s.db?_foreign_keys=on", sessionID), waLog.Noop)
@@ -749,7 +850,8 @@ func logout(sessionID string) {
 
 }
 
-// Handler for logout session endpoint
+// logoutHandler receives a ``session`` query parameter and calls
+// ``logout``.
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
    sessionID := r.URL.Query().Get("session")
    if sessionID == "" {
@@ -759,60 +861,15 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
     logout(sessionID)
 }
 
-// Get a list of messages
-func messagesHandler(w http.ResponseWriter, r *http.Request) {
-    user := r.URL.Query().Get("user")
-    ctx := context.Background()
-    // Get media reference data from Redis
-     res, _ := redisClient.XRange(ctx, fmt.Sprintf("messages:%s", user), "-", "+").Result()
-     var messages []Message
-
-    for _, item := range res {
-        vals := item.Values
-        get := func(key string) string {
-            if v, ok := vals[key]; ok {
-                if s, ok := v.(string); ok {
-                    return s
-                }
-            }
-            return ""
-        }
-        location := get("location")
-        var locationPtr *string
-        if location != "" {
-            locationPtr = &location
-        }
-
-        message := Message{
-            Id:       get("id"),
-
-            From:     get("from"),
-            Chat:     get("chat"),
-
-            Text:     get("text"),
-            Location: locationPtr,
-            Date:     get("date"),
-            Photo:    get("photo"),
-            Video:    get("video"),
-            File:     get("file"),
-        }
-        messages = append(messages, message)
-    }
-
-    response := Response{Messages: messages}
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(response)
-}
-
 func main() {
 
     redis_host := os.Getenv("REDIS_HOST")
     if (redis_host == "") {
-        redis_host = "localhost"
+        redis_host = DefaultRedisHost
     }
     redis_port := os.Getenv("REDIS_PORT")
     if (redis_port == "") {
-        redis_port = "6379"
+        redis_port = DefaultRedisPort
     }
     log.Printf("Connecting to Redis %s:%s \n", redis_host, redis_port)
     redisClient = redis.NewClient(&redis.Options{
@@ -822,10 +879,6 @@ func main() {
     // Re-init sessions
     cleanEmptySessions()
     reInitSessions()
-
-    // FOR DEBUGGING
-    // http.HandleFunc("/sessions", sessionsHandler)
-    // http.HandleFunc("/messages", messagesHandler)
 
     http.HandleFunc("/status", statusHandler)
     http.HandleFunc("/logout", logoutHandler)
