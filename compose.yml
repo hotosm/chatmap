@@ -1,4 +1,6 @@
 services:
+
+  # Frontend
   chatmap-ui:
     image: ghcr.io/hotosm/chatmap-ui:latest
     expose:
@@ -10,6 +12,7 @@ services:
     networks:
       - chatmap_net
 
+  # Backend (API)
   chatmap-api:
     image: ghcr.io/hotosm/chatmap-api:latest
     ports:
@@ -42,6 +45,7 @@ services:
     networks:
       - chatmap_net
 
+  # Backend (IM connector)
   chatmap-go:
     image: ghcr.io/hotosm/chatmap-im-connector:latest
     environment:
@@ -55,6 +59,7 @@ services:
     networks:
       - chatmap_net
 
+  # Redis stream
   chatmap-redis:
     image: redis:latest
     ports:
@@ -62,10 +67,10 @@ services:
     networks:
       - chatmap_net
 
+  # Nginx web server
   chatmap-nginx:
     image: nginx:latest
     ports:
-      # - "80:80"
       - "443:443"
     volumes:
       - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -78,6 +83,7 @@ services:
     networks:
       - chatmap_net
 
+  # Postgres+PostGIS database
   chatmap-db:
     image: postgis/postgis:14-3.5-alpine
     restart: unless-stopped
