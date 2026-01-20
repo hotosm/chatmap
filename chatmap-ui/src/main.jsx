@@ -69,9 +69,14 @@ const getLocaleMessages = () => {
 }
 
 async function init() {
-  
+
   const resp = await fetch('/config.json');
   const config = await resp.json();
+
+  // Set Hanko URL for the web component (fallback to local dev)
+  window.HANKO_URL = config.HANKO_API_URL || 'https://login.hotosm.test';
+  console.log('🔧 Hanko URL configured:', window.HANKO_URL);
+
   const root = ReactDOM.createRoot(document.getElementById('root'));
 
   root.render(

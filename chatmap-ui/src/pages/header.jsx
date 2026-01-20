@@ -5,7 +5,7 @@ import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import('@AuthLibs/web-component/dist/hanko-auth.esm.js');
+import('@hotosm/hanko-auth');
 
 export default function Header({
   dataAvailable,
