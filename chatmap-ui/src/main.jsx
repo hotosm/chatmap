@@ -22,6 +22,7 @@ import { MapDataProvider } from './context/MapDataContext';
 import { ConfigProvider } from './context/ConfigContext';
 import { AuthProvider } from './context/AuthContext';
 
+// TO BE REMOVED
 // Web Awesome UI components (needed for hanko-auth web component)
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/dropdown/dropdown.js';
