@@ -71,7 +71,7 @@ const useApi = (params = {}) => {
         const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
-        const url = id ? `${API_URL}/map/${id}` : `${API_URL}/map`;
+        const url = id ? `${config.API_URL}/map/${id}` : `${config.API_URL}/map`;
         try {
             const response = await fetch(url, {
                 method: 'GET',

@@ -54,7 +54,9 @@ services:
       - appnet
 
   chatmap-go:
-    image: ghcr.io/hotosm/chatmap-im-connector:latest
+    image: golang:1.25.3
+    working_dir: /app
+    command: sh -c "apt-get update && apt-get install -y git && go mod download && go run main.go"
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
@@ -63,6 +65,7 @@ services:
       - "8001:8001"
     volumes:
       - ./sessions:/app/sessions
+      - ./chatmap-im-connector:/app
     networks:
       - appnet
 
