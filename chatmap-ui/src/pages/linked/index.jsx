@@ -62,7 +62,7 @@ function App() {
       type: 'set',
       payload: mapData,
     });
-    if (mapData.id) {
+    if (mapData.id && mapData.sharing === "public") {
       history.replaceState(null, '', `/#map/${mapData.id}`);
     }
   }, [mapData]);
