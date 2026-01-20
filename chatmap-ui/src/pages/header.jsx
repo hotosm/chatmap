@@ -3,6 +3,8 @@ import logo from '../assets/hot-logo-gray.svg';
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
+import { useConfigContext } from '../context/ConfigContext.jsx';
+import('@hotosm/hanko-auth');
 import ShareButton from '../components/ShareButton';
 
 export default function Header({
@@ -13,6 +15,7 @@ export default function Header({
   title
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
+  const { config } = useConfigContext();
 
   const selectTagHandler = tag => {
     mapDataDispatch({
@@ -55,6 +58,13 @@ export default function Header({
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
           }
+
+          <hotosm-auth
+            hanko-url={config.HANKO_API_URL}
+            login-url={config.LOGIN_URL}
+            redirect-after-login={window.location.origin}
+            redirect-after-logout={window.location.origin}
+          />
 
           {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
         </div>

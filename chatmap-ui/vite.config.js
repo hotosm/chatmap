@@ -12,6 +12,7 @@ export default defineConfig({
   },
   server: {
     open: true,
+    allowedHosts: ['chatmap.hotosm.test'],
     fs: {
         strict: false,
     },

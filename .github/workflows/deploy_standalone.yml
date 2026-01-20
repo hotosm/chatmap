@@ -1,0 +1,163 @@
+name: Deploy standalone
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'standalone'
+        type: choice
+        options:
+          - standalone
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push chatmap-ui
+        uses: docker/build-push-action@v5
+        with:
+          context: ./chatmap-ui
+          file: ./chatmap-ui/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/chatmap-ui:standalone
+
+      - name: Build and push chatmap-api
+        uses: docker/build-push-action@v5
+        with:
+          context: ./chatmap-api
+          file: ./chatmap-api/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/chatmap-api:standalone
+
+      - name: Build and push chatmap-im-connector
+        uses: docker/build-push-action@v5
+        with:
+          context: ./chatmap-im-connector
+          file: ./chatmap-im-connector/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/chatmap-im-connector:standalone
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: standalone
+    steps:
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          GH_ACTOR: ${{ github.actor }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # ChatMap
+          CHATMAP_SECRET_KEY: ${{ secrets.CHATMAP_SECRET_KEY }}
+          CHATMAP_ENC_KEY: ${{ secrets.CHATMAP_ENC_KEY }}
+          CHATMAP_SITE_DOMAIN: ${{ vars.CHATMAP_SITE_DOMAIN }}
+          CHATMAP_API_URL: ${{ vars.CHATMAP_API_URL }}
+          CHATMAP_ENABLE_LIVE: ${{ vars.CHATMAP_ENABLE_LIVE }}
+          # Hanko Auth
+          HANKO_API_URL: ${{ vars.HANKO_API_URL }}
+          JWT_ISSUER: ${{ vars.JWT_ISSUER }}
+          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+          # SMTP
+          SMTP_ENABLED: ${{ vars.SMTP_ENABLED }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM_ADDRESS: ${{ vars.SMTP_FROM_ADDRESS }}
+          # Google OAuth (optional)
+          GOOGLE_ENABLED: ${{ vars.GOOGLE_ENABLED }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # Database
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          ssh $EC2_USER@$EC2_HOST << 'ENDSSH'
+            set -e
+            APP_DIR="/home/$EC2_USER/chatmap-standalone"
+
+            # Initial setup if it doesn't exist
+            if [ ! -d "$APP_DIR" ]; then
+              sudo mkdir -p $APP_DIR
+              sudo chown $USER:$USER $APP_DIR
+              git clone -b develop https://github.com/hotosm/chatmap.git $APP_DIR
+              echo "✅ Cloned repository"
+            fi
+
+            cd $APP_DIR
+            git fetch origin develop
+            git reset --hard origin/develop
+            echo "✅ Updated to latest develop"
+          ENDSSH
+
+          # Create .env file on remote
+          ssh $EC2_USER@$EC2_HOST "cat > /home/$EC2_USER/chatmap-standalone/.env << EOF
+          # Database
+          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+
+          # ChatMap
+          CHATMAP_SECRET_KEY=$CHATMAP_SECRET_KEY
+          CHATMAP_ENC_KEY=$CHATMAP_ENC_KEY
+          CHATMAP_API_URL=$CHATMAP_API_URL
+          CHATMAP_ENABLE_LIVE=$CHATMAP_ENABLE_LIVE
+
+          # Hanko Auth
+          HANKO_API_URL=$HANKO_API_URL
+          JWT_ISSUER=$JWT_ISSUER
+          COOKIE_SECRET=$COOKIE_SECRET
+
+          # SMTP
+          SMTP_ENABLED=$SMTP_ENABLED
+          SMTP_HOST=$SMTP_HOST
+          SMTP_PORT=$SMTP_PORT
+          SMTP_USER=$SMTP_USER
+          SMTP_PASSWORD=$SMTP_PASSWORD
+          SMTP_FROM_ADDRESS=$SMTP_FROM_ADDRESS
+
+          # Google OAuth
+          GOOGLE_ENABLED=$GOOGLE_ENABLED
+          GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+          GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+          EOF"
+          echo "✅ Created .env file"
+
+          ssh $EC2_USER@$EC2_HOST << 'ENDSSH'
+            set -e
+            APP_DIR="/home/$EC2_USER/chatmap-standalone"
+            cd $APP_DIR
+
+            # Login to GHCR
+            echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
+
+            # Pull and deploy with standalone profile
+            docker compose --profile standalone pull
+            docker compose --profile standalone up -d --force-recreate
+
+            # Cleanup
+            docker image prune -af
+            echo "✅ Standalone deployment complete"
+          ENDSSH

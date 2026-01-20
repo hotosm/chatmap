@@ -22,12 +22,10 @@ function App() {
   const {
     mapData,
     QRImgSrc,
-    session,
     status,
     isLoading,
     error,
     fetchMapData,
-    fetchSession,
     logoutSession,
     fetchQRCode,
     fetchStatus
@@ -35,29 +33,25 @@ function App() {
 
   // If connected, fetch map data every 10 sec
   useInterval(() => { status === "connected" && fetchMapData() }, 10000);
+
   // If connected, fetch map data
   useEffect(() => {
     status === "connected" && fetchMapData();
   }, [status]);
 
   // If not connected, fetch status every 1 sec
-  useInterval(() => fetchStatus(), session && status !== "connected" ? 1000 : null);
-
-  // Fetch user session
-  useEffect(() => {
-      fetchSession();
-  }, []);
+  useInterval(() => fetchStatus(), status !== "connected" ? 1000 : null);
 
   // If session not found or waiting for connection
   // but no QR code available, fetch a QR code
   useEffect(() => {
     if (
-      (status === "not_found" && session) ||
+      (status === "not_found") ||
       (status === "waiting" && !QRImgSrc)
      ) {
-      fetchQRCode(session);
+      fetchQRCode();
     }
-  }, [session, status, QRImgSrc]);
+  }, [status, QRImgSrc]);
 
   // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
@@ -68,7 +62,7 @@ function App() {
       type: 'set',
       payload: mapData,
     });
-    if (mapData.id) {
+    if (mapData.id && mapData.sharing === "public") {
       history.replaceState(null, '', `/#map/${mapData.id}`);
     }
   }, [mapData]);

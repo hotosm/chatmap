@@ -16,8 +16,8 @@ function MapView() {
 
   const [footerVisible, setFooterVisible] = useState(true);
 
-  // If connected, fetch map data every 10 sec
-  // useInterval(() => { id && fetchMapData(id) }, 10000);
+  // If connected, fetch map data every 1 min
+  useInterval(() => { id && fetchMapData(id) }, 60000);
 
   const { id } = useParams();
 

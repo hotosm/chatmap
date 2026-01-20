@@ -8,7 +8,6 @@
 
 @import url('hotosm-ui-design/dist/hot.css');
 @import url('hotosm-ui-design/dist/hot-sl.css');
-@import url('hotosm-ui-design/dist/hot-wa.css');
 @import url('hotosm-ui-design/dist/hot-font-face.css');
 
 sl-button[variant=primary]::part(base) {

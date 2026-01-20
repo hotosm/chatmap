@@ -1,22 +1,19 @@
 import os
 import httpx
 import logging
-import uuid
 import asyncio
 from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
 from fastapi.responses import StreamingResponse, FileResponse
 from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, FeatureCollection, init_db, load_session, save_session, remove_session, get_db_session, get_or_create_map, SharePermission, Map
+from db import Point, FeatureCollection, init_db, get_db_session, get_or_create_map, SharePermission, Map
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta, timezone
 from stream import stream_listener
-from settings import DEBUG, API_VERSION, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
+from settings import DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
 from sqlalchemy import func
+from hotosm_auth_fastapi import setup_auth, CurrentUser
 
 # Logs
 logging.basicConfig(
@@ -29,6 +26,9 @@ logger = logging.getLogger(__name__)
 app = FastAPI(debug=DEBUG)
 prefix = f"v{API_VERSION}"
 api_router = APIRouter(prefix=f"/{prefix}")
+
+# Setup Hanko auth (loads config from .env: HANKO_API_URL)
+setup_auth(app)
 
 # DB
 init_db()
@@ -43,44 +43,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-security = HTTPBearer()
-
-# Create auth token
-def create_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-# Decode auth token
-def decode_token(token: str):
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-# Token generator
-@api_router.get("/get-token")
-def get_token():
-    user_data = {"user_id": str(uuid.uuid4())}
-    token = create_token(user_data)
-    return {"access_token": token}
-
-# Dependency to extract user from token
-def get_current_session(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db_session)
-) -> dict:
-    payload = decode_token(credentials.credentials)
-    return load_session(db, payload["user_id"])
 
 # Get QR code
 @api_router.get("/qr", response_class=StreamingResponse)
-async def qr(session: dict = Depends(get_current_session)):
+async def qr(user: CurrentUser):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f'{SERVER_URL}/start-qr?session={session["user_id"]}')
+        response = await client.get(f'{SERVER_URL}/start-qr?session={user.id}')
         if response.status_code != 200:
-            logger.warning(f'Failed to get QR code: {session["user_id"]}')
+            logger.warning(f'Failed to get QR code: {user.id}')
             raise HTTPException(status_code=502, detail="Failed to get QR code")
 
         if "image" not in response.headers.get("Content-Type", ""):
@@ -90,27 +60,24 @@ async def qr(session: dict = Depends(get_current_session)):
 
 # Get Status
 @api_router.get("/status")
-async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
+async def status(
+    user: CurrentUser
+) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f'{SERVER_URL}/status?session={session["user_id"]}')
+        print(user.id)
+        response = await client.get(f'{SERVER_URL}/status?session={user.id}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to get session")
         status_response = response.json()
-
-        # Update session data
-        session["user"] = status_response['user']
-        save_session(db, session)
-
         return {'status': status_response['status']}
 
 # Logout
 @api_router.get("/logout")
-async def logout(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
+async def logout(user: CurrentUser) -> Dict[str, str]:
     async with httpx.AsyncClient() as client:
-        response = await client.get(f'{SERVER_URL}/logout?session={session["user_id"]}')
+        response = await client.get(f'{SERVER_URL}/logout?session={user.id}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to logout")
-        remove_session(db, session)
         return {'status': "logged out"}
 
 # Get public map
@@ -169,10 +136,10 @@ async def get_public_chatmap(
 @api_router.get("/map", response_model=FeatureCollection)
 async def get_chatmap(
     request: Request,
-    session: dict = Depends(get_current_session),
+    user: CurrentUser,
     db: Session = Depends(get_db_session),
 ):
-    map_id = get_or_create_map(db, session["user"])
+    map_id = get_or_create_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
     points = (
         db.query(
@@ -213,8 +180,11 @@ async def get_chatmap(
 
 # Update map sharing permissions
 @api_router.put("/map/share")
-async def status(session: dict = Depends(get_current_session), db: Session = Depends(get_db_session)) -> Dict[str, str]:
-    map_id = get_or_create_map(db, session["user"])
+async def status(
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+) -> Dict[str, str]:
+    map_id = get_or_create_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
     sharing = (
         SharePermission.PUBLIC
@@ -237,6 +207,16 @@ async def media(filename: str) -> Dict[str, str]:
 @api_router.get("/version")
 async def status():
     return {'version': "0.0.4"}
+
+# Protected endpoint example (requires Hanko auth)
+@api_router.get("/me")
+async def me(user: CurrentUser):
+    """Get current authenticated user info. Requires valid Hanko session."""
+    return {
+        'user_id': user.id,
+        'email': user.email,
+        'username': user.username,
+    }
 
 # API Router
 app.include_router(api_router)
