@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     osmConnection,
-    isLogin: user !== null,
+    isAuthenticated: user !== null,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -10,9 +10,6 @@
 @import url('hotosm-ui-design/dist/hot-sl.css');
 @import url('hotosm-ui-design/dist/hot-font-face.css');
 
-/* TO BE REMOVED */
-@import url("https://early.webawesome.com/webawesome@3.0.0-beta.1/dist/styles/webawesome.css");
-
 sl-button[variant=primary]::part(base) {
   background-color: var(--hot-color-primary-950);
   border-color: var(--hot-color-primary-950);

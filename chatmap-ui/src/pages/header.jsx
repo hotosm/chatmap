@@ -4,7 +4,6 @@ import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
 import('@hotosm/hanko-auth');
 import ShareButton from '../components/ShareButton';
 
@@ -17,7 +16,6 @@ export default function Header({
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
   const { config } = useConfigContext();
-  const { isLogin, user } = useAuth();
 
   const selectTagHandler = tag => {
     mapDataDispatch({

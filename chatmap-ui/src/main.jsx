@@ -1,13 +1,9 @@
 import './styles/main.css'
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { Route, Routes, HashRouter } from 'react-router-dom';
-import Home from './pages/home';
-import Linked from './pages/linked';
-import LoginPage from './pages/login';
-import MapView from './pages/mapView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
+import { HashRouter } from 'react-router-dom';
 import En from './int/en.json';
 import Es from './int/es.json';
 import Pt from './int/pt.json';
@@ -21,6 +17,7 @@ import Id from './int/id.json';
 import { MapDataProvider } from './context/MapDataContext';
 import { ConfigProvider } from './context/ConfigContext';
 import { AuthProvider } from './context/AuthContext';
+import AppRoutes from './routes'; 
 
 // TO BE REMOVED
 // Web Awesome UI components (needed for hanko-auth web component)
@@ -81,12 +78,7 @@ async function init() {
             <MapDataProvider>
               <ConfigProvider initialConfig={config}>
                 <HashRouter>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/app" element={<LoginPage />} />
-                    <Route path="/linked" element={<Linked />} />
-                    <Route path="/map/:id" element={<MapView />} />
-                  </Routes>
+                  <AppRoutes />
                 </HashRouter>
               </ConfigProvider>
             </MapDataProvider>
