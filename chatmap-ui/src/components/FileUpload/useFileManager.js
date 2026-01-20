@@ -22,11 +22,6 @@ function useFileManager() {
     const [dataFiles, setDataFiles] = useState();
     const [files, setFiles] = useState(null);
 
-    // Files handler
-    const handleFiles = (files) => {
-        setFiles(files)
-    }
-
     // Data files (ex: images, videos) handler
     const handleDataFile = (filename, fileContent) => {
         setDataFiles(prevState => (
@@ -40,7 +35,7 @@ function useFileManager() {
         setDataFiles();
     }
 
-    return [handleFiles, handleDataFile, resetFileManager, dataFiles, files];
+    return [setFiles, handleDataFile, resetFileManager, dataFiles, files];
 
 }
 

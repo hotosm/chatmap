@@ -6,6 +6,8 @@ services:
     volumes:
       - ./deploy/nginx/default-init.conf:/etc/nginx/conf.d/default.conf:ro
       - ./deploy/certbot/www:/var/www/certbot:ro
+    networks:
+      - chatmap_init_net
 
   certbot:
      image: certbot/certbot
@@ -25,3 +27,8 @@ services:
       --non-interactive
      depends_on:
       - nginx
+     networks:
+      - chatmap_init_net
+
+networks:
+  chatmap_init_net:

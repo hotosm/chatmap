@@ -68,6 +68,9 @@ function App() {
       type: 'set',
       payload: mapData,
     });
+    if (mapData.id) {
+      history.replaceState(null, '', `/#map/${mapData.id}`);
+    }
   }, [mapData]);
 
   // There's data for the map!
@@ -137,6 +140,7 @@ function App() {
         {/* There's data, show the map! */}
         { dataAvailable &&
           <Map
+            className="mapFull"
             onSelectFeature={handleFeatureSelect}
           />
         }
@@ -158,8 +162,9 @@ function App() {
             </div>
           }
           <div className="mapDisabled">
-            <Map center={[1,1]} zoom={1} />
+            <Map className="mapFull" center={[1,1]} zoom={1} />
           </div>
+
         </>
         }
 

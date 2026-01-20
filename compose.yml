@@ -8,7 +8,7 @@ services:
     volumes:
       - ./deploy/frontend/config.json:/usr/share/nginx/html/config.json
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-api:
     image: ghcr.io/hotosm/chatmap-api:latest
@@ -35,11 +35,13 @@ services:
       - HANKO_API_URL=${HANKO_API_URL:-https://dev.login.hotosm.org}
       - JWT_ISSUER=${JWT_ISSUER:-}
       - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
+      - CHATMAP_CORS_ORIGINS=${CHATMAP_CORS_ORIGINS:-localhost,127.0.0.1}
+      - CHATMAP_DISABLE_STREAM_CLEANUP=${CHATMAP_DISABLE_STREAM_CLEANUP:-false}
     volumes:
       - ./media:/app/media:rw
       - ./data:/app/data:rw
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-go:
     image: ghcr.io/hotosm/chatmap-im-connector:latest
@@ -52,19 +54,19 @@ services:
     volumes:
       - ./sessions:/app/sessions
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-redis:
     image: redis:latest
     ports:
       - "6379:6379"
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-nginx:
     image: nginx:latest
     ports:
-      - "80:80"
+      # - "80:80"
       - "443:443"
     volumes:
       - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -75,7 +77,7 @@ services:
       - chatmap-ui
       - chatmap-api
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-db:
     image: postgis/postgis:14-3.5-alpine
@@ -89,7 +91,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - appnet
+      - chatmap_net
 
   # Hanko Auth (standalone mode only)
   # Comment out these services when using SSO mode (login.hotosm.org)
@@ -170,7 +172,7 @@ services:
       - standalone
 
 networks:
-  appnet:
+  chatmap_net:
 
 volumes:
   data:

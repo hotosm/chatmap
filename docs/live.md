@@ -10,6 +10,7 @@ for creating live-updated maps.
 It's recommended to use ChatMap Live in one of these ways:
 
 - With a dedicated device/account for receiving all messages, so no personal messages are available. This is usually the case for institutions, organizations and governments. This will enable live map updates but also receiving information (location point, media, text) by direct message, without the need to use a group.
+
 - Using the dedicated/device account as a bot, so other people can invite it to their groups for processing data. This is more useful when you can't have a dedicated device/account but you're worried about your privaci, which make sense because even if ChatMap is storing data encrypted there's always a risk.
 
 An third option that we want to explore in the future is to have a desktop or mobile app.
@@ -76,7 +77,7 @@ Install requirements using `yarn install`.
 Run the ChatMap front end with the corresponding flag for enabling live mode:
 
 ```bash
-VITE_ENABLE_LIVE=1 yarn start
+yarn start
 ```
 
 Once you have everything up and running, you'll find a link to the `/linked` page

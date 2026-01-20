@@ -5,6 +5,7 @@ on:
     branches:
       - develop
     paths:
+      - "*.yml"
       - "chatmap-api/Dockerfile"
       - "chatmap-api/*.py"
       - "chatmap-api/uv.lock"
@@ -90,6 +91,8 @@ jobs:
           CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
           CHATMAP_ENABLE_LIVE: ${{ vars.CHATMAP_ENABLE_LIVE }}
           HANKO_API_URL: ${{ vars.HANKO_API_URL }}
+          CHATMAP_CORS_ORIGINS: ${{ vars.CHATMAP_CORS_ORIGINS }}
+          CHATMAP_DISABLE_STREAM_CLEANUP: ${{ vars.CHATMAP_DISABLE_STREAM_CLEANUP }}
         run: |
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
@@ -100,6 +103,8 @@ jobs:
             export CHATMAP_API_URL_SUFFIX=$CHATMAP_API_URL_SUFFIX
             export CHATMAP_ENABLE_LIVE=$CHATMAP_ENABLE_LIVE
             export HANKO_API_URL=$HANKO_API_URL
+            export CHATMAP_CORS_ORIGINS=$CHATMAP_CORS_ORIGINS
+            export CHATMAP_DISABLE_STREAM_CLEANUP=$CHATMAP_DISABLE_STREAM_CLEANUP
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR
@@ -121,9 +126,9 @@ jobs:
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
             # Pull and deploy init (certbot)
-            docker compose -f compose-init.yml pull
-            docker compose -f compose-init.yml up --abort-on-container-exit
-            docker compose -f compose-init.yml down
+            # docker compose -f compose-init.yml pull
+            # docker compose -f compose-init.yml up --abort-on-container-exit
+            # docker compose -f compose-init.yml down
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull

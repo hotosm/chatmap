@@ -6,12 +6,16 @@
  * http://github.com/hotosm/ui-design
  */
 
-/* Web Awesome styles (needed for hanko-auth web component) */
-@import url("https://early.webawesome.com/webawesome@3.0.0-beta.1/dist/styles/webawesome.css");
+@import url('hotosm-ui-design/dist/hot.css');
+@import url('hotosm-ui-design/dist/hot-sl.css');
+@import url('hotosm-ui-design/dist/hot-wa.css');
+@import url('hotosm-ui-design/dist/hot-font-face.css');
 
-@import url(./hot.css);
-@import url(./hot-sl.css);
-@import url(./hot-font-face.css);
+sl-button[variant=primary]::part(base) {
+  background-color: var(--hot-color-primary-950);
+  border-color: var(--hot-color-primary-950);
+  color: var(--sl-color-neutral-0);
+}
 
 /* defaults */
 
@@ -21,39 +25,11 @@ html, body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: neutralscale;
     color: var(--hot-color-neutral-1000);
-    width: 100vw;
-    height: 100vh;
+    background-color: var(--hot-color-neutral-0);
 }
 
 a {
     color: var(--hot-color-blue-500);
-}
-
-/* Layout */
-
-#root {
-    min-height: 100vh;
-    display:flex;
-    flex-direction:column;
-}
-
-.app {
-    background-color: var(--hot-color-neutral-0);
-}
-
-.content {
-    text-align: center;
-    justify-content: center;
-    display: flex;
-    min-height: 30vh;
-}
-
-/* Utilities */
-
-.highlighted {
-    font-size: 1rem;
-    background-color: var(--hot-color-yellow-100);
-    padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
 }
 
 /* Header */
@@ -62,7 +38,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-2x-large);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
 }
 
 .header a {
@@ -87,17 +63,39 @@ a {
     gap: var(--hot-spacing-2x-large);
 }
 
-.header .login-btn::part(base) {
-    background-color: var(--hot-color-gray-950);
+.header__title {
+    display: flex;
+    column-gap: var(--hot-spacing-small);
 }
+
+.header__title-text {
+    font-size: var(--hot-font-size-medium);
+    color: var(--hot-color-gray-950);
+}
+
 
 /* Footer */
 
 .footer {
-    background-color: #fffbf7;
-    padding: var(--hot-spacing-2x-large) var(--hot-spacing-2x-large) var(--hot-spacing-medium) var(--hot-spacing-2x-large);
+    box-sizing: border-box;
+    border-top: 1px solid color-mix(in srgb, var(--hot-color-yellow-50) 100%, var(--hot-color-neutral-0) 100%);
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--hot-color-yellow-50) 20%, var(--hot-color-neutral-0) 100%),
+        color-mix(in srgb, var(--hot-color-yellow-50) 15%, var(--hot-color-neutral-0) 100%) 100%
+    );
+    padding: var(--hot-spacing-x-large);
     font-family: var(--hot-font-sans-variant);
     font-weight: var(--hot-font-weight-semibold);
+    
+}
+
+.footer__floating {
+    width: 100vw;
+    border-top: 1px solid var(--hot-color-neutral-0);
+    box-shadow: 0 -5px 5px color-mix(in srgb, var(--hot-color-neutral-1000) 2%, transparent);
+    position: fixed;
+    bottom: 0;
 }
 
 .footer__top {
@@ -109,6 +107,7 @@ a {
 .footer__top-left {
     max-width: 20rem;
 }
+
 
 .footer__top-left h2 {
     font-size: var(--hot-font-size-2x-large);
@@ -169,7 +168,7 @@ a {
     width: 100%;
     display: block;
     position: absolute;
-    bottom: 1px;
+    bottom: 4px;
     left: 0;
 }
 
@@ -209,20 +208,6 @@ a {
     height: 3vmin;
     padding: 1vh;
     color: var(--hot-color-neutral-300);
-}
-
-.infoLinks {
-    display: block;
-    right: 0;
-    text-align: center;
-    padding: 2vh;
-    font-size: var(--hot-font-size-x-small);
-    background-color: var(--hot-color-neutral-0);
-}
-
-.infoLinks a {
-    color: var(--hot-color-neutral-300);
-    text-decoration: none;
 }
 
 /* File upload */
@@ -270,33 +255,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     color: var(--hot-color-neutral-900);
 }
 
-/* Info */
-
-.info {
-    padding: 0 var(--hot-spacing-small) 0;
-}
-
-.info-top-spaced {
-    padding-top: var(--hot-spacing-medium)
-}
-
-.info-bottom-spaced {
-    padding-bottom: var(--hot-spacing-medium)
-}
-
-.info a {
-    color: var(--hot-color-primary-700);
-}
-
-.info small {
-    font-size: var(--hot-font-size-x-small);
-}
-
 /* Map */
 
 .map {
-    width: 100vw;
-    height: calc(100vh - 320px);
+    /* width: 100vw; */
+    height: calc(100vh - 55px);
     text-align: center;
     justify-content: center;
     display: flex;
@@ -580,6 +543,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     top: 0;
 }
 
+.pageContent {
+    padding: var(--hot-spacing-2x-large);
+}
+
 /* Media queries */
 
 /* Desktop */
@@ -593,6 +560,28 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 /* Mobile */
 @media (max-width: 790px) {
+
+    body, .app {
+        overflow-x: hidden;
+    }
+
+    .footer__top-left h2,
+    .footer__top-right h3 {
+        font-size: var(--hot-font-size-x-large);
+    }
+    .footer__copy {
+        font-size: var(--hot-font-size-2x-small);
+    }
+    .footer__top-right a span {
+        font-size: var(--hot-font-size-large);
+    }
+    .footer__top-right a span::after {
+        bottom: 3px
+    }
+
+    .fileUploadWrapper {
+        text-align: center;
+    }
 
     .maplibregl-map {
         height: 90vh;

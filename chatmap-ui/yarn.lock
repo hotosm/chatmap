@@ -1143,6 +1143,11 @@ hoist-non-react-statics@^3.3.0, hoist-non-react-statics@3:
   dependencies:
     react-is "^16.7.0"
 
+hotosm-ui-design@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/hotosm-ui-design/-/hotosm-ui-design-1.4.0.tgz#e0e57a2e3ddc73c6e9053dadc04523838d417fa7"
+  integrity sha512-uXVTfh2p9PfyOexpPl5zoe79d0ZIrocTGRAK5fxROENU6JREJ6ZsSLvtZ8Aq0xfVt2nf5sgamrxjNKaaL6Epig==
+
 ieee754@^1.1.12:
   version "1.2.1"
   resolved "https://registry.npmjs.org/ieee754/-/ieee754-1.2.1.tgz"
