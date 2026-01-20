@@ -62,7 +62,7 @@ services:
   chatmap-nginx:
     image: nginx:latest
     ports:
-      - "80:80"
+      # - "80:80"
       - "443:443"
     volumes:
       - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
