@@ -115,7 +115,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "geoalchemy2" },
     { name = "h11" },
-    { name = "hotosm-auth-dev", extra = ["fastapi"] },
+    { name = "hotosm-auth", extra = ["fastapi"] },
     { name = "httpcore" },
     { name = "httpx" },
     { name = "idna" },
@@ -155,7 +155,7 @@ requires-dist = [
     { name = "fastapi", specifier = "==0.116.1" },
     { name = "geoalchemy2", specifier = ">=0.18.0" },
     { name = "h11", specifier = "==0.16.0" },
-    { name = "hotosm-auth-dev", extras = ["fastapi"], specifier = "==0.2.5" },
+    { name = "hotosm-auth", extras = ["fastapi"], specifier = "==0.2.5" },
     { name = "httpcore", specifier = "==1.0.9" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "idna", specifier = "==3.10" },
@@ -345,7 +345,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hotosm-auth-dev"
+name = "hotosm-auth"
 version = "0.2.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
@@ -355,9 +355,9 @@ dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
     { name = "python-dateutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bc/74/624e76774ee349858ba7ed6012369460a6b806988f12edcb2f125c560bc4/hotosm_auth_dev-0.2.5.tar.gz", hash = "sha256:b41f3d726e0a0e6c17270d38cf264376165102f4708248dff7a6dea6790748ed", size = 104825, upload-time = "2026-01-19T21:03:55.414Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/84/240276baae69b2de4004c12ae0f71fb0c62f5bbfafb19a0ab7c3c553cee8/hotosm_auth-0.2.5.tar.gz", hash = "sha256:39549718d5680eae570b4cb41660fde62377b9d0e266cbd42a581d0775782644", size = 104812, upload-time = "2026-01-20T17:33:38.93Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ca/ad/54e9ca1efb469603b8c123f036067e27d2f02c9e787183df4c37261e467e/hotosm_auth_dev-0.2.5-py3-none-any.whl", hash = "sha256:6ac9529fd1601480cc12a716bb9db0e61263ec99c28fa3e1799dda4520d1f9a8", size = 46099, upload-time = "2026-01-19T21:03:53.747Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/aa/bdc77438f9ca39257fda8a9aea17b1ea0e9495fddd603eefb5d84343e180/hotosm_auth-0.2.5-py3-none-any.whl", hash = "sha256:e5218acf8ec539616607e878467620c80071cf569d6e7f73e28d083da599162d", size = 46068, upload-time = "2026-01-20T17:33:36.866Z" },
 ]
 
 [package.optional-dependencies]

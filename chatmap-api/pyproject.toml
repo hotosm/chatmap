@@ -5,7 +5,7 @@ description = "ChatMap API"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "hotosm-auth-dev[fastapi]==0.2.5",
+    "hotosm-auth[fastapi]==0.2.5",
     "altgraph==0.17.4",
     "annotated-types==0.7.0",
     "anyio==4.9.0",
