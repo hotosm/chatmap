@@ -106,7 +106,7 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/map/share`, {
+            const response = await fetch(`${config.API_URL}/map/share`, {
                 method: 'PUT',
                 credentials: 'include',
             });
