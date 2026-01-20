@@ -24,16 +24,11 @@ const useApi = (params = {}) => {
     // Logout session
     const logoutSession = useCallback(async () => {
         setIsLoading(true);
-        const token = sessionStorage.getItem("chatmap_access_token")
         try {
             const response = await fetch(`${config.API_URL}/logout`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                method: 'GET'
             });
             if (!response.ok) throw new Error('Failed to logout');
-            sessionStorage.removeItem("chatmap_access_token");
         } catch (err) {
             setError(err.message);
         } finally {
@@ -41,43 +36,14 @@ const useApi = (params = {}) => {
         }
     });
 
-    // Fetch a new session
-    const fetchSession = useCallback(async () => {
-        const stored_session = sessionStorage.getItem("chatmap_access_token");
-        if (stored_session) {
-            setSession(stored_session);
-        } else {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const response = await fetch(`${config.API_URL}/get-token`, {
-                    method: 'GET',
-                });
-                if (!response.ok) throw new Error('Failed to fetch data');
-                const result = await response.json();
-                sessionStorage.setItem("chatmap_access_token", result.access_token);
-                setSession(result.access_token);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        return;
-    }, []);
-
     // Fetch map data related to a session
     const fetchMapData = useCallback(async (id) => {
-        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         const url = id ? `${config.API_URL}/map/${id}` : `${config.API_URL}/map`;
         try {
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
             });
             if (response.status === 401) {
                 console.log("Not authorized")
@@ -94,15 +60,11 @@ const useApi = (params = {}) => {
 
     // Fetch a new QR code for linking a device
     const fetchQRCode = useCallback(async () => {
-        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         try {
             const response = await fetch(`${config.API_URL}/qr`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
             });
             if (!response.ok) throw new Error('Failed to fetch QR code');
             const blob = await response.blob();
@@ -117,21 +79,13 @@ const useApi = (params = {}) => {
 
     // Fetch status of linking a device
     const fetchStatus = useCallback(async () => {
-        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         try {
             const response = await fetch(`${config.API_URL}/status`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
             });
             if (!response.ok) {
-                if (response.status === 401) {
-                    sessionStorage.removeItem("chatmap_access_token");
-                    fetchSession();
-                }
                 throw new Error('Failed to fetch status');
             }
             const result = await response.json();
@@ -145,21 +99,13 @@ const useApi = (params = {}) => {
 
      // Fetch a sharing code for accessing the map
     const updateMapShare = useCallback(async () => {
-        const token = sessionStorage.getItem("chatmap_access_token")
         setIsLoading(true);
         setError(null);
         try {
             const response = await fetch(`${API_URL}/map/share`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
             });
             if (!response.ok) {
-                if (response.status === 401) {
-                    sessionStorage.removeItem("chatmap_access_token");
-                    fetchSession();
-                }
                 throw new Error('Failed to fetch share');
             }
             const result = await response.json();
@@ -174,12 +120,10 @@ const useApi = (params = {}) => {
     return {
         mapData,
         QRImgSrc,
-        session,
         status,
         isLoading,
         error,
         fetchMapData,
-        fetchSession,
         logoutSession,
         fetchQRCode,
         fetchStatus,

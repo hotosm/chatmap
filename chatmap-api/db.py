@@ -144,45 +144,6 @@ class FeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]
     features: List[Feature]
 
-# User Session Data
-class SessionData(Base):
-    __tablename__ = "sessions"
-    user_id = Column(String, primary_key=True)
-    key = Column(String, primary_key=True)
-    value = Column(String)
-
-# Load user session
-def load_session(db: Session, user_id: str) -> Dict:
-    result = db.execute(
-        select(SessionData.key, SessionData.value).where(SessionData.user_id == user_id)
-    ).fetchall()
-    session_dict = {"user_id": user_id}
-    for key, value in result:
-        session_dict[key] = value
-    return session_dict
-
-# Save user session
-def save_session(db: Session, session: Dict):
-    user_id = session.get("user_id")
-    if not user_id:
-        return
-    for key, value in session.items():
-        if key == "user_id":
-            continue
-        obj = SessionData(user_id=user_id, key=key, value=str(value))
-        db.merge(obj)
-    db.commit()
-
-# Remove user session
-def remove_session(db: Session, session: Dict):
-    user_id = session.get("user_id")
-    if not user_id:
-        return
-    db.query(SessionData).filter(SessionData.user_id == user_id).delete(
-        synchronize_session=False
-    )
-    db.commit()
-
 # Initialize database
 def init_db():
     Base.metadata.create_all(bind=engine)
