@@ -11,6 +11,7 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
+      - VITE_HANKO_URL=http://localhost:8002
     volumes:
       - ./chatmap-ui:/app
       - /app/node_modules
