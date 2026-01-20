@@ -91,6 +91,7 @@ jobs:
           CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
           CHATMAP_ENABLE_LIVE: ${{ vars.CHATMAP_ENABLE_LIVE }}
           HANKO_API_URL: ${{ vars.HANKO_API_URL }}
+          CHATMAP_LOGIN_URL: ${{ vars.CHATMAP_LOGIN_URL }}
           CHATMAP_CORS_ORIGINS: ${{ vars.CHATMAP_CORS_ORIGINS }}
           CHATMAP_DISABLE_STREAM_CLEANUP: ${{ vars.CHATMAP_DISABLE_STREAM_CLEANUP }}
         run: |
@@ -103,6 +104,7 @@ jobs:
             export CHATMAP_API_URL_SUFFIX=$CHATMAP_API_URL_SUFFIX
             export CHATMAP_ENABLE_LIVE=$CHATMAP_ENABLE_LIVE
             export HANKO_API_URL=$HANKO_API_URL
+            export CHATMAP_LOGIN_URL=$CHATMAP_LOGIN_URL
             export CHATMAP_CORS_ORIGINS=$CHATMAP_CORS_ORIGINS
             export CHATMAP_DISABLE_STREAM_CLEANUP=$CHATMAP_DISABLE_STREAM_CLEANUP
             # Initial setup if it doesn't exist
