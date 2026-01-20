@@ -1,12 +1,35 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { Hanko } from '@teamhanko/hanko-elements';
 
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [osmConnection, setOsmConnection] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for existing session on mount (handles page refresh)
+    const checkExistingSession = async () => {
+      try {
+        const hankoUrl = import.meta.env.VITE_HANKO_URL;
+        if (hankoUrl) {
+          const hanko = new Hanko(hankoUrl);
+          const currentUser = await hanko.user.getCurrent();
+          if (currentUser) {
+            console.log('AuthContext: existing session found', currentUser);
+            setUser(currentUser);
+          }
+        }
+      } catch (e) {
+        console.log('AuthContext: no existing session');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkExistingSession();
+
     // Listen to hanko-login event from web component
     const handleLogin = (event) => {
       console.log('AuthContext: hanko-login event received', event.detail);
@@ -43,6 +66,7 @@ export function AuthProvider({ children }) {
     user,
     osmConnection,
     isAuthenticated: user !== null,
+    loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

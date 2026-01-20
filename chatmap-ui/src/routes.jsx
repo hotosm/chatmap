@@ -8,8 +8,13 @@ import MapView from './pages/mapView';
 import { useConfigContext } from './context/ConfigContext.jsx';
 
 const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const { config } = useConfigContext();
+
+  // Wait for session check to complete
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (isAuthenticated) {
     return children;
@@ -19,7 +24,6 @@ const PrivateRoute = ({ children }) => {
   const hashIndex = config.LOGIN_URL.indexOf("#");
   const relativePath = hashIndex >= 0 ? config.LOGIN_URL.slice(hashIndex + 1) : config.LOGIN_URL;
   return <Navigate to={relativePath} replace />;
-
 };
 
 const AppRoutes = () => {
