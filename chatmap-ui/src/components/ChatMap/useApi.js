@@ -26,7 +26,8 @@ const useApi = (params = {}) => {
         setIsLoading(true);
         try {
             const response = await fetch(`${config.API_URL}/logout`, {
-                method: 'GET'
+                method: 'GET',
+                credentials: 'include',
             });
             if (!response.ok) throw new Error('Failed to logout');
         } catch (err) {
@@ -44,6 +45,7 @@ const useApi = (params = {}) => {
         try {
             const response = await fetch(url, {
                 method: 'GET',
+                credentials: 'include',
             });
             if (response.status === 401) {
                 console.log("Not authorized")
@@ -65,6 +67,7 @@ const useApi = (params = {}) => {
         try {
             const response = await fetch(`${config.API_URL}/qr`, {
                 method: 'GET',
+                credentials: 'include',
             });
             if (!response.ok) throw new Error('Failed to fetch QR code');
             const blob = await response.blob();
@@ -84,6 +87,7 @@ const useApi = (params = {}) => {
         try {
             const response = await fetch(`${config.API_URL}/status`, {
                 method: 'GET',
+                credentials: 'include',
             });
             if (!response.ok) {
                 throw new Error('Failed to fetch status');
@@ -104,6 +108,7 @@ const useApi = (params = {}) => {
         try {
             const response = await fetch(`${API_URL}/map/share`, {
                 method: 'PUT',
+                credentials: 'include',
             });
             if (!response.ok) {
                 throw new Error('Failed to fetch share');
