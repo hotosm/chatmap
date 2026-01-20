@@ -256,6 +256,11 @@
   resolved "https://registry.npmjs.org/@ctrl/tinycolor/-/tinycolor-4.1.0.tgz"
   integrity sha512-WyOx8cJQ+FQus4Mm4uPIZA64gbk3Wxh0so5Lcii0aJifqwoVOlfFtorjLE0Hen4OYyHZMXDWqMmaQemBhgxFRQ==
 
+"@denysvuika/preact-translate@^0.5.0":
+  version "0.5.1"
+  resolved "https://registry.npmjs.org/@denysvuika/preact-translate/-/preact-translate-0.5.1.tgz"
+  integrity sha512-qqKkpjzR8E55nlLA+H3gP9Q99mCCWiTtRupVQBh8YRZljX+Q8YbsaJtV3F+TX4DR4lV8NLgvv2+sSUcHoWvNtQ==
+
 "@emotion/is-prop-valid@1.2.2":
   version "1.2.2"
   resolved "https://registry.npmjs.org/@emotion/is-prop-valid/-/is-prop-valid-1.2.2.tgz"
@@ -368,6 +373,14 @@
     "@formatjs/intl-listformat" "7.7.5"
     intl-messageformat "10.7.7"
     tslib "2"
+
+"@hotosm/hanko-auth@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.npmjs.org/@hotosm/hanko-auth/-/hanko-auth-0.3.1.tgz"
+  integrity sha512-8hVKcI2PFkvdSTek7ZXNc6EeFYWgDT4f4xN9o2wWbsaIOiJ73qg3cRMvNchUZwLm4YgSBSMqDg976LQLvO4xCA==
+  dependencies:
+    "@teamhanko/hanko-elements" "^1.0.0"
+    lit "^3.3.1"
 
 "@jridgewell/gen-mapping@^0.3.12", "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.13"
@@ -533,6 +546,29 @@
     lit "^3.2.1"
     qr-creator "^1.0.0"
 
+"@teamhanko/hanko-elements@^1.0.0":
+  version "1.5.2"
+  resolved "https://registry.npmjs.org/@teamhanko/hanko-elements/-/hanko-elements-1.5.2.tgz"
+  integrity sha512-RrOgSoKwHbysDOOffOHn3p8s/zXxY2qvWwZFQdMeEP8Qp/C/RQBwGOzax0Y2gySWflDHM2uu4+tW8dXB+mZfQg==
+  dependencies:
+    "@denysvuika/preact-translate" "^0.5.0"
+    "@teamhanko/hanko-frontend-sdk" "^1.5.2"
+    "@teamhanko/preact-custom-element" "^4.2.2"
+    classnames "^2.3.2"
+    preact "^10.13.1"
+
+"@teamhanko/hanko-frontend-sdk@^1.5.2":
+  version "1.5.2"
+  resolved "https://registry.npmjs.org/@teamhanko/hanko-frontend-sdk/-/hanko-frontend-sdk-1.5.2.tgz"
+  integrity sha512-sSY2NGsJRndrC4HwxBIdog9gOGUzJ3EGKmEn7p+rzXzJaLik3ywJb25DloegPekMZQ8hwOzliF0uJh7kNxFgTA==
+  dependencies:
+    "@types/js-cookie" "^3.0.3"
+
+"@teamhanko/preact-custom-element@^4.2.2":
+  version "4.2.2"
+  resolved "https://registry.npmjs.org/@teamhanko/preact-custom-element/-/preact-custom-element-4.2.2.tgz"
+  integrity sha512-3djCQr25IxQIgpidxD8J0fTQ7/hMuoa5Nmv7delQc6sX4kXgv9e/pE01cywpmGZLi69H1KUH4dmZ4cPPJQrsQQ==
+
 "@types/babel__core@^7.20.5":
   version "7.20.5"
   resolved "https://registry.npmjs.org/@types/babel__core/-/babel__core-7.20.5.tgz"
@@ -601,6 +637,11 @@
   integrity sha512-PQTyIulDkIDro8P+IHbKCsw7U2xxBYflVzW/FgWdCAePD9xGSidgA76/GeJ6lBKoblyhf9pBY763gbrN+1dI8g==
   dependencies:
     hoist-non-react-statics "^3.3.0"
+
+"@types/js-cookie@^3.0.3":
+  version "3.0.6"
+  resolved "https://registry.npmjs.org/@types/js-cookie/-/js-cookie-3.0.6.tgz"
+  integrity sha512-wkw9yd1kEXOPnvEeEV1Go1MmxtBJL0RR79aOTAApecWFVu7w0NNXNqhcWgvw2YgZDYadliXkl14pa3WXw5jlCQ==
 
 "@types/mapbox__point-geometry@*", "@types/mapbox__point-geometry@^0.1.4":
   version "0.1.4"
@@ -796,6 +837,11 @@ check-error@^2.1.1:
   version "2.1.1"
   resolved "https://registry.npmjs.org/check-error/-/check-error-2.1.1.tgz"
   integrity sha512-OAlb+T7V4Op9OwdkjmguYRqncdlx5JiofwOAUkmTF+jNdHwzTaTs4sRAGpzLF3oOz5xAyDGrPgeIDFQmDOTiJw==
+
+classnames@^2.3.2:
+  version "2.5.1"
+  resolved "https://registry.npmjs.org/classnames/-/classnames-2.5.1.tgz"
+  integrity sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==
 
 commander@^13.0.0:
   version "13.1.0"
@@ -1236,7 +1282,7 @@ lit-html@^3.3.0:
   dependencies:
     "@types/trusted-types" "^2.0.2"
 
-lit@^3.2.1:
+lit@^3.2.1, lit@^3.3.1:
   version "3.3.1"
   resolved "https://registry.npmjs.org/lit/-/lit-3.3.1.tgz"
   integrity sha512-Ksr/8L3PTapbdXJCk+EJVB78jDodUMaP54gD24W186zGRARvwrsPfS60wae/SSCTCNZVPd1chXqio1qHQmu4NA==
@@ -1466,6 +1512,11 @@ potpack@^2.0.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/potpack/-/potpack-2.1.0.tgz"
   integrity sha512-pcaShQc1Shq0y+E7GqJqvZj8DTthWV1KeHGdi0Z6IAin2Oi3JnLCOfwnCo84qc+HAp52wT9nK9H7FAJp5a44GQ==
+
+preact@^10.13.1:
+  version "10.28.2"
+  resolved "https://registry.npmjs.org/preact/-/preact-10.28.2.tgz"
+  integrity sha512-lbteaWGzGHdlIuiJ0l2Jq454m6kcpI1zNje6d8MlGAFlYvP2GO4ibnat7P74Esfz4sPTdM6UxtTwh/d3pwM9JA==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"

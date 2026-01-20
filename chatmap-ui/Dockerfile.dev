@@ -8,11 +8,8 @@ WORKDIR /app
 RUN npm install -g npm@11.5.2
 RUN npm install -g --force yarn
 
-# Copy auth-libs web-component (required for @hotosm/hanko-auth dependency)
-# auth-libs now lives inside login repo
-COPY login/auth-libs/web-component /shared/hot-auth-libs/web-component
-
 # Copy chatmap-ui package files
+# Note: @hotosm/hanko-auth is now installed from npm, not local auth-libs
 COPY chatmap/chatmap-ui/package*.json chatmap/chatmap-ui/yarn.lock ./
 
 RUN yarn install

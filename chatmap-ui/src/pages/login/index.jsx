@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useConfigContext } from '../../context/ConfigContext.jsx';
 import logo from '../../assets/hot-logo-text.svg';
-import('@AuthLibs/web-component/dist/hanko-auth.esm.js');
+import('@hotosm/hanko-auth');
 import '../../styles/login.css';
 
 function LoginPage() {
