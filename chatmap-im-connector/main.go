@@ -656,7 +656,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     if (hasContent) {
         userId := hash(client.Store.ID.User)
         redisClient.XAdd(ctx, &redis.XAddArgs{
-            Stream: fmt.Sprintf("messages:%s", userId),
+            Stream: fmt.Sprintf("messages:%s", sessionID),
             ID:     streamID,
             Values: map[string]interface{}{
                 "id":      streamID,
