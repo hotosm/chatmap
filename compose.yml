@@ -33,7 +33,6 @@ services:
       - CHATMAP_EXPIRING_MIN=${CHATMAP_EXPIRING_MIN:-30}
       - CHATMAP_CORS_ORIGINS=${CHATMAP_CORS_ORIGINS:-localhost,127.0.0.1}
       - CHATMAP_DISABLE_STREAM_CLEANUP=${CHATMAP_DISABLE_STREAM_CLEANUP:-false}
-      # Hanko Auth
       - HANKO_API_URL=${HANKO_API_URL:-https://dev.login.hotosm.org}
       - JWT_ISSUER=${JWT_ISSUER:-}
       - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}

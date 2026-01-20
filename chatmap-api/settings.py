@@ -40,4 +40,4 @@ STREAM_LISTENER_TIME = int(os.getenv("CHATMAP_STREAM_LISTENER_TIME", 10))
 DISABLE_STREAM_CLEANUP = (os.getenv('CHATMAP_DISABLE_STREAM_CLEANUP', 'false').lower() == 'true')
 
 # CORS setup
-CORS_ORIGINS = os.getenv("CHATMAP_CORS_ORIGINS", "localhost,127.0.0.1").split(",")
+CORS_ORIGINS = os.getenv("CHATMAP_CORS_ORIGINS", "localhost,127.0.0.1,http://localhost:5173").split(",")
