@@ -61,8 +61,6 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 | | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 
-Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming features.
-
 See also the [roadmap board](https://github.com/orgs/hotosm/projects/46).
 
 ## Licensing
