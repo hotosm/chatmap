@@ -8,7 +8,7 @@ Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize location
 
 Check this quick [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (2:47) for more info about how to use it.
 
-<img width="1001" alt="Screenshot 2025-05-08 at 5 38 46 PM" src="https://github.com/user-attachments/assets/9a9e50e0-f154-4fc3-b574-09bf54b23c67" />
+<img width="1512" height="853" alt="Screenshot 2026-01-21 at 9 27 42 AM" src="https://github.com/user-attachments/assets/f14412a4-7241-4840-8e33-937fdedaa37b" />
 
 ---
 
