@@ -22,94 +22,7 @@ yarn start
 
 Test with `yarn test`.
 
-## Development
-
-ChatMap supports two authentication modes:
-
-- **SSO Mode**: Uses login.hotosm.org (production)
-- **Standalone Mode**: Local Hanko instance (development)
-
-### Dev Mode (hot reload)
-
-Full development environment with hot reload for frontend and backend:
-
-```bash
-# Copy config for local Hanko
-cp chatmap-ui/public/config.dev.json chatmap-ui/public/config.json
-
-# Start all services
-docker compose -f compose.dev.yml up
-```
-
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| API | http://localhost:8001 |
-| Hanko | http://localhost:8002 |
-| MailHog | http://localhost:8025 |
-
-### Standalone Mode (production images + local Hanko)
-
-Uses production Docker images but with local Hanko for auth:
-
-```bash
-# Copy config for standalone
-cp config/config.standalone.json deploy/frontend/config.json
-
-# Start with standalone profile
-docker compose --profile standalone up
-```
-
-### SSO Mode (production)
-
-Uses login.hotosm.org for authentication:
-
-```bash
-# Default config already points to SSO
-docker compose up
-```
-
-### Google OAuth (optional)
-
-Enable Google Sign-In for standalone/dev mode:
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
-2. Create OAuth 2.0 Client ID (Web application)
-3. Add authorized redirect URI: `http://localhost:8002/thirdparty/callback`
-4. Copy credentials to `.env`:
-
-```bash
-cp .env.example .env
-# Edit .env:
-GOOGLE_ENABLED=true
-GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-client-secret
-```
-
-5. Restart services to apply changes
-
-### Deploy Configuration
-
-For CI/CD deployment, configure these GitHub variables:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `HANKO_API_URL` | Hanko auth endpoint | `https://dev.login.hotosm.org` |
-| `CHATMAP_API_URL` | API base URL | `https://chatmap-dev.hotosm.org` |
-| `CHATMAP_ENABLE_LIVE` | Enable live mode | `true` / `false` |
-
-For standalone deployment, also configure SMTP and optionally Google OAuth secrets.
-
-## ChatMap Live + linked devices
-
-In Live mode, people can link a device to get a live stream of data and update maps in real-time,
-even with locations coming from direct messages, not only groups, and without the need of manually
-exporting chats.
-
-Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md) for enabling
-the Live version of ChatMap with linked devices.
-
-## How to use it?
+### How to use it?
 
 Create a group and ask people to post locations and messages. Each location will be paired 
 with the closest message from the same user.
@@ -121,9 +34,28 @@ with the closest message from the same user.
 
 Check docs for each instant messaging app [here](https://github.com/hotosm/chatmap/blob/master/docs/apps.md).
 
-## How to save the map
+## Advanced mode
 
-Login into umap.hotosm.org, click "Upload" and upload the .zip !
+The advanced mode provides features for user authentication and live updates with linked devices.
+
+### User accounts
+
+ChatMap supports two authentication modes:
+
+- **Standalone Mode**: Uses its own Hanko instance
+- **SSO Mode**: Uses login.hotosm.org
+
+Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) for enabling
+user authentication.
+
+### ChatMap Live
+
+In Live mode, people can link a device to get a live stream of data and update maps in real-time,
+even with locations coming from direct messages, not only groups, and without the need of manually
+exporting chats.
+
+Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md) for enabling
+the Live feature.
 
 ## Roadmap
 
@@ -136,14 +68,18 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
 |✅| Link a device and get a stream of locations + content (live community reporting)|
 |✅| Backend with user authentication and saved maps |
-|⚙️| [Map settings](https://github.com/hotosm/chatmap/issues/37)
-|⚙️| [User profile](https://github.com/hotosm/chatmap/issues/36)
+|✅| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
+|✅| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
+|⚙️| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
+|⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
+|⚙️| [Map options](https://github.com/hotosm/chatmap/issues/56)
+|⚙️| [User profile](https://github.com/hotosm/chatmap/issues/58)
+| | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
 | | Form for user content licensing |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
-| | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+| | ChatBot for creating automated surveys
+| | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
-
-Check the [development](https://github.com/hotosm/chatmap/blob/develop/) branch for upcoming features.
 
 Contributors are welcome!
 
