@@ -7,6 +7,10 @@ import LoginPage from './pages/login';
 import MapView from './pages/mapView';
 import { useConfigContext } from './context/ConfigContext.jsx';
 
+// Import web component at app level to ensure session verification
+// happens regardless of which route renders
+import('@hotosm/hanko-auth');
+
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const { config } = useConfigContext();
@@ -20,23 +24,50 @@ const PrivateRoute = ({ children }) => {
     return children;
   }
 
-  // Strip everything up to the hash
+  // If LOGIN_URL is external, redirect via browser with return_to param
+  if (config.LOGIN_URL.startsWith('http')) {
+    const returnTo = encodeURIComponent(window.location.href);
+    window.location.href = `${config.LOGIN_URL}?return_to=${returnTo}`;
+    return null;
+  }
+
+  // If internal route (hash-based), use React Router
   const hashIndex = config.LOGIN_URL.indexOf("#");
   const relativePath = hashIndex >= 0 ? config.LOGIN_URL.slice(hashIndex + 1) : config.LOGIN_URL;
   return <Navigate to={relativePath} replace />;
 };
 
+// Hidden session verifier - renders the web component to check session
+// and dispatch hanko-login event, but doesn't show any UI
+const SessionVerifier = () => {
+  const { config } = useConfigContext();
+
+  if (!config?.HANKO_API_URL) return null;
+
+  return (
+    <div style={{ display: 'none' }}>
+      <hotosm-auth
+        hanko-url={config.HANKO_API_URL}
+      />
+    </div>
+  );
+};
+
 const AppRoutes = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/app" element={<LoginPage />} />
-      <Route path="/map/:id" element={<MapView />} />
-      <Route
-           path="/linked"
-           element={<PrivateRoute><Linked /></PrivateRoute>}
-      />
-    </Routes>
+    <>
+      {/* Session verifier must render at app level, outside PrivateRoute */}
+      <SessionVerifier />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/app" element={<LoginPage />} />
+        <Route path="/map/:id" element={<MapView />} />
+        <Route
+             path="/linked"
+             element={<PrivateRoute><Linked /></PrivateRoute>}
+        />
+      </Routes>
+    </>
   );
 };
 
