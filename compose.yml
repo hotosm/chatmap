@@ -1,5 +1,6 @@
-services:
+# Production compose
 
+services:
   # Frontend
   chatmap-ui:
     image: ghcr.io/hotosm/chatmap-ui:latest
@@ -7,8 +8,9 @@ services:
       - "80"
     environment:
       - NODE_ENV=production
-    volumes:
-      - ./deploy/frontend/config.json:/usr/share/nginx/html/config.json
+      - HANKO_API_URL==${HANKO_API_URL:-http://localhost:8002}
+      - ENABLE_LIVE=${ENABLE_LIVE:-true}
+      - ENABLE_AUTH=${ENABLE_AUTH:-true}
     networks:
       - chatmap_net
 
@@ -37,9 +39,6 @@ services:
       - CHATMAP_CORS_ORIGINS=${CHATMAP_CORS_ORIGINS:-localhost,127.0.0.1}
       - CHATMAP_DISABLE_STREAM_CLEANUP=${CHATMAP_DISABLE_STREAM_CLEANUP:-false}
       - HANKO_API_URL=${HANKO_API_URL:-https://dev.login.hotosm.org}
-      - CHATMAP_LOGIN_URL=${CHATMAP_LOGIN_URL:-http://localhost:5173/#/app}
-      - JWT_ISSUER=${JWT_ISSUER:-}
-      - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
     volumes:
       - ./media:/app/media:rw
       - ./data:/app/data:rw

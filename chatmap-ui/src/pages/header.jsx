@@ -4,8 +4,8 @@ import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
-import('@hotosm/hanko-auth');
 import ShareButton from '../components/ShareButton';
+import '@hotosm/hanko-auth';
 
 export default function Header({
   dataAvailable,
@@ -53,18 +53,20 @@ export default function Header({
           <ShareButton sharing={data.sharing} />
           }
 
-          {mode !== 'linked' && !dataAvailable &&
+          { config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
           <sl-button href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
           }
 
-          <hotosm-auth
-            hanko-url={config.HANKO_API_URL}
-            login-url={config.LOGIN_URL}
-            redirect-after-login={window.location.origin}
-            redirect-after-logout={window.location.origin}
-          />
+          { config.ENABLE_AUTH &&
+            <hotosm-auth
+              hanko-url={config.HANKO_API_URL}
+              login-url={config.LOGIN_URL}
+              redirect-after-login={window.location.origin}
+              redirect-after-logout={window.location.origin}
+            />
+          }
 
           {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
         </div>

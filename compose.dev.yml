@@ -6,17 +6,21 @@ services:
   chatmap-ui:
     image: node:22-alpine
     working_dir: /app
-    command: sh -c "npm install --legacy-peer-deps && npm run start -- --host"
+    command: sh -c "apt-get update && apt-get install envsubst && envsubst < /app/public/config.tpl.json > /app/public/config.json && npm install --legacy-peer-deps && npm run start -- --host"
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_HANKO_URL=http://localhost:8002
+      - HANKO_API_URL=http://localhost:8002
+      - ENABLE_LIVE=${ENABLE_LIVE:-true}
+      - ENABLE_AUTH=${ENABLE_AUTH:-true}
+      - LOGIN_URL=${LOGIN_URL:-true}
     volumes:
       - ./chatmap-ui:/app
+      - ./deploy/frontend/config.tpl.json:/app/public/config.tpl.json
       - /app/node_modules
     networks:
-      - appnet
+      - chatmap_net
 
   # Backend API with uvicorn hot reload
   chatmap-api:
@@ -52,7 +56,7 @@ services:
       - ./chatmap-api:/app
       - ./media:/app/media:rw
     networks:
-      - appnet
+      - chatmap_net
 
   chatmap-go:
     image: golang:1.25.3
@@ -68,7 +72,7 @@ services:
       - ./sessions:/app/sessions
       - ./chatmap-im-connector:/app
     networks:
-      - appnet
+      - chatmap_net
 
   # Redis
   chatmap-redis:
@@ -76,7 +80,7 @@ services:
     ports:
       - "6380:6379"
     networks:
-      - appnet
+      - chatmap_net
 
   # ChatMap Database
   chatmap-db:
@@ -91,7 +95,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - appnet
+      - chatmap_net
 
   # MailHog for capturing emails in dev
   chatmap-mailhog:
@@ -100,12 +104,12 @@ services:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
     networks:
-      - appnet
+      - chatmap_net
 
   # Process Hanko config template with environment variables
   chatmap-hanko-config:
     image: alpine:latest
-    command: sh -c "apk add --no-cache gettext && envsubst < /config/hanko-config.template.yaml > /config-out/hanko-config.yaml && cat /config-out/hanko-config.yaml"
+    command: sh -c "apk add --no-cache gettext && envsubst < ./deploy/auth/hanko-config.template.yaml > ./deploy/auth/hanko-config.yaml && cat ./deploy/auth/hanko-config.yaml"
     environment:
       - GOOGLE_ENABLED=${GOOGLE_ENABLED:-false}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-placeholder}
@@ -118,17 +122,17 @@ services:
       - SMTP_PASSWORD=
       - SMTP_FROM_ADDRESS=noreply@chatmap.local
     volumes:
-      - ./config/hanko-config.yaml:/config/hanko-config.template.yaml:ro
+      - ./deploy/auth/hanko-config.yaml:/deploy/auth/hanko-config.template.yaml:ro
       - hanko_config:/config-out
     depends_on:
       - chatmap-mailhog
     networks:
-      - appnet
+      - chatmap_net
 
   # Hanko Migrations (runs once before server starts)
   chatmap-hanko-migrate:
     image: ghcr.io/teamhanko/hanko:v2.1.0
-    command: migrate up --config /config/hanko-config.yaml
+    command: migrate up --config /deploy/auth/hanko-config.yaml
     volumes:
       - hanko_config:/config:ro
     depends_on:
@@ -137,13 +141,13 @@ services:
       chatmap-hanko-db:
         condition: service_healthy
     networks:
-      - appnet
+      - chatmap_net
 
   # Hanko Auth
   chatmap-hanko:
     image: ghcr.io/teamhanko/hanko:v2.1.0
     restart: unless-stopped
-    command: serve --config /config/hanko-config.yaml all
+    command: serve --config /deploy/auth/hanko-config.yaml all
     ports:
       - "8002:8002"
     volumes:
@@ -154,7 +158,7 @@ services:
       chatmap-hanko-db:
         condition: service_healthy
     networks:
-      - appnet
+      - chatmap_net
 
   # Hanko Database
   chatmap-hanko-db:
@@ -172,10 +176,10 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - appnet
+      - chatmap_net
 
 networks:
-  appnet:
+  chatmap_net:
 
 volumes:
   chatmap_data:
