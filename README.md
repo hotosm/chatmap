@@ -48,10 +48,10 @@ Login into umap.hotosm.org, click "Upload" and upload the .zip !
 |✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
 |✅| Link a device and get a stream of locations + content (live community reporting)|
 |✅| Backend with user authentication and saved maps |
+|✅| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
+|✅| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
 |⚙️| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
-|⚙️| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
 |⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
-|⚙️| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
 |⚙️| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |⚙️| [User profile](https://github.com/hotosm/chatmap/issues/58)
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
