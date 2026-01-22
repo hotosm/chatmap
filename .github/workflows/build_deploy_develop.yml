@@ -122,7 +122,7 @@ jobs:
             git reset --hard origin/develop
             echo "✅ Updated to latest develop"
             # Create config.json file for the frontend
-            envsubst < deploy/frontend/config.tpl.json > deploy/frontend/config.json
+            envsubst < deploy/frontend/config.tpl.json > chatmap-ui/public/config.json
             echo "✅ Created frontend config file"
             envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
             envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default-init.tpl.conf > deploy/nginx/default-init.conf
