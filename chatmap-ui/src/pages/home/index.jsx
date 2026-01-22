@@ -1,11 +1,9 @@
 import { lazy, useState, useEffect } from "react";
-import { FormattedMessage } from "react-intl";
-
 import useFileManager from "../../components/FileUpload/useFileManager.js";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
-import FileUpload from "../../components/FileUpload/index.jsx";
+import FileUploadSection from './fileUpload.section.jsx';
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import "../../styles/home.css";
@@ -22,17 +20,12 @@ function App() {
   const [withText, setWithText] = useState(false);
 
   // File Manager: Manages files and data files.
-  // - setFiles: handle all chat files
+  // - handleFiles: handle all chat files
   // - handleDataFile: handle all other files (images, videos)
   // - resetFileManager: clear files and data files states
   // - dataFiles: stores all other files (images, videos)
   // - files: stores all chat files
-  const [setFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
-
-  function handleFiles(files) {
-    setFiles(files);
-    setSettingsDialogOpen(true);
-  }
+  const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
 
   // Content Merger: Handle chat content
   // - mapData: ready to use GeoJSON data created from chats
@@ -47,30 +40,65 @@ function App() {
   // Map Data Context: Manages map data
   const { data, mapDataDispatch } = useMapDataContext();
 
+  useEffect(() => {
+      // Public event for external integratons
+      if (mapData.features.length > 0) {
+        window._CHATMAP?.mapData && window._CHATMAP.mapData();
+        setSettingsDialogOpen(true);
+      }
+  }, [mapData])
+
   // Updates map data context with new map data
   useEffect(() => {
     mapDataDispatch({
       type: 'set',
       payload: mapData,
     });
-    // Public event for external integratons
-    if (mapData.features.length > 0) {
-      window._CHATMAP?.mapData && window._CHATMAP.mapData();
-    }
   }, [mapData]);
+
+  const confirmPageLeave = (e) => {
+    e.preventDefault();
+    if (window.confirm("Are you sure?")) {
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    if (data.hasChanged === true) {
+      window.addEventListener('beforeunload', confirmPageLeave);
+    } else {
+      window.removeEventListener('beforeunload', confirmPageLeave);
+    }
+  }, [data.hasChanged]);
 
   // The user wants to upload a new file, clear everything
   // (files, map data, errors)
   const handleNewUploadClick = () => {
+    if (data.hasChanged === true) {
+      if (!window.confirm("Are you sure?")) {
+        return;
+      }
+    }
     resetFileManager();
     resetMerger();
     setNoLocations(false);
+    setSelectedFeature()
+    mapDataDispatch({
+      type: 'reset'
+    })
+    window.removeEventListener('beforeunload', confirmPageLeave);
   }
 
   // Handle uploaded files error (ex: invalid chat export)
   const handleFilesError = () => {
     setNoLocations(true);
   }
+
+  useEffect(() => {
+    if (files !== null && data._chatmapId != null && data.features.length === 0) {
+      setNoLocations(true);
+    }
+  }, [files, data]);
 
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
@@ -83,36 +111,32 @@ function App() {
           dataFiles={dataFiles}
           mapData={data}
           handleNewUploadClick={handleNewUploadClick}
-          showUploadButton={true}
+          showUploadButton={dataAvailable}
           showDownloadButton={true}
         />
 
-        {!dataAvailable &&
-          <section className="home">
-            <div className="home__center">
-              <div className="home__actions">
-                <h1 className="home__title">ChatMap</h1>
-                <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
-                <FileUpload
-                  onFilesLoad={handleFiles}
-                  onDataFileLoad={handleDataFile}
-                  onError={handleFilesError}
-                />
-                <p className="home__note">
-                  <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
-                  {/* <sl-icon-button name="plus-circle-dotted" /> */}
-                </p>
-              </div>
-              <div className="home__image">
-                <img src={logo} />
-              </div>
+        {!files &&
+        <section className="home">
+          <div className="home__center">
+            <div className="home__actions">
+              <h1 className="home__title">ChatMap</h1>
+              <FileUploadSection
+                handleFiles={handleFiles}
+                handleDataFile={handleDataFile}
+                onError={handleFilesError}
+              />
             </div>
-          </section>
+            <div className="home__image">
+              <img src={logo} />
+            </div>
+          </div>
+        </section>
         }
 
         {dataAvailable &&
           <Map
             dataFiles={dataFiles}
+            data={data}
           />
         }
 

@@ -12,6 +12,8 @@ export default function Header({
   dataFiles,
   mode,
   showDownloadButton,
+  handleNewUploadClick,
+  showUploadButton,
   title
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
@@ -45,12 +47,30 @@ export default function Header({
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
           {/* <sl-icon-button name="translate" /> */}
 
+
+          { showUploadButton ?
+          <div className="newFile">
+              <sl-button
+                  variant="default"
+                  outline
+                  size="small"
+                  onClick={handleNewUploadClick}
+              >
+                  <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
+                  <FormattedMessage
+                      id = "app.uploadNewFile"
+                      defaultMessage="New file"
+                  /> 
+              </sl-button>
+          </div> : null}
+
+
           {showDownloadButton && mode !== 'linked' && dataAvailable && 
-          <SaveButton data={data} dataFiles={dataFiles} />
+            <SaveButton data={data} dataFiles={dataFiles} />
           }
 
           {mode === 'linked' && dataAvailable &&
-          <ShareButton sharing={data.sharing} />
+            <ShareButton sharing={data.sharing} />
           }
 
           { config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
@@ -68,7 +88,8 @@ export default function Header({
             />
           }
 
-          {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
+
+
         </div>
       </header>
     </>

@@ -33,7 +33,7 @@ export default class ErrorBoundary extends React.Component {
                 <br /><br />or create an issue in <a href="https://github.com/hotosm/chatmap/issues">github.com/hotosm/chatmap/issues</a>
               </p>
               <div className="buttons">
-                <sl-button variant="success" href={"/"}>
+                <sl-button variant="default" href={"/"}>
                   Reload
                   <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
                 </sl-button>

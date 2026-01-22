@@ -70,10 +70,6 @@ function App() {
   // There's data for the map!
   const dataAvailable = data && data.features && data.features.length > 0;
 
-  const handleFeatureSelect = (feature) => {
-    setSelectedFeature(feature.properties);
-  }
-
   const handleSettingsClick = () => {
     setShowSettings(!showSettings);
   }
@@ -135,7 +131,6 @@ function App() {
         { dataAvailable &&
           <Map
             className="mapFull"
-            onSelectFeature={handleFeatureSelect}
           />
         }
 
