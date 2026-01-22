@@ -16,6 +16,8 @@ services:
       - CHATMAP_API_URL_SUFFIX=${CHATMAP_API_URL_SUFFIX:-v1}
     networks:
       - chatmap_net
+    volumes:
+      - ./public/config.json:/app/public/config.json
 
   # Backend (API)
   chatmap-api:
