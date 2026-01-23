@@ -70,7 +70,7 @@ const parseAndIndex = (lines) => {
     return result;
 }
 
-export default function telegramParser({ text, options }) {
+function telegramParser({ text, options }) {
     if (!text) return;
     const json = JSON.parse(text);
 
@@ -81,3 +81,7 @@ export default function telegramParser({ text, options }) {
 
     return { geoJSON };
 }
+
+telegramParser._name = 'Telegram';
+
+export default telegramParser;

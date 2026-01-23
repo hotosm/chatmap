@@ -16,7 +16,8 @@ function useContentMerger({ files, options }) {
     // Hook's response: a GeoJSON object
     const [geoJSON, setGeoJSON] = useState({
         type: "FeatureCollection",
-        features: []
+        features: [],
+        _sources: [],
     });
 
     // Receives files and update status
@@ -31,11 +32,16 @@ function useContentMerger({ files, options }) {
             // can be imported.
             let features = [];
             let _chatmapId = null;
-            
+            const sources = [];
+
             for (let filename in files) {
                 // Parse data from chats with the corresponding parser
                 // depending on the chat app (ex: WhatsApp, Telegram or Signal)
                 const parser = await getAppParser(files[filename]);
+
+                if (sources.indexOf(parser._name) === -1) {
+                    sources.push(parser._name);
+                }
 
                 // Concatenate data from all uploaded chats
                 const {geoJSON} = parser({ text: files[filename], options });
@@ -46,13 +52,24 @@ function useContentMerger({ files, options }) {
             }
 
             // Build the GeoJSON response with all features
-            setGeoJSON((prevState) => ({
-                type: "FeatureCollection",
-                features: [...prevState.features, ...features],
-                _chatmapId: _chatmapId || createChatMapId()
-            }));
+            setGeoJSON((prevState) => {
+                const newSources = prevState._sources;
 
+                for (let source of sources) {
+                    if (newSources.indexOf(source) === -1) {
+                        newSources.push(source);
+                    }
+                }
+
+                return {
+                    type: "FeatureCollection",
+                    features: [...prevState.features, ...features],
+                    _chatmapId: _chatmapId || createChatMapId(),
+                    _sources: newSources,
+                };
+            });
         }
+
         parseData();
       }, [files]);
 

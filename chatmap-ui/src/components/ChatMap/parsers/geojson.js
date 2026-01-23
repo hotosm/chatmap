@@ -3,7 +3,7 @@
  * @param {string} text
  * @returns {object} GeoJSON
  */
-export default function geoJSONParser({ text }) {
+function geoJSONParser({ text }) {
     if (!text) return;
     const geoJSON = JSON.parse(text);
     geoJSON.features = geoJSON.features.map(feature => {
@@ -12,3 +12,7 @@ export default function geoJSONParser({ text }) {
     })
     return { geoJSON };
 }
+
+geoJSONParser._name = 'GeoJSON';
+
+export default geoJSONParser;

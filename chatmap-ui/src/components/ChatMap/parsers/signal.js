@@ -89,7 +89,7 @@ const parseAndIndex = (lines) => {
 }
 
 
-export default function signalParser({ text, options}) {
+function signalParser({ text, options}) {
     if (!text) return;
     const lines = text.split("\n");
 
@@ -100,3 +100,7 @@ export default function signalParser({ text, options}) {
 
     return { geoJSON };
 }
+
+signalParser._name = 'Signal';
+
+export default signalParser;
