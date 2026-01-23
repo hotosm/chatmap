@@ -8,7 +8,8 @@ const initialState = {
   features: [],
   filterTag: null,
   hasChanged: false,
-  _chatmapId: null
+  _chatmapId: null,
+  _sources: []
 };
 
 // Reducer
