@@ -17,7 +17,7 @@ services:
     networks:
       - chatmap_net
     volumes:
-      - ./chatmap-ui/public/config.json:/app/public/config.json
+      - ./chatmap-ui/public/config.json:/usr/share/nginx/html/config.json:ro
 
   # Backend (API)
   chatmap-api:
