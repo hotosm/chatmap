@@ -17,7 +17,7 @@ services:
     networks:
       - chatmap_net
     volumes:
-      - ./public/config.json:/app/public/config.json
+      - ./chatmap-ui/public/config.json:/app/public/config.json
 
   # Backend (API)
   chatmap-api:
@@ -81,7 +81,7 @@ services:
       - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./deploy/certbot/conf:/etc/letsencrypt:ro
       - ./deploy/certbot/www:/var/www/certbot:ro
-      - ./public/config.json:/usr/share/nginx/html/config.json:ro
+      - ./chatmap-ui/public/config.json:/usr/share/nginx/html/config.json:ro
 
     depends_on:
       - chatmap-ui
