@@ -205,7 +205,7 @@ async def media(filename: str) -> Dict[str, str]:
 
 # Get Status
 @api_router.get("/version")
-async def status():
+async def version():
     return {'version': "0.0.4"}
 
 # Protected endpoint example (requires Hanko auth)

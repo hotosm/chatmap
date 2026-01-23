@@ -1,4 +1,6 @@
-# ChatMap Live + Linked Devices
+# ChatMap Live
+
+# [ THIS DOCUMENT HAS TO BE UPDATED ]
 
 In this advanced mode users will be able to link devices to ChatMap
 for creating live-updated maps.

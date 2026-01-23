@@ -110,9 +110,8 @@ export const parseTimeString = (dateStr) => {
     let dateTimeStr = dateStr.replace("a. m.", "AM").replace("p. m.", "PM")
     dateTimeStr = dateTimeStr.replace("a.m.", "AM").replace("p.m.", "PM")
     let dateTime = dateTimeStr.split(" ");
-    const dateParts = dateTime[0].replaceAll(",", "").split("/")
-    // TODO: check if date format is valid
-    let fmtDate = [[dateParts[2], dateParts[1], dateParts[0]].join("/"), dateTime[1]].join(" ").replaceAll(".", ":")
+    const now = new Date();
+    let fmtDate = [[now.getFullYear(), now.getMonth() + 1, now.getDate()].join("/"), dateTime[1]].join(" ").replaceAll(".", ":")
     return new Date(fmtDate);
 }
 

@@ -1,6 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 import logo from '../assets/hot-logo-text.svg';
-// import { useConfigContext } from '../context/ConfigContext.jsx';
 
 export default function Footer({ className, visible = true }) {
   const intl = useIntl();

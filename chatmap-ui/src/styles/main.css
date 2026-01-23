@@ -59,7 +59,7 @@ a {
 .header__rest {
     display: flex;
     align-items: center;
-    gap: var(--hot-spacing-2x-large);
+    gap: var(--hot-spacing-medium);
 }
 
 .header__title {
@@ -200,15 +200,6 @@ a {
     font-weight: normal;
 }
 
-.copy {
-    display: inline;
-    vertical-align: middle;
-    margin-left: var(--hot-spacing-x-small);
-    height: 3vmin;
-    padding: 1vh;
-    color: var(--hot-color-neutral-300);
-}
-
 /* File upload */
 
 .fileUpload {
@@ -316,7 +307,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 }
 
 .errorMessage .header {
-    background: none;
+    display: block;
 }
 
 .errorMessage pre {
@@ -469,8 +460,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     display: none;
 }
 
-.loadingBadge::part(base),
-.countBadge::part(base) {
+.loadingBadge::part(base) {
     background-color: var(--hot-color-neutral-0);
     color: var(--hot-color-neutral-700);
 }
@@ -497,49 +487,6 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     gap: var(--hot-spacing-medium);
     font-weight: var(--hot-font-weight-light);
     margin: var(--hot-spacing-2x-large) 0;
-}
-
-/* Settings */
-
-.settings {
-    padding: var(--hot-spacing-medium);
-    background-color: var(--hot-color-neutral-0);
-    position: absolute;
-    top: 75px;
-    right: 15px;
-    z-index: 9999;
-    text-align: left;
-    border-radius: var(--hot-border-radius-small);
-    box-shadow: var(--hot-shadow-small);
-    width: 220px;
-}
-
-.settings h2 {
-    font-size: var(--hot-font-size-medium);
-    margin-top: 0
-}
-
-.settings h3 {
-    font-size: var(--hot-font-size-small);
-    margin: var(--hot-spacing-large) 0;
-}
-
-.settings hr {
-    height: 1px;
-    border: none;
-    border-top: 1px solid var(--hot-color-neutral-100);
-}
-
-.settingsOptions > div,
-.settingsOptions .option {
-    margin-bottom: var(--hot-spacing-medium);
-}
-
-
-.settings .closeButton {
-    position: absolute;
-    right: 0;
-    top: 0;
 }
 
 .pageContent {
@@ -586,14 +533,12 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
         height: 90vh;
     }
 
-    .headerSmall .mapOptions .newFile sl-button::part(base),
-    .headerSmall .mapOptions .tagsOptions sl-button::part(base) {
+    .header__rest .newFile sl-button::part(base) {
         width: 40px;
         padding-inline-start: 0;
     }
 
-    .headerSmall .mapOptions .newFile sl-button::part(label),
-    .headerSmall .mapOptions .tagsOptions sl-button::part(label) {
+    .header__rest .newFile sl-button::part(label) {
         display: none;
     }
 

@@ -4,14 +4,16 @@ import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
-import('@hotosm/hanko-auth');
 import ShareButton from '../components/ShareButton';
+import '@hotosm/hanko-auth';
 
 export default function Header({
   dataAvailable,
   dataFiles,
   mode,
   showDownloadButton,
+  handleNewUploadClick,
+  showUploadButton,
   title
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
@@ -45,28 +47,49 @@ export default function Header({
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
           {/* <sl-icon-button name="translate" /> */}
 
+
+          { showUploadButton ?
+          <div className="newFile">
+              <sl-button
+                  variant="default"
+                  outline
+                  size="small"
+                  onClick={handleNewUploadClick}
+              >
+                  <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
+                  <FormattedMessage
+                      id = "app.uploadNewFile"
+                      defaultMessage="New file"
+                  /> 
+              </sl-button>
+          </div> : null}
+
+
           {showDownloadButton && mode !== 'linked' && dataAvailable && 
-          <SaveButton data={data} dataFiles={dataFiles} />
+            <SaveButton data={data} dataFiles={dataFiles} />
           }
 
           {mode === 'linked' && dataAvailable &&
-          <ShareButton sharing={data.sharing} />
+            <ShareButton sharing={data.sharing} />
           }
 
-          {mode !== 'linked' && !dataAvailable &&
+          { config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
           <sl-button href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
           }
 
-          <hotosm-auth
-            hanko-url={config.HANKO_API_URL}
-            login-url={config.LOGIN_URL}
-            redirect-after-login={window.location.origin}
-            redirect-after-logout={window.location.origin}
-          />
+          { config.ENABLE_AUTH &&
+            <hotosm-auth
+              hanko-url={config.HANKO_API_URL}
+              login-url={config.LOGIN_URL}
+              redirect-after-login={window.location.origin}
+              redirect-after-logout={window.location.origin}
+            />
+          }
 
-          {/* <sl-button disabled variant="neutral" size="small" className="dark-btn"><FormattedMessage id="app.navigation.login" defaultMessage="Login" /></sl-button> */}
+
+
         </div>
       </header>
     </>

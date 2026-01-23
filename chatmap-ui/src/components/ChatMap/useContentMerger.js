@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import getAppParser from "./parsers/getAppParser";
+import { createChatMapId } from "../ChatMap/chatmap";
 
 /**
  * Hook for parsing messages from a text
@@ -63,7 +64,7 @@ function useContentMerger({ files, options }) {
                 return {
                     type: "FeatureCollection",
                     features: [...prevState.features, ...features],
-                    _chatmapId: _chatmapId || null,
+                    _chatmapId: _chatmapId || createChatMapId(),
                     _sources: newSources,
                 };
             });

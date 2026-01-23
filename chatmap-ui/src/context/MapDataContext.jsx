@@ -7,7 +7,7 @@ const initialState = {
   type: "FeatureCollection",
   features: [],
   filterTag: null,
-  filterDate: null,
+  hasChanged: false,
   _chatmapId: null
 };
 
@@ -18,23 +18,22 @@ const reducer = (state, action) => {
       return { ...state, ...action.payload };
 
     case 'update_feature_props': {
-      const newState = { ...state };
+      const newState = { ...state, ...{ hasChanged: true } };
       newState.features.forEach((feature) => {
         if (feature.properties.id === action.payload.id) {
           feature.properties = action.payload.properties;
-          feature.properties.time = new Date(feature.properties.time);
         }
       });
       return newState;
     }
 
     case 'set_filter_tag':
-      return { ...state, ...{filterTag: action.payload.tag } };
+      return { ...state, ...{filterTag: action.payload.tag}};
 
-    case 'set_filter_date':
-      return { ...state, ...{filterDate: action.payload.date } };
+    case 'reset':
+      return { ...initialState };
 
-      default:
+    default:
       throw new Error();
   }
 }
@@ -53,21 +52,8 @@ export const MapDataProvider = (props) => {
       return accumulator;
   }, {});
 
-  const indexedData = {
-    ...data,
-    features: data.features.map( (feature, index) => {
-      return {
-        ...feature,
-        properties: {
-          ...feature.properties,
-          index: index
-        }
-      }
-    })
-  }
-
   return (
-    <MapDataContext.Provider value={{ data: indexedData, tags, mapDataDispatch }}>
+    <MapDataContext.Provider value={{ data, tags, mapDataDispatch }}>
       {props.children}
     </MapDataContext.Provider>
   );
