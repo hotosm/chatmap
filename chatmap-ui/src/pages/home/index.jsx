@@ -126,6 +126,7 @@ function App() {
         open={settingsDialogOpen}
         setOpen={setSettingsDialogOpen}
         numFeatures={data.features.length}
+        sources={data._sources}
         withPhotos={withPhotos} setWithPhotos={setWithPhotos}
         withVideos={withVideos} setWithVideos={setWithVideos}
         withAudios={withAudios} setWithAudios={setWithAudios}

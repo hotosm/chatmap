@@ -4,7 +4,7 @@ import SlSwitch from "@shoelace-style/shoelace/dist/react/switch/index.js";
 import SlDialog from "@shoelace-style/shoelace/dist/react/dialog/index.js";
 
 export default function SettingsDialog({
-  open, setOpen, numFeatures,
+  open, setOpen, numFeatures, sources,
   withPhotos, setWithPhotos,
   withVideos, setWithVideos,
   withAudios, setWithAudios,
@@ -35,7 +35,7 @@ export default function SettingsDialog({
         <FormattedMessage
           id="app.home.dialog.exporttype"
           defaultMessage="File is a {type} export"
-          values={{ type: "WhatsApp" }}
+          values={{ type: sources.join(', ') }}
         />
       </p>
 

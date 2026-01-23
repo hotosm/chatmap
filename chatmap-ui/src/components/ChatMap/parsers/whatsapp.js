@@ -153,7 +153,7 @@ export const parseAndIndex = (lines, system) => {
  * @param {string} text
  * @returns {object} GeoJSON
  */
-export default function whatsAppParser({ text, options }) {
+function whatsAppParser({ text, options }) {
     if (!text) return;
 
     // Split the full text in lines
@@ -175,3 +175,7 @@ export default function whatsAppParser({ text, options }) {
 
     return { geoJSON };
 }
+
+whatsAppParser._name = 'WhatsApp';
+
+export default whatsAppParser;
