@@ -117,7 +117,6 @@ export const parseTimeString = (dateStr) => {
 
 // Parse messages from lines and create an index
 export const parseAndIndex = (lines, system) => {
-    let index = 0;
     const result = [];
     lines.forEach((line) => {
 
@@ -131,7 +130,7 @@ export const parseAndIndex = (lines, system) => {
         } else {
             // If message is just text without datestring,
             // append it to the previous message.
-            if (result[index - 1] &&
+            if (result[result.length - 1] &&
                 // FIXME: check asian date formate
                 (system == "ANDROID" && line.substring(2,1) !== "/" &&
                     line.indexOf("a. m.") == -1 &&
@@ -156,7 +155,7 @@ function whatsAppParser({ text, options }) {
     if (!text) return;
 
     // Split the full text in lines
-    const lines = text.split("\n");
+    const lines = text.split("\n").filter(x => x);
 
     // Detect system (Android, iOS, ...)
     let system;
