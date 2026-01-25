@@ -28,7 +28,7 @@ Create a group and ask people to post locations and messages. Each location will
 with the closest message from the same user.
 
 1. Export a WhatsApp, Telegram or Signal chat with shared locations
-2. Upload a .zip file to this page
+2. Open the .zip file with ChatMap
 3. It will extract all the locations and display them on a map, together with the paired message (text or media)
 4. You can also download the locations + messages as a .zip file from there
 

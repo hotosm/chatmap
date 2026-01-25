@@ -8,7 +8,7 @@ Go to the group you want to export and select:
 
 Select "Attach media" if you want to include media.
 
-Import the .zip file. If you don't need media, you can import the .txt file only.
+Import the .zip file.
 
 ## Telegram
 
@@ -24,7 +24,6 @@ and click "Export"
 A folder will be created. If you want to include media you should compress
 the whole folder into a .zip file and import it into ChatMap.
 
-If you don't need media, you can import the .json file only.
 
 ## Signal
 
@@ -44,6 +43,3 @@ And if you want to include media:
 A .txt file and a folder for media will be created.
 
 Compress everything into a .zip file and import it into ChatMap.
-
-If you don't need media, you can import the .txt file only.
-
