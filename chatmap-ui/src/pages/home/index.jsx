@@ -82,7 +82,6 @@ function App() {
     resetFileManager();
     resetMerger();
     setNoLocations(false);
-    setSelectedFeature()
     mapDataDispatch({
       type: 'reset'
     })

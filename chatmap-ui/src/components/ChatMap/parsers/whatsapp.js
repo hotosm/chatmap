@@ -139,7 +139,7 @@ export const parseAndIndex = (lines, system) => {
                 (system == "IOS" &&
                 line.indexOf("[") == -1))
             {
-                result[result.length - 1].message += " " + line;
+                result[result.length - 1].message += " " + line.replaceAll("\r", "");
             }
         }
     })

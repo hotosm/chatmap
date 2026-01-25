@@ -77,7 +77,8 @@ function useContentMerger({ files, options }) {
     const resetMerger = () => {
         setGeoJSON({
             type: "FeatureCollection",
-            features: []
+            features: [],
+            _sources: [],
         });
     }
 
