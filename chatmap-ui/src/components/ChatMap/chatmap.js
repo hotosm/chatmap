@@ -199,6 +199,7 @@ export default class ChatMap {
             type: "Feature",
             properties: {
               // If a message is found later this will be overriden
+              ...msg,
               message: "(Location only)",
             },
             geometry: {
