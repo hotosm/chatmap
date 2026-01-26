@@ -41,12 +41,15 @@ const parseMessage = (line) => {
     }
     if (line.photo) {
         msgObject.file = stripPath(line.photo);
+        msgObject.file_type = "image";
     }
     if (line.file && line.mime_type === "video/mp4") {
         msgObject.file = stripPath(line.file);
+        msgObject.file_type = "video";
     }
     if (line.file && ["audio/ogg", "audio/opus", "audio/mp3", "audio/m4a", "audio/wav"].indexOf(line.mime_type) > -1) {
         msgObject.file = stripPath(line.file);
+        msgObject.file_type = "audio";
     }
     return msgObject;
 }
@@ -76,8 +79,8 @@ function telegramParser({ text, options }) {
 
     // Get message objects
     const messages = parseAndIndex(json.messages);
-    const chatmap = new ChatMap(messages, searchLocation, options);
-    const geoJSON = chatmap.pairContentAndLocations();
+    const chatmap = new ChatMap(messages);
+    const geoJSON = chatmap.pairContentAndLocations(searchLocation, options);
 
     return { geoJSON };
 }

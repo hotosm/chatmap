@@ -42,11 +42,14 @@ const parseMessage = (line, msg) => {
         msg.time = parseTimeString(msg.timeString);
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf(".jpeg") > -1) {
         msg.file = line.substring(12, line.indexOf(".jpeg") + 5);
+        msg.file_type = "image";
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf(".jpg") > -1) {
         msg.file = line.substring(12, line.indexOf(".jpg") + 4);
+        msg.file_type = "image;
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf("jpeg") > -1 && line.indexOf("no filename") > -1 ) {
         const formattedTime = moment.parseZone(msg.timeString).format('YYYY-MM-DD-HH-mm-ss');
         msg.file = `attachment-${formattedTime}.jpg`;
+        msg.file_type = "image";
     } else if (!msg.file && !msg.message && line.indexOf("Type: ") === -1 &&
         line.indexOf("Received: ") === -1 && line.indexOf("Conversation: ") === -1) {
         msg.message = line;
@@ -95,8 +98,8 @@ function signalParser({ text, options}) {
 
     // Get message objects
     const messages = parseAndIndex(lines);
-    const chatmap = new ChatMap(messages, searchLocation, options);
-    const geoJSON = chatmap.pairContentAndLocations();
+    const chatmap = new ChatMap(messages);
+    const geoJSON = chatmap.pairContentAndLocations(searchLocation, options);
 
     return { geoJSON };
 }

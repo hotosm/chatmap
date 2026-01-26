@@ -19,6 +19,16 @@ const MSG_PATTERN = {
     ANDROID: /(.*) - ([^:]*): (.*)/
 }
 
+const TYPES = {
+  ".jpg": "image",
+  ".ogg": "audio",
+  ".opus": "audio",
+  ".mp3": "audio",
+  ".m4a": "audio",
+  ".wav": "audio",
+  ".mp4": "video",
+}
+
 // Detect system (Android or iOS)
 export const detectSystem = (line) => {
     const match_ios = line.match(MSG_PATTERN.IOS);
@@ -46,14 +56,18 @@ export const lookForMediaFile = (msgObject) => {
             break;
         }
     }
+
     if (mediaFileIndex > 0) {
         let path = msgObject.message.substring(msg.lastIndexOf(":") + 1, mediaFileIndex + foundExt.length);
+
         if (path.substring(0, 1) == " ") {
-            return path.substring(1, path.length)
+            path = path.substring(1);
         }
-        return path;
+
+        return {path, type: TYPES[foundExt]};
     }
-    return ""
+
+    return null;
 }
 
 // Search for a location
@@ -96,7 +110,13 @@ export const parseMessage = (line, system) => {
         }
 
         // Look for media
-        msgObject.file = lookForMediaFile(msgObject);
+        const mediaFile = lookForMediaFile(msgObject);
+
+        if (mediaFile !== null) {
+          msgObject.file = mediaFile.path;
+          msgObject.file_type = mediaFile.type;
+        }
+
         if (msgObject.file) {
             msgObject.message = "";
         }
@@ -168,8 +188,8 @@ function whatsAppParser({ text, options }) {
 
     // Get message objects from text lines
     const messages = parseAndIndex(lines, system);
-    const chatmap = new ChatMap(messages, searchLocation, options);
-    const geoJSON = chatmap.pairContentAndLocations();
+    const chatmap = new ChatMap(messages);
+    const geoJSON = chatmap.pairContentAndLocations(searchLocation, options);
 
     return { geoJSON };
 }

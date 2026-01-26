@@ -4,48 +4,47 @@
 */
 
 export default class ChatMap {
-
-  constructor (messages, searchLocation, options) {
+  constructor (messages) {
     this.messages = messages;
-    this.searchLocation = searchLocation;
-    this.options = options;
-    this.notMediaFileMessages = {};
   }
-
-  // An dictionary to keep track of location messages
-  locationMessages = {};
 
   // An array to keep track of the paired messages
   pairedMessagesIds = {};
 
-  getMessageFromSameUser = (nextOrPrevMsgIndex, username, currentMsgIndex) => {
-      const messages = this.messages;
-      const message = messages[currentMsgIndex];
-      const nextOrPrevMsg = messages[nextOrPrevMsgIndex];
-      // If message is from the same user
-      if (nextOrPrevMsg?.username === username) {
-        // Message is not paired yet
-        if (
-          !this.pairedMessagesIds[nextOrPrevMsg.id]
-        ) {
-          // Calculate time passed between current and previous message.
-          const delta_diff = Math.abs(message.time - nextOrPrevMsg.time);
-          if (
-            nextOrPrevMsg &&
-            delta_diff < 1800000 && // 30 min tolerance
-            (
-              nextOrPrevMsg.file || (
-                nextOrPrevMsg?.message
-              )
-            )
-          ) {
-            return {
-              index: nextOrPrevMsgIndex,
-              delta: delta_diff
-            }
-          }
-        }
+  getMessageFromSameUser = (nextOrPrevMsgIndex, username, currentMsgIndex, options) => {
+    const messages = this.messages;
+    const message = messages[currentMsgIndex];
+    const nextOrPrevMsg = messages[nextOrPrevMsgIndex];
+
+    if (
+      !nextOrPrevMsg ||
+      nextOrPrevMsg.username !== username ||
+      this.pairedMessagesIds[nextOrPrevMsg.id]
+    ) {
+      // message doesn't exist, is from different user or is already paired.
+      return null;
+    }
+
+    // Calculate time passed between current and previous message.
+    const delta_diff = Math.abs(message.time - nextOrPrevMsg.time);
+    if (
+      nextOrPrevMsg &&
+      delta_diff < 1800000 && // 30 min tolerance
+      (
+        (nextOrPrevMsg.file && (
+          (nextOrPrevMsg.file_type === "image" && options.withPhotos) ||
+          (nextOrPrevMsg.file_type === "audio" && options.withAudios) ||
+          (nextOrPrevMsg.file_type === "video" && options.withVideos)
+        )) || (nextOrPrevMsg.message && options.withText)
+      )
+    ) {
+      return {
+        index: nextOrPrevMsgIndex,
+        delta: delta_diff
       }
+    }
+
+    return null;
   }
 
   /**
@@ -58,7 +57,7 @@ export default class ChatMap {
    * @param {int} msgIndex A message index
    * @returns {object} message
    */
-  getClosestMessage = (messages, msgIndex) => {
+  getClosestMessage = (messages, msgIndex, options) => {
     // Previous message index
     let prevIndex = msgIndex - 1;
     // Next message index
@@ -150,7 +149,7 @@ export default class ChatMap {
     }
 
     // No message to pair has been found, return same message
-    return message;
+    return null;
   }
 
   // Get closest next/prev message from the same user
@@ -178,9 +177,16 @@ export default class ChatMap {
     return message;
   }
 
-
-  pairContentAndLocations = () => {
-
+  /**
+   * Main function that assigns media to their locations in the chat.
+   *
+   * @param {function} searchLocation A function that takes a message and
+   * returns the location it represents.
+   * @param {object} options Options mapping (withPhotos, withVideos,
+   * withAudios, withText).
+   * @returns {object} GeoJSON with the locations found.
+   */
+  pairContentAndLocations(searchLocation, options) {
     // Initialize the GeoJSON response
     const geoJSON = {
         type: "FeatureCollection",
@@ -192,7 +198,7 @@ export default class ChatMap {
       // Save index
       msg.id = index;
       // Check if there's a location in the message
-      const location = this.searchLocation(msg);
+      const location = searchLocation(msg);
       // If there's a location, create a Point.
       if (location) {
           const coordinates = [
@@ -209,26 +215,15 @@ export default class ChatMap {
       }
     });
 
-    if (this.options.mediaOnly) {
-      // Filter messages, keep only the ones with a file or location
-      this.messages = this.messages.filter(msg => (
-        msg.file || msg.location
-      ))
-      // Re-index messages
-      this.messages = this.messages.map((msg, index) => ({
-        ...msg,
-        id: index
-      }))
-    }
-
     // When a location has been found, look for the closest
     // content from the same user and pair it to the message.
-    this.messages.forEach((msg) => {
-
-      if (msg.location) {
+    for (let msg of this.messages.filter(m => m.location)) {
         const featureObject = {
             type: "Feature",
-            properties: {},
+            properties: {
+              // If a message is found later this will be overriden
+              message: "(Location only)",
+            },
             geometry: {
                 type: "Point",
                 coordinates: msg.location
@@ -236,24 +231,19 @@ export default class ChatMap {
         }
 
         // Get closest message to the location
-        const message = this.getClosestMessage(this.messages, msg.id);
-        this.pairedMessagesIds[message.id] = true;
+        const message = this.getClosestMessage(this.messages, msg.id, options);
 
-        // Check if mediaOnly is enabled before adding the feature
-        if (!(this.options.mediaOnly && !message.file)) {
-
-          // Add the GeoJSON feature
+        // Add found message's properties to the feature
+        if (message !== null) {
+          this.pairedMessagesIds[message.id] = true;
           featureObject.properties = {
             ...message,
-            message: message.location ? "(Location only)" : message.message
           };
-          if (!isNaN(featureObject.properties.time)) {
-            geoJSON.features.push(featureObject);
-          }
         }
 
-      }
-    });
+        geoJSON.features.push(featureObject);
+    }
+
     return geoJSON;
   }
 
