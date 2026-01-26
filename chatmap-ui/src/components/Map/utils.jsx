@@ -4,8 +4,7 @@
 
 /**
  *
- * @param {object} properties Message properties
- * @param {string} properties Message type
+ * @param {string} time An ISO datetime
  * @returns {string} A formatted and padded datetime, ex: 02:15:22
  */
 export const formatDate = (time) => {
