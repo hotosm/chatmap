@@ -154,31 +154,6 @@ export default class ChatMap {
     return null;
   }
 
-  // Get closest next/prev message from the same user
-  getClosestMessageByDirection = (messages, msgIndex, direction) => {
-    let nextIndex = msgIndex + direction;
-    let nextMessage;
-    let message = messages[msgIndex];
-    while (
-      (messages[nextIndex]) && !(nextMessage) ) {
-    
-      if (messages[nextIndex] && 
-          messages[nextIndex].username === message.username &&
-          !nextMessage) {
-        const delta_next = Math.abs(messages[msgIndex].time - messages[nextIndex].time);
-        nextMessage = {
-            index: nextIndex, 
-            delta: delta_next
-        }
-      }
-      nextIndex += direction;
-    }
-    if (nextMessage) {
-      return messages[nextMessage.id];
-    }
-    return message;
-  }
-
   /**
    * Main function that assigns media to their locations in the chat.
    *
