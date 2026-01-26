@@ -86,7 +86,8 @@ export default class ChatMap {
         const prevMessageFromSameUser = this.getMessageFromSameUser(
           prevIndex,
           message.username,
-          msgIndex
+          msgIndex,
+          options,
         );
 
         if (prevMessageFromSameUser) {
@@ -103,7 +104,8 @@ export default class ChatMap {
         const nextMessageFromSameUser = this.getMessageFromSameUser(
           nextIndex,
           message.username,
-          msgIndex
+          msgIndex,
+          options,
         );
 
         if (nextMessageFromSameUser) {
