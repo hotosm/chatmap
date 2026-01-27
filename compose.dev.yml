@@ -110,7 +110,7 @@ services:
   # Process Hanko config template with environment variables
   chatmap-hanko-config:
     image: alpine:latest
-    command: sh -c "apk add --no-cache gettext && envsubst < /deploy/auth/hanko-config.template.yaml > /deploy/auth/hanko-config.yaml && cat /deploy/auth/hanko-config.yaml"
+    command: sh -c "apk add --no-cache gettext && envsubst < /deploy/auth/hanko-config.tpl.yaml > /config-out/hanko-config.yaml && cat /config-out/hanko-config.yaml"
     environment:
       - GOOGLE_ENABLED=${GOOGLE_ENABLED:-false}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-placeholder}
@@ -123,7 +123,7 @@ services:
       - SMTP_PASSWORD=
       - SMTP_FROM_ADDRESS=noreply@chatmap.local
     volumes:
-      - ./deploy/auth/hanko-config.yaml:/deploy/auth/hanko-config.template.yaml:ro
+      - ./deploy/auth/hanko-config.tpl.yaml:/deploy/auth/hanko-config.tpl.yaml:ro
       - hanko_config:/config-out
     depends_on:
       - chatmap-mailhog
