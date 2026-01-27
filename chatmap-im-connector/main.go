@@ -675,42 +675,48 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     if msg.GetConversation() != "" {
         message_text := msg.GetConversation()
         loc, _ := SearchLocation(message_text)
+        hasContent = true
         if loc != "" {
             location := loc
             message.Location = &location
             log.Printf("Location: %s\n", loc)
-            hasContent = true
         } else {
             enc_message_text := encrypt([]byte(message_text), []byte(enc_key))
             message.Text = enc_message_text
-            hasContent = true
         }
 
     // Location
     } else if msg.LocationMessage != nil {
         loc := msg.GetLocationMessage()
         if loc != nil {
+            hasContent = true
             location := fmt.Sprintf("%.5f,%.5f", loc.GetDegreesLatitude(), loc.GetDegreesLongitude())
             log.Printf("Location: %s\n", location)
             message.Location = &location
-            hasContent = true
         }
 
     // Media (image or video)
     } else if msg.ImageMessage != nil || msg.VideoMessage != nil || msg.AudioMessage != nil {
         hasContent = true
+        caption := ""
         if msg.ImageMessage != nil {
             image := msg.GetImageMessage()
+            caption = image.GetCaption()
             message.Photo = mediaImageReference(image)
             message.File = fmt.Sprintf("%s.jpg", streamID)
         } else if msg.VideoMessage != nil {
             video := msg.GetVideoMessage()
+            caption = video.GetCaption()
             message.Video = mediaVideoReference(video)
             message.File = fmt.Sprintf("%s.mp4", streamID)
         } else if msg.AudioMessage != nil {
             audio := msg.GetAudioMessage()
             message.Audio = mediaAudioReference(audio)
             message.File = fmt.Sprintf("%s.opus", streamID)
+        }
+        if (caption != "") {
+            enc_caption := encrypt([]byte(caption), []byte(enc_key))
+            message.Text = enc_caption
         }
     }
 
