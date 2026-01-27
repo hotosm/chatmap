@@ -201,12 +201,18 @@ async def media(filename: str) -> Dict[str, str]:
     file_path = os.path.join(MEDIA_FOLDER, filename)
     if not os.path.isfile(file_path):
         return {"error": "File not found"}
-    return FileResponse(path=file_path, media_type="image/jpeg")
+    if filename[-3:] == "jpg":
+        return FileResponse(path=file_path, media_type="image/jpeg")
+    elif filename[-3:] == "mp4":
+        return FileResponse(path=file_path, media_type="video/mp4")
+    elif filename[-4:] == "opus":
+        return FileResponse(path=file_path, media_type="audio/opus")
+    return {"error": "Format unknown"}
 
 # Get Status
 @api_router.get("/version")
 async def version():
-    return {'version': "0.0.4"}
+    return {'version': "0.0.5"}
 
 # Protected endpoint example (requires Hanko auth)
 @api_router.get("/me")

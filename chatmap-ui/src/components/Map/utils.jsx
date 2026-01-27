@@ -40,8 +40,14 @@ export const getMessage = (message, msgType, dataFiles) => {
     } else if (msgType === "audio") {
       content = <audio controls className="popupAudio" alt={message.file} src={URL.createObjectURL(dataFiles[message.file])} />
     }
-  } else if (message.file && message.file.startsWith("http") && message.file.endsWith("jpg")) {
-    content = <img className="popupImage" alt={message.file} src={message.file} />;
+  } else if (message.file && message.file.startsWith("http")) {
+    if (message.file.endsWith("jpg")) {
+      content = <img className="popupImage" alt={message.file} src={message.file} />;
+    } else if (message.file.endsWith("mp4")) {
+      content = <video controls className="popupVideo" alt={message.file} src={message.file} />
+    } else if (message.file.endsWith("jpg")) {
+      content = <audio controls className="popupAudio" alt={message.file} src={message.file} />
+    }
   }
 
   return <>

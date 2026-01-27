@@ -53,6 +53,13 @@ import (
     waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
+type FileType int64
+
+const (
+    ImageFileT FileType = 0
+    VideoFileT FileType = 1
+    AudioFileT FileType = 2
+)
 
 const (
     // DefaultRedisPort is the port used when ``REDIS_PORT`` is not set.
@@ -98,10 +105,10 @@ type Message struct {
     // Photo is a JSON‑encoded media reference to an image.
     Photo string
 
-    // Video is a JSON‑encoded media reference to a video (not yet used).
+    // Video is a JSON‑encoded media reference to a video
     Video string
 
-    // Audio is a JSON‑encoded media reference to an audio (not yet used).
+    // Audio is a JSON‑encoded media reference to an audio
     Audio string
 
     // File is the local file name for the downloaded media.
@@ -452,10 +459,38 @@ func cleanEmptySessions() {
 
 }
 
-// mediaReference serialises the given ImageMessage into a JSON‑encoded
+// mediaImageReference serialises the given ImageMessage into a JSON‑encoded
 // ``MediaReference`` string.  It is used when storing media URLs in
 // Redis.
-func mediaReference(msg *waProto.ImageMessage) string {
+func mediaImageReference(msg *waProto.ImageMessage) string {
+    ref := MediaReference{
+        MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
+        DirectPath: msg.GetDirectPath(),
+        FileSHA256: base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
+        FileLength: msg.GetFileLength(),
+        Mimetype:   msg.GetMimetype(),
+    }
+    data, _ := json.Marshal(ref)
+    return string(data)
+}
+// mediaVideoReference serialises the given VideoMessage into a JSON‑encoded
+// ``MediaReference`` string.  It is used when storing media URLs in
+// Redis.
+func mediaVideoReference(msg *waProto.VideoMessage) string {
+    ref := MediaReference{
+        MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
+        DirectPath: msg.GetDirectPath(),
+        FileSHA256: base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
+        FileLength: msg.GetFileLength(),
+        Mimetype:   msg.GetMimetype(),
+    }
+    data, _ := json.Marshal(ref)
+    return string(data)
+}
+// mediaAudioReference serialises the given AudioMessage into a JSON‑encoded
+// ``MediaReference`` string.  It is used when storing media URLs in
+// Redis.
+func mediaAudioReference(msg *waProto.AudioMessage) string {
     ref := MediaReference{
         MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
         DirectPath: msg.GetDirectPath(),
@@ -467,10 +502,11 @@ func mediaReference(msg *waProto.ImageMessage) string {
     return string(data)
 }
 
+
 // decryptAndDownloadMedia downloads an encrypted media file and
 // decrypts it using the supplied ``MediaReference``.  It returns the
 // raw file bytes or an error if the download or decryption fails.
-func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference) ([]byte, error) {
+func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference, fileType FileType) ([]byte, error) {
     // Decode metadata
     mediaKey, err := base64.StdEncoding.DecodeString(meta.MediaKey)
     if err != nil {
@@ -484,17 +520,44 @@ func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference) ([]b
     if err != nil {
         return nil, fmt.Errorf("failed to decode FileEncSHA256: %w", err)
     }
-    // Create ImageMessage from metadata
-    imgMsg := waProto.ImageMessage{
-        MediaKey:   mediaKey,
-        DirectPath: &meta.DirectPath,
-        FileSHA256: fileSHA256,
-        FileEncSHA256: fileEncSHA256,
-        FileLength: &meta.FileLength,
-        Mimetype:   &meta.Mimetype,
+    var data []byte
+    if fileType == ImageFileT {
+        // Create ImageMessage from metadata
+        imgMsg := waProto.ImageMessage{
+            MediaKey:   mediaKey,
+            DirectPath: &meta.DirectPath,
+            FileSHA256: fileSHA256,
+            FileEncSHA256: fileEncSHA256,
+            FileLength: &meta.FileLength,
+            Mimetype:   &meta.Mimetype,
+        }
+        // Download & decrypt
+        data, err = client.Download(context.Background(), &imgMsg)
+    } else if fileType == VideoFileT {
+        // Create VideoMessage from metadata
+        videoMsg := waProto.VideoMessage{
+            MediaKey:   mediaKey,
+            DirectPath: &meta.DirectPath,
+            FileSHA256: fileSHA256,
+            FileEncSHA256: fileEncSHA256,
+            FileLength: &meta.FileLength,
+            Mimetype:   &meta.Mimetype,
+        }
+        // Download & decrypt
+        data, err = client.Download(context.Background(), &videoMsg)
+    } else if fileType == AudioFileT {
+        // Create AudioMessage from metadata
+        audioMsg := waProto.AudioMessage{
+            MediaKey:   mediaKey,
+            DirectPath: &meta.DirectPath,
+            FileSHA256: fileSHA256,
+            FileEncSHA256: fileEncSHA256,
+            FileLength: &meta.FileLength,
+            Mimetype:   &meta.Mimetype,
+        }
+        // Download & decrypt
+        data, err = client.Download(context.Background(), &audioMsg)
     }
-    // Download & decrypt
-    data, err := client.Download(context.Background(), &imgMsg)
     if err != nil {
         log.Printf("download error: %v", err)
         return nil, fmt.Errorf("download error: %w", err)
@@ -519,13 +582,16 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
     // Extract the file name from the path
     msgID := ""
-    mediaType := ""
+    var fileType FileType
     if strings.HasSuffix(urlPath, ".jpg") {
         msgID = strings.ReplaceAll(path.Base(urlPath), ".jpg", "")
-        mediaType = "jpg"
+        fileType = ImageFileT
     } else if strings.HasSuffix(urlPath, ".mp4") {
         msgID = strings.ReplaceAll(path.Base(urlPath), ".mp4", "")
-        mediaType = "mp4"
+        fileType = VideoFileT
+    } else if strings.HasSuffix(urlPath, ".opus") {
+        msgID = strings.ReplaceAll(path.Base(urlPath), ".opus", "")
+        fileType = AudioFileT
     } else {
         log.Printf("unknown media format")
         return
@@ -540,12 +606,17 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
 
     if (len(res) > 0) {
         mediaJSON, _ := "",""
-        if (mediaType == "jpg") {
+        if (fileType == ImageFileT) {
             mediaJSON, _ = res[0].Values["photo"].(string)
+        } else if (fileType == VideoFileT) {
+            mediaJSON, _ = res[0].Values["video"].(string)
+        } else if (fileType == AudioFileT) {
+            mediaJSON, _ = res[0].Values["audio"].(string)
+        } else {
+            log.Printf("file type unknown")
+            http.Error(w, "file type unknown", http.StatusInternalServerError)
+            return
         }
-        //  else {
-        //     mediaJSON, _ = res[0].Values["video"].(string)
-        // }
 
         // De-serialize media reference
         var meta MediaReference
@@ -554,18 +625,19 @@ func mediaHandler(w http.ResponseWriter, r *http.Request) {
         }
 
         // Download decrypted media
-        data, err := decryptAndDownloadMedia(client, meta)
+        data, err := decryptAndDownloadMedia(client, meta, fileType)
         if err != nil {
             log.Printf("error downloading media: %v", err)
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
-        if (mediaType == "jpg") {
+        if (fileType == ImageFileT) {
             w.Header().Set("Content-Type", "image/jpeg")
+        } else if  (fileType == VideoFileT) {
+            w.Header().Set("Content-Type", "video/mp4")
+        } else if  (fileType == AudioFileT) {
+            w.Header().Set("Content-Type", "audio/opus")
         }
-        //  else {
-        //     w.Header().Set("Content-Type", "video/mp4")
-        // }
         w.WriteHeader(http.StatusOK)
         _, _ = w.Write(data)
     } else {
@@ -625,18 +697,21 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
         }
 
     // Media (image or video)
-    } else if msg.ImageMessage != nil || msg.VideoMessage != nil {
+    } else if msg.ImageMessage != nil || msg.VideoMessage != nil || msg.AudioMessage != nil {
+        hasContent = true
         if msg.ImageMessage != nil {
             image := msg.GetImageMessage()
-            message.Photo = mediaReference(image)
+            message.Photo = mediaImageReference(image)
             message.File = fmt.Sprintf("%s.jpg", streamID)
-            hasContent = true
+        } else if msg.VideoMessage != nil {
+            video := msg.GetVideoMessage()
+            message.Video = mediaVideoReference(video)
+            message.File = fmt.Sprintf("%s.mp4", streamID)
+        } else if msg.AudioMessage != nil {
+            audio := msg.GetAudioMessage()
+            message.Audio = mediaAudioReference(audio)
+            message.File = fmt.Sprintf("%s.opus", streamID)
         }
-        //  else {
-        //     video := msg.GetVideoMessage()
-        //     message.Video = mediaReference(video)
-        //     message.File = fmt.Sprintf("%s.mp4", streamID)
-        // }
     }
 
     // Save data into Redis queue
@@ -655,6 +730,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
                 "location": message.Location,
                 "photo": message.Photo,
                 "video": message.Video,
+                "audio": message.Audio,
                 "file": message.File,
             },
         })

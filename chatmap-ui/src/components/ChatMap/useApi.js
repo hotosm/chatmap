@@ -17,7 +17,6 @@ const useApi = (params = {}) => {
         features: []
     });
     const [QRImgSrc, setQRImgSrc] = useState();
-    const [session, setSession] = useState();
     const [status, setStatus] = useState();
     const [mapShare, setMapShare] = useState({});
 
