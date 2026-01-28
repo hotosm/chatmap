@@ -499,6 +499,11 @@
     "@teamhanko/hanko-elements" "^1.0.0"
     lit "^3.3.1"
 
+"@hotosm/tool-menu@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@hotosm/tool-menu/-/tool-menu-0.1.1.tgz#1895cb27e1404be43e2fda39de26704dafa71a50"
+  integrity sha512-AZ1+dWn66lPE9Q9k+KDrK1YF/c3cgCFEA1krsR/y64Nut+nGsbMIr+phUCZ5wA+i7CzxFJoxVkFGwlF2Sv/PnA==
+
 "@jridgewell/gen-mapping@^0.3.12", "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.13"
   resolved "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz"

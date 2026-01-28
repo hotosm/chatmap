@@ -6,6 +6,7 @@ import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import ShareButton from '../components/ShareButton';
 import '@hotosm/hanko-auth';
+import "@hotosm/tool-menu";
 
 export default function Header({
   dataAvailable,
@@ -88,7 +89,9 @@ export default function Header({
             />
           }
 
-
+          <hotosm-tool-menu
+            show-logos={false}
+          />
 
         </div>
       </header>
