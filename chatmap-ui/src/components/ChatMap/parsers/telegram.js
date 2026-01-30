@@ -7,8 +7,6 @@
  * of media files
  */
 
-import ChatMap from "../chatmap";
-
 const stripPath = filename => {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
 }
@@ -73,16 +71,14 @@ const parseAndIndex = (lines) => {
     return result;
 }
 
-function telegramParser({ text, options }) {
+function telegramParser({ text }) {
     if (!text) return;
     const json = JSON.parse(text);
 
     // Get message objects
     const messages = parseAndIndex(json.messages);
-    const chatmap = new ChatMap(messages);
-    const geoJSON = chatmap.pairContentAndLocations(searchLocation, options);
 
-    return { geoJSON };
+    return messages;
 }
 
 telegramParser._name = 'Telegram';

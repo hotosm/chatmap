@@ -8,7 +8,6 @@
  */
 
 import ignore from "./ignore";
-import ChatMap from "../chatmap";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
 const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*$/;
@@ -171,7 +170,7 @@ export const parseAndIndex = (lines, system) => {
  * @param {string} text
  * @returns {object} GeoJSON
  */
-function whatsAppParser({ text, options }) {
+function whatsAppParser({ text }) {
     if (!text) return;
 
     // Split the full text in lines
@@ -188,10 +187,8 @@ function whatsAppParser({ text, options }) {
 
     // Get message objects from text lines
     const messages = parseAndIndex(lines, system);
-    const chatmap = new ChatMap(messages);
-    const geoJSON = chatmap.pairContentAndLocations(searchLocation, options);
 
-    return { geoJSON };
+    return messages;
 }
 
 whatsAppParser._name = 'WhatsApp';

@@ -7,8 +7,6 @@
  * of media files
  */
 
-
-import ChatMap from "../chatmap";
 import moment from 'moment';
 
 // Regex to search for coordinates in the format <lat>%2C<lon> (ex: -31.006037,-64.262794)
@@ -92,16 +90,14 @@ const parseAndIndex = (lines) => {
 }
 
 
-function signalParser({ text, options}) {
+function signalParser({ text }) {
     if (!text) return;
     const lines = text.split("\n");
 
     // Get message objects
     const messages = parseAndIndex(lines);
-    const chatmap = new ChatMap(messages);
-    const geoJSON = chatmap.pairContentAndLocations(searchLocation, options);
 
-    return { geoJSON };
+    return messages;
 }
 
 signalParser._name = 'Signal';

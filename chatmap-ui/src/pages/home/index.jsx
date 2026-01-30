@@ -30,10 +30,7 @@ function App() {
   // - mapData: ready to use GeoJSON data created from chats
   // - resetMerger: clean everthing to upload a new file
   const [mapData, resetMerger] = useContentMerger({
-    files: files,
-    options: {
-      withPhotos, withVideos, withAudios, withText,
-    }
+    files, withPhotos, withVideos, withAudios, withText,
   });
 
   // Map Data Context: Manages map data
@@ -109,7 +106,6 @@ function App() {
               <FileUploadSection
                 handleFiles={handleFiles}
                 handleDataFile={handleDataFile}
-                onError={handleFilesError}
               />
             </div>
             <div className="home__image">
