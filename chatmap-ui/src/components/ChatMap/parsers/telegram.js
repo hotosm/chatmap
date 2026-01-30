@@ -7,16 +7,13 @@
  * of media files
  */
 
-import ChatMap from "../chatmap";
-
 const stripPath = filename => {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
 }
 
-const searchLocation = msg => {
+export const searchLocation = msg => {
     return msg.location;
 }
-
 
 // Parse time, username and message
 const parseMessage = (line) => {
@@ -41,12 +38,15 @@ const parseMessage = (line) => {
     }
     if (line.photo) {
         msgObject.file = stripPath(line.photo);
+        msgObject.file_type = "image";
     }
     if (line.file && line.mime_type === "video/mp4") {
         msgObject.file = stripPath(line.file);
+        msgObject.file_type = "video";
     }
     if (line.file && ["audio/ogg", "audio/opus", "audio/mp3", "audio/m4a", "audio/wav"].indexOf(line.mime_type) > -1) {
         msgObject.file = stripPath(line.file);
+        msgObject.file_type = "audio";
     }
     return msgObject;
 }
@@ -70,16 +70,14 @@ const parseAndIndex = (lines) => {
     return result;
 }
 
-function telegramParser({ text, options }) {
+function telegramParser({ text }) {
     if (!text) return;
     const json = JSON.parse(text);
 
     // Get message objects
     const messages = parseAndIndex(json.messages);
-    const chatmap = new ChatMap(messages, searchLocation, options);
-    const geoJSON = chatmap.pairContentAndLocations();
 
-    return { geoJSON };
+    return messages;
 }
 
 telegramParser._name = 'Telegram';

@@ -1,5 +1,6 @@
 import { expect, test as it} from 'vitest'
-import parser from '../src/components/ChatMap/parsers/whatsapp';
+import parser, { searchLocation } from '../src/components/ChatMap/parsers/whatsapp';
+import ChatMap from '../src/components/ChatMap/chatmap';
 
 it('should parse locations + messages from a chat', () => {
 const text = ["[08/01/25, 6:02:14 p.m.] Ann: Look how nice",
@@ -9,7 +10,9 @@ const text = ["[08/01/25, 6:02:14 p.m.] Ann: Look how nice",
             "[08/01/25, 6:26:52 p.m.] Ann: Point 2",
             "[08/01/25, 6:27:00 p.m.] Ann: Location: https://maps.google.com/?q=20.672567,-100.446297",
             ].join("\n");
-  const {geoJSON} = parser({ text: text, options: {} });
+  const messages = parser({ text: text });
+  const chatmap = new ChatMap(messages);
+  const geoJSON = chatmap.pairContentAndLocations(searchLocation, {});
   expect(geoJSON.features.length).toEqual(3); 
 });
 
@@ -24,6 +27,8 @@ const text = ["[08/01/25, 6:02:14 p.m.] Ann: Another thing",
             "[08/01/25, 6:26:52 p.m.] Ann: Point B",
             "[08/01/25, 6:27:00 p.m.] Ann: Location: https://maps.google.com/?q=20.672567,-100.446297",
             ].join("\n");
-  const {geoJSON} = parser({ text: text, options: {} });
+  const messages = parser({ text: text });
+  const chatmap = new ChatMap(messages);
+  const geoJSON = chatmap.pairContentAndLocations(searchLocation, {});
   expect(geoJSON.features.length).toEqual(3); 
 });

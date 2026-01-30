@@ -8,7 +8,6 @@
  */
 
 import ignore from "./ignore";
-import ChatMap from "../chatmap";
 
 // Regex to search for coordinates in the format <lat>,<lon> (ex: -31.006037,-64.262794)
 const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*$/;
@@ -17,6 +16,16 @@ const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|
 const MSG_PATTERN = {
     IOS: /\[(.*)\] ([^:]*): (.*)/,
     ANDROID: /(.*) - ([^:]*): (.*)/
+}
+
+const TYPES = {
+  ".jpg": "image",
+  ".ogg": "audio",
+  ".opus": "audio",
+  ".mp3": "audio",
+  ".m4a": "audio",
+  ".wav": "audio",
+  ".mp4": "video",
 }
 
 // Detect system (Android or iOS)
@@ -46,14 +55,18 @@ export const lookForMediaFile = (msgObject) => {
             break;
         }
     }
+
     if (mediaFileIndex > 0) {
         let path = msgObject.message.substring(msg.lastIndexOf(":") + 1, mediaFileIndex + foundExt.length);
+
         if (path.substring(0, 1) == " ") {
-            return path.substring(1, path.length)
+            path = path.substring(1);
         }
-        return path;
+
+        return {path, type: TYPES[foundExt]};
     }
-    return ""
+
+    return null;
 }
 
 // Search for a location
@@ -96,7 +109,13 @@ export const parseMessage = (line, system) => {
         }
 
         // Look for media
-        msgObject.file = lookForMediaFile(msgObject);
+        const mediaFile = lookForMediaFile(msgObject);
+
+        if (mediaFile !== null) {
+          msgObject.file = mediaFile.path;
+          msgObject.file_type = mediaFile.type;
+        }
+
         if (msgObject.file) {
             msgObject.message = "";
         }
@@ -151,7 +170,7 @@ export const parseAndIndex = (lines, system) => {
  * @param {string} text
  * @returns {object} GeoJSON
  */
-function whatsAppParser({ text, options }) {
+function whatsAppParser({ text }) {
     if (!text) return;
 
     // Split the full text in lines
@@ -168,10 +187,8 @@ function whatsAppParser({ text, options }) {
 
     // Get message objects from text lines
     const messages = parseAndIndex(lines, system);
-    const chatmap = new ChatMap(messages, searchLocation, options);
-    const geoJSON = chatmap.pairContentAndLocations();
 
-    return { geoJSON };
+    return messages;
 }
 
 whatsAppParser._name = 'WhatsApp';

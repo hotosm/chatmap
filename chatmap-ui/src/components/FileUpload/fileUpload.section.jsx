@@ -3,8 +3,6 @@ import FileUpload from '../../components/FileUpload';
 export default function FileUploadSection({
     handleDataFile,
     handleFiles,
-    handleMediaOnlyChange,
-    mediaOnly,
     onError,
   }) {
 
@@ -15,8 +13,6 @@ export default function FileUploadSection({
           onDataFileLoad={handleDataFile}
           onFilesLoad={handleFiles}
           onError={onError}
-          mediaOnly={mediaOnly}
-          onMediaOnlyChange={handleMediaOnlyChange}
         />
       </div>
     </>
