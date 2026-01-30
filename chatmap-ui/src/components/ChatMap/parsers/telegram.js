@@ -11,10 +11,9 @@ const stripPath = filename => {
     return filename.substring(filename.lastIndexOf("/") + 1, filename.length);
 }
 
-const searchLocation = msg => {
+export const searchLocation = msg => {
     return msg.location;
 }
-
 
 // Parse time, username and message
 const parseMessage = (line) => {

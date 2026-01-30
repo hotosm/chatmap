@@ -9,8 +9,8 @@
 export default async function getAppParser (text) {
     if (!text) return;
     if (text.indexOf('_chatmapId') > -1) { 
-        const geoJSONParser = (await import('./geojson')).default
-        return geoJSONParser;
+        const module = await import('./geojson');
+        return { parser: module.default, searchLocation: module.searchLocation };
     } else if (text[0] === "{") { 
         const module = await import('./telegram');
         return { parser: module.default, searchLocation: module.searchLocation };

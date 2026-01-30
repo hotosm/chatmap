@@ -22,7 +22,7 @@ const searchLocationInLine = (line) => {
 }
 
 // Search for a location
-const searchLocation = msg => {
+export const searchLocation = msg => {
     return msg._location;
 }
 
