@@ -9,15 +9,15 @@
 export default async function getAppParser (text) {
     if (!text) return;
     if (text.indexOf('_chatmapId') > -1) { 
-        const geoJSONParser = (await import('./geojson')).default
-        return geoJSONParser;
+        const module = await import('./geojson');
+        return { parser: module.default, searchLocation: module.searchLocation };
     } else if (text[0] === "{") { 
-        const telegramParser = (await import('./telegram')).default
-        return telegramParser;
+        const module = await import('./telegram');
+        return { parser: module.default, searchLocation: module.searchLocation };
     } else if (text.indexOf("group-v2-change") > -1) {
-        const signalParser = (await import('./signal')).default
-        return signalParser;
+        const module = await import('./signal');
+        return { parser: module.default, searchLocation: module.searchLocation };
     }
-    const whatsappParser = (await import('./whatsapp')).default
-    return whatsappParser;
+    const module = await import('./whatsapp');
+    return { parser: module.default, searchLocation: module.searchLocation };
 }

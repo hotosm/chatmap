@@ -12,7 +12,6 @@ import logo from "../../assets/chatmap-home.png";
 const Map = lazy(() => import("../../components/Map/index.jsx"));
 
 function App() {
-  const [noLocations, setNoLocations] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [withPhotos, setWithPhotos] = useState(true);
   const [withVideos, setWithVideos] = useState(true);
@@ -31,10 +30,7 @@ function App() {
   // - mapData: ready to use GeoJSON data created from chats
   // - resetMerger: clean everthing to upload a new file
   const [mapData, resetMerger] = useContentMerger({
-    files: files,
-    options: {
-      withPhotos, withVideos, withAudios, withText,
-    }
+    files, withPhotos, withVideos, withAudios, withText,
   });
 
   // Map Data Context: Manages map data
@@ -81,23 +77,11 @@ function App() {
     }
     resetFileManager();
     resetMerger();
-    setNoLocations(false);
     mapDataDispatch({
       type: 'reset'
     })
     window.removeEventListener('beforeunload', confirmPageLeave);
   }
-
-  // Handle uploaded files error (ex: invalid chat export)
-  const handleFilesError = () => {
-    setNoLocations(true);
-  }
-
-  useEffect(() => {
-    if (files !== null && data._chatmapId != null && data.features.length === 0) {
-      setNoLocations(true);
-    }
-  }, [files, data]);
 
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
@@ -122,7 +106,6 @@ function App() {
               <FileUploadSection
                 handleFiles={handleFiles}
                 handleDataFile={handleDataFile}
-                onError={handleFilesError}
               />
             </div>
             <div className="home__image">

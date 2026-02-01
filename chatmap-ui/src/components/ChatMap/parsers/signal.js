@@ -7,8 +7,6 @@
  * of media files
  */
 
-
-import ChatMap from "../chatmap";
 import moment from 'moment';
 
 // Regex to search for coordinates in the format <lat>%2C<lon> (ex: -31.006037,-64.262794)
@@ -24,7 +22,7 @@ const searchLocationInLine = (line) => {
 }
 
 // Search for a location
-const searchLocation = msg => {
+export const searchLocation = msg => {
     return msg._location;
 }
 
@@ -42,11 +40,14 @@ const parseMessage = (line, msg) => {
         msg.time = parseTimeString(msg.timeString);
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf(".jpeg") > -1) {
         msg.file = line.substring(12, line.indexOf(".jpeg") + 5);
+        msg.file_type = "image";
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf(".jpg") > -1) {
         msg.file = line.substring(12, line.indexOf(".jpg") + 4);
+        msg.file_type = "image;
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf("jpeg") > -1 && line.indexOf("no filename") > -1 ) {
         const formattedTime = moment.parseZone(msg.timeString).format('YYYY-MM-DD-HH-mm-ss');
         msg.file = `attachment-${formattedTime}.jpg`;
+        msg.file_type = "image";
     } else if (!msg.file && !msg.message && line.indexOf("Type: ") === -1 &&
         line.indexOf("Received: ") === -1 && line.indexOf("Conversation: ") === -1) {
         msg.message = line;
@@ -89,16 +90,14 @@ const parseAndIndex = (lines) => {
 }
 
 
-function signalParser({ text, options}) {
+function signalParser({ text }) {
     if (!text) return;
     const lines = text.split("\n");
 
     // Get message objects
     const messages = parseAndIndex(lines);
-    const chatmap = new ChatMap(messages, searchLocation, options);
-    const geoJSON = chatmap.pairContentAndLocations();
 
-    return { geoJSON };
+    return messages;
 }
 
 signalParser._name = 'Signal';
