@@ -6,9 +6,8 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "dependencies": {
-    "@awesome.me/webawesome": "3.0.0-beta.1",
     "@babel/core": "^7.26.10",
-    "@hotosm/hanko-auth": "^0.3.5",
+    "@hotosm/hanko-auth": "^0.4.1",
     "@hotosm/tool-menu": "0.1.1",
     "@shoelace-style/shoelace": "^2.20.1",
     "file-saver": "^2.0.5",

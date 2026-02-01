@@ -19,13 +19,6 @@ import { ConfigProvider } from './context/ConfigContext';
 import { AuthProvider } from './context/AuthContext';
 import AppRoutes from './routes'; 
 
-// TO BE REMOVED
-// Web Awesome UI components (needed for hanko-auth web component)
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/dropdown/dropdown.js';
-import '@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js';
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
-
 // Shoelace UI components
 import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
