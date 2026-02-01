@@ -43,7 +43,7 @@ const parseMessage = (line, msg) => {
         msg.file_type = "image";
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf(".jpg") > -1) {
         msg.file = line.substring(12, line.indexOf(".jpg") + 4);
-        msg.file_type = "image;
+        msg.file_type = "image";
     } else if (line.indexOf("Attachment: ") === 0 && line.indexOf("jpeg") > -1 && line.indexOf("no filename") > -1 ) {
         const formattedTime = moment.parseZone(msg.timeString).format('YYYY-MM-DD-HH-mm-ss');
         msg.file = `attachment-${formattedTime}.jpg`;

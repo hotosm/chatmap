@@ -200,7 +200,7 @@ export default class ChatMap {
             properties: {
               // If a message is found later this will be overriden
               ...msg,
-              message: "(Location only)",
+              message: "{location-only}",
             },
             geometry: {
                 type: "Point",

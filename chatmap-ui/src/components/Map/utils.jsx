@@ -55,7 +55,10 @@ export const getMessage = (message, msgType, dataFiles) => {
       { content ? content : null }
       </div>
       {/* Text */}
-      { message.message && message.message !== " " ?
+      { message.message && message.message !== " " && message.message !== "{location-only}" ?
       <p className="text">{message.message}</p> : null}
+      {  message.message === "{location-only}" ?
+        <p className="text location-only">Location only</p>
+      : null}
     </>
 }

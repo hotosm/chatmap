@@ -67,11 +67,16 @@ export default function Map({ dataFiles, center, zoom, className, onInteract }) 
             'source': 'locations',
             'layout': {},
             'paint': {
-                'circle-color': [
-                  "case",
+              'circle-color': [
+                    "case",
                     ["boolean", ["get", "removed"], false],
                     '#9A969B', // --hot-color-neutral-400
-                    '#D73F3F' // --hot-color-red-600
+                    [
+                        "case",
+                        ["==", ["get", "message"], "{location-only}"],
+                        '#2C3038', // --hot-color-grey-950
+                        '#D73F3F'  // --hot-color-red-600
+                    ]
                 ],
                 'circle-radius': 10
             }

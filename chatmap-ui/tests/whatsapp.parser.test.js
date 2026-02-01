@@ -32,3 +32,15 @@ const text = ["[08/01/25, 6:02:14 p.m.] Ann: Another thing",
   const geoJSON = chatmap.pairContentAndLocations(searchLocation, {});
   expect(geoJSON.features.length).toEqual(3); 
 });
+
+it('should pair location + message even if there is a message from another user in the middle', () => {
+const text = ["[08/01/25, 6:06:12 p.m.] Alice: Point A",
+            "[08/01/25, 6:07:52 p.m.] Bob: Point B",
+            "[08/01/25, 6:08:15 p.m.] Alice: Location: https://maps.google.com/?q=20.672564,-100.446259",
+            "[08/01/25, 6:09:00 p.m.] Bob: Location: https://maps.google.com/?q=20.672567,-100.446297",
+            ].join("\n");
+  const messages = parser({ text: text });
+  const chatmap = new ChatMap(messages);
+  const geoJSON = chatmap.pairContentAndLocations(searchLocation, {withText: true});
+  expect(geoJSON.features.length).toEqual(2); 
+});

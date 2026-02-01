@@ -397,6 +397,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     font-size: var(--hot-font-size-x-small);
 }
 
+.message .text.location-only {
+    color: var(--hot-color-neutral-500);
+    font-style: italic;
+}
+
 /* Connect form */
 
 .connectForm {
