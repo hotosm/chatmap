@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import logo from '../assets/hot-logo-gray.svg';
 import { FormattedMessage } from 'react-intl';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
+import { useAuth } from './../context/AuthContext';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import ShareButton from '../components/ShareButton';
@@ -21,6 +22,7 @@ export default function Header({
   const { data, tags, mapDataDispatch } = useMapDataContext();
   const { config } = useConfigContext();
   const [_, langCode] = getLocalCode();
+  const { isAuthenticated } = useAuth();
 
   const selectTagHandler = tag => {
     mapDataDispatch({
@@ -50,7 +52,6 @@ export default function Header({
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
           {/* <sl-icon-button name="translate" /> */}
 
-
           { showUploadButton ?
           <div className="newFile">
               <sl-button
@@ -76,7 +77,7 @@ export default function Header({
             <ShareButton sharing={data.sharing} />
           }
 
-          { config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
+          { isAuthenticated && config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
           <sl-button className="header__live-button" href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
