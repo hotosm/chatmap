@@ -75,18 +75,20 @@ export default function Header({
           }
 
           { config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
-          <sl-button href="#linked" variant="default" outline size="small">
+          <sl-button className="header__live-button" href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
           }
 
           { config.ENABLE_AUTH &&
+          <div className="header__login-button">
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}
               login-url={config.LOGIN_URL}
               redirect-after-login={window.location.origin}
               redirect-after-logout={window.location.origin}
             />
+          </div>
           }
 
           <hotosm-tool-menu

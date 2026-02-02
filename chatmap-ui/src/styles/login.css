@@ -1,3 +1,7 @@
+hotosm-auth {
+  --hot-font-size-medium: var(--hot-font-size-small);
+}
+
 .login-page {
     display: flex;
     justify-content: center;

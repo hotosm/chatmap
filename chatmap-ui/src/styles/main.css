@@ -72,6 +72,10 @@ a {
     color: var(--hot-color-gray-950);
 }
 
+.header__login-button {
+    margin-left: var(--hot-spacing-small);
+}
+
 
 /* Footer */
 
