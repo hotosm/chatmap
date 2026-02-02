@@ -80,7 +80,7 @@ export default function Header({
             <ShareButton sharing={data.sharing} />
           }
 
-          {mode !== 'linked' &&
+          {mode !== 'linked' && Object.keys(tags).length > 0 &&
             <div className="tagsOptions">
               <TagsOptions
                   onSelectTag={selectTagHandler}

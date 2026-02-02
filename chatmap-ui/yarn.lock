@@ -485,10 +485,12 @@
     "@teamhanko/hanko-elements" "^1.0.0"
     lit "^3.3.1"
 
-"@hotosm/tool-menu@0.2.2":
-  version "0.2.2"
-  resolved "https://registry.npmjs.org/@hotosm/tool-menu/-/tool-menu-0.2.2.tgz"
-  integrity sha512-5LoqUcvJyQaqDf14bAZu0bYA9UMGsfMtsMI3N3KAMa+7D5tqGM4z06p4ghCkXnuLuj2UYRZ6Tnm08NGgnFPfXQ==
+"@hotosm/tool-menu@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@hotosm/tool-menu/-/tool-menu-0.2.3.tgz#52a098cb08de9dc91c0c00e09d5d5a7e555ad237"
+  integrity sha512-a4pjSw5EYyzqCs90VrlNPNZJsFnFmGRIYc+zrwhaF6wrSA/ZV3LIKvG5k7dcfydhinEtqTvusL2raAByn9s01w==
+  dependencies:
+    lit "^3.3.1"
 
 "@hotosm/ui-design@^1.4.0":
   version "1.4.0"

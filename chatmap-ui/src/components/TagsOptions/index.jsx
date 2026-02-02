@@ -2,7 +2,6 @@ import { FormattedMessage } from 'react-intl';
 
 export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
     return (
-        Object.keys(tags).length > 0 ?
         <sl-dropdown>
             <sl-button size="small" slot="trigger" caret>
                 { selectedTag ? selectedTag :
@@ -13,7 +12,7 @@ export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
                 }
                 <sl-icon slot="prefix" name="tags"></sl-icon>
             </sl-button>
-            <sl-menu>
+            <sl-menu className="tagsMenu">
                 <sl-menu-item key="all" onClick={() => onSelectTag(null)}>
                     {!selectedTag ?
                     <strong>
@@ -39,6 +38,5 @@ export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
                 )}
             </sl-menu>
         </sl-dropdown>
-        : ""
     );
 }

@@ -37,11 +37,11 @@ a {
 .header {
     position: fixed;
     top: 0;
-    width: calc(100vw - 30px);
+    width: calc(100vw - calc(var(--hot-spacing-large) * 2));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
     z-index: 9999;
     background-color: color-mix(in srgb, var(--hot-color-neutral-0) 90%, transparent);
 }
@@ -65,7 +65,7 @@ a {
 .header__rest {
     display: flex;
     align-items: center;
-    gap: var(--hot-spacing-medium);
+    gap: var(--hot-spacing-large);
 }
 
 .header__title {
@@ -80,6 +80,11 @@ a {
 
 .header__login-button {
     margin-left: var(--hot-spacing-small);
+}
+
+.header hotosm-tool-menu {
+    --hover-bg: none;
+    --icon-padding: var(--hot-spacing-small) 0;
 }
 
 
@@ -505,6 +510,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .pageContent {
     padding: var(--hot-spacing-2x-large);
+}
+
+.tagsMenu sl-menu-item::part(base) {
+    font-size: var(--hot-font-size-x-small);
 }
 
 /* Media queries */
