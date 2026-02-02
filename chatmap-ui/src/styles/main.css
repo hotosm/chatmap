@@ -25,6 +25,7 @@ html, body {
     -moz-osx-font-smoothing: neutralscale;
     color: var(--hot-color-neutral-1000);
     background-color: var(--hot-color-neutral-0);
+    overflow-x: hidden;
 }
 
 a {
@@ -34,10 +35,15 @@ a {
 /* Header */
 
 .header {
+    position: fixed;
+    top: 0;
+    width: calc(100vw - 30px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    z-index: 9999;
+    background-color: color-mix(in srgb, var(--hot-color-neutral-0) 90%, transparent);
 }
 
 .header a {
@@ -252,8 +258,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 /* Map */
 
 .map {
-    /* width: 100vw; */
-    height: calc(100vh - 55px);
+    height: 100vh;
     text-align: center;
     justify-content: center;
     display: flex;
