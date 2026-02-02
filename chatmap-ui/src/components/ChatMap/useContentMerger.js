@@ -67,7 +67,7 @@ function useContentMerger({ files, withPhotos, withVideos, withAudios, withText 
         features = features.concat(geoJSON.features);
 
         for (let source of localSources) {
-          if (sources.indexOf(source) !== -1) {
+          if (sources.indexOf(source) === -1) {
             sources.push(source);
           }
         }
