@@ -6,9 +6,9 @@
  * http://github.com/hotosm/ui-design
  */
 
-@import url('hotosm-ui-design/dist/hot.css');
-@import url('hotosm-ui-design/dist/hot-sl.css');
-@import url('hotosm-ui-design/dist/hot-font-face.css');
+@import url('@hotosm/ui-design/dist/hot.css');
+@import url('@hotosm/ui-design/dist/hot-sl.css');
+@import url('@hotosm/ui-design/dist/hot-font-face.css');
 
 sl-button[variant=primary]::part(base) {
   background-color: var(--hot-color-primary-950);
