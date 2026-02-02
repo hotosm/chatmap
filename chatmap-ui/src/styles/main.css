@@ -547,12 +547,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
         height: 90vh;
     }
 
-    .header__rest .newFile sl-button::part(base) {
+    .header__rest .newFile sl-button::part(base),
+    .header__rest .saveFile sl-button::part(base) {
         width: 40px;
         padding-inline-start: 0;
     }
 
-    .header__rest .newFile sl-button::part(label) {
+    .header__rest .newFile sl-button::part(label),
+    .header__rest .saveFile sl-button::part(label) {
         display: none;
     }
 

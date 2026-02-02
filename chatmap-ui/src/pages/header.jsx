@@ -6,6 +6,7 @@ import { useAuth } from './../context/AuthContext';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import ShareButton from '../components/ShareButton';
+import TagsOptions from "../components/TagsOptions/index.jsx";
 import getLocalCode from '../lang';
 import '@hotosm/hanko-auth';
 import "@hotosm/tool-menu";
@@ -70,11 +71,23 @@ export default function Header({
 
 
           {showDownloadButton && mode !== 'linked' && dataAvailable && 
-            <SaveButton data={data} dataFiles={dataFiles} />
+            <div className="saveFile">
+              <SaveButton data={data} dataFiles={dataFiles} />
+            </div>
           }
 
           {mode === 'linked' && dataAvailable &&
             <ShareButton sharing={data.sharing} />
+          }
+
+          {mode !== 'linked' &&
+            <div className="tagsOptions">
+              <TagsOptions
+                  onSelectTag={selectTagHandler}
+                  tags={tags}
+                  selectedTag={data.filterTag}
+              />
+            </div>
           }
 
           { isAuthenticated && config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
