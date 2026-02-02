@@ -65,18 +65,18 @@ the Live feature.
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
-|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!|
-|✅| Link a device and get a stream of locations + content (live community reporting)|
-|✅| Backend with user authentication and saved maps |
+|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!
+|✅| Link a device and get a stream of locations + content (live community reporting)
+|✅| Backend with user authentication and saved maps
 |✅| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
 |✅| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
 |✅| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
 |✅| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |✅| [User profile](https://github.com/hotosm/chatmap/issues/58)
-|⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64) [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
-| | [Content timeline](https://github.com/hotosm/chatmap/issues/7) |
+|⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
+| | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Form for user content licensing |
-| | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1) |
+| | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
 | | ChatBot for creating automated surveys
 | | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
