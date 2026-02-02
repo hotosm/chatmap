@@ -20,6 +20,7 @@ export default function Header({
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
   const { config } = useConfigContext();
+  const [_, langCode] = getLocalCode();
 
   const selectTagHandler = tag => {
     mapDataDispatch({
@@ -88,7 +89,7 @@ export default function Header({
               login-url={config.LOGIN_URL}
               redirect-after-login={window.location.origin}
               redirect-after-logout={window.location.origin}
-              lang={getLocalCode()}
+              lang={langCode}
             />
           </div>
           }

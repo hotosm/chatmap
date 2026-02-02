@@ -32,10 +32,11 @@ async function init() {
   const response = await fetch('/config.json');
   const config = await response.json();
   const root = ReactDOM.createRoot(document.getElementById('root'));
+  const [langFn, _] = getLocalCode();
 
   root.render(
     <React.StrictMode>
-      <IntlProvider locale={navigator.language.slice(0,2)} messages={getLocalCode()}>
+      <IntlProvider locale={navigator.language.slice(0,2)} messages={langFn}>
         <ErrorBoundary>
           <AuthProvider>
             <MapDataProvider>

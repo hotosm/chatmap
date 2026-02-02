@@ -25,9 +25,9 @@ const locales = {
 const getLocalCode = () => {
   const lang = navigator.language.slice(0,2);
   if (lang in locales) {
-    return locales[lang];
+    return [locales[lang], lang];
   }
-  return locales["en"]
+  return [locales["en"], "en"]
 }
 
 export default getLocalCode;
