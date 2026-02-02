@@ -70,7 +70,7 @@ the Live feature.
 |✅| Backend with user authentication and saved maps |
 |✅| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
 |✅| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
-|⚙️| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
+|✅| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
 |⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
 |⚙️| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |⚙️| [User profile](https://github.com/hotosm/chatmap/issues/58)
