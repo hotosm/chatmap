@@ -5,6 +5,7 @@ import { useMapDataContext } from '../context/MapDataContext.jsx';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import ShareButton from '../components/ShareButton';
+import getLocalCode from '../lang';
 import '@hotosm/hanko-auth';
 import "@hotosm/tool-menu";
 
@@ -87,6 +88,7 @@ export default function Header({
               login-url={config.LOGIN_URL}
               redirect-after-login={window.location.origin}
               redirect-after-logout={window.location.origin}
+              lang={getLocalCode()}
             />
           </div>
           }
