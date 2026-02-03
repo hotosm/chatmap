@@ -74,7 +74,7 @@ the Live feature.
 |✅| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |✅| [User profile](https://github.com/hotosm/chatmap/issues/58)
 |⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
-| | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
+|⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Form for user content licensing |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
 | | ChatBot for creating automated surveys
