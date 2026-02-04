@@ -79,7 +79,7 @@ a {
 }
 
 .header hotosm-tool-menu {
-    --hover-bg: none;
+    --hover-bg: transparent;
     --icon-padding: var(--hot-spacing-small) 0;
 }
 
