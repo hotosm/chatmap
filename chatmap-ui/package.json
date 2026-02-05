@@ -7,7 +7,7 @@
   "type": "module",
   "dependencies": {
     "@babel/core": "^7.26.10",
-    "@hotosm/hanko-auth": "^0.4.2",
+    "@hotosm/hanko-auth": "^0.4.4",
     "@hotosm/tool-menu": "0.2.3",
     "@hotosm/ui-design": "^1.4.0",
     "@shoelace-style/shoelace": "^2.20.1",

@@ -477,10 +477,10 @@
     intl-messageformat "10.7.7"
     tslib "2"
 
-"@hotosm/hanko-auth@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@hotosm/hanko-auth/-/hanko-auth-0.4.2.tgz#a9df0335d652920bef9c0b259603ed1d88b2bb4b"
-  integrity sha512-DAN6r80ane+APwNyQ6P4SDXEh9E8P6EHnOHxNapwfnSSYZrn3ZINzK2yXpD+lwP2u0G9+z7V0mAGs6zg44onoA==
+"@hotosm/hanko-auth@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@hotosm/hanko-auth/-/hanko-auth-0.4.4.tgz#624d70620d78eee36843c71db4dd637f6f879454"
+  integrity sha512-OGPVad5mBUvp76SwE6TvSbRqp1AzNtzQt5Pc/A2CsiYZXENTnH9t1nq5//RfZJ8TLpIhI1AN222xChEDnKCdPw==
   dependencies:
     "@teamhanko/hanko-elements" "^1.0.0"
     lit "^3.3.1"
