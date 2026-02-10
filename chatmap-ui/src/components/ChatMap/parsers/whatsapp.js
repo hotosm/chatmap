@@ -14,8 +14,8 @@ const LOCATION_PATTERN = /[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|
 
 // Regex to search for messages in the format [<date>, <time>] <username>: <message>
 const MSG_PATTERN = {
-    IOS: /\[(.*)\] ([^:]*): (.*)/,
-    ANDROID: /(.*) - ([^:]*): (.*)/
+    IOS: /^\[(.*)\] ([^:]*): (.*)/,
+    ANDROID: /^(.*) - ([^:]*): (.*)/
 }
 
 const TYPES = {
@@ -91,8 +91,9 @@ const isInTheIgnoreList = msg => {
 }
 
 // Parse time, username and message
-export const parseMessage = (line, system) => {
+const parseMessage = (line, system, getTime) => {
     const match = line.match(MSG_PATTERN[system]);
+
     if (match && !isInTheIgnoreList(match[3])) {
         let username = match[2];
 
@@ -103,7 +104,7 @@ export const parseMessage = (line, system) => {
         }
 
         let msgObject = {
-            time: parseTimeString(match[1]),
+            time: getTime(match[1]),
             username:  username,
             message: match[3],
         }
@@ -134,15 +135,20 @@ export const parseTimeString = (dateStr) => {
     return new Date(fmtDate);
 }
 
+function getDateFormat(lines) {
+}
+
 // Parse messages from lines and create an index
 export const parseAndIndex = (lines, system) => {
+    const getDate = getDateFormat(lines);
+
     const result = [];
     lines.forEach((line) => {
 
         // Clean unicode from line
         line = line.replaceAll(/[\u200E\u200F\u202A-\u202E\u200B]/g, '');
 
-        const msg = parseMessage(line, system);
+        const msg = parseMessage(line, system, getDate);
 
         if (msg && !isInTheIgnoreList(msg.message)) {
             result.push(msg);

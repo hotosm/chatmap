@@ -22,4 +22,6 @@ it('should parse multi-line messages', () => {
     const msgObjects = parseAndIndex(msgs, "IOS");
     expect(msgObjects[0].message).toEqual("hey dude how are you? all good?"); 
   });
-  
+
+it('should get datetimes correctly', () => {
+});
