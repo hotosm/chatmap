@@ -74,7 +74,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract }) 
                     [
                         "case",
                         ["==", ["get", "message"], "{location-only}"],
-                        '#2C3038', // --hot-color-grey-950
+                        '#2E4873', // --hot-color-blue-600
                         '#D73F3F'  // --hot-color-red-600
                     ]
                 ],
