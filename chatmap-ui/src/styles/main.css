@@ -212,12 +212,6 @@ a {
 }
 
 /* File upload */
-
-.fileUpload {
-    padding-top: var(--hot-spacing-2x-large);
-    padding-bottom: var(--hot-spacing-large);
-}
-
 /* Fix a bug with react-drag-drop-files styling
 https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 .fileUploadMain  {
@@ -225,35 +219,6 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     height: 100%;
     display: block;
     width: auto;
-}
-
-.fileUploadDropArea::part(base) {
-    border: 2px dashed var(--hot-color-neutral-600);
-    /* height: calc(var(--hot-spacing-large) * 3.2); */
-    cursor: pointer;
-    font-size: var(--hot-font-size-large);
-    padding: var(--hot-spacing-small) var(--hot-spacing-x-large);
-}
-
-.fileUploadDropArea::part(base):hover {
-    border: 2px solid var(--hot-color-primary-300);
-    background-color: var(--hot-color-primary-50);
-}
-
-.fileUploadDropArea::part(input) {
-    height: calc(var(--hot-spacing-large) * 3);
-}
-
-.fileUploadDropArea::part(prefix) {
-    font-size: var(--hot-font-size-x-large);
-}
-
-.fileUploadWrapper {
-    margin-bottom: var(--hot-spacing-large);
-}
-
-.fileUploadOptions {
-    color: var(--hot-color-neutral-900);
 }
 
 /* Map */

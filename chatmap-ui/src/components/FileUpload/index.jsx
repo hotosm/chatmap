@@ -139,7 +139,11 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
               <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
             </sl-button>
           }
-          dropMessageStyle={{height: "100%"}}
+          dropMessageStyle={{
+            backgroundColor: "var(--hot-color-neutral-0)",
+            fontSize: "var(--hot-font-size-medium)",
+            fontWeight: "bold"
+          }}
           hoverTitle={hoverTitle}
         />
       </div>
