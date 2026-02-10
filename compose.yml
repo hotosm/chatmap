@@ -1,0 +1,113 @@
+# Production compose
+
+services:
+  # Frontend
+  chatmap-ui:
+    image: ghcr.io/hotosm/chatmap-ui:latest
+    expose:
+      - "80"
+    environment:
+      - NODE_ENV=production
+      - HANKO_API_URL==${HANKO_API_URL:-http://localhost:8002}
+      - ENABLE_LIVE=${ENABLE_LIVE:-true}
+      - ENABLE_AUTH=${ENABLE_AUTH:-true}
+      - LOGIN_URL=${LOGIN_URL:-http://localhost:5173/#/app}
+      - CHATMAP_API_URL=${CHATMAP_API_URL:-http://localhost:8000}
+      - CHATMAP_API_URL_SUFFIX=${CHATMAP_API_URL_SUFFIX:-v1}
+    networks:
+      - chatmap_net
+    volumes:
+      - ./chatmap-ui/public/config.json:/usr/share/nginx/html/config.json:ro
+
+  # Backend (API)
+  chatmap-api:
+    image: ghcr.io/hotosm/chatmap-api:latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - chatmap-redis
+      - chatmap-db
+    environment:
+      - REDIS_HOST=chatmap-redis
+      - REDIS_PORT=6379
+      - SERVER_URL=http://chatmap-go:8001
+      - CHATMAP_API_DEBUG=${CHATMAP_API_DEBUG:-false}
+      - CHATMAP_API_URL=${CHATMAP_API_URL:-http://localhost:8000}
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_SECRET_KEY=${CHATMAP_SECRET_KEY:-4sup3rs3cret5up3rdummykey}
+      - CHATMAP_DB_HOST=${CHATMAP_DB_HOST:-chatmap-db}
+      - CHATMAP_DB=${POSTGRES_DB:-chatmap}
+      - CHATMAP_DB_USER=${POSTGRES_USER:-admin}
+      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES=${CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES:-120}
+      - CHATMAP_EXPIRING_MIN=${CHATMAP_EXPIRING_MIN:-30}
+      - CHATMAP_CORS_ORIGINS=${CHATMAP_CORS_ORIGINS:-localhost,127.0.0.1}
+      - CHATMAP_DISABLE_STREAM_CLEANUP=${CHATMAP_DISABLE_STREAM_CLEANUP:-false}
+      - HANKO_API_URL=${HANKO_API_URL:-https://dev.login.hotosm.org}
+      - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
+    volumes:
+      - ./media:/app/media:rw
+      - ./data:/app/data:rw
+    networks:
+      - chatmap_net
+
+  # Backend (IM connector)
+  chatmap-go:
+    image: ghcr.io/hotosm/chatmap-im-connector:latest
+    environment:
+      - REDIS_HOST=chatmap-redis
+      - REDIS_PORT=6379
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./sessions:/app/sessions
+    networks:
+      - chatmap_net
+
+  # Redis stream
+  chatmap-redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - chatmap_net
+
+  # Nginx web server
+  chatmap-nginx:
+    image: nginx:latest
+    ports:
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/certbot/conf:/etc/letsencrypt:ro
+      - ./deploy/certbot/www:/var/www/certbot:ro
+      - ./chatmap-ui/public/config.json:/usr/share/nginx/html/config.json:ro
+
+    depends_on:
+      - chatmap-ui
+      - chatmap-api
+    networks:
+      - chatmap_net
+
+  # Postgres+PostGIS database
+  chatmap-db:
+    image: postgis/postgis:14-3.5-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-chatmap}
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - chatmap_net
+
+networks:
+  chatmap_net:
+
+volumes:
+  data:
+  media:

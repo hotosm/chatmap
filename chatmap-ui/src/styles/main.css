@@ -1,0 +1,543 @@
+/**
+ * This file has styling for the whole app.
+ * Please do not hardcode values directly, check
+ * first hot.css for variables. More info about the
+ * HOT UI design system here:
+ * http://github.com/hotosm/ui-design
+ */
+
+@import url('@hotosm/ui-design/dist/hot.css');
+@import url('@hotosm/ui-design/dist/hot-sl.css');
+@import url('@hotosm/ui-design/dist/hot-font-face.css');
+
+sl-button[variant=primary]::part(base) {
+  background-color: var(--hot-color-primary-950);
+  border-color: var(--hot-color-primary-950);
+  color: var(--sl-color-neutral-0);
+}
+
+/* defaults */
+
+html, body {
+    font-family: Helvetica, arial, sans-serif;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: neutralscale;
+    color: var(--hot-color-neutral-1000);
+    background-color: var(--hot-color-neutral-0);
+    overflow-x: hidden;
+}
+
+a {
+    color: var(--hot-color-blue-500);
+}
+
+/* Header */
+
+.header {
+    position: fixed;
+    top: 0;
+    width: calc(100vw - calc(var(--hot-spacing-large) * 2));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
+    z-index: 9999;
+    background-color: color-mix(in srgb, var(--hot-color-neutral-0) 90%, transparent);
+}
+
+.header a {
+    text-decoration: none;
+    color:var(--hot-color-neutral-950);
+}
+
+.header__logo-link {
+    display: block;
+    margin: 0;
+}
+
+.header__logo {
+    height: var(--hot-spacing-2x-large);
+    filter: grayscale(1);
+    display: block;
+}
+
+.header__rest {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-large);
+}
+
+.header__title {
+    display: flex;
+    column-gap: var(--hot-spacing-small);
+}
+
+.header__title-text {
+    font-size: var(--hot-font-size-medium);
+    color: var(--hot-color-gray-950);
+}
+
+.header hotosm-tool-menu {
+    --hover-bg: transparent;
+    --icon-padding: var(--hot-spacing-small) 0;
+    --icon-color: var(--hot-color-gray-950);
+}
+
+/* Footer */
+
+.footer {
+    box-sizing: border-box;
+    border-top: 1px solid color-mix(in srgb, var(--hot-color-yellow-50) 100%, var(--hot-color-neutral-0) 100%);
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--hot-color-yellow-50) 20%, var(--hot-color-neutral-0) 100%),
+        color-mix(in srgb, var(--hot-color-yellow-50) 15%, var(--hot-color-neutral-0) 100%) 100%
+    );
+    padding: var(--hot-spacing-x-large);
+    font-family: var(--hot-font-sans-variant);
+    font-weight: var(--hot-font-weight-semibold);
+    
+}
+
+.footer__floating {
+    width: 100vw;
+    border-top: 1px solid var(--hot-color-neutral-0);
+    box-shadow: 0 -5px 5px color-mix(in srgb, var(--hot-color-neutral-1000) 2%, transparent);
+    position: fixed;
+    bottom: 0;
+}
+
+.footer__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer__top-left {
+    max-width: 20rem;
+}
+
+
+.footer__top-left h2 {
+    font-size: var(--hot-font-size-2x-large);
+    font-weight: var(--hot-font-weight-medium);
+    margin-top: 0;
+    margin-bottom: var(--hot-spacing-medium);
+}
+
+.footer__top-left ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer__top-left li {
+    color: var(--hot-color-neutral-1000);
+}
+
+.footer__top-left li::after {
+    content: ">";
+    margin-left: var(--hot-spacing-2x-small);
+}
+
+.footer__top-left a:link,
+.footer__top-left a:visited,
+.footer__top-left a:active {
+    color: var(--hot-color-neutral-1000);
+    text-decoration: none;
+}
+
+.footer__top-right {
+    text-align: right;
+    max-width: 20rem;
+}
+
+.footer__top-right h3 {
+    font-size: var(--hot-font-size-2x-large);
+    font-weight: var(--hot-font-weight-bold);
+    margin-top: 0;
+    margin-bottom: var(--hot-spacing-medium);
+}
+
+.footer__top-right a::after {
+    content: ">";
+    margin-left: var(--hot-spacing-2x-small);
+}
+
+.footer__top-right a span {
+    position: relative;
+    font-size: var(--hot-font-size-x-large);
+    font-weight: var(--hot-font-weight-semibold);
+}
+
+.footer__top-right a span::after {
+    content: "";
+    background-color: var(--hot-color-red-950);
+    height: 1.5px;
+    width: 100%;
+    display: block;
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+}
+
+.footer__top-right a:link,
+.footer__top-right a:visited,
+.footer__top-right a:active {
+    text-decoration: none;
+    color: var(--hot-color-neutral-1000);
+    font-size: var(--hot-font-size-large);
+}
+
+.footer__bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-top: var(--hot-spacing-large);
+}
+
+.footer__logo img {
+    height: var(--hot-spacing-2x-large);
+}
+
+.footer__copy {
+    max-width: 25rem;
+    text-align: right;
+    font-size: var(--hot-font-size-small);
+    color: var(--hot-color-gray-800);
+    line-height: var(--hot-line-height-dense);
+    font-family: var(--hot-font-sans);
+    font-weight: normal;
+}
+
+/* File upload */
+/* Fix a bug with react-drag-drop-files styling
+https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
+.fileUploadMain  {
+    outline: none !important;
+    height: 100%;
+    display: block;
+    width: auto;
+}
+
+/* Map */
+
+.map {
+    height: 100vh;
+    text-align: center;
+    justify-content: center;
+    display: flex;
+}
+
+.mapDisabled {
+    opacity: .5;
+}
+
+.activePopupFeatureContent {
+    font-size: var(--hot-font-size-medium);
+}
+
+.popup .maplibregl-popup-content {
+    padding: 0;
+}
+
+.userinfo {
+    font-size: var(--hot-font-size-small);
+    text-align: left;
+    padding-left: var(--hot-spacing-medium);
+    margin-top:  var(--hot-spacing-small);
+    display: flex;
+    max-width: 85%;
+}
+
+.msgUsername {
+    font-weight: var(--hot-font-weight-bold);
+    padding-right: var(--hot-spacing-small)
+}
+
+.msgDatetime {
+    color: var(--hot-color-neutral-300);
+}
+
+.maplibregl-popup-close-button {
+    font-size: var(--hot-font-size-x-large);
+    color: var(--hot-color-neutral-400);
+    padding: var(--hot-spacing-2x-small) var(--hot-spacing-small);
+    border-radius: var(--hot-border-radius-medium);
+}
+
+.popup .maplibregl-popup-content {
+    box-shadow: var(--hot-shadow-small);
+    border-radius: var(--hot-border-radius-large);
+}
+
+/* Error boundary */
+
+.errorMessage {
+    background-color: var(--hot-color-neutral-neutral-100);
+    text-align: center;
+    padding: var(--hot-spacing-x-large) var(--hot-spacing-4x-large);
+    height: 100vh;
+}
+
+.errorMessage .header {
+    display: block;
+}
+
+.errorMessage pre {
+    margin: var(--hot-spacing-x-small);
+    padding: var(--hot-spacing-x-small);
+    border: 1px solid var(--hot-color-primary);
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+.errorMessage .buttons {
+    margin-bottom: var(--hot-spacing-x-large);
+    display: inline-flex;
+    gap: 10px;
+}
+
+.errorMessage h2 {
+    font-size: var(--hot-spacing-x-large);
+}
+
+.errorMessage h3 {
+    font-weight: var(--hot-font-weight-normal);
+    font-size: var(--hot-font-size-large);
+}
+
+.errorMessage p {
+    line-height: var(--hot-letter-spacing-normal);
+    margin-bottom: var(--hot-spacing-x-large);
+}
+
+.errorMessage .title {
+    font-size: var(--hot-font-size-3x-large);
+}
+
+.errorMessage .logo {
+    height: var(--hot-font-size-3x-large);
+}
+
+/* Messages */
+
+.message {
+    width: 300px;
+}
+
+.message .text {
+    text-align: left;
+    padding-left: var(--hot-spacing-small);
+    padding-right: var(--hot-spacing-small);
+}
+
+.message .media {
+    width: 100%;
+    margin-bottom: var(--hot-spacing-x-small);
+}
+
+.message .media img,
+.message .media video,
+.message .media audio {
+    width: 100%;
+    max-height: 60vh;
+}
+
+.message .dropdownSelection,
+.dropdownSelection sl-menu {
+    width: 300px;
+}
+
+.dropdownSelection sl-dropdown,
+.dropdownSelection sl-button,
+.dropdownSelection sl-dropdown::part(panel)  {
+    width: 100%;
+}
+
+.message.removed {
+    opacity: .5;
+}
+
+.message.removed .removeIcon {
+    color: var(--hot-color-primary-400);
+}
+
+.removeIcon::part(base) {
+    height: 20px;
+}
+
+.message .removedLabel {
+    font-size: var(--hot-font-size-x-small);
+}
+
+.message .text.location-only {
+    color: var(--hot-color-neutral-500);
+    font-style: italic;
+}
+
+/* Connect form */
+
+.connectForm {
+    padding: var(--hot-spacing-large);
+    background-color: var(--hot-color-neutral-0);
+    position: absolute;
+    top: 300px;
+    z-index: 9999;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: left;
+    border-radius: var(--hot-border-radius-small);
+    box-shadow: var(--hot-shadow-small);
+    width: 790px;
+}
+.connectForm h2 {
+    margin-top: 0;
+}
+
+.connectForm h3 {
+    font-weight: var(--hot-font-weight-normal);
+}
+
+.connectForm ol {
+    padding-left: var(--hot-spacing-large);
+    font-size: var(--hot-font-size-large);
+    line-height: var(--hot-line-height-loose);
+}
+
+.connectForm hr {
+    border: none;
+    border-bottom: 1px solid var(--hot-color-warning-300);
+}
+
+.connectForm small {
+    color: var(--hot-color-neutral-600)
+}
+
+.qrCode {
+    border: 1px solid var(--hot-color-neutral-300);
+}
+
+/* Messages */
+
+.count, .loading {
+    position: absolute;
+    z-index: 9999;
+}
+
+.count {
+    left: var(--hot-spacing-medium);
+    bottom: var(--hot-spacing-medium);
+}
+
+.loading {
+    bottom: var(--hot-spacing-medium);
+    right: var(--hot-spacing-medium);
+}
+
+.loading-hide {
+    display: none;
+}
+
+.loadingBadge::part(base) {
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-neutral-700);
+}
+
+.mapMessage {
+    padding: var(--hot-spacing-medium);
+    background-color: var(--hot-color-neutral-0);
+    position: absolute;
+    top: 300px;
+    z-index: 9999;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: var(--hot-shadow-small);
+}
+
+.mapMessage h3 {
+    font-weight: var(--hot-font-weight-normal);
+}
+
+.mapSteps {
+    font-size: var(--hot-font-size-3x-large);
+    display: inline-flex;
+    flex-direction: row;
+    gap: var(--hot-spacing-medium);
+    font-weight: var(--hot-font-weight-light);
+    margin: var(--hot-spacing-2x-large) 0;
+}
+
+.pageContent {
+    padding: var(--hot-spacing-2x-large);
+}
+
+.tagsMenu sl-menu-item::part(base) {
+    font-size: var(--hot-font-size-x-small);
+}
+
+/* Media queries */
+
+/* Desktop */
+@media (min-width: 790px) {
+    .connectFormWrapper {
+        display: flex;
+        gap: var(--hot-spacing-medium);
+        flex-direction: row;
+    }
+}
+
+/* Mobile */
+@media (max-width: 790px) {
+
+    body, .app {
+        overflow-x: hidden;
+    }
+
+    .footer__top-left h2,
+    .footer__top-right h3 {
+        font-size: var(--hot-font-size-x-large);
+    }
+    .footer__copy {
+        font-size: var(--hot-font-size-2x-small);
+    }
+    .footer__top-right a span {
+        font-size: var(--hot-font-size-large);
+    }
+    .footer__top-right a span::after {
+        bottom: 3px
+    }
+
+    .fileUploadWrapper {
+        text-align: center;
+    }
+
+    .maplibregl-map {
+        height: 90vh;
+    }
+
+    .header__rest .newFile sl-button::part(base),
+    .header__rest .saveFile sl-button::part(base) {
+        width: 40px;
+        padding-inline-start: 0;
+    }
+
+    .header__rest .newFile sl-button::part(label),
+    .header__rest .saveFile sl-button::part(label) {
+        display: none;
+    }
+
+    .connectFormWrapper {
+        text-align: center;
+    }
+    .connectFormWrapper ol {
+        font-size: var(--hot-font-size-medium);
+        list-style-position: inside;
+    }
+    .connectForm {
+        width: 100%;
+        padding: var(--hot-spacing-medium);
+        top: 200px;
+    }
+}

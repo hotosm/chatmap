@@ -1,0 +1,7 @@
+{
+    "API_URL": "http://localhost:8000/v1",
+    "HANKO_API_URL": "http://localhost:8002",
+    "LOGIN_URL": "http://localhost:5173/#/app",
+    "ENABLE_LIVE": false,
+    "ENABLE_AUTH": false
+}

@@ -1,6 +1,7 @@
 from datetime import datetime
 from .chatmap import ChatMap
 
+
 '''
  Contains a main parser function and supporting fuctions
  for creating a map from a custom conversation log.
