@@ -1,0 +1,143 @@
+name: Deploy master to chatmap.hotosm.org
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "*.yml"
+      - "chatmap-api/Dockerfile"
+      - "chatmap-api/*.py"
+      - "chatmap-api/uv.lock"
+      - "chatmap-im-connector/Dockerfile"
+      - "chatmap-im-connector/*.go"
+      - "chatmap-im-connector/*.mod"
+      - "chatmap-im-connector/*.sum"
+      - "chatmap-ui/Dockerfile"
+      - "chatmap-ui/*.json"
+      - "chatmap-ui/*.js"
+      - "chatmap-ui/src/**"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push chatmap-ui
+        uses: docker/build-push-action@v5
+        with:
+          context: ./chatmap-ui
+          file: ./chatmap-ui/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/chatmap-ui:latest
+
+      - name: Build and push chatmap-im-connector
+        uses: docker/build-push-action@v5
+        with:
+          context: ./chatmap-im-connector
+          file: ./chatmap-im-connector/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/chatmap-im-connector:latest
+
+      - name: Build and push chatmap-api
+        uses: docker/build-push-action@v5
+        with:
+          context: ./chatmap-api
+          file: ./chatmap-api/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/chatmap-api:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: master
+    steps:
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          GH_ACTOR: ${{ github.actor }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHATMAP_SECRET_KEY: ${{ secrets.CHATMAP_SECRET_KEY }}
+          CHATMAP_ENC_KEY: ${{ secrets.CHATMAP_ENC_KEY }}
+          CHATMAP_SITE_ADMIN_EMAIL: ${{ vars.CHATMAP_SITE_ADMIN_EMAIL }}
+          CHATMAP_SITE_DOMAIN: ${{ vars.CHATMAP_SITE_DOMAIN }}
+          CHATMAP_API_URL: ${{ vars.CHATMAP_API_URL }}
+          CHATMAP_API_URL_SUFFIX: ${{ vars.CHATMAP_API_URL_SUFFIX }}
+          CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ vars.CHATMAP_ACCESS_TOKEN_EXPIRE_MINUTES }}
+          CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
+          CHATMAP_CORS_ORIGINS: ${{ vars.CHATMAP_CORS_ORIGINS }}
+          CHATMAP_DISABLE_STREAM_CLEANUP: ${{ vars.CHATMAP_DISABLE_STREAM_CLEANUP }}
+          LOGIN_URL: ${{ vars.LOGIN_URL }}
+          ENABLE_LIVE: ${{ vars.ENABLE_LIVE }}
+          ENABLE_AUTH: ${{ vars.ENABLE_AUTH }}
+          HANKO_API_URL: ${{ vars.HANKO_API_URL }}
+        run: |
+          ssh $EC2_USER@$EC2_HOST << ENDSSH
+            set -e
+            APP_DIR="/home/$EC2_USER/chatmap"
+            export CHATMAP_SITE_DOMAIN=$CHATMAP_SITE_DOMAIN
+            export CHATMAP_SITE_ADMIN_EMAIL=$CHATMAP_SITE_ADMIN_EMAIL
+            export CHATMAP_API_URL=$CHATMAP_API_URL
+            export CHATMAP_API_URL_SUFFIX=$CHATMAP_API_URL_SUFFIX
+            export LOGIN_URL=$LOGIN_URL
+            export CHATMAP_CORS_ORIGINS=$CHATMAP_CORS_ORIGINS
+            export CHATMAP_DISABLE_STREAM_CLEANUP=$CHATMAP_DISABLE_STREAM_CLEANUP
+            export ENABLE_LIVE=$ENABLE_LIVE
+            export ENABLE_AUTH=$ENABLE_AUTH
+            export HANKO_API_URL=$HANKO_API_URL
+            # Initial setup if it doesn't exist
+            if [ ! -d "\$APP_DIR" ]; then
+              sudo mkdir -p \$APP_DIR
+              sudo chown \$USER:\$USER \$APP_DIR
+              git clone -b master https://github.com/hotosm/chatmap.git \$APP_DIR
+              echo "✅ Cloned repository"
+            fi
+            cd \$APP_DIR
+            # Pull latest changes
+            git fetch origin master
+            git reset --hard origin/master
+            echo "✅ Updated to latest master"
+            # Create config.json file for the frontend
+            envsubst < deploy/frontend/config.tpl.json > chatmap-ui/public/config.json
+            echo "✅ Created frontend config file"
+            envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
+            envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default-init.tpl.conf > deploy/nginx/default-init.conf
+            echo "✅ Created Nginx config files"
+            # Login to GHCR
+            echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
+            # Pull and deploy init (certbot)
+            # docker compose -f compose-init.yml pull
+            # docker compose -f compose-init.yml up --abort-on-container-exit
+            # docker compose -f compose-init.yml down
+            echo "✅ Init deploy"
+            # Pull and deploy
+            docker compose -f compose.yml pull
+            docker compose -f compose.yml up -d --force-recreate
+            # Cleanup
+            docker image prune -af
+            echo "✅ Deployment complete"
+          ENDSSH
