@@ -81,6 +81,7 @@ a {
 .header hotosm-tool-menu {
     --hover-bg: transparent;
     --icon-padding: var(--hot-spacing-small) 0;
+    --icon-color: var(--hot-color-gray-950);
 }
 
 /* Footer */
