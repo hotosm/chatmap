@@ -97,7 +97,6 @@ a {
     padding: var(--hot-spacing-x-large);
     font-family: var(--hot-font-sans-variant);
     font-weight: var(--hot-font-weight-semibold);
-    
 }
 
 .footer__floating {
@@ -106,6 +105,7 @@ a {
     box-shadow: 0 -5px 5px color-mix(in srgb, var(--hot-color-neutral-1000) 2%, transparent);
     position: fixed;
     bottom: 0;
+    z-index: 9999;
 }
 
 .footer__top {
@@ -517,7 +517,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     }
 
     .maplibregl-map {
-        height: 90vh;
+        height: 100vh;
     }
 
     .header__rest .newFile sl-button::part(base),
