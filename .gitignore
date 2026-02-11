@@ -8,11 +8,8 @@ build
 .DS_Store
 data
 sessions
+media
 .env
 certbot/
 deploy/frontend/config.json
 deploy/nginx/default.conf
-letsencrypt/
-media
-
-login.har

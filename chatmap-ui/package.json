@@ -7,8 +7,9 @@
   "type": "module",
   "dependencies": {
     "@babel/core": "^7.26.10",
+    "@floating-ui/utils": "^0.2.10",
     "@hotosm/hanko-auth": "^0.4.4",
-    "@hotosm/tool-menu": "0.2.3",
+    "@hotosm/tool-menu": "0.2.5",
     "@hotosm/ui-design": "^1.4.0",
     "@shoelace-style/shoelace": "^2.20.1",
     "file-saver": "^2.0.5",
@@ -18,7 +19,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-drag-drop-files": "^3.1.0",
-    "react-intl": "^6.8.7",
+    "react-intl": "^8.1.3",
     "react-modal": "^3.16.1",
     "react-router-dom": "^7.12.0",
     "turf-extent": "^1.0.4"
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/react": "^19.2.13",
     "@vitejs/plugin-react": "^4.3.4",
     "gh-pages": "^6.3.0",
     "terser": "^5.39.0",
