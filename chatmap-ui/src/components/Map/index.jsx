@@ -31,7 +31,8 @@ export default function Map({ dataFiles, center, zoom, className, onInteract }) 
         container: mapContainer.current,
         center: center || [0,0],
         zoom: zoom || 17,
-        style: osm
+        style: osm,
+        minZoom: 2,
       });
 
       map.current.on("load", () => {

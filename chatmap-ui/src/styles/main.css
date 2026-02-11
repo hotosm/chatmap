@@ -253,7 +253,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .msgUsername {
     font-weight: var(--hot-font-weight-bold);
-    padding-right: var(--hot-spacing-small)
+    padding-right: var(--hot-spacing-small);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 30%;
 }
 
 .msgDatetime {

@@ -11,9 +11,13 @@ export const formatDate = (time) => {
   const d = new Date(time);
 
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(d);
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  }).format(d).replace(/,/g, '');
 };
 
 /**
