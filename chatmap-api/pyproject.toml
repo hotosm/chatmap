@@ -5,7 +5,6 @@ description = "ChatMap API"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "hotosm-auth[fastapi]==0.2.5",
     "altgraph==0.17.4",
     "annotated-types==0.7.0",
     "anyio==4.9.0",
@@ -13,10 +12,10 @@ dependencies = [
     "certifi==2025.7.14",
     "chatmap-py==0.0.9",
     "click==8.2.1",
-    "ecdsa==0.19.1",
     "fastapi==0.128.8",
     "geoalchemy2>=0.18.0",
     "h11==0.16.0",
+    "hotosm-auth[fastapi]>=0.2.7",
     "httpcore==1.0.9",
     "httpx==0.28.1",
     "idna==3.10",
