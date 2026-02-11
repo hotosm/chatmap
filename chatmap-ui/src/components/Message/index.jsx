@@ -22,7 +22,9 @@ function Message({ message, msgType, selected, ref, dataFiles, onRemove }) {
                     ></sl-icon-button>
                     {message.removed ? <span className="removedLabel">(deleted)</span> : ""}
                 </p>
-                <div>{ getMessage(message, msgType, dataFiles) }</div>
+                <div>
+                    { getMessage(message, msgType, dataFiles) }
+                </div>
             </div>
         )
 

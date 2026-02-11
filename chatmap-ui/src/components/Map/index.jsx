@@ -83,19 +83,25 @@ export default function Map({ dataFiles, center, zoom, className, onInteract }) 
             }
         });
 
+        // Invisible layer for with a buffer for better click
+        map.current.addLayer({
+            'id': 'pois-clickable',
+            'type': 'circle',
+            'source': 'locations',
+            'layout': {},
+            'paint': {
+                'circle-color': 'rgba(0,0,0,0)',
+                'circle-radius': 25
+            }
+        });
+
         // On feature click
-        map.current.on("click", "pois",  (e) => {
+        map.current.on("click", "pois-clickable",  (e) => {
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
           if (feature.properties["tags"]) {
             feature.properties.tags = JSON.parse(feature.properties.tags);
           }
-          // data.features.forEach((item, index) => {
-          //   if (feature.properties.id == item.properties.id) {
-          //     setFeatureIndex(index);
-          //   }
-          // });
-
           setActivePopupFeature(feature);
         });
 
