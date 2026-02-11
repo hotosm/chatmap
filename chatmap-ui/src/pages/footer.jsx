@@ -32,7 +32,10 @@ export default function Footer({ className, visible = true }) {
           <img src={logo} alt="hot logo" />
         </div>
         <div className="footer__copy">
-          <FormattedMessage id="app.footer.copy" />
+          <FormattedMessage
+            id="app.footer.copy"
+            defaultMessage="This is free and open source software, brought to you by the Humanitarian OpenStreetMap Team & friends"
+          />
         </div>
       </div>
     </footer>

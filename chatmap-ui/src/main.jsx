@@ -36,7 +36,7 @@ async function init() {
 
   root.render(
     <React.StrictMode>
-      <IntlProvider locale={navigator.language.slice(0,2)} messages={langFn}>
+      <IntlProvider defaultLocale="en" locale={navigator.language.slice(0,2)} messages={langFn}>
         <ErrorBoundary>
           <AuthProvider>
             <MapDataProvider>
