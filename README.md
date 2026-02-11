@@ -6,8 +6,6 @@ Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize location
 
 ### Try it here! [chatmap.hotosm.org](https://chatmap.hotosm.org)
 
-Development preview: [chatmap-dev.hotosm.org](https://chatmap-dev.hotosm.org)
-
 Check this quick [video-tutorial](https://www.youtube.com/watch?v=ScHgVhyj1aw) (2:47) for more info about how to use it.
 
 <img width="1512" height="853" alt="Screenshot 2026-01-21 at 9 27 42 AM" src="https://github.com/user-attachments/assets/f14412a4-7241-4840-8e33-937fdedaa37b" />
