@@ -27,7 +27,7 @@ export default function SettingsDialog({
       <p className="dialog__locations">
         <FormattedMessage
           id="app.home.dialog.locations"
-          defaultMessage="{num} location points found"
+          defaultMessage="{num} location point(s) found"
           values={{ num: numFeatures }}
         />
       </p>

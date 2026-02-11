@@ -164,6 +164,15 @@ sl-button.featured::part(prefix) {
         font-size: var(--hot-font-size-x-large);
     }
 
+    .dialog__exporttype {
+        display: none;
+    }
+
+    .dialog__locations {
+        font-size: var(--hot-font-size-medium);
+        margin-bottom: var(--hot-spacing-x-large);
+    }
+
 }
 
 /* Mobile */
@@ -208,6 +217,16 @@ sl-button.featured::part(prefix) {
     .dialog__title {
         font-size: var(--hot-font-size-x-large);
     }
+
+    .dialog__exporttype {
+        display: none;
+    }
+
+    .dialog__locations {
+        font-size: var(--hot-font-size-medium);
+        margin-bottom: var(--hot-spacing-x-large);
+    }
+
 
 }
 
