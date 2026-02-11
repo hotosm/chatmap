@@ -1,8 +1,0 @@
-media
-node_modules
-sessions
-*.sqlite3
-*.log
-*.rdb
-public/*
-backend

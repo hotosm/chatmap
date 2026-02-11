@@ -528,10 +528,10 @@
     "@teamhanko/hanko-elements" "^1.0.0"
     lit "^3.3.1"
 
-"@hotosm/tool-menu@0.2.5":
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/@hotosm/tool-menu/-/tool-menu-0.2.5.tgz#7c7a73f0c9046ddb1e628799e4bae87dbee8df48"
-  integrity sha512-iDT13lXQio6WXS53AjMgxgkpPo9nhBubQPHsdk6nlj+AqzWHss/PD9G9nUBvqVdd7BTLgzTC2qVhc5UtGumeVQ==
+"@hotosm/tool-menu@0.2.6":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@hotosm/tool-menu/-/tool-menu-0.2.6.tgz#60d7b3daacc5c67d48f04bc471ea1351c75661ea"
+  integrity sha512-CbDTuQ6NoyS5Kmye3r1ud2DjoqqgG9h6LIMrd6pi+P6O8kHKnW6akUtT2l0FIjaAZXu1azE7Fj6TePzXIy0dtA==
   dependencies:
     lit "^3.3.1"
 
