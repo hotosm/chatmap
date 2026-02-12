@@ -10,6 +10,11 @@ Select "Attach media" if you want to include media.
 
 Import the .zip file.
 
+### Live
+
+ChatMap also supports linking WhatsApp devices and get data in real-time, from both groups
+or direct messages. Check the docs for enabling the Live feature.
+
 ## Telegram
 
 You'll need [Telegram Desktop](https://desktop.telegram.org).
