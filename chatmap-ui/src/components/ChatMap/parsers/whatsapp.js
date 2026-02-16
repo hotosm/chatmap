@@ -18,7 +18,7 @@ const MSG_PATTERN = {
     ANDROID: /^(.*) - ([^:]*): (.*)/
 }
 
-const HOUR_PATTERN = /(\d{1,2}):(\d{1,2})(:\d{1,2})?(\s+[pP])?/;
+const HOUR_PATTERN = /(\d{1,2})[:.](\d{1,2})(:\d{1,2})?(\s+[pP])?/;
 
 const TYPES = {
   ".jpg": "image",

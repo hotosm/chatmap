@@ -20,7 +20,7 @@ it('should parse a message for the Android system', () => {
 
   const msgObjects = parseAndIndex(msgs, "ANDROID");
 
-  expect(msgObjects[0].message).toEqual("Necesito ayuda aquí!"); 
+  expect(msgObjects[0].message).toEqual("Necesito ayuda aquí!");
 });
 
 it('should parse a message for the iOS system (multiple : characters)', () => {
@@ -30,7 +30,7 @@ it('should parse a message for the iOS system (multiple : characters)', () => {
 
   const msgObjects = parseAndIndex(msgs, "IOS");
 
-  expect(msgObjects[0].message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025"); 
+  expect(msgObjects[0].message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025");
 });
 
 it('should parse a message for the Android system (multiple : characters)', () => {
@@ -40,7 +40,7 @@ it('should parse a message for the Android system (multiple : characters)', () =
 
   const msgObjects = parseAndIndex(msgs, "ANDROID");
 
-  expect(msgObjects[0].message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025"); 
+  expect(msgObjects[0].message).toEqual("Name: Bentenie Type: Tree 🌳 Year: 2025");
 });
 
 it('should parse messages for the iOS system', () => {
@@ -148,4 +148,14 @@ it('should work with this', () => {
   const msgObjects = parseAndIndex(msgs, "IOS");
 
   expect(msgObjects[0].time).toEqual(new Date('2024-12-09T03:05:52.000Z'));
+});
+
+it('should work with that', () => {
+  const msgs = [
+    "12/08/25 09.47 - BPBD Pika: lokasi : https://maps.google.com/?q=-8.4475246,115.5904475",
+  ];
+
+  const msgObjects = parseAndIndex(msgs, "ANDROID");
+
+  expect(msgObjects[0].time).toEqual(new Date('2025-12-08T09:47:00.000Z'));
 });
