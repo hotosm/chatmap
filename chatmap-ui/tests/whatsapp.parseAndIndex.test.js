@@ -135,3 +135,17 @@ it('should understand times with am/pm', () => {
   expect(msgObjects[0].time).toEqual(new Date('2025-12-12T03:29:00.000Z'));
   expect(msgObjects[1].time).toEqual(new Date('2025-12-12T15:29:00.000Z'));
 });
+
+it('should work with this', () => {
+  const msgs = [
+    "[09/12/2024, 03:05:52] Emi: <attached: 00000002-PHOTO-2024-12-09-03-05-52.jpg>",
+    "[10/12/2024, 16:55:32] Emi: Location: https://maps.google.com/?q=-34.816833,-58.541428",
+    "[12/12/2024, 23:21:16] Emi: <attached: 00000020-GIF-2024-12-12-23-21-16.mp4>",
+    "[27/12/2024, 08:38:27] Emi: Location: https://maps.google.com/?q=-31.044813,-64.276016",
+    "[31/12/2024, 11:35:11] Emi: <attached: 00000029-PHOTO-2024-12-31-11-35-11.jpg>",
+  ];
+
+  const msgObjects = parseAndIndex(msgs, "IOS");
+
+  expect(msgObjects[0].time).toEqual(new Date('2024-12-09T03:05:52.000Z'));
+});

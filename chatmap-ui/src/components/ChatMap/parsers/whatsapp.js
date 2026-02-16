@@ -175,7 +175,7 @@ function getTimeParts(match) {
   if ((matches[3] && matches[3].startsWith(' ')) || matches[4]) {
     hour += 12;
   } else if (matches[3] && matches[3].match(/\d+/)) {
-    second = Number(matches[3]);
+    second = Number(matches[3].slice(1));
   }
 
   return [
