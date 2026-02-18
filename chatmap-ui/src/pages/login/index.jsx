@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useConfigContext } from '../../context/ConfigContext.jsx';
 import logo from '../../assets/hot-logo-text.svg';
-import('@hotosm/hanko-auth');
 import '../../styles/login.css';
+import('@hotosm/hanko-auth');
 
 function LoginPage() {
   const { config } = useConfigContext();

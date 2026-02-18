@@ -1,5 +1,9 @@
 hotosm-auth {
-  --hot-font-size-medium: var(--hot-font-size-small);
+  --login-btn-text-size: var(--hot-font-size-x-small);
+  --login-btn-bg-color: var(--hot-color-neutral-1000);
+  --login-btn-text-color: var(--hot-color-neutral-0);
+  --login-btn-padding: var(--hot-spacing-x-small) var(--hot-spacing-small);
+  --login-btn-hover-bg-color: var(--hot-color-neutral-950);
 }
 
 .login-page {
