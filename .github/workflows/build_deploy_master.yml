@@ -95,6 +95,7 @@ jobs:
           ENABLE_LIVE: ${{ vars.ENABLE_LIVE }}
           ENABLE_AUTH: ${{ vars.ENABLE_AUTH }}
           HANKO_API_URL: ${{ vars.HANKO_API_URL }}
+          JWT_ISSUER: ${{ vars.JWT_ISSUER }}
         run: |
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
@@ -109,6 +110,7 @@ jobs:
             export ENABLE_LIVE=$ENABLE_LIVE
             export ENABLE_AUTH=$ENABLE_AUTH
             export HANKO_API_URL=$HANKO_API_URL
+            export JWT_ISSUER=$JWT_ISSUER
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR
