@@ -38,6 +38,9 @@ export default function Header({
     setSelected(false);
   }, [data])
 
+  // Temporary code for show/hide the login button
+  const enableExperimental = new URLSearchParams(window.location.search).get('experimental') === 'true';
+
   return (
     <>
       <header className="header">
@@ -90,13 +93,13 @@ export default function Header({
             </div>
           }
 
-          { isAuthenticated && config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
+          { isAuthenticated && config.ENABLE_LIVE && enableExperimental && mode !== 'linked' && !dataAvailable &&
           <sl-button className="header__live-button" href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
           }
 
-          { config.ENABLE_AUTH &&
+          { config.ENABLE_AUTH && enableExperimental &&
           <div className="header__login-button">
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}
