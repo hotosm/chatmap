@@ -46,7 +46,7 @@ export default function Header({
       <header className="header">
         {/* Logo */}
         <div className="header__title">
-          <a href="/" className="header__logo-link">
+          <a href={`/${enableExperimental ? "?experimental=true" : ""}`} className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
           <h1 className="header__title-text">{title}</h1>
@@ -104,8 +104,8 @@ export default function Header({
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}
               login-url={config.LOGIN_URL}
-              redirect-after-login={window.location.origin}
-              redirect-after-logout={window.location.origin}
+              redirect-after-login={`${window.location.origin}?experimental=true`}
+              redirect-after-logout={`${window.location.origin}?experimental=true`}
               lang={langCode}
             />
           </div>
