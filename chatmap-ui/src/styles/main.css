@@ -16,6 +16,10 @@ sl-button[variant=primary]::part(base) {
   color: var(--sl-color-neutral-0);
 }
 
+sl-icon-button::part(base) {
+    color: var(--hot-color-gray-950);
+}
+
 /* defaults */
 
 html, body {

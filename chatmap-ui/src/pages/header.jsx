@@ -5,6 +5,10 @@ import "@hotosm/tool-menu";
 
 import SlOption from '@shoelace-style/shoelace/dist/react/option/index.js';
 import SlSelect from '@shoelace-style/shoelace/dist/react/select/index.js';
+import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
+import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
+import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
+import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 
 import logo from '../assets/hot-logo-gray.svg';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
@@ -41,7 +45,9 @@ export default function Header({
   const enableExperimental = new URLSearchParams(window.location.search).get('experimental') === 'true';
 
   function handleLanguageChange(event) {
-    setLang(event.target.value);
+    const lang = event.detail.item.value;
+
+    setLang(lang);
   };
 
   return (
@@ -71,12 +77,12 @@ export default function Header({
                   <FormattedMessage
                       id = "app.uploadNewFile"
                       defaultMessage="New file"
-                  /> 
+                  />
               </sl-button>
           </div> : null}
 
 
-          {showDownloadButton && mode !== 'linked' && dataAvailable && 
+          {showDownloadButton && mode !== 'linked' && dataAvailable &&
             <div className="saveFile">
               <SaveButton data={data} dataFiles={dataFiles} />
             </div>
@@ -102,6 +108,22 @@ export default function Header({
           </sl-button>
           }
 
+          <SlDropdown>
+            <SlIconButton slot="trigger" name="translate" caret size="small"></SlIconButton>
+            <SlMenu onSlSelect={handleLanguageChange}>
+              { Object.keys(locales).map((langCode) => (
+                <SlMenuItem
+                  key={langCode}
+                  type="checkbox"
+                  value={langCode}
+                  checked={ lang === langCode ? "checked" : false }
+                >
+                  { localeNames[langCode] }
+                </SlMenuItem>
+              )) }
+            </SlMenu>
+          </SlDropdown>
+
           { config.ENABLE_AUTH && enableExperimental &&
           <div className="header__login-button">
             <hotosm-auth
@@ -113,12 +135,6 @@ export default function Header({
             />
           </div>
           }
-
-          <SlSelect value={lang} size="small" onSlChange={handleLanguageChange}>
-            { Object.keys(locales).map((langCode) => (
-              <SlOption value={langCode} key={langCode}>{ localeNames[langCode] }</SlOption>
-            )) }
-          </SlSelect>
 
           <hotosm-tool-menu
             show-logos={false}
