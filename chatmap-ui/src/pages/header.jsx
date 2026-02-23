@@ -1,15 +1,24 @@
-import { useState, useEffect } from 'react';
-import logo from '../assets/hot-logo-gray.svg';
 import { FormattedMessage } from 'react-intl';
+
+import '@hotosm/hanko-auth';
+import "@hotosm/tool-menu";
+
+import SlOption from '@shoelace-style/shoelace/dist/react/option/index.js';
+import SlSelect from '@shoelace-style/shoelace/dist/react/select/index.js';
+import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
+import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
+import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
+import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
+
+import logo from '../assets/hot-logo-gray.svg';
 import { useMapDataContext } from '../context/MapDataContext.jsx';
 import { useAuth } from './../context/AuthContext';
 import SaveButton from '../components/SaveButton';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import ShareButton from '../components/ShareButton';
 import TagsOptions from "../components/TagsOptions/index.jsx";
-import getLocalCode from '../lang';
-import '@hotosm/hanko-auth';
-import "@hotosm/tool-menu";
+import { locales, localeNames } from '../lang';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Header({
   dataAvailable,
@@ -22,7 +31,7 @@ export default function Header({
 }) {
   const { data, tags, mapDataDispatch } = useMapDataContext();
   const { config } = useConfigContext();
-  const [_, langCode] = getLocalCode();
+  const { lang, setLang } = useLanguage();
   const { isAuthenticated } = useAuth();
 
   const selectTagHandler = tag => {
@@ -32,14 +41,14 @@ export default function Header({
     });
   }
 
-  const [selected, setSelected] = useState(false);
-
-  useEffect(() => {
-    setSelected(false);
-  }, [data])
-
   // Temporary code for show/hide the login button
   const enableExperimental = new URLSearchParams(window.location.search).get('experimental') === 'true';
+
+  function handleLanguageChange(event) {
+    const lang = event.detail.item.value;
+
+    setLang(lang);
+  };
 
   return (
     <>
@@ -68,12 +77,12 @@ export default function Header({
                   <FormattedMessage
                       id = "app.uploadNewFile"
                       defaultMessage="New file"
-                  /> 
+                  />
               </sl-button>
           </div> : null}
 
 
-          {showDownloadButton && mode !== 'linked' && dataAvailable && 
+          {showDownloadButton && mode !== 'linked' && dataAvailable &&
             <div className="saveFile">
               <SaveButton data={data} dataFiles={dataFiles} />
             </div>
@@ -99,6 +108,22 @@ export default function Header({
           </sl-button>
           }
 
+          <SlDropdown>
+            <SlIconButton slot="trigger" name="translate" caret size="small"></SlIconButton>
+            <SlMenu onSlSelect={handleLanguageChange}>
+              { Object.keys(locales).map((langCode) => (
+                <SlMenuItem
+                  key={langCode}
+                  type="checkbox"
+                  value={langCode}
+                  checked={ lang === langCode ? "checked" : false }
+                >
+                  { localeNames[langCode] }
+                </SlMenuItem>
+              )) }
+            </SlMenu>
+          </SlDropdown>
+
           { config.ENABLE_AUTH && enableExperimental &&
           <div className="header__login-button">
             <hotosm-auth
@@ -106,7 +131,7 @@ export default function Header({
               login-url={config.LOGIN_URL}
               redirect-after-login={`${window.location.origin}?experimental=true`}
               redirect-after-logout={`${window.location.origin}?experimental=true`}
-              lang={langCode}
+              lang={lang}
             />
           </div>
           }

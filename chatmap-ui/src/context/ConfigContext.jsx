@@ -2,13 +2,6 @@ import { createContext, useContext, useReducer, useEffect } from 'react';
 
 const ConfigContext = createContext();
 
-// Initial state
-const initialState = {
-    config: null,
-    loading: true,
-    error: null
-}
-
 // Reducer
 const configReducer = (state, action) => {
     switch (action.type) {

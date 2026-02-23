@@ -9,7 +9,7 @@ import Ne from './int/ne.json';
 import Hi from './int/hi.json';
 import Id from './int/id.json';
 
-const locales = {
+export const locales = {
   "en": En,
   "es": Es,
   "pt": Pt,
@@ -19,15 +19,28 @@ const locales = {
   "it": It,
   "ne": Ne,
   "hi": Hi,
-  "id": Id
+  "id": Id,
 }
 
-const getLocalCode = () => {
+export const localeNames = {
+  "en": "English",
+  "es": "Español",
+  "pt": "Português",
+  "de": "Deutsch",
+  "nl": "Nederlands",
+  "fr": "Français",
+  "it": "Italiano",
+  "ne": "नेपाली भाषा (Nepālī bhāśā)",
+  "hi": "हिन्दी (Hindī)",
+  "id": "Indonesia",
+};
+
+export function getLocalCode() {
   const lang = navigator.language.slice(0,2);
-  if (lang in locales) {
-    return [locales[lang], lang];
-  }
-  return [locales["en"], "en"]
-}
 
-export default getLocalCode;
+  if (lang in locales) {
+    return lang;
+  }
+
+  return "en";
+};
