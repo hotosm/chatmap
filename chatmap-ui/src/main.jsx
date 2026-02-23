@@ -7,8 +7,8 @@ import { HashRouter } from 'react-router-dom';
 import { MapDataProvider } from './context/MapDataContext';
 import { ConfigProvider } from './context/ConfigContext';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AppRoutes from './routes'; 
-import getLocalCode from './lang';
 
 // Shoelace UI components
 import '@shoelace-style/shoelace/dist/components/alert/alert.js';
@@ -28,30 +28,38 @@ import '@shoelace-style/shoelace/dist/components/switch/switch.js';
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 setBasePath("/shoelace/");
 
+function WithLanguage({ config }) {
+  const { lang, messages } = useLanguage();
+
+  return (
+    <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
+      <ErrorBoundary>
+        <AuthProvider>
+          <MapDataProvider>
+            <ConfigProvider initialConfig={config}>
+              <HashRouter>
+                <AppRoutes />
+              </HashRouter>
+            </ConfigProvider>
+          </MapDataProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </IntlProvider>
+  );
+}
+
 async function init() {
   const response = await fetch('/config.json');
   const config = await response.json();
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  const [langFn, _] = getLocalCode();
 
   root.render(
     <React.StrictMode>
-      <IntlProvider defaultLocale="en" locale={navigator.language.slice(0,2)} messages={langFn}>
-        <ErrorBoundary>
-          <AuthProvider>
-            <MapDataProvider>
-              <ConfigProvider initialConfig={config}>
-                <HashRouter>
-                  <AppRoutes />
-                </HashRouter>
-              </ConfigProvider>
-            </MapDataProvider>
-          </AuthProvider>
-        </ErrorBoundary>
-      </IntlProvider>
+      <LanguageProvider>
+        <WithLanguage config={config}></WithLanguage>
+      </LanguageProvider>
     </React.StrictMode>
   );
 }
 
 init();
-

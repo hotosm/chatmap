@@ -41,7 +41,7 @@ const reducer = (state, action) => {
 
 // Provider
 export const MapDataProvider = (props) => {
-  
+
   const [data, mapDataDispatch] = useReducer(reducer, initialState);
 
   const tags = data.features.reduce((accumulator, currentValue) => {
