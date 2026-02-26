@@ -160,7 +160,7 @@ requires-dist = [
     { name = "fastapi", specifier = "==0.128.8" },
     { name = "geoalchemy2", specifier = ">=0.18.0" },
     { name = "h11", specifier = "==0.16.0" },
-    { name = "hotosm-auth", extras = ["fastapi"], specifier = ">=0.2.7" },
+    { name = "hotosm-auth", extras = ["fastapi"], specifier = ">=0.2.9" },
     { name = "httpcore", specifier = "==1.0.9" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "idna", specifier = "==3.10" },
@@ -337,7 +337,7 @@ wheels = [
 
 [[package]]
 name = "hotosm-auth"
-version = "0.2.7"
+version = "0.2.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -346,9 +346,9 @@ dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
     { name = "python-dateutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/03/c6/35aff03102ec3137bba2740708febedcb6227b63cafd72f1084387fb14af/hotosm_auth-0.2.7.tar.gz", hash = "sha256:0ce2a6346c175e4b3cd88f59f5d794aa8026252388406ee12c0bf3c2d2e68e4e", size = 104954 }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/03/0676b96428dc77ae0eeb32826845b5fc5deaf7b1302d81f2bec144fb97bd/hotosm_auth-0.2.9.tar.gz", hash = "sha256:4d049b569bf42577b528ee3adf63aff1f597633cd4cf8cc01d3ddfcba640e41d", size = 98666 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/3b/796ddd9f98da2252cb20ea5af8fa47cc842004f5358aac34da1c34b45b67/hotosm_auth-0.2.7-py3-none-any.whl", hash = "sha256:20dffe1c83178975a2dfbabdd7366bc299cc34c623d73886c710c3c8c7baa774", size = 46126 },
+    { url = "https://files.pythonhosted.org/packages/4e/94/a060392d94375801c19cb14fb5bfd8c003f019e68fac73c5bc02d95e18c7/hotosm_auth-0.2.9-py3-none-any.whl", hash = "sha256:d2cced2f8ab5618929980dd3c284fb566861b26fa8117a0e71e5968a8c392b79", size = 46162 },
 ]
 
 [package.optional-dependencies]

@@ -15,7 +15,7 @@ dependencies = [
     "fastapi==0.128.8",
     "geoalchemy2>=0.18.0",
     "h11==0.16.0",
-    "hotosm-auth[fastapi]>=0.2.7",
+    "hotosm-auth[fastapi]>=0.2.9",
     "httpcore==1.0.9",
     "httpx==0.28.1",
     "idna==3.10",
