@@ -186,6 +186,7 @@ class FeatureCollection(BaseModel):
     """
     id: str
     sharing: str
+    name: str
     type: Literal["FeatureCollection"]
     features: List[Feature]
 
