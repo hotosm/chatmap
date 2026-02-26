@@ -11,7 +11,7 @@ import { useMapDataContext } from '../../context/MapDataContext';
  * @param {object} dataFiles Files data
  * @returns {React.ReactElement} Map component
  */
-export default function Map({ dataFiles, center, zoom, className, onInteract }) {
+export default function Map({ dataFiles, center, zoom, className, onInteract, showMessageOptions }) {
     // A div for the map
     const mapContainer = useRef(null);
     // The Map obejct
@@ -225,6 +225,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract }) 
             onRemoveTag={handleRemoveTag}
             onRemoveMessage={handleRemoveMessage}
             allTags={Object.keys(tags)}
+            showMessageOptions={showMessageOptions}
           />
         }
       </div>

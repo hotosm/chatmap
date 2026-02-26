@@ -161,7 +161,12 @@ function App() {
             </div>
           }
           <div className="mapDisabled">
-            <Map className="mapFull" center={[1,1]} zoom={1} />
+            <Map
+              className="mapFull"
+              center={[1,1]}
+              zoom={1}
+              showMessageOptions={false}
+            />
           </div>
 
         </>

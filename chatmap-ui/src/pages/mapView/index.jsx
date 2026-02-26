@@ -50,7 +50,7 @@ function MapView() {
           dataAvailable={dataAvailable}
           mapData={data}
           showDownloadButton={false}
-          title={mapData.title || "Untitled"}
+          title={mapData.name || "Untitled"}
         />
 
         {dataAvailable &&
