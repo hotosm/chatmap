@@ -56,7 +56,8 @@ export default function Popup ({
   onAddTag,
   onRemoveTag,
   onRemoveMessage,
-  allTags
+  allTags,
+  showMessageOptions,
 }) {
   
   const intl = useIntl();
@@ -96,8 +97,9 @@ export default function Popup ({
           dataFiles={dataFiles}
           msgType={msgType}
           onRemove={tag => onRemoveMessage(feature)} 
+          showMessageOptions={showMessageOptions}
         />
-        { !feature.properties.removed ?
+        { !feature.properties.removed && showMessageOptions ?
         <Tagger
           placeholder={
             intl.formatMessage({

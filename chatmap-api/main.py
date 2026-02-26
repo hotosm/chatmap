@@ -154,6 +154,7 @@ async def get_public_chatmap(
         return {
             "id": map_id,
             "sharing": map_obj.sharing.value,
+            "name": map_obj.name,
             "type": "FeatureCollection",
             "features": [
                 {

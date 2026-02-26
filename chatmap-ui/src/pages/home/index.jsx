@@ -119,6 +119,7 @@ function App() {
           <Map
             dataFiles={dataFiles}
             data={data}
+            showMessageOptions={true}
           />
         }
 
