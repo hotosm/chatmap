@@ -462,7 +462,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding: var(--hot-spacing-medium);
     background-color: var(--hot-color-neutral-0);
     position: absolute;
-    top: 300px;
+    top: 150px;
     z-index: 9999;
     left: 50%;
     transform: translateX(-50%);
