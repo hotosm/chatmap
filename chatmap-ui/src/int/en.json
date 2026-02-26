@@ -36,6 +36,7 @@
     "app.linked.linkYourDevice.settings": "settings",
     "app.linked.linkYourDevice.tap": "Tap",
     "app.linked.linkYourDevice.then": "then",
+    "app.linked.linkYourDevice.warning": "Although ChatMap stores your data encrypted, there are situations when private data could be exposed on your map. That's why we strongly recommend to use a device only for ChatMap and not your personal device.",
     "app.linked.subtitle": "Live updated maps with linked devices",
     "app.loading": "Loading",
     "app.navigation.blog": "Blog",
