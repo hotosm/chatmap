@@ -42,6 +42,12 @@ a {
     color: var(--hot-color-blue-500);
 }
 
+.app {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+
 /* Header */
 
 .header {
@@ -506,6 +512,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
     body, .app {
         overflow-x: hidden;
+    }
+
+    .app {
+        display: block;
     }
 
     .footer__top-left h2,
