@@ -10,6 +10,12 @@
 @import url('@hotosm/ui-design/dist/hot-sl.css');
 @import url('@hotosm/ui-design/dist/hot-font-face.css');
 
+html {
+    ::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 sl-button[variant=primary]::part(base) {
   background-color: var(--hot-color-primary-950);
   border-color: var(--hot-color-primary-950);
@@ -390,7 +396,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding: var(--hot-spacing-large);
     background-color: var(--hot-color-neutral-0);
     position: absolute;
-    top: 300px;
+    top: 150px;
     z-index: 9999;
     left: 50%;
     transform: translateX(-50%);
