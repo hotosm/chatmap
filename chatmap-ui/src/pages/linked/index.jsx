@@ -7,6 +7,7 @@ import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
 import { useNavigate } from "react-router-dom";
 import { useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 const Map = lazy(() => import('../../components/Map'));
 
@@ -14,7 +15,6 @@ function App() {
 
   const intl = useIntl();
 
-  const [, setSelectedFeature] = useState();
   const [showSettings, setShowSettings] = useState(false);
   const navigate = useNavigate();
 
@@ -139,8 +139,18 @@ function App() {
         <>
           {status === "connected" &&
             <div className="mapMessage">
-              <h2>Your device was linked successfully</h2>
-              <h3>Now you can receive <strong>shared locations</strong> plus <br /> <strong>chat messages</strong> and start mapping!</h3>
+              <h2>
+                <FormattedMessage
+                    id = "app.linked.linkedSuccessfully"
+                    defaultMessage="Your device was linked successfully"
+                />
+              </h2>
+              <h3>
+                <FormattedMessage
+                    id = "app.linked.linkedSuccessfullyMessage"
+                    defaultMessage="Now you can receive shared locations plus chat messages and start mapping!"
+                />
+              </h3>
               <div className="mapSteps">
                   <sl-icon size="large" name="chat-heart"></sl-icon>
                   <span>+</span>

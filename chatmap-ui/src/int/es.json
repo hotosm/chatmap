@@ -37,6 +37,8 @@
     "app.linked.linkYourDevice.tap": "Tap",
     "app.linked.linkYourDevice.then": "luego",
     "app.linked.linkYourDevice.warning": "Aunque ChatMap almacena tus datos cifrados, hay situaciones en las que datos privado podrían quedar expuestos en tu mapa. Por eso recomendamos encarecidamente utilizar un dispositivo exclusivo para ChatMap y no tu dispositivo personal.",
+    "app.linked.linkedSuccessfully": "Tu dispositivo ha sido vinculado exitósamente",
+    "app.linked.linkedSuccessfullyMessage": "Ahora podrás recibir ubicaciones compartidas junto a mensajes y empezar a mapear!",
     "app.linked.subtitle": "Mapas actualizados en tiempo real",
     "app.loading": "Cargando",
     "app.navigation.blog": "Blog",
