@@ -3,22 +3,23 @@ import { FormattedMessage } from 'react-intl';
 import '@hotosm/hanko-auth';
 import "@hotosm/tool-menu";
 
-import SlOption from '@shoelace-style/shoelace/dist/react/option/index.js';
-import SlSelect from '@shoelace-style/shoelace/dist/react/select/index.js';
+import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
 import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
+import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
+import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
 import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
-import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 
-import logo from '../assets/hot-logo-gray.svg';
-import { useMapDataContext } from '../context/MapDataContext.jsx';
-import { useAuth } from './../context/AuthContext';
+import DownloadButton from '../components/DownloadButton';
 import SaveButton from '../components/SaveButton';
-import { useConfigContext } from '../context/ConfigContext.jsx';
 import ShareButton from '../components/ShareButton';
 import TagsOptions from "../components/TagsOptions/index.jsx";
+import logo from '../assets/hot-logo-gray.svg';
 import { locales, localeNames } from '../lang';
+import { useAuth } from './../context/AuthContext';
+import { useConfigContext } from '../context/ConfigContext.jsx';
 import { useLanguage } from '../context/LanguageContext';
+import { useMapDataContext } from '../context/MapDataContext.jsx';
 
 export default function Header({
   dataAvailable,
@@ -48,7 +49,7 @@ export default function Header({
     const lang = event.detail.item.value;
 
     setLang(lang);
-  };
+  }
 
   return (
     <>
@@ -63,30 +64,31 @@ export default function Header({
 
         <div className="header__rest">
           {/* <a href="#how"><FormattedMessage id="app.navigation.howDoesItWork" defaultMessage="How does it work?" /></a> */}
-          {/* <sl-icon-button name="translate" /> */}
 
           { showUploadButton ?
           <div className="newFile">
-              <sl-button
+              <SlButton
                   variant="default"
                   outline
                   size="small"
                   onClick={handleNewUploadClick}
               >
-                  <sl-icon name="arrow-clockwise" slot="prefix"></sl-icon>
+                  <SlIcon name="arrow-clockwise" slot="prefix"></SlIcon>
                   <FormattedMessage
                       id = "app.uploadNewFile"
                       defaultMessage="New file"
                   />
-              </sl-button>
+              </SlButton>
           </div> : null}
 
 
-          {showDownloadButton && mode !== 'linked' && dataAvailable &&
+          {showDownloadButton && mode !== 'linked' && dataAvailable && <>
             <div className="saveFile">
-              <SaveButton data={data} dataFiles={dataFiles} />
+              <DownloadButton data={data} dataFiles={dataFiles} />
             </div>
-          }
+
+            <SaveButton />
+          </>}
 
           {mode === 'linked' && dataAvailable &&
             <ShareButton sharing={data.sharing} />
@@ -103,9 +105,9 @@ export default function Header({
           }
 
           { isAuthenticated && config.ENABLE_LIVE && enableExperimental && mode !== 'linked' && !dataAvailable &&
-          <sl-button className="header__live-button" href="#linked" variant="default" outline size="small">
+          <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
-          </sl-button>
+          </SlButton>
           }
 
           <SlDropdown>

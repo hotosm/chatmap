@@ -1,80 +1,27 @@
 import { FormattedMessage } from 'react-intl';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
 
-/**
- *
- * @param {object} data Chat data
- * @param {object} dataFiles Files data
- * Create a zip with chat data and files inside. Fire an
- * event for user to download the file
- */
-function createAndDownloadZip(data, dataFiles) {
-  const zip = new JSZip();
+import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
+import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 
-  // The name of the file to save
-  const chatmapId = data._chatmapId;
+import useApi from '../ChatMap/useApi';
+import { useAuth } from '../../context/AuthContext';
 
-  // Add GeoJSON data to the zip file
-  let newData = {
-    _chatmapId: chatmapId,
-    ...data,
-    features: data.features.filter(feature => !feature.properties.removed),
-  }
+export default function SaveButton() {
+  const { saveMap } = useApi();
+  const { isAuthenticated } = useAuth();
 
-  // Get a list of media files from GeoJSON data
-  const media_files = newData.features.map(x => x.properties.file);
-
-  newData.features.forEach(feature => {
-    // Delete username for enhanced privacy and security
-    // delete feature.properties.username;
-
-    // Delete unused properties
-    delete feature.properties.timeString;
-
-    if (feature.properties.tags) {
-      // Convert tags object to string
-      // Ex: { building: yes } to "building_yes"
-      feature.properties.tags = feature.properties.tags.join(",");
-    }
-  })
-  const geoJsonBlob = new Blob([JSON.stringify(newData)], { type: 'application/json' });
-  zip.file('data.geojson', geoJsonBlob);
-
-  // Add each blob file to the zip file
-  if (dataFiles) {
-    for (const [filename, blob] of Object.entries(dataFiles)) {
-      if (media_files.indexOf(filename) > -1) {
-        zip.file(filename, blob);
-      }
+  function handleSave() {
+    if (isAuthenticated) {
+      saveMap({yes: "no"});
+    } else {
+      console.log("not authenticated");
     }
   }
-
-  // Generate the zip file and trigger the download
-  zip.generateAsync({ type: 'blob' }).then((content) => {
-    saveAs(content, `chatmap-${chatmapId}.zip`);
-  });
-}
-
-function SaveButton({ data, dataFiles }) {
-
-  const handleClick = () => {
-    createAndDownloadZip(data, dataFiles);
-  };
 
   return (
-    <sl-button
-      variant="primary"
-      size="small"
-      onClick={handleClick}
-    >
-      <FormattedMessage
-        id = "app.download"
-        defaultMessage="Download"
-      />
-      <sl-icon name="save2" slot="prefix"></sl-icon>
-    </sl-button>
+    <SlButton variant="default" outline size="small" onClick={handleSave}>
+      <SlIcon slot="prefix" name="cloud-arrow-up-fill"></SlIcon>
+      <FormattedMessage id="app.map.save" defaultMessage="Save" />
+    </SlButton>
   );
 }
-
-export default SaveButton;

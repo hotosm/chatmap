@@ -1,5 +1,5 @@
 """
-This FastAPI application serves as the backend for the system that ingests 
+This FastAPI application serves as the backend for the system that ingests
 real-time messages from a Redis stream and stores them in a database.
 These messages are then used to generate a GeoJSON-based map showing locations
 and related content.
@@ -56,10 +56,10 @@ app.add_middleware(
 async def qr(user: CurrentUser):
     """
     Retrieve a QR code image for linking devices
-    
+
     Args:
         user (CurrentUser): Authenticated user.
-        
+
     Returns:
         StreamingResponse: Streamed image response.
     """
@@ -81,10 +81,10 @@ async def status(
 ) -> Dict[str, str]:
     """
     Get the current session status of the linked device.
-    
+
     Args:
         user (CurrentUser): Authenticated user.
-        
+
     Returns:
         Dict[str, str]: Status of the session.
     """
@@ -101,10 +101,10 @@ async def status(
 async def logout(user: CurrentUser) -> Dict[str, str]:
     """
     Log out the linked device.
-    
+
     Args:
         user (CurrentUser): Authenticated user.
-        
+
     Returns:
         Dict[str, str]: Confirmation of logout.
     """
@@ -113,6 +113,14 @@ async def logout(user: CurrentUser) -> Dict[str, str]:
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to logout")
         return {'status': "logged out"}
+
+@api_router.post("/map")
+async def create_chatmap(
+    request: Request,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    return {"status": "ok"}
 
 # Public Map Data Endpoint
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
@@ -123,12 +131,12 @@ async def get_public_chatmap(
 ):
     """
     Retrieve public map data (GeoJSON) for a given map ID.
-    
+
     Args:
         map_id (str): Unique identifier of the map.
         request (Request): FastAPI request object.
         db (Session): Database session.
-        
+
     Returns:
         FeatureCollection: GeoJSON FeatureCollection of points.
     """
@@ -187,12 +195,12 @@ async def get_chatmap(
 ):
     """
     Retrieve private map data (GeoJSON) for the authenticated user.
-    
+
     Args:
         request (Request): FastAPI request object.
         user (CurrentUser): Authenticated user.
         db (Session): Database session.
-        
+
     Returns:
         FeatureCollection: GeoJSON FeatureCollection of points.
     """
@@ -244,11 +252,11 @@ async def status(
 ) -> Dict[str, str]:
     """
     Toggle sharing permission of the user's map between private and public.
-    
+
     Args:
         user (CurrentUser): Authenticated user.
         db (Session): Database session.
-        
+
     Returns:
         Dict[str, str]: Updated map ID and sharing status.
     """
@@ -268,10 +276,10 @@ async def status(
 async def media(filename: str) -> Dict[str, str]:
     """
     Serve media files (images, videos, audio)
-    
+
     Args:
         filename (str): Name of the media file.
-        
+
     Returns:
         FileResponse or error message.
     """
@@ -291,10 +299,10 @@ async def media(filename: str) -> Dict[str, str]:
 async def me(user: CurrentUser):
     """
     Return information about the authenticated user.
-    
+
     Args:
         user (CurrentUser): Authenticated user.
-        
+
     Returns:
         Dict[str, str]: User info including ID, email, and username.
     """
