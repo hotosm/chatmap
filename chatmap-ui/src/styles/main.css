@@ -81,8 +81,8 @@ a {
 .header__title {
     display: flex;
     column-gap: var(--hot-spacing-small);
-    text-overflow: ellipsis;
     overflow: hidden;
+    text-wrap: nowrap;
 }
 
 .header__title-text {
