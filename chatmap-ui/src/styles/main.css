@@ -81,11 +81,15 @@ a {
 .header__title {
     display: flex;
     column-gap: var(--hot-spacing-small);
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .header__title-text {
     font-size: var(--hot-font-size-medium);
     color: var(--hot-color-gray-950);
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .header hotosm-tool-menu {
