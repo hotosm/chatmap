@@ -49,8 +49,18 @@ function WithLanguage({ config }) {
 }
 
 async function init() {
-  const response = await fetch('/config.json');
-  const config = await response.json();
+  let config;
+  try {
+    const configResponse = await fetch('/config.json');
+    if (configResponse.ok) {
+      config = await configResponse.json();
+    } else {
+      throw new Error('config.json not found');
+    }
+  } catch (e) {
+    const defaultResponse = await fetch('/config.default.json');
+    config = await defaultResponse.json();
+  }
   const root = ReactDOM.createRoot(document.getElementById('root'));
 
   root.render(

@@ -12,4 +12,6 @@ media
 .env
 certbot/
 deploy/frontend/config.json
+chatmap-ui/public/config.json
 deploy/nginx/default.conf
+issues
