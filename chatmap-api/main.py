@@ -219,6 +219,7 @@ async def get_chatmap(
         "id": map_id,
         "sharing": map_obj.sharing.value,
         "type": "FeatureCollection",
+        "name": map_obj.name,
         "features": [
             {
                 "type": "Feature",

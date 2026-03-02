@@ -188,7 +188,7 @@ class FeatureCollection(BaseModel):
     sharing: str
     name: str
     type: Literal["FeatureCollection"]
-    features: List[Feature]
+    features: List[Feature] = []
 
 # Initialize database schema
 def init_db():
