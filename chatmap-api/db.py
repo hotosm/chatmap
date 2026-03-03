@@ -190,14 +190,6 @@ class FeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]
     features: List[Feature] = []
 
-# Initialize database schema
-def init_db():
-    """
-    Creates all database tables defined in the models.
-    Should be called once at startup.
-    """
-    Base.metadata.create_all(bind=engine)
-
 # Dependency to get a database session
 def get_db_session():
     """

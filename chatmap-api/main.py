@@ -39,9 +39,6 @@ api_router = APIRouter(prefix=f"/{prefix}")
 # Setup Hanko auth
 setup_auth(app)
 
-# Initialize database connection and tables
-init_db()
-
 # Scheduler for background tasks (e.g., get messages and update maps)
 scheduler = AsyncIOScheduler()
 
