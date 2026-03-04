@@ -5,6 +5,7 @@ description = "ChatMap API"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.18.4",
     "altgraph==0.17.4",
     "annotated-types==0.7.0",
     "anyio==4.9.0",
@@ -39,4 +40,13 @@ dependencies = [
     "typing-inspection==0.4.2",
     "tzlocal==5.3.1",
     "uvicorn==0.35.0",
+]
+
+
+[tool.alembic]
+script_location = "%(here)s/alembic"
+
+# additional paths to be prepended to sys.path. defaults to the current working directory.
+prepend_sys_path = [
+    "."
 ]
