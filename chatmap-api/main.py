@@ -15,7 +15,7 @@ from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, FeatureCollection, init_db, get_db_session, get_or_create_map, SharePermission, Map
+from db import Point, FeatureCollection, get_db_session, get_or_create_map, SharePermission, Map
 from sqlalchemy.orm import Session
 from stream import stream_listener
 from settings import DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
