@@ -1,4 +1,9 @@
 import { lazy, useState, useEffect } from "react";
+import { FormattedMessage } from "react-intl";
+
+import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
+import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
+
 import useFileManager from "../../components/FileUpload/useFileManager.js";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import Header from "../header.jsx";
@@ -6,8 +11,13 @@ import Footer from "../footer.jsx";
 import FileUploadSection from './fileUpload.section.jsx';
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
-import "../../styles/home.css";
 import logo from "../../assets/chatmap-home.png";
+import SaveButton from '../../components/SaveButton';
+import DownloadButton from '../../components/DownloadButton';
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useConfigContext } from "../../context/ConfigContext.jsx";
+
+import "../../styles/home.css";
 
 const Map = lazy(() => import("../../components/Map/index.jsx"));
 
@@ -17,6 +27,9 @@ function App() {
   const [withVideos, setWithVideos] = useState(true);
   const [withAudios, setWithAudios] = useState(true);
   const [withText, setWithText] = useState(false);
+
+  const { isAuthenticated } = useAuth();
+  const { config } = useConfigContext();
 
   // File Manager: Manages files and data files.
   // - handleFiles: handle all chat files
@@ -89,14 +102,32 @@ function App() {
   return (
     <>
       <div className="app">
-        <Header
-          dataAvailable={dataAvailable}
-          dataFiles={dataFiles}
-          mapData={data}
-          handleNewUploadClick={handleNewUploadClick}
-          showUploadButton={dataAvailable}
-          showDownloadButton={true}
-        />
+        <Header>
+          { dataAvailable && <>
+            <SlButton
+              variant="default"
+              outline
+              size="small"
+              onClick={handleNewUploadClick}
+            >
+              <SlIcon name="arrow-clockwise" slot="prefix"></SlIcon>
+              <FormattedMessage
+                id = "app.uploadNewFile"
+                defaultMessage="New file"
+              />
+            </SlButton>
+
+            <DownloadButton data={data} dataFiles={dataFiles} />
+
+            <SaveButton data={data} />
+          </>}
+
+          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && enableExperimental && <>
+            <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
+              <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
+            </SlButton>
+          </>}
+        </Header>
 
         {!files &&
         <section className="home">

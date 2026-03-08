@@ -37,9 +37,7 @@ function MapView() {
   return (
     <>
       <div className="app">
-        <Header
-          showDownloadButton={false}
-        />
+        <Header />
 
         <div className="mapscontent">
           <div className="mapscontent__header">

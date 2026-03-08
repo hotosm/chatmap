@@ -1,13 +1,14 @@
 import { lazy, useState, useEffect } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { useNavigate } from "react-router";
+
 import useAPI from '../../components/ChatMap/useApi.js'
 import Header from '../header.jsx';
 import { useMapDataContext } from '../../context/MapDataContext.jsx';
 import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
-import { useNavigate } from "react-router";
-import { useIntl } from 'react-intl';
-import { FormattedMessage } from 'react-intl';
+import ShareButton from '../../components/ShareButton';
 
 const Map = lazy(() => import('../../components/Map'));
 
@@ -87,12 +88,9 @@ function App() {
     <div className="app">
 
         <Header
-          dataAvailable={dataAvailable}
           handleSettingsClick={handleSettingsClick}
-          mapData={data}
           showLogoutIcon={true}
           handleLogoutClick={handleLogoutClick}
-          mode="linked"
           subtitle={
             intl.formatMessage({
               id: "app.linked.subtitle",
@@ -105,7 +103,11 @@ function App() {
               defaultMessage: "Only WhatsApp is supported for now, more apps coming soon!"
             })
           }
-        />
+        >
+          { dataAvailable && <>
+            <ShareButton sharing={data.sharing} />
+          </>}
+        </Header>
 
         {/* Loading message */}
         <div className={`loading ${

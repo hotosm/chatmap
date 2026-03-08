@@ -27,7 +27,14 @@ function MapView() {
   }, [id]);
 
   // Map Data Context: Manages map data
-  const { data, mapDataDispatch } = useMapDataContext();
+  const { data, tags, mapDataDispatch } = useMapDataContext();
+
+  const selectTagHandler = tag => {
+    mapDataDispatch({
+      type: 'set_filter_tag',
+      payload: {tag: tag},
+    });
+  }
 
   // Updates map data context with new map data
   useEffect(() => {
@@ -46,12 +53,17 @@ function MapView() {
   return (
     <>
       <div className="app">
-        <Header
-          dataAvailable={dataAvailable}
-          mapData={data}
-          showDownloadButton={false}
-          title={mapData.name || "Untitled"}
-        />
+        <Header title={mapData.name || "Untitled"}>
+          {Object.keys(tags).length > 0 &&
+            <div className="tagsOptions">
+              <TagsOptions
+                  onSelectTag={selectTagHandler}
+                  tags={tags}
+                  selectedTag={data.filterTag}
+              />
+            </div>
+          }
+        </Header>
 
         {dataAvailable &&
           <Map
