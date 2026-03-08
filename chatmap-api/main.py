@@ -145,7 +145,7 @@ async def create_chatmap(
     db: Session = Depends(get_db_session),
 ) -> SaveMapResult:
     with db.begin():
-        new_map = Map(owner_id=user.id)
+        new_map = Map(owner_id=user.id, name=map_data.name)
         db.add(new_map)
         db.flush()
 

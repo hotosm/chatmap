@@ -62,6 +62,8 @@ class SaveMapFeature(BaseModel):
 
 class SaveMapFeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]
+    name: str
+    description: str | None = None
     features: List[SaveMapFeature]
 
 

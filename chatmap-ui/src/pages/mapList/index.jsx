@@ -46,7 +46,7 @@ function MapView() {
               <h2><FormattedMessage id="app.maps.subtitle" defaultMessage="Create maps from chat conversations" /></h2>
             </div>
             <div className="mapscontent__header-right">
-              <SlButton variant="primary">
+              <SlButton variant="primary" href="#/">
                 <FormattedMessage id="app.maps.new" defaultMessage="Create new map" />
               </SlButton>
             </div>
@@ -118,9 +118,7 @@ function MapView() {
         </div>
       </div>
 
-      <Footer
-        className="footer__floating"
-      />
+      <Footer />
     </>
   );
 }

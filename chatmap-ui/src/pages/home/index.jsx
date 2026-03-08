@@ -10,6 +10,7 @@ import Header from "../header.jsx";
 import Footer from "../footer.jsx";
 import FileUploadSection from './fileUpload.section.jsx';
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
+import SaveDialog from "../../components/SaveDialog/index.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import logo from "../../assets/chatmap-home.png";
 import SaveButton from '../../components/SaveButton';
@@ -23,6 +24,7 @@ const Map = lazy(() => import("../../components/Map/index.jsx"));
 
 function App() {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [withPhotos, setWithPhotos] = useState(true);
   const [withVideos, setWithVideos] = useState(true);
   const [withAudios, setWithAudios] = useState(true);
@@ -96,6 +98,10 @@ function App() {
     window.removeEventListener('beforeunload', confirmPageLeave);
   }
 
+  function handleSaveButtonClick() {
+    setSaveDialogOpen(true);
+  }
+
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
 
@@ -119,7 +125,7 @@ function App() {
 
             <DownloadButton data={data} dataFiles={dataFiles} />
 
-            <SaveButton data={data} />
+            <SaveButton onClick={handleSaveButtonClick} />
           </>}
 
           { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && enableExperimental && <>
@@ -170,6 +176,12 @@ function App() {
         withAudios={withAudios} setWithAudios={setWithAudios}
         withText={withText} setWithText={setWithText}
       ></SettingsDialog>
+
+      <SaveDialog
+        open={saveDialogOpen}
+        setOpen={setSaveDialogOpen}
+        data={data}
+      />
     </>
   );
 }
