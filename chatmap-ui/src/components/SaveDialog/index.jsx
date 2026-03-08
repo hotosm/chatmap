@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useNavigate } from "react-router";
 
 import SlDialog from "@shoelace-style/shoelace/dist/react/dialog/index.js";
@@ -13,6 +13,7 @@ export default function SaveDialog({
 }) {
   const navigate = useNavigate();
   const { config } = useConfigContext();
+  const intl = useIntl();
 
   const [error, setError] = useState();
 
@@ -31,7 +32,10 @@ export default function SaveDialog({
     if (response.ok) {
       navigate('/maps');
     } else {
-      setError("There was an error saving the map");
+      setError(intl.formatMessage({
+        id: "app.save.mappWithErrors",
+        defaultMessage: "Your map contains errors that prevent it from saving",
+      }));
     }
   }, [data]);
 
@@ -49,15 +53,15 @@ export default function SaveDialog({
       <form onSubmit={handleSubmit}>
         <SlInput
           name="name"
-          label="Write a name for it"
-          placeholder="Ex: My community map"
+          label={intl.formatMessage({id: "app.save.name", defaultMessage: "Write a name for it"})}
+          placeholder={intl.formatMessage({id: "app.save.namePlaceholder", defaultMessage: "Ex: My community map"})}
           required
         />
 
         <SlTextarea
           name="description"
-          label="What is this map about?"
-          placeholder="You can use markdown"
+          label={intl.formatMessage({id: "app.save.description", defaultMessage: "What is this map about?"})}
+          placeholder={intl.formatMessage({id: "app.save.descriptionPlaceholder", defaultMessage: "You can use markdown"})}
         />
 
         <sl-button type="submit" slot="footer" variant="primary" className="dialog__btn dark-btn">
