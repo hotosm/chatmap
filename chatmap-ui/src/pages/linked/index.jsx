@@ -5,18 +5,13 @@ import { useMapDataContext } from '../../context/MapDataContext.jsx';
 import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
-import { useNavigate } from "react-router-dom";
-import { useIntl } from 'react-intl';
 import { FormattedMessage } from 'react-intl';
 
 const Map = lazy(() => import('../../components/Map'));
 
 function App() {
 
-  const intl = useIntl();
-
   const [showSettings, setShowSettings] = useState(false);
-  const navigate = useNavigate();
 
   // Get data from API
   const {
@@ -26,7 +21,6 @@ function App() {
     isLoading,
     error,
     fetchMapData,
-    logoutSession,
     fetchQRCode,
     fetchStatus
   } = useAPI();
@@ -70,17 +64,8 @@ function App() {
   // There's data for the map!
   const dataAvailable = data && data.features && data.features.length > 0;
 
-  const handleSettingsClick = () => {
-    setShowSettings(!showSettings);
-  }
-
   const handleSettingsCloseClick = () => {
     setShowSettings(false);
-  }
-
-  const handleLogoutClick = async () => {
-    await logoutSession();
-    navigate("/", { replace: true });
   }
 
   return (
@@ -88,23 +73,8 @@ function App() {
 
         <Header
           dataAvailable={dataAvailable}
-          handleSettingsClick={handleSettingsClick}
           mapData={data}
-          showLogoutIcon={true}
-          handleLogoutClick={handleLogoutClick}
           mode="linked"
-          subtitle={
-            intl.formatMessage({
-              id: "app.linked.subtitle",
-              defaultMessage: "Live updated maps with linked devices"
-            })
-          }
-          legend={
-            intl.formatMessage({
-              id: "app.linked.legend",
-              defaultMessage: "Only WhatsApp is supported for now, more apps coming soon!"
-            })
-          }
         />
 
         {/* Loading message */}

@@ -20,22 +20,6 @@ const useApi = (params = {}) => {
     const [status, setStatus] = useState();
     const [mapShare, setMapShare] = useState({});
 
-    // Logout session
-    const logoutSession = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${config.API_URL}/logout`, {
-                method: 'GET',
-                credentials: 'include',
-            });
-            if (!response.ok) throw new Error('Failed to logout');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    });
-
     // Fetch map data related to a session
     const fetchMapData = useCallback(async (id) => {
         setIsLoading(true);
@@ -128,7 +112,6 @@ const useApi = (params = {}) => {
         isLoading,
         error,
         fetchMapData,
-        logoutSession,
         fetchQRCode,
         fetchStatus,
         updateMapShare,
