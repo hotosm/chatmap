@@ -1,5 +1,5 @@
 import { FormattedMessage, FormattedRelativeTime } from "react-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
@@ -32,6 +32,28 @@ function MapView() {
       setMapList(json);
     }
     fetchData();
+  }, []);
+
+  const handleDelete = useCallback(async (map) => {
+    setMapList((list) => {
+      return list.map((m) => {
+        return {...m, ...{
+          loading: map.id === m.id,
+        }};
+      });
+    });
+
+    const url = `${config.API_URL}/map/${map.id}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      setMapList((list) => {
+        return list.filter((m) => m.id !== map.id);
+      });
+    }
   }, []);
 
   return (
@@ -109,7 +131,7 @@ function MapView() {
                     <SlButton outline>
                       <SlIcon name="file-earmark-plus-fill" slot="prefix" />
                     </SlButton>
-                    <SlButton outline>
+                    <SlButton outline loading={!!map.loading} onClick={() => handleDelete(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
                   </td>

@@ -115,6 +115,7 @@ async def logout(user: CurrentUser) -> Dict[str, str]:
             raise HTTPException(status_code=502, detail="Failed to logout")
         return {'status': "logged out"}
 
+
 @api_router.get("/map")
 async def list_maps(
     user: CurrentUser,
@@ -139,6 +140,7 @@ async def list_maps(
         "count": count,
     } for map, count in maps]
 
+
 @api_router.post("/map")
 async def create_chatmap(
     map_data: SaveMapFeatureCollection,
@@ -160,6 +162,26 @@ async def create_chatmap(
         ) for feature in map_data.features])
 
     return SaveMapResult(id=new_map.id, name=new_map.name)
+
+
+@api_router.delete("/map/{map_id}")
+async def delete_chatmap(
+    map_id: str,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    map = db.get(Map, map_id)
+
+    if map is None or map.owner_id != user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found",
+        )
+
+    db.delete(map)
+    db.commit()
+
+    return
 
 
 # Public Map Data Endpoint
@@ -225,6 +247,7 @@ async def get_public_chatmap(
             status_code=401,
             detail="Unauthorized: the requested map is not publicly shared."
         )
+
 
 # User's Private Map Data Endpoint
 @api_router.get("/map/new", response_model=FeatureCollection)
