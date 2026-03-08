@@ -5,7 +5,7 @@ import { useMapDataContext } from '../../context/MapDataContext.jsx';
 import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useIntl } from 'react-intl';
 import { FormattedMessage } from 'react-intl';
 

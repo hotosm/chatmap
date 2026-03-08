@@ -6,13 +6,13 @@ import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 import useApi from '../ChatMap/useApi';
 import { useAuth } from '../../context/AuthContext';
 
-export default function SaveButton() {
-  const { saveMap } = useApi();
+export default function SaveButton({data}) {
+  const { mapResult, saveMap } = useApi();
   const { isAuthenticated } = useAuth();
 
   function handleSave() {
     if (isAuthenticated) {
-      saveMap({yes: "no"});
+      saveMap(data);
     } else {
       console.log("not authenticated");
     }

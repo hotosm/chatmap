@@ -15,11 +15,12 @@ from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, FeatureCollection, init_db, get_db_session, get_or_create_map, SharePermission, Map
+from db import get_db_session, get_or_create_map, SharePermission, Point, Map
+from schemas import FeatureCollection, SaveMapFeatureCollection, SaveMapResult
 from sqlalchemy.orm import Session
 from stream import stream_listener
 from settings import DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
-from sqlalchemy import func
+from sqlalchemy import func, select
 from hotosm_auth_fastapi import setup_auth, CurrentUser
 
 # Logs
@@ -114,13 +115,51 @@ async def logout(user: CurrentUser) -> Dict[str, str]:
             raise HTTPException(status_code=502, detail="Failed to logout")
         return {'status': "logged out"}
 
-@api_router.post("/map")
-async def create_chatmap(
-    request: Request,
+@api_router.get("/map")
+async def list_maps(
     user: CurrentUser,
     db: Session = Depends(get_db_session),
 ):
-    return {"status": "ok"}
+    subq = (
+        select(func.count(Point.id).label("count"), Point.map_id)
+            .group_by(Point.map_id)
+            .subquery()
+    )
+    maps = db.execute(
+        select(Map, subq.c.count)
+            .join_from(Map, subq)
+            .where(Map.owner_id == user.id)
+    )
+
+    return [{
+        "id":  map.id,
+        "name": map.name,
+        "sharing": map.sharing,
+        "count": count,
+    } for map, count in maps]
+
+@api_router.post("/map")
+async def create_chatmap(
+    map_data: SaveMapFeatureCollection,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+) -> SaveMapResult:
+    with db.begin():
+        new_map = Map(owner_id=user.id)
+        db.add(new_map)
+        db.flush()
+
+        db.add_all([Point(
+            geom=f"POINT ({feature.geometry.coordinates[0]} {feature.geometry.coordinates[1]})",
+            message=feature.properties.message,
+            username=feature.properties.username,
+            time=feature.properties.time,
+            file=feature.properties.file,
+            map_id=new_map.id,
+        ) for feature in map_data.features])
+
+    return SaveMapResult(id=new_map.id, name=new_map.name)
+
 
 # Public Map Data Endpoint
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
@@ -187,7 +226,7 @@ async def get_public_chatmap(
         )
 
 # User's Private Map Data Endpoint
-@api_router.get("/map", response_model=FeatureCollection)
+@api_router.get("/map/new", response_model=FeatureCollection)
 async def get_chatmap(
     request: Request,
     user: CurrentUser,

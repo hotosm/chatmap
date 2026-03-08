@@ -1,4 +1,5 @@
 import { FormattedMessage } from 'react-intl';
+import { NavLink } from 'react-router';
 
 import '@hotosm/hanko-auth';
 import "@hotosm/tool-menu";
@@ -60,6 +61,14 @@ export default function Header({
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
           <h1 className="header__title-text">{title}</h1>
+          { isAuthenticated && <ul className="header__nav">
+            <li>
+              <NavLink
+                to="/maps"
+                style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "" })}
+              ><FormattedMessage id="app.navigation.maps" defaultMessage="Maps" /></NavLink>
+            </li>
+          </ul>}
         </div>
 
         <div className="header__rest">
@@ -81,13 +90,12 @@ export default function Header({
               </SlButton>
           </div> : null}
 
-
           {showDownloadButton && mode !== 'linked' && dataAvailable && <>
             <div className="saveFile">
               <DownloadButton data={data} dataFiles={dataFiles} />
             </div>
 
-            <SaveButton />
+            <SaveButton data={data} />
           </>}
 
           {mode === 'linked' && dataAvailable &&

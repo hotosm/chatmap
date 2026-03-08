@@ -1,9 +1,10 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router';
 import { useAuth } from './context/AuthContext';
 import Home from './pages/home';
 import Linked from './pages/linked';
 import LoginPage from './pages/login';
 import MapView from './pages/mapView';
+import MapList from './pages/mapList';
 import { useConfigContext } from './context/ConfigContext.jsx';
 import '@hotosm/hanko-auth';
 
@@ -59,22 +60,15 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Home />} />
 
-        { config.ENABLE_LIVE && config.ENABLE_AUTH && <>
-        <Route path="/app" element={<LoginPage />} />
-        <Route path="/map/:id" element={<MapView />} />
-        <Route
-             path="/linked"
-             element={<PrivateRoute><Linked /></PrivateRoute>}
-        /> </>}
-
-        { config.ENABLE_LIVE && !config.ENABLE_AUTH && <>
-        <Route path="/app" element={<LoginPage />} />
-        <Route path="/map/:id" element={<MapView />} />
-        <Route
-             path="/linked"
-             element={<PrivateRoute><Linked /></PrivateRoute>}
-        /> </>}
-
+        { config.ENABLE_AUTH && <>
+          <Route path="/app" element={<LoginPage />} />
+          <Route path="/maps" element={<MapList />} />
+          <Route path="/map/:id" element={<MapView />} />
+          { config.ENABLE_LIVE && <Route
+            path="/linked"
+            element={<PrivateRoute><Linked /></PrivateRoute>}
+          />}
+        </>}
       </Routes>
     </>
   );

@@ -91,6 +91,20 @@ a {
     text-wrap: nowrap;
 }
 
+ul.header__nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    font-family: var(--hot-font-sans-variant);
+    text-transform: uppercase;
+}
+
+ul.header__nav li {
+    display: flex;
+    align-items: center;
+}
+
 .header__title-text {
     font-size: var(--hot-font-size-medium);
     color: var(--hot-color-gray-950);

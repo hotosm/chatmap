@@ -520,10 +520,10 @@
     intl-messageformat "11.1.2"
     tslib "^2.8.1"
 
-"@hotosm/hanko-auth@^0.4.6":
-  version "0.4.6"
-  resolved "https://registry.yarnpkg.com/@hotosm/hanko-auth/-/hanko-auth-0.4.6.tgz#02203f956545b82fafcd0d81731c5c615d81c30f"
-  integrity sha512-nsMrgxVunc++Y6qm+W9gD6gUd6Qvgp8dip/5C4vTUBU9KFx9aSdwkgQnzoVuUEL6VUmMtQJvYas2C76k9V8uWQ==
+"@hotosm/hanko-auth@^0.4.8":
+  version "0.4.10"
+  resolved "https://registry.yarnpkg.com/@hotosm/hanko-auth/-/hanko-auth-0.4.10.tgz#63ca1591d2f19b6f6a2ca91dcf94e7ae43d11d12"
+  integrity sha512-rBCqQ1xOOs6TsZjEY76/ImV+9ZnC3FC58fiRE1CgloP6kVLWN0cJyP/rCiySCyR6aIfBcPkSjQGKLHUP/oisSA==
   dependencies:
     "@teamhanko/hanko-elements" "^1.0.0"
     lit "^3.3.1"
@@ -1934,17 +1934,10 @@ react-refresh@^0.17.0:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.17.0.tgz#b7e579c3657f23d04eccbe4ad2e58a8ed51e7e53"
   integrity sha512-z6F7K9bV85EfseRCp2bzrpyQ0Gkw1uLoCel9XBVWPg/TjRj94SkJzUTGfOa4bs7iJvBWtQG0Wq7wnI0syw3EBQ==
 
-react-router-dom@^7.12.0:
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-7.13.0.tgz#8b5f7204fadca680f0e94f207c163f0dcd1cfdf5"
-  integrity sha512-5CO/l5Yahi2SKC6rGZ+HDEjpjkGaG/ncEP7eWFTvFxbHP8yeeI0PxTDjimtpXYlR3b3i9/WIL4VJttPrESIf2g==
-  dependencies:
-    react-router "7.13.0"
-
-react-router@7.13.0:
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.13.0.tgz#de9484aee764f4f65b93275836ff5944d7f5bd3b"
-  integrity sha512-PZgus8ETambRT17BUm/LL8lX3Of+oiLaPuVTRH3l1eLvSPpKO3AvhAEb5N7ihAFZQrYDqkvvWfFh9p0z9VsjLw==
+react-router@^7.13.1:
+  version "7.13.1"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.13.1.tgz#5e2b3ebafd6c78d9775e135474bf5060645077f7"
+  integrity sha512-td+xP4X2/6BJvZoX6xw++A2DdEi++YypA69bJUV5oVvqf6/9/9nNlD70YO1e9d3MyamJEBQFEzk6mbfDYbqrSA==
   dependencies:
     cookie "^1.0.1"
     set-cookie-parser "^2.6.0"

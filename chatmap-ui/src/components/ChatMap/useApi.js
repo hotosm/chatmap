@@ -18,6 +18,7 @@ const useApi = (params = {}) => {
     const [QRImgSrc, setQRImgSrc] = useState();
     const [status, setStatus] = useState();
     const [mapShare, setMapShare] = useState({});
+    const [mapResult, setMapResult] = useState();
 
     /**
      * Common pattern for all requests
@@ -47,7 +48,7 @@ const useApi = (params = {}) => {
 
     // Fetch map data related to a session
     const fetchMapData = useCallback(async (id) => {
-        const url = id ? `${config.API_URL}/map/${id}` : `${config.API_URL}/map`;
+        const url = id ? `${config.API_URL}/map/${id}` : `${config.API_URL}/map/new`;
         await wrapper(async () => {
             const response = await fetch(url, {
                 method: 'GET',
@@ -111,11 +112,16 @@ const useApi = (params = {}) => {
         const response = await fetch(`${config.API_URL}/map`, {
           method: "POST",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(data),
         });
         if (!response.ok) {
           throw new Error("Failed to save map");
         }
+        const result = await response.json();
+        setMapResult(result);
       });
     }, []);
 
@@ -131,6 +137,8 @@ const useApi = (params = {}) => {
         fetchStatus,
         updateMapShare,
         mapShare,
+
+        mapResult,
         saveMap,
     };
 };

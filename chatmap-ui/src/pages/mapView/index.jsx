@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useInterval } from '../../hooks/useInterval.js';
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
