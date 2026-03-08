@@ -17,6 +17,7 @@ import SaveButton from '../../components/SaveButton';
 import DownloadButton from '../../components/DownloadButton';
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
+import TagsOptions from "../../components/TagsOptions/index.jsx";
 
 import "../../styles/home.css";
 
@@ -49,7 +50,14 @@ function App() {
   });
 
   // Map Data Context: Manages map data
-  const { data, mapDataDispatch } = useMapDataContext();
+  const { data, tags, mapDataDispatch } = useMapDataContext();
+
+  const selectTagHandler = tag => {
+    mapDataDispatch({
+      type: 'set_filter_tag',
+      payload: {tag: tag},
+    });
+  }
 
   useEffect(() => {
       // Public event for external integratons
@@ -126,6 +134,14 @@ function App() {
             <DownloadButton data={data} dataFiles={dataFiles} />
 
             <SaveButton onClick={handleSaveButtonClick} />
+
+            {Object.keys(tags).length > 0 &&
+              <TagsOptions
+                onSelectTag={selectTagHandler}
+                tags={tags}
+                selectedTag={data.filterTag}
+              />
+            }
           </>}
 
           { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && enableExperimental && <>

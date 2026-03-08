@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from 'react-router';
+
 import { useInterval } from '../../hooks/useInterval.js';
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import Map from "../../components/Map";
 import useAPI from '../../components/ChatMap/useApi.js'
+import TagsOptions from "../../components/TagsOptions/index.jsx";
 
 function MapView() {
 
@@ -55,13 +57,11 @@ function MapView() {
       <div className="app">
         <Header title={mapData.name || "Untitled"}>
           {Object.keys(tags).length > 0 &&
-            <div className="tagsOptions">
-              <TagsOptions
-                  onSelectTag={selectTagHandler}
-                  tags={tags}
-                  selectedTag={data.filterTag}
-              />
-            </div>
+            <TagsOptions
+              onSelectTag={selectTagHandler}
+              tags={tags}
+              selectedTag={data.filterTag}
+            />
           }
         </Header>
 
