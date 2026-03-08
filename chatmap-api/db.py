@@ -67,6 +67,8 @@ class Map(Base):
                      nullable=False,
                      default=SharePermission.PRIVATE)
     owner_id = Column(String, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
 
     # Relationship to Point model
     points = relationship(

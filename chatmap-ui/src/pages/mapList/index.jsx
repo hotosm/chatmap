@@ -97,7 +97,9 @@ function MapView() {
                   </td>
                   <td>
                     <strong>
-                      <FormattedRelativeTime value={0} updateIntervalInSeconds={60} />
+                      <FormattedRelativeTime value={
+                        ((new Date(map.updated_at)).getTime() - (new Date()).getTime()) / 1000
+                      } unit="second" updateIntervalInSeconds={1} />
                     </strong>
                   </td>
                   <td className="mapscontent__actions">

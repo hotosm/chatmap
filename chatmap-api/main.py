@@ -134,6 +134,7 @@ async def list_maps(
     return [{
         "id":  map.id,
         "name": map.name,
+        "updated_at": map.updated_at,
         "sharing": map.sharing,
         "count": count,
     } for map, count in maps]
