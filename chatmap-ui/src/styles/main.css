@@ -42,6 +42,12 @@ a {
     color: var(--hot-color-blue-500);
 }
 
+.app {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+
 /* Header */
 
 .header {
@@ -52,7 +58,7 @@ a {
     align-items: center;
     justify-content: space-between;
     padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
-    z-index: 9999;
+    z-index: 600;
     background-color: color-mix(in srgb, var(--hot-color-neutral-0) 90%, transparent);
 }
 
@@ -119,7 +125,7 @@ a {
     box-shadow: 0 -5px 5px color-mix(in srgb, var(--hot-color-neutral-1000) 2%, transparent);
     position: fixed;
     bottom: 0;
-    z-index: 9999;
+    z-index: 600;
 }
 
 .footer__top {
@@ -401,7 +407,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     background-color: var(--hot-color-neutral-0);
     position: absolute;
     top: 150px;
-    z-index: 9999;
+    z-index: 600;
     left: 50%;
     transform: translateX(-50%);
     text-align: left;
@@ -440,7 +446,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .count, .loading {
     position: absolute;
-    z-index: 9999;
+    z-index: 600;
 }
 
 .count {
@@ -467,7 +473,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     background-color: var(--hot-color-neutral-0);
     position: absolute;
     top: 150px;
-    z-index: 9999;
+    z-index: 600;
     left: 50%;
     transform: translateX(-50%);
     box-shadow: var(--hot-shadow-small);
@@ -510,6 +516,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
     body, .app {
         overflow-x: hidden;
+    }
+
+    .app {
+        display: block;
     }
 
     .footer__top-left h2,

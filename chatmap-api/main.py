@@ -15,7 +15,7 @@ from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, FeatureCollection, init_db, get_db_session, get_or_create_map, SharePermission, Map
+from db import Point, FeatureCollection, get_db_session, get_or_create_map, SharePermission, Map
 from sqlalchemy.orm import Session
 from stream import stream_listener
 from settings import DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
@@ -38,9 +38,6 @@ api_router = APIRouter(prefix=f"/{prefix}")
 
 # Setup Hanko auth
 setup_auth(app)
-
-# Initialize database connection and tables
-init_db()
 
 # Scheduler for background tasks (e.g., get messages and update maps)
 scheduler = AsyncIOScheduler()
@@ -219,6 +216,7 @@ async def get_chatmap(
         "id": map_id,
         "sharing": map_obj.sharing.value,
         "type": "FeatureCollection",
+        "name": map_obj.name,
         "features": [
             {
                 "type": "Feature",

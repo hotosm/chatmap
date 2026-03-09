@@ -1,6 +1,6 @@
 {
   "name": "chatmap",
-  "version": "0.51",
+  "version": "0.52",
   "homepage": "https://chatmap.hotosm.org",
   "author": "Emilio Mariscal <emilio.mariscal@hotosm.org>",
   "license": "AGPL-3.0-only",
@@ -8,7 +8,7 @@
   "dependencies": {
     "@babel/core": "^7.26.10",
     "@floating-ui/utils": "^0.2.10",
-    "@hotosm/hanko-auth": "^0.4.8",
+    "@hotosm/hanko-auth": "^0.5.2",
     "@hotosm/tool-menu": "0.2.6",
     "@hotosm/ui-design": "^1.4.0",
     "@shoelace-style/shoelace": "^2.20.1",

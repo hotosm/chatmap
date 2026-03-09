@@ -173,10 +173,7 @@ var (
     redisClient  *redis.Client
 )
 
-
 var locationPattern = regexp.MustCompile(`[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*`)
-
-
 
 // SearchLocation looks for a pair of decimal coordinates in the
 // supplied string.  It returns the coordinates as a string
@@ -363,12 +360,16 @@ func initClient(sessionID string) {
         sessionMetaMu.Unlock()
     }
 
-    // Handle incoming messages
+    // Handle client events
     client.AddEventHandler(func(evt interface{}) {
         switch v := evt.(type) {
-        case *events.Message:
-            go handleMessage(sessionID, v, enc_key)
-        }
+            // Handle incoming messages
+            case *events.Message:
+                go handleMessage(sessionID, v, enc_key)
+            // Handle device unpairing
+            case *events.LoggedOut:
+                sessionMeta[sessionID].Connected = false
+            }
     })
 
     // Try to connect client
