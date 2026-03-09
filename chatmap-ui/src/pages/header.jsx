@@ -3,8 +3,6 @@ import { FormattedMessage } from 'react-intl';
 import '@hotosm/hanko-auth';
 import "@hotosm/tool-menu";
 
-import SlOption from '@shoelace-style/shoelace/dist/react/option/index.js';
-import SlSelect from '@shoelace-style/shoelace/dist/react/select/index.js';
 import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
 import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
 import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
@@ -41,9 +39,6 @@ export default function Header({
     });
   }
 
-  // Temporary code for show/hide the login button
-  const enableExperimental = new URLSearchParams(window.location.search).get('experimental') === 'true';
-
   function handleLanguageChange(event) {
     const lang = event.detail.item.value;
 
@@ -55,7 +50,7 @@ export default function Header({
       <header className="header">
         {/* Logo */}
         <div className="header__title">
-          <a href={`/${enableExperimental ? "?experimental=true" : ""}`} className="header__logo-link">
+          <a href={`/`} className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
           <h1 className="header__title-text">{title}</h1>
@@ -102,7 +97,7 @@ export default function Header({
             </div>
           }
 
-          { isAuthenticated && config.ENABLE_LIVE && enableExperimental && mode !== 'linked' && !dataAvailable &&
+          { isAuthenticated && config.ENABLE_LIVE && mode !== 'linked' && !dataAvailable &&
           <sl-button className="header__live-button" href="#linked" variant="default" outline size="small">
             <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
           </sl-button>
@@ -124,13 +119,13 @@ export default function Header({
             </SlMenu>
           </SlDropdown>
 
-          { config.ENABLE_AUTH && enableExperimental &&
+          { config.ENABLE_AUTH &&
           <div className="header__login-button">
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}
               login-url={config.LOGIN_URL}
-              redirect-after-login={`${window.location.origin}?experimental=true`}
-              redirect-after-logout={`${window.location.origin}?experimental=true`}
+              redirect-after-login={`${window.location.origin}`}
+              redirect-after-logout={`${window.location.origin}`}
               lang={lang}
             />
           </div>
