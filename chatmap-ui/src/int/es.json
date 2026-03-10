@@ -62,7 +62,6 @@
     "app.options": "Opciones",
     "app.save.description": "¿De qué trata este mapa?",
     "app.save.descriptionPlaceholder": "Puedes usar markdown",
-    "app.save.mappWithErrors": "El mapa tiene errores que lo impiden guardar. Sentimos el inconveniente.",
     "app.save.name": "Dale un nombre a tu mapa",
     "app.save.namePlaceholder": "Ej: Mi mapa comunitario",
     "app.saveYourMapIn": "Guarda tu mapa en",

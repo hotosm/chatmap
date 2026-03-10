@@ -26,6 +26,17 @@ sl-icon-button::part(base) {
     color: var(--hot-color-gray-950);
 }
 
+sl-input::part(form-control-label),
+sl-textarea::part(form-control-label) {
+    font-weight: bold;
+    margin-bottom: var(--hot-spacing-small);
+}
+
+sl-input:not(:first-child),
+sl-textarea:not(:first-child) {
+    margin-top: var(--hot-spacing-medium);
+}
+
 /* defaults */
 
 html, body {
@@ -357,6 +368,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .errorMessage .logo {
     height: var(--hot-font-size-3x-large);
+}
+
+.error-box {
+    padding: var(--hot-spacing-medium) 0;
+}
+
+.error {
+    color: var(--hot-color-red-950);
 }
 
 /* Messages */

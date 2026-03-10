@@ -197,6 +197,7 @@ function App() {
         open={saveDialogOpen}
         setOpen={setSaveDialogOpen}
         data={data}
+        dataFiles={dataFiles}
       />
     </>
   );

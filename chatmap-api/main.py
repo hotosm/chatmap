@@ -9,7 +9,11 @@ import os
 import httpx
 import logging
 import asyncio
-from fastapi import FastAPI, HTTPException, Depends, Request, APIRouter
+from aiobotocore.session import get_session
+from typing import Annotated
+from fastapi import (
+    FastAPI, HTTPException, Depends, Request, APIRouter, File, Form, UploadFile,
+)
 from fastapi.responses import StreamingResponse, FileResponse
 from typing import Dict
 from io import BytesIO
@@ -19,7 +23,10 @@ from db import get_db_session, get_or_create_map, SharePermission, Point, Map
 from schemas import FeatureCollection, SaveMapFeatureCollection, SaveMapResult
 from sqlalchemy.orm import Session
 from stream import stream_listener
-from settings import DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS
+from settings import (
+    DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS,
+    S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL,
+)
 from sqlalchemy import func, select
 from hotosm_auth_fastapi import setup_auth, CurrentUser
 
@@ -139,6 +146,24 @@ async def list_maps(
         "sharing": map.sharing,
         "count": count,
     } for map, count in maps]
+
+
+@api_router.post("/map/media")
+async def save_media(
+    user: CurrentUser,
+    file: Annotated[UploadFile, File()],
+):
+    session = get_session()
+    async with session.create_client(
+        's3', endpoint_url=S3_ENDPOINT_URL,
+        aws_secret_access_key=S3_SECRET_KEY,
+        aws_access_key_id=S3_ACCESS_KEY,
+    ) as client:
+        resp = await client.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=file.filename,
+            Body=await file.read(),
+        )
 
 
 @api_router.post("/map")

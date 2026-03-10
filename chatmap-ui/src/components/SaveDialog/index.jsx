@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useNavigate } from "react-router";
 
@@ -9,7 +9,7 @@ import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import { useConfigContext } from "../../context/ConfigContext";
 
 export default function SaveDialog({
-  open, setOpen, data,
+  open, setOpen, data, dataFiles,
 }) {
   const navigate = useNavigate();
   const { config } = useConfigContext();
@@ -17,27 +17,49 @@ export default function SaveDialog({
 
   const [error, setError] = useState();
 
-  const handleSubmit = useCallback(async (event) => {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    const response = await fetch(`${config.API_URL}/map`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({...data, ...serialize(event.target)}),
+    const mediaFiles = data.features
+      .filter(f => !f.properties.removed && f.properties.file)
+      .map(f => f.properties.file);
+    const allFiles = Object.entries(dataFiles).filter(([filename, blob]) => {
+      return mediaFiles.indexOf(filename) > -1;
     });
 
-    if (response.ok) {
-      navigate('/maps');
-    } else {
-      setError(intl.formatMessage({
-        id: "app.save.mappWithErrors",
-        defaultMessage: "Your map contains errors that prevent it from saving",
-      }));
+    try {
+      for (let [filename, blob] of allFiles) {
+        const formData = new FormData();
+        formData.append("file", blob, filename);
+        const mediaResponse = await fetch(`${config.API_URL}/map/media`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+
+        if (!mediaResponse.ok) {
+          throw new Error(`Error saving media ${filename}`);
+        }
+      }
+
+      const response = await fetch(`${config.API_URL}/map`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({...data, ...serialize(event.target)}),
+      });
+
+      if (response.ok) {
+        navigate('/maps');
+      } else {
+        throw new Error("Your map contains errors that prevent it from saving");
+      }
+    } catch (e) {
+      setError(e.message);
     }
-  }, [data]);
+  }
 
   return (
     <SlDialog
@@ -48,7 +70,9 @@ export default function SaveDialog({
         <FormattedMessage id="app.home.saveYourMap" defaultMessage="Save your map" />
       </h2>
 
-      { error }
+      <div className="error error-box">
+        { error }
+      </div>
 
       <form onSubmit={handleSubmit}>
         <SlInput
