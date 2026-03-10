@@ -107,6 +107,18 @@ services:
     networks:
       - chatmap_net
 
+  # Serves as S3 backend
+  chatmap-minio:
+    image: quay.io/minio/minio
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    ports:
+      - 9000:9000
+      - 9001:9001
+    networks:
+      - chatmap_net
+
   # Process Hanko config template with environment variables
   chatmap-hanko-config:
     image: alpine:latest
@@ -186,3 +198,4 @@ volumes:
   chatmap_data:
   hanko_data:
   hanko_config:
+  minio_data:
