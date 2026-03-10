@@ -23,8 +23,12 @@ export default function Header({
   const { lang, setLang } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  // Temporary code for show/hide the login button
-  const enableExperimental = new URLSearchParams(window.location.search).get('experimental') === 'true';
+  const selectTagHandler = tag => {
+    mapDataDispatch({
+      type: 'set_filter_tag',
+      payload: {tag: tag},
+    });
+  }
 
   function handleLanguageChange(event) {
     const lang = event.detail.item.value;
@@ -37,7 +41,7 @@ export default function Header({
       <header className="header">
         {/* Logo */}
         <div className="header__title">
-          <a href={`/${enableExperimental ? "?experimental=true" : ""}`} className="header__logo-link">
+          <a href={`/`} className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
           <h1 className="header__title-text">{title}</h1>
@@ -70,13 +74,13 @@ export default function Header({
             </SlMenu>
           </SlDropdown>
 
-          { config.ENABLE_AUTH && enableExperimental &&
+          { config.ENABLE_AUTH &&
           <div className="header__login-button">
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}
               login-url={config.LOGIN_URL}
-              redirect-after-login={`${window.location.origin}?experimental=true`}
-              redirect-after-logout={`${window.location.origin}?experimental=true`}
+              redirect-after-login={`${window.location.origin}`}
+              redirect-after-logout={`${window.location.origin}`}
               lang={lang}
             />
           </div>
