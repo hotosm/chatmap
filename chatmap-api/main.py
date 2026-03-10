@@ -137,6 +137,7 @@ async def list_maps(
         select(Map, subq.c.count)
             .join_from(Map, subq)
             .where(Map.owner_id == user.id)
+            .order_by(Map.created_at.desc())
     )
 
     return [{
