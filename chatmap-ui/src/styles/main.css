@@ -37,6 +37,11 @@ sl-textarea:not(:first-child) {
     margin-top: var(--hot-spacing-medium);
 }
 
+sl-progress-bar {
+    margin-top: var(--hot-spacing-medium);
+    --indicator-color: var(--hot-color-red-950);
+}
+
 /* defaults */
 
 html, body {

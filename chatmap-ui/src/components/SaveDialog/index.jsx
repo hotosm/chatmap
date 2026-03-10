@@ -5,6 +5,9 @@ import { useNavigate } from "react-router";
 import SlDialog from "@shoelace-style/shoelace/dist/react/dialog/index.js";
 import SlInput from "@shoelace-style/shoelace/dist/react/input/index.js";
 import SlTextarea from "@shoelace-style/shoelace/dist/react/textarea/index.js";
+import SlProgressBar from '@shoelace-style/shoelace/dist/react/progress-bar/index.js';
+import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
+
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import { useConfigContext } from "../../context/ConfigContext";
 
@@ -16,6 +19,9 @@ export default function SaveDialog({
   const intl = useIntl();
 
   const [error, setError] = useState();
+  const [totalFiles, setTotalFiles] = useState(1);
+  const [sentFiles, setSentFiles] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -27,7 +33,15 @@ export default function SaveDialog({
       return mediaFiles.indexOf(filename) > -1;
     });
 
+    // Simply to avoid a division by 0 problem in the case of no files
+    setTotalFiles(allFiles.length + 1);
+
     try {
+      // This has to happen before setLoading(true) because that call makes the
+      // for disapear from the DOM, this returning an empty object.
+      const formData = serialize(event.target);
+      setLoading(true);
+
       for (let [filename, blob] of allFiles) {
         const formData = new FormData();
         formData.append("file", blob, filename);
@@ -40,6 +54,8 @@ export default function SaveDialog({
         if (!mediaResponse.ok) {
           throw new Error(`Error saving media ${filename}`);
         }
+
+        setSentFiles((value) => value + 1);
       }
 
       const response = await fetch(`${config.API_URL}/map`, {
@@ -48,8 +64,10 @@ export default function SaveDialog({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({...data, ...serialize(event.target)}),
+        body: JSON.stringify({...data, ...formData}),
       });
+
+      setSentFiles((value) => value + 1);
 
       if (response.ok) {
         navigate('/maps');
@@ -58,6 +76,7 @@ export default function SaveDialog({
       }
     } catch (e) {
       setError(e.message);
+      setLoading(false);
     }
   }
 
@@ -74,27 +93,32 @@ export default function SaveDialog({
         { error }
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <SlInput
-          name="name"
-          label={intl.formatMessage({id: "app.save.name", defaultMessage: "Write a name for it"})}
-          placeholder={intl.formatMessage({id: "app.save.namePlaceholder", defaultMessage: "Ex: My community map"})}
-          required
-        />
-
-        <SlTextarea
-          name="description"
-          label={intl.formatMessage({id: "app.save.description", defaultMessage: "What is this map about?"})}
-          placeholder={intl.formatMessage({id: "app.save.descriptionPlaceholder", defaultMessage: "You can use markdown"})}
-        />
-
-        <sl-button type="submit" slot="footer" variant="primary" className="dialog__btn dark-btn">
-          <FormattedMessage
-            id="app.home.dialog.continue"
-            defaultMessage="Continue"
+      { loading ? <>
+        Uploading media...
+        <SlProgressBar value={(sentFiles / totalFiles) * 100} />
+      </> : <>
+        <form onSubmit={handleSubmit}>
+          <SlInput
+            name="name"
+            label={intl.formatMessage({id: "app.save.name", defaultMessage: "Write a name for it"})}
+            placeholder={intl.formatMessage({id: "app.save.namePlaceholder", defaultMessage: "Ex: My community map"})}
+            required
           />
-        </sl-button>
-      </form>
+
+          <SlTextarea
+            name="description"
+            label={intl.formatMessage({id: "app.save.description", defaultMessage: "What is this map about?"})}
+            placeholder={intl.formatMessage({id: "app.save.descriptionPlaceholder", defaultMessage: "You can use markdown"})}
+          />
+
+          <SlButton type="submit" variant="primary" className="dialog__btn dark-btn">
+            <FormattedMessage
+              id="app.home.dialog.continue"
+              defaultMessage="Continue"
+            />
+          </SlButton>
+        </form>
+      </>}
     </SlDialog>
   );
 };
