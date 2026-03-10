@@ -144,7 +144,7 @@ function App() {
             }
           </>}
 
-          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && enableExperimental && <>
+          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && <>
             <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
               <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
             </SlButton>
