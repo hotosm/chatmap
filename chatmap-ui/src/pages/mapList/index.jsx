@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
+import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
@@ -16,6 +17,8 @@ function MapView() {
   const navigate = useNavigate();
   const { config } = useConfigContext();
   const [mapList, setMapList] = useState([]);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState();
 
   useEffect(() => {
     async function fetchData() {
@@ -33,6 +36,11 @@ function MapView() {
     }
     fetchData();
   }, []);
+
+  const handleDeleteRequest = useCallback((map) => {
+    setConfirmDialogData(map);
+    setConfirmDialogOpen(true);
+  });
 
   const handleDelete = useCallback(async (map) => {
     setMapList((list) => {
@@ -125,7 +133,7 @@ function MapView() {
                     </strong>
                   </td>
                   <td className="mapscontent__actions">
-                    <SlButton outline loading={!!map.loading} onClick={() => handleDelete(map)}>
+                    <SlButton outline loading={!!map.loading} onClick={() => handleDeleteRequest(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
                   </td>
@@ -134,9 +142,19 @@ function MapView() {
             </table>
           </div>
         </div>
+
+        <Footer />
       </div>
 
-      <Footer />
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        setOpen={setConfirmDialogOpen}
+        onConfirm={handleDelete}
+        data={confirmDialogData}
+        title={{id: "app.maps.confirmDelete.title", defaultMessage: "Delete this map?"}}
+      >
+        { confirmDialogData?.name }
+      </ConfirmDialog>
     </>
   );
 }

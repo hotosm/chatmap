@@ -1,6 +1,8 @@
 {
     "app.all": "All",
     "app.checkThisQuick": "Check this quick",
+    "app.dialog.confirm.cancel": "Cancel",
+    "app.dialog.confirm.ok": "Ok",
     "app.download": "Download",
     "app.experimental": "Experimental",
     "app.footer.become": "Become a {chatmapper} today!",
@@ -43,6 +45,7 @@
     "app.linked.subtitle": "Live updated maps with linked devices",
     "app.loading": "Loading",
     "app.map.save": "Save",
+    "app.maps.confirmDelete.title": "Delete this map?",
     "app.maps.new": "Create new map",
     "app.maps.point_count": "{count} points",
     "app.maps.sharing.private": "Private",
