@@ -125,12 +125,6 @@ function MapView() {
                     </strong>
                   </td>
                   <td className="mapscontent__actions">
-                    <SlButton outline>
-                      <SlIcon name="link" slot="prefix" />
-                    </SlButton>
-                    <SlButton outline>
-                      <SlIcon name="file-earmark-plus-fill" slot="prefix" />
-                    </SlButton>
                     <SlButton outline loading={!!map.loading} onClick={() => handleDelete(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
