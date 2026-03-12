@@ -159,3 +159,20 @@ it('should work with that', () => {
 
   expect(msgObjects[0].time).toEqual(new Date('2025-12-08T09:47:00.000Z'));
 });
+
+it('should detect the year correctly in this chat', () => {
+  const msgs = [
+    "04/07/2025, 12:33 - You created the group: Chatmap",
+    "16/01/2026, 11:15 - You deactivated the community \"Community\"",
+    "16/01/2026, 11:15 - You removed this group from a community",
+    "11/03/2026, 14:12 - Ann: You deleted this message",
+    "11/03/2026, 14:15 - Ann: You deleted this message",
+    "11/03/2026, 14:16 - Ann: You deleted this message",
+    "11/03/2026, 14:57 - Ann: IMG-20260311-WA0004.jpg (file attached)",
+    "11/03/2026, 14:57 - Ann: location: https://maps.google.com/?q=43.5193032,4.4796836",
+  ];
+
+  const msgObjects = parseAndIndex(msgs, "ANDROID");
+
+  expect(msgObjects[0].time).toEqual(new Date('2025-04-07T12:33:00.000Z'));
+});
