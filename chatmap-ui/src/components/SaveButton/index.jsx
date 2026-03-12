@@ -3,17 +3,11 @@ import { FormattedMessage } from 'react-intl';
 import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
 import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 
-import { useAuth } from '../../context/AuthContext';
-
-export default function SaveButton({data, onClick}) {
-  const { isAuthenticated } = useAuth();
-
+export default function SaveButton({
+  data, onClick,
+}) {
   function handleClick() {
-    if (isAuthenticated) {
-      onClick(data);
-    } else {
-      console.log("not authenticated");
-    }
+    onClick(data);
   }
 
   return (

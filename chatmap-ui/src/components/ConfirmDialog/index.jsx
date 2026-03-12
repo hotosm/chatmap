@@ -6,7 +6,7 @@ import SlDialog from "@shoelace-style/shoelace/dist/react/dialog/index.js";
 import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
 
 export default function ConfirmDialog({
-  open, setOpen, onConfirm, data, title, children,
+  open, setOpen, onConfirm, data, title, okText={id: "app.dialog.confirm.ok", defaultMessage: "Ok"}, children,
 }) {
   const handleClick = useCallback(() => {
     onConfirm(data)
@@ -29,7 +29,7 @@ export default function ConfirmDialog({
           <FormattedMessage id="app.dialog.confirm.cancel" defaultMessage="Cancel" />
         </SlButton>
         <SlButton variant="primary" onClick={handleClick}>
-          <FormattedMessage id="app.dialog.confirm.ok" defaultMessage="Ok" />
+          <FormattedMessage {...okText} />
         </SlButton>
       </div>
     </SlDialog>

@@ -113,7 +113,7 @@ export default function SaveDialog({
 
           <SlButton type="submit" variant="primary" className="dialog__btn dark-btn">
             <FormattedMessage
-              id="app.home.dialog.continue"
+              id="app.home.saveDialog.continue"
               defaultMessage="Continue"
             />
           </SlButton>
