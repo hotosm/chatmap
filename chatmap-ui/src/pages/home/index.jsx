@@ -210,7 +210,6 @@ function App() {
         open={confirmDialogOpen}
         setOpen={setConfirmDialogOpen}
         onConfirm={() => {
-          console.log('acá');
           const returnTo = encodeURIComponent(window.location.href);
           window.location.href = `${config.LOGIN_URL}?return_to=${returnTo}`;
         }}
