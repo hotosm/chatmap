@@ -100,7 +100,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
           if (feature.properties["tags"]) {
-            feature.properties.tags = JSON.parse(feature.properties.tags);
+            feature.properties.tags = feature.properties.tags.split(",");
           }
           setActivePopupFeature(feature);
         });
