@@ -297,9 +297,21 @@ function makeCase2Function(changes, maxObserved, system) {
   };
 }
 
-function makeCase3Function(changes, maxObserved, hasDecreased, system) {
-  // year index is the one that didn't decrease
-  const yearIndex = hasDecreased.map((h, i) => [h, i]).filter(([h, i]) => !h)[0][1];
+function makeCase3Function(changes, maxObserved, hasDecreased, fourDigits, system) {
+  // If there is a four digit number take it straight as the year
+  const maybeYearIndex = fourDigits.map((n, i) => [n, i]).filter(([n, i]) => n);
+  let yearIndex;
+
+  if (maybeYearIndex.length > 0) {
+    yearIndex = maybeYearIndex[0][1];
+  } else {
+    const decreased = hasDecreased.map((h, i) => [h, i]).filter(([h, i]) => !h);
+    // year index is the one number that didn't decrease. give priority to the
+    // last position, since the year tends to be last item
+    // in the date
+    yearIndex = decreased[decreased.length-1][1];
+  }
+
   const otherIndex1 = (yearIndex + 1) % 3;
   const otherIndex2 = (yearIndex + 2) % 3;
   let dayIndex, monthIndex;
@@ -395,6 +407,7 @@ function getDateFormat(lines, system) {
 
   // How many date components changed?
   const numChanges = changes.map((c) => c !== 0).reduce((a, b) => a + b, 0);
+  const fourDigits = maxObserved.map((n) => n > 999);
 
   if (numChanges === 0) {
     // nothing changed (only one date was observed in the export)
@@ -410,7 +423,7 @@ function getDateFormat(lines, system) {
     return makeCase2Function(changes, maxObserved, system);
   } else {
     // everything changed
-    return makeCase3Function(changes, maxObserved, hasDecreased, system);
+    return makeCase3Function(changes, maxObserved, hasDecreased, fourDigits, system);
   }
 }
 
