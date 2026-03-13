@@ -26,9 +26,8 @@ services:
 
   # Backend API with uvicorn hot reload
   chatmap-api:
-    image: python:3.13-slim
+    build: ./chatmap-api/
     working_dir: /app
-    command: sh -c "apt-get update && apt-get install -y git && pip install uv && uv sync && uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
     depends_on:
