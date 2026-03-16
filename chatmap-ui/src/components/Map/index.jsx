@@ -99,7 +99,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
         map.current.on("click", "pois-clickable",  (e) => {
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
-          if (feature.properties["tags"]) {
+          if (feature.properties.tags) {
             feature.properties.tags = feature.properties.tags.split(",");
           }
           setActivePopupFeature(feature);

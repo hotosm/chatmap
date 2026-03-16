@@ -1,6 +1,6 @@
 import { FormattedMessage, FormattedRelativeTime } from "react-intl";
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, NavLink } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
@@ -13,7 +13,7 @@ import { useConfigContext } from "../../context/ConfigContext.jsx";
 
 import '../../styles/maps.css';
 
-function MapView() {
+export default function MapList() {
   const navigate = useNavigate();
   const { config } = useConfigContext();
   const [mapList, setMapList] = useState([]);
@@ -108,7 +108,7 @@ function MapView() {
                       <div className="mapitem__icon">
                         <SlIcon name="file-earmark-fill" />
                       </div>
-                      <div className="mapitem__name">
+                      <NavLink to={"/map/" + map.id} className="mapitem__name">
                         <strong>{ map.name }</strong>
                         <small>
                           <FormattedMessage
@@ -117,7 +117,7 @@ function MapView() {
                             values={{count: map.count }}
                           />
                         </small>
-                      </div>
+                      </NavLink>
                     </div>
                   </td>
                   <td>
@@ -157,6 +157,4 @@ function MapView() {
       </ConfirmDialog>
     </>
   );
-}
-
-export default MapView;
+};

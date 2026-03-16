@@ -61,6 +61,12 @@
     gap: var(--hot-spacing-medium);
 }
 
+a.mapitem__name,
+a.mapitem__name:link {
+    color: var(--hot-color-gray-950);
+    text-decoration: none;
+}
+
 .mapitem__icon {
     font-size: var(--hot-font-size-2x-large);
 }

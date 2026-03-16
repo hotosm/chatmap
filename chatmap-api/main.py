@@ -9,6 +9,8 @@ import os
 import httpx
 import logging
 import asyncio
+from pathlib import Path
+from collections import defaultdict
 from aiobotocore.session import get_session
 from typing import Annotated
 from fastapi import (
@@ -25,10 +27,10 @@ from sqlalchemy.orm import Session
 from stream import stream_listener
 from settings import (
     DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS,
-    S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL,
+    S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
 )
 from sqlalchemy import func, select
-from hotosm_auth_fastapi import setup_auth, CurrentUser
+from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
 
 # Logs
 logging.basicConfig(
@@ -59,6 +61,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+MEDIA_TYPE = defaultdict(lambda: "application/octet-stream", {
+    ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".mp4": "video/mp4",
+    ".opus": "audio/opus",
+})
+
 # QR Code Endpoint
 @api_router.get("/qr", response_class=StreamingResponse)
 async def qr(user: CurrentUser):
@@ -85,7 +94,7 @@ async def qr(user: CurrentUser):
 # Session Status Endpoint
 @api_router.get("/status")
 async def status(
-    user: CurrentUser
+    user: CurrentUser,
 ) -> Dict[str, str]:
     """
     Get the current session status of the linked device.
@@ -183,7 +192,7 @@ async def create_chatmap(
             message=feature.properties.message,
             username=feature.properties.username,
             time=feature.properties.time,
-            file=feature.properties.file,
+            file=f"{API_URL}/v1/media/{feature.properties.file}" if feature.properties.file else None,
             map_id=new_map.id,
         ) for feature in map_data.features])
 
@@ -215,6 +224,7 @@ async def delete_chatmap(
 async def get_public_chatmap(
     map_id: str,
     request: Request,
+    user: CurrentUserOptional,
     db: Session = Depends(get_db_session),
 ):
     """
@@ -229,7 +239,8 @@ async def get_public_chatmap(
         FeatureCollection: GeoJSON FeatureCollection of points.
     """
     map_obj: Map = db.get(Map, map_id)
-    if map_obj and map_obj.sharing == SharePermission.PUBLIC:
+
+    if map_obj and (map_obj.sharing == SharePermission.PUBLIC or (user and map_obj.owner_id == user.id)):
         points = (
             db.query(
                 Point.id,
@@ -359,6 +370,30 @@ async def status(
     map_obj.sharing = sharing
     db.commit()
     return {"map_id": map_id, "sharing": map_obj.sharing.value}
+
+
+@api_router.get("/media/{filename}", response_class=StreamingResponse)
+async def get_media(filename: str):
+    session = get_session()
+
+    async with session.create_client(
+        's3', endpoint_url=S3_ENDPOINT_URL,
+        aws_secret_access_key=S3_SECRET_KEY,
+        aws_access_key_id=S3_ACCESS_KEY,
+    ) as client:
+        try:
+            resp = await client.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
+
+            ext = Path(filename).suffix
+
+            async with resp['Body'] as stream:
+                return StreamingResponse(BytesIO(await stream.read()), media_type=MEDIA_TYPE[ext])
+        except client.exceptions.NoSuchKey:
+            raise HTTPException(
+                status_code=404,
+                detail="Media not found",
+            )
+
 
 # Media File Endpoint
 @api_router.get("/media")
