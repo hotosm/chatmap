@@ -72,6 +72,7 @@
     "app.save.descriptionPlaceholder": "Puedes usar markdown",
     "app.save.name": "Dale un nombre a tu mapa",
     "app.save.namePlaceholder": "Ej: Mi mapa comunitario",
+    "app.save.uploading": "Cargando medios...",
     "app.saveYourMapIn": "Guarda tu mapa en",
     "app.subtitle": "Exporta y sube un chat para crear un mapa",
     "app.supportedApps": "Ahora funciona con WhatsApp, Telegram o Signal!",

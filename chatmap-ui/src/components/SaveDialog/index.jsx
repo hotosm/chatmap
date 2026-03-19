@@ -94,7 +94,7 @@ export default function SaveDialog({
       </div>
 
       { loading ? <>
-        Uploading media...
+        <FormattedMessage id="app.save.uploading" defaultMessage="Uploading media..." />
         <SlProgressBar value={(sentFiles / totalFiles) * 100} />
       </> : <>
         <form onSubmit={handleSubmit}>
