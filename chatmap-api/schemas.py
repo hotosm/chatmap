@@ -52,6 +52,7 @@ class SaveMapFeatureProperties(BaseModel):
     file: str | None = None
     file_type: str | None = None
     username: str
+    tags: str | None = None
 
 
 class SaveMapFeature(BaseModel):

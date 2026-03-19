@@ -193,6 +193,7 @@ async def create_map(
             message=feature.properties.message,
             username=feature.properties.username,
             time=feature.properties.time,
+            tags=feature.properties.tags or None,
             file=f"{API_URL}/v1/media/{feature.properties.file}" if feature.properties.file else None,
             map_id=new_map.id,
         ) for feature in map_data.features])
@@ -251,6 +252,7 @@ async def get_public_map(
                 Point.username,
                 Point.time,
                 Point.file,
+                Point.tags,
             )
             .filter(Point.map_id == map_id)
             .all()
@@ -269,6 +271,7 @@ async def get_public_map(
                         "username_id": point.username,
                         "message": point.message,
                         "file": point.file,
+                        "tags": point.tags or "",
                         "id": point.id,
                     },
                     "geometry": {
