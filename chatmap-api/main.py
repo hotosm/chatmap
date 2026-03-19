@@ -177,7 +177,7 @@ async def save_media(
 
 
 @api_router.post("/map")
-async def create_chatmap(
+async def create_map(
     map_data: SaveMapFeatureCollection,
     user: CurrentUser,
     db: Session = Depends(get_db_session),
