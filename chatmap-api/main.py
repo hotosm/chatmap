@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_map, SharePermission, Map
 from schemas import FeatureCollection, SaveMapFeatureCollection, SaveMapResult
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 from stream import stream_listener
 from settings import (
@@ -373,7 +374,27 @@ async def status(
 
 
 @api_router.get("/media/{filename}", response_class=StreamingResponse)
-async def get_media(filename: str):
+async def get_media(
+    filename: str,
+    user: CurrentUserOptional,
+    db: Session = Depends(get_db_session),
+):
+    # first check if file is registered and accesible to the current user
+    try:
+        point = db.query(Point).filter(Point.file.like(f"%{filename}")).one()
+        map_obj = point.map
+
+        if map_obj.sharing != SharePermission.PUBLIC and (not user or map_obj.owner_id != user.id):
+            raise HTTPException(
+                status_code=404,
+                detail="Media not found",
+            )
+    except NoResultFound:
+        raise HTTPException(
+            status_code=404,
+            detail="Media not found",
+        )
+
     session = get_session()
 
     async with session.create_client(
