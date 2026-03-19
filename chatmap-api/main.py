@@ -200,7 +200,7 @@ async def create_map(
 
 
 @api_router.delete("/map/{map_id}")
-async def delete_chatmap(
+async def delete_map(
     map_id: str,
     user: CurrentUser,
     db: Session = Depends(get_db_session),
@@ -221,7 +221,7 @@ async def delete_chatmap(
 
 # Public Map Data Endpoint
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
-async def get_public_chatmap(
+async def get_public_map(
     map_id: str,
     request: Request,
     user: CurrentUserOptional,
@@ -288,7 +288,7 @@ async def get_public_chatmap(
 
 # User's Private Map Data Endpoint
 @api_router.get("/map/new", response_model=FeatureCollection)
-async def get_chatmap(
+async def get_map(
     request: Request,
     user: CurrentUser,
     db: Session = Depends(get_db_session),
