@@ -215,6 +215,24 @@ async def delete_map(
             detail="Map not found",
         )
 
+    # Delete media associated with the map
+    session = get_session()
+    async with session.create_client(
+        's3', endpoint_url=S3_ENDPOINT_URL,
+        aws_secret_access_key=S3_SECRET_KEY,
+        aws_access_key_id=S3_ACCESS_KEY,
+    ) as client:
+        for point in map.points:
+            if not point.file:
+                continue
+
+            filename = point.file.rsplit("/", 1)
+
+            resp = await client.delete_object(
+                Bucket=S3_BUCKET_NAME,
+                Key=filename[-1],
+            )
+
     db.delete(map)
     db.commit()
 
