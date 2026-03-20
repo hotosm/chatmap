@@ -21,7 +21,7 @@ from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, get_db_session, get_or_create_map, SharePermission, Map
+from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import FeatureCollection, SaveMapFeatureCollection, SaveMapResult
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -239,7 +239,71 @@ async def delete_map(
     return
 
 
-# Public Map Data Endpoint
+def map_response(db, map_obj):
+    points = (
+        db.query(
+            Point.id,
+            Point.message,
+            func.ST_Y(Point.geom).label("lat"),
+            func.ST_X(Point.geom).label("lon"),
+            Point.username,
+            Point.time,
+            Point.file,
+            Point.tags,
+        )
+        .filter(Point.map_id == map_obj.id)
+        .all()
+    )
+
+    return {
+        "id": map_obj.id,
+        "sharing": map_obj.sharing.value,
+        "name": map_obj.name,
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "time": point.time,
+                    "username_id": point.username,
+                    "message": point.message,
+                    "file": point.file,
+                    "tags": point.tags or "",
+                    "id": point.id,
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [point.lon, point.lat],
+                }
+            }
+            for point in points
+        ]
+    }
+
+
+@api_router.get("/map/new", response_model=FeatureCollection)
+async def get_map(
+    request: Request,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    """
+    Retrieve private map data (GeoJSON) for the authenticated user.
+
+    Args:
+        request (Request): FastAPI request object.
+        user (CurrentUser): Authenticated user.
+        db (Session): Database session.
+
+    Returns:
+        FeatureCollection: GeoJSON FeatureCollection of points.
+    """
+    map_id = get_or_create_live_map(db, user.id)
+    map_obj: Map = db.get(Map, map_id)
+
+    return map_response(db, map_obj)
+
+
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
 async def get_public_map(
     map_id: str,
@@ -261,45 +325,7 @@ async def get_public_map(
     map_obj: Map = db.get(Map, map_id)
 
     if map_obj and (map_obj.sharing == SharePermission.PUBLIC or (user and map_obj.owner_id == user.id)):
-        points = (
-            db.query(
-                Point.id,
-                Point.message,
-                func.ST_Y(Point.geom).label("lat"),
-                func.ST_X(Point.geom).label("lon"),
-                Point.username,
-                Point.time,
-                Point.file,
-                Point.tags,
-            )
-            .filter(Point.map_id == map_id)
-            .all()
-        )
-
-        return {
-            "id": map_id,
-            "sharing": map_obj.sharing.value,
-            "name": map_obj.name,
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "time": point.time,
-                        "username_id": point.username,
-                        "message": point.message,
-                        "file": point.file,
-                        "tags": point.tags or "",
-                        "id": point.id,
-                    },
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [point.lon, point.lat],
-                    }
-                }
-                for point in points
-            ]
-        }
+        return map_response(db, map_obj)
     else:
         # Map is not public – reject the request
         raise HTTPException(
@@ -307,64 +333,6 @@ async def get_public_map(
             detail="Unauthorized: the requested map is not publicly shared."
         )
 
-
-# User's Private Map Data Endpoint
-@api_router.get("/map/new", response_model=FeatureCollection)
-async def get_map(
-    request: Request,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
-):
-    """
-    Retrieve private map data (GeoJSON) for the authenticated user.
-
-    Args:
-        request (Request): FastAPI request object.
-        user (CurrentUser): Authenticated user.
-        db (Session): Database session.
-
-    Returns:
-        FeatureCollection: GeoJSON FeatureCollection of points.
-    """
-    map_id = get_or_create_map(db, user.id)
-    map_obj: Map = db.get(Map, map_id)
-    points = (
-        db.query(
-            Point.id,
-            Point.message,
-            func.ST_Y(Point.geom).label("lat"),
-            func.ST_X(Point.geom).label("lon"),
-            Point.username,
-            Point.time,
-            Point.file,
-        )
-        .filter(Point.map_id == map_id)
-        .all()
-    )
-
-    return {
-        "id": map_id,
-        "sharing": map_obj.sharing.value,
-        "type": "FeatureCollection",
-        "name": map_obj.name,
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {
-                    "time": point.time,
-                    "username_id": point.username,
-                    "message": point.message,
-                    "file": point.file,
-                    "id": point.id,
-                },
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [point.lon, point.lat],
-                }
-            }
-            for point in points
-        ]
-    }
 
 # Toggle Map Sharing Permission
 @api_router.put("/map/share")
@@ -382,7 +350,7 @@ async def status(
     Returns:
         Dict[str, str]: Updated map ID and sharing status.
     """
-    map_id = get_or_create_map(db, user.id)
+    map_id = get_or_create_live_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
     sharing = (
         SharePermission.PUBLIC

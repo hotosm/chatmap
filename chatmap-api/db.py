@@ -11,7 +11,10 @@ and utility functions for handling map and point data. It supports:
 import uuid
 import logging
 from enum import Enum
-from sqlalchemy import create_engine, Column, String, select, DateTime, text, ForeignKey, func, Enum as SqlEnum
+from sqlalchemy import (
+    create_engine, Column, String, select, DateTime, text, ForeignKey, func,
+    Enum as SqlEnum, Boolean,
+)
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
 from sqlalchemy.exc import IntegrityError
@@ -69,6 +72,7 @@ class Map(Base):
     owner_id = Column(String, nullable=False, index=True)
     created_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
     updated_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
+    is_live = Column(Boolean, default=False, nullable=False)
 
     # Relationship to Point model
     points = relationship(
@@ -77,8 +81,8 @@ class Map(Base):
         cascade="all, delete-orphan",
     )
 
-# Get or create a map for a given user
-def get_or_create_map(db, user_id: str) -> str:
+
+def get_or_create_live_map(db, user_id: str) -> str:
     """
     Retrieves the map ID for a given user, or creates a new one if it doesn't exist.
 
@@ -89,24 +93,20 @@ def get_or_create_map(db, user_id: str) -> str:
     Returns:
         str: The ID of the map associated with the user
     """
-    stmt = select(Map.id).where(Map.owner_id == user_id)
-    map_id = db.execute(stmt).scalar_one_or_none()
-    if map_id:
-        return map_id
+    with db.begin():
+        stmt = select(Map.id).where(Map.owner_id == user_id, Map.is_live)
+        map_id = db.execute(stmt).scalar_one_or_none()
 
-    # If no map exists, create a new one
-    new_map = Map(owner_id=user_id)
-    db.add(new_map)
-    try:
+        if map_id:
+            return map_id
+
+        # If no map exists, create a new one
+        new_map = Map(owner_id=user_id, is_live=True)
+        db.add(new_map)
         db.commit()
-    except IntegrityError:
-        db.rollback()
-        map_id = db.execute(stmt).scalar_one()
-    else:
         db.refresh(new_map)
-        map_id = new_map.id
 
-    return map_id
+        return new_map.id
 
 # Model representing a geographic point in a map
 class Point(Base):
@@ -122,6 +122,7 @@ class Point(Base):
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map    = relationship("Map", back_populates="points")
 
+
 # Insert or update multiple points for a user
 def add_points(db: Session, points, user_id):
     """
@@ -133,7 +134,7 @@ def add_points(db: Session, points, user_id):
         points (List[Dict]): List of point dictionaries with keys like 'id', 'geom', 'message', etc.
         user_id (str): ID of the user who owns the points
     """
-    map_id = get_or_create_map(db, user_id)
+    map_id = get_or_create_live_map(db, user_id)
     for pt in points:
         pt.setdefault("map_id", map_id)
     stmt = insert(Point).values(points)
