@@ -27,7 +27,6 @@ services:
   # Backend API with uvicorn hot reload
   chatmap-api:
     build: ./chatmap-api/
-    working_dir: /app
     ports:
       - "8000:8000"
     depends_on:
@@ -57,6 +56,20 @@ services:
       - ./media:/app/media:rw
     networks:
       - chatmap_net
+
+  # Chatmap migrations
+  chatmap-api-migrate:
+    build: ./chatmap-api/
+    command: uv run alembic upgrade head
+    depends_on:
+      - chatmap-db
+    networks:
+      - chatmap_net
+    environment:
+      - CHATMAP_DB_HOST=chatmap-db
+      - CHATMAP_DB=chatmap
+      - CHATMAP_DB_USER=admin
+      - CHATMAP_DB_PASSWORD=0123456789ABCDEF0123456789ABCDEF
 
   chatmap-go:
     image: golang:1.25.3
