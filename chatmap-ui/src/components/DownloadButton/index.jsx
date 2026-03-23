@@ -31,12 +31,6 @@ function createAndDownloadZip(data, dataFiles) {
 
     // Delete unused properties
     delete feature.properties.timeString;
-
-    if (feature.properties.tags) {
-      // Convert tags object to string
-      // Ex: { building: yes } to "building_yes"
-      feature.properties.tags = feature.properties.tags.join(",");
-    }
   })
   const geoJsonBlob = new Blob([JSON.stringify(newData)], { type: 'application/json' });
   zip.file('data.geojson', geoJsonBlob);
