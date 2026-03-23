@@ -188,7 +188,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
 
     const handleRemoveTag = (tag, feature) => {
       feature.properties.tags = (feature.properties.tags || "")
-          .split(",").filter(x => x).filter(x => x != tag);
+          .split(",").filter(x => x).filter(x => x != tag).join(",");
         handleChange(feature);
         setEditingTags(false);
     }
