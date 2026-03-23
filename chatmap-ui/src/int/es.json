@@ -49,6 +49,7 @@
     "app.linked.linkedSuccessfullyMessage": "Ahora podrás recibir ubicaciones compartidas junto a mensajes y empezar a mapear!",
     "app.linked.subtitle": "Mapas actualizados en tiempo real",
     "app.loading": "Cargando",
+    "app.map.locationOnly": "Sólo ubicación",
     "app.map.save": "Guardar",
     "app.maps.confirmDelete.title": "¿Borrar este mapa?",
     "app.maps.new": "Nuevo mapa",

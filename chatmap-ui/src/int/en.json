@@ -49,6 +49,7 @@
     "app.linked.linkedSuccessfullyMessage": "Now you can receive shared locations plus chat messages and start mapping!",
     "app.linked.subtitle": "Live updated maps with linked devices",
     "app.loading": "Loading",
+    "app.map.locationOnly": "Location only",
     "app.map.save": "Save",
     "app.maps.confirmDelete.title": "Delete this map?",
     "app.maps.new": "Create new map",
