@@ -71,3 +71,7 @@ class SaveMapFeatureCollection(BaseModel):
 class SaveMapResult(BaseModel):
     id: str
     name: str
+
+
+class SaveMediaResponse(BaseModel):
+    uri: str

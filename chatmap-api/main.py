@@ -10,6 +10,7 @@ import httpx
 import logging
 import asyncio
 from pathlib import Path
+from uuid import uuid4
 from collections import defaultdict
 from aiobotocore.session import get_session
 from typing import Annotated
@@ -22,7 +23,10 @@ from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
-from schemas import FeatureCollection, SaveMapFeatureCollection, SaveMapResult
+from schemas import (
+    FeatureCollection, SaveMapFeatureCollection, SaveMapResult,
+    SaveMediaResponse,
+)
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 from stream import stream_listener
@@ -163,18 +167,22 @@ async def list_maps(
 async def save_media(
     user: CurrentUser,
     file: Annotated[UploadFile, File()],
-):
+) -> SaveMediaResponse:
     session = get_session()
     async with session.create_client(
         's3', endpoint_url=S3_ENDPOINT_URL,
         aws_secret_access_key=S3_SECRET_KEY,
         aws_access_key_id=S3_ACCESS_KEY,
     ) as client:
+        ext = Path(file.filename).suffix
+        filename = str(uuid4()) + ext
         resp = await client.put_object(
             Bucket=S3_BUCKET_NAME,
-            Key=file.filename,
+            Key=filename,
             Body=await file.read(),
         )
+
+    return SaveMediaResponse(uri=f"{API_URL}/v1/media/{filename}")
 
 
 @api_router.post("/map")
@@ -194,7 +202,7 @@ async def create_map(
             username=feature.properties.username,
             time=feature.properties.time,
             tags=feature.properties.tags or None,
-            file=f"{API_URL}/v1/media/{feature.properties.file}" if feature.properties.file else None,
+            file=feature.properties.file,
             map_id=new_map.id,
         ) for feature in map_data.features])
 

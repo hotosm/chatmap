@@ -55,6 +55,14 @@ export default function SaveDialog({
           throw new Error(`Error saving media ${filename}`);
         }
 
+        const newFilename = (await mediaResponse.json()).uri;
+
+        data.features.forEach((feature) => {
+          if (feature.properties.file === filename) {
+            feature.properties.file = newFilename;
+          }
+        });
+
         setSentFiles((value) => value + 1);
       }
 
