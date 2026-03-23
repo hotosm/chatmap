@@ -38,10 +38,6 @@ engine = create_engine(
     poolclass=NullPool
 )
 
-# Ensure PostGIS extension is enabled
-with engine.begin() as conn:
-    conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
-
 # Base class for all SQLAlchemy models
 Base = declarative_base()
 
