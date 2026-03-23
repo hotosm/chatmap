@@ -23,5 +23,4 @@ RUN uv sync
 EXPOSE 8000
 
 # Run with uvicorn (hot-reload enabled in docker-compose)
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning"]
-
+ENTRYPOINT ["./entrypoint.sh"]
