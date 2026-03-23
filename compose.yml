@@ -46,10 +46,10 @@ services:
       - HANKO_API_URL=${HANKO_API_URL:-https://login.hotosm.org}
       - JWT_ISSUER=${JWT_ISSUER:-https://login.hotosm.org}
       - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
-      - CHATMAP_S3_ENDPOINT_URL=${CHATMAP_S3_ENDPOINT_URL:}
-      - CHATMAP_S3_BUCKET_NAME=${CHATMAP_S3_BUCKET_NAME:}
-      - CHATMAP_S3_ACCESS_KEY=${CHATMAP_S3_ACCESS_KEY:}
-      - CHATMAP_S3_SECRET_KEY=${CHATMAP_S3_SECRET_KEY:}
+      - CHATMAP_S3_ENDPOINT_URL=${CHATMAP_S3_ENDPOINT_URL:-}
+      - CHATMAP_S3_BUCKET_NAME=${CHATMAP_S3_BUCKET_NAME:-}
+      - CHATMAP_S3_ACCESS_KEY=${CHATMAP_S3_ACCESS_KEY:-}
+      - CHATMAP_S3_SECRET_KEY=${CHATMAP_S3_SECRET_KEY:-}
 
     volumes:
       - ./media:/app/media:rw
