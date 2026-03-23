@@ -46,7 +46,7 @@ export const MapDataProvider = (props) => {
 
   const tags = data.features.reduce((accumulator, currentValue) => {
       if (currentValue.properties.tags) {
-          currentValue.properties.tags.forEach(tag => {
+          currentValue.properties.tags.split(",").forEach(tag => {
               accumulator[tag] = (accumulator[tag] || 0) + 1;
           });
       }

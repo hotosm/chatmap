@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import ErrorBoundary from './components/ErrorBoundary';
 import { IntlProvider } from 'react-intl';
-import { HashRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router';
 import { MapDataProvider } from './context/MapDataContext';
 import { ConfigProvider } from './context/ConfigContext';
 import { AuthProvider } from './context/AuthContext';

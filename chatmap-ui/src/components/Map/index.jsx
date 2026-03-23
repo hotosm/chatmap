@@ -25,7 +25,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
 
     useEffect(() => {
       if (map.current) return;
-    
+
       // Creates a MapLibreGL object
       map.current = new MapGL({
         container: mapContainer.current,
@@ -99,9 +99,6 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
         map.current.on("click", "pois-clickable",  (e) => {
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
-          if (feature.properties["tags"]) {
-            feature.properties.tags = JSON.parse(feature.properties.tags);
-          }
           setActivePopupFeature(feature);
         });
 
@@ -149,17 +146,15 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
           {
             map.current.getSource('locations').setData({
               ...data,
-              features: [
-                  ...data.features.filter(feature => 
-                  feature.properties.tags && feature.properties.tags.indexOf(data.filterTag) > -1
-                )
-              ]
+              features: data.features.filter(feature =>
+                feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
+              )
             });
           }
         } else {
           map.current.getSource('locations').setData(data);
         }
-        
+
       }
     }, [data]);
 
@@ -182,16 +177,18 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     // Tag handlers
 
     const handleAddTag = (tag, feature) => {
-      if (!feature.properties.tags) {
-        feature.properties.tags = [];
-      }
-      feature.properties.tags.push(tag);
+      const oldTags = (feature.properties.tags || "").split(",").filter(x => x);
+
+      oldTags.push(tag);
+
+      feature.properties.tags = oldTags.join(",");
       handleChange(feature);
       setEditingTags(false);
     };
 
     const handleRemoveTag = (tag, feature) => {
-        feature.properties.tags = feature.properties.tags.filter(x => x != tag);
+      feature.properties.tags = (feature.properties.tags || "")
+          .split(",").filter(x => x).filter(x => x != tag).join(",");
         handleChange(feature);
         setEditingTags(false);
     }

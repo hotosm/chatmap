@@ -11,16 +11,17 @@ and utility functions for handling map and point data. It supports:
 import uuid
 import logging
 from enum import Enum
-from sqlalchemy import create_engine, Column, String, select, DateTime, text, ForeignKey, func, Enum as SqlEnum, UniqueConstraint
+from sqlalchemy import (
+    create_engine, Column, String, select, DateTime, text, ForeignKey, func,
+    Enum as SqlEnum, Boolean,
+)
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from geoalchemy2 import Geometry
-from typing import Dict, List, Literal, Tuple
 from settings import CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
 from datetime import datetime
-from pydantic import BaseModel
 
 # Logs
 logger = logging.getLogger(__name__)
@@ -59,15 +60,15 @@ class SharePermission(str, Enum):
 # Model representing a user's map
 class Map(Base):
     __tablename__ = "maps"
-    __table_args__ = (
-        UniqueConstraint("owner_id", name="uq_maps_owner_id"),
-    )
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, default="Untitled")
     sharing = Column(SqlEnum(SharePermission, name="sharing_permission"),
                      nullable=False,
                      default=SharePermission.PRIVATE)
     owner_id = Column(String, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
+    is_live = Column(Boolean, default=False, nullable=False)
 
     # Relationship to Point model
     points = relationship(
@@ -76,8 +77,8 @@ class Map(Base):
         cascade="all, delete-orphan",
     )
 
-# Get or create a map for a given user
-def get_or_create_map(db, user_id: str) -> str:
+
+def get_or_create_live_map(db, user_id: str) -> str:
     """
     Retrieves the map ID for a given user, or creates a new one if it doesn't exist.
 
@@ -88,37 +89,35 @@ def get_or_create_map(db, user_id: str) -> str:
     Returns:
         str: The ID of the map associated with the user
     """
-    stmt = select(Map.id).where(Map.owner_id == user_id)
-    map_id = db.execute(stmt).scalar_one_or_none()
-    if map_id:
-        return map_id
+    with db.begin():
+        stmt = select(Map.id).where(Map.owner_id == user_id, Map.is_live)
+        map_id = db.execute(stmt).scalar_one_or_none()
 
-    # If no map exists, create a new one
-    new_map = Map(owner_id=user_id)
-    db.add(new_map)
-    try:
+        if map_id:
+            return map_id
+
+        # If no map exists, create a new one
+        new_map = Map(owner_id=user_id, is_live=True)
+        db.add(new_map)
         db.commit()
-    except IntegrityError:
-        db.rollback()
-        map_id = db.execute(stmt).scalar_one()
-    else:
         db.refresh(new_map)
-        map_id = new_map.id
 
-    return map_id
+        return new_map.id
 
 # Model representing a geographic point in a map
 class Point(Base):
     __tablename__ = "points"
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     geom = Column(Geometry(geometry_type="POINT", srid=4326)) # WGS84 coordinate system
     message = Column(String)
     username = Column(String)
     time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     file = Column(String)
+    tags = Column(String)
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map    = relationship("Map", back_populates="points")
+
 
 # Insert or update multiple points for a user
 def add_points(db: Session, points, user_id):
@@ -131,7 +130,7 @@ def add_points(db: Session, points, user_id):
         points (List[Dict]): List of point dictionaries with keys like 'id', 'geom', 'message', etc.
         user_id (str): ID of the user who owns the points
     """
-    map_id = get_or_create_map(db, user_id)
+    map_id = get_or_create_live_map(db, user_id)
     for pt in points:
         pt.setdefault("map_id", map_id)
     stmt = insert(Point).values(points)
@@ -149,42 +148,6 @@ def add_points(db: Session, points, user_id):
     db.execute(stmt)
     db.commit()
 
-
-# Models for GeoJSON output
-class FeatureGeometry(BaseModel):
-    """
-    Represents the geometry of a GeoJSON feature (Point).
-    """
-    type: Literal["Point"]
-    coordinates: Tuple[float, float]  # GeoJSON is [lon, lat]
-
-class FeatureProperties(BaseModel):
-    """
-    Represents the properties of a GeoJSON feature.
-    """
-    id: str
-    time: datetime
-    username_id: str
-    message: str | None = None
-    file: str | None
-
-class Feature(BaseModel):
-    """
-    Represents a GeoJSON feature.
-    """
-    type: Literal["Feature"]
-    geometry: FeatureGeometry
-    properties: FeatureProperties
-
-class FeatureCollection(BaseModel):
-    """
-    Represents a GeoJSON FeatureCollection.
-    """
-    id: str
-    sharing: str
-    name: str
-    type: Literal["FeatureCollection"]
-    features: List[Feature] = []
 
 # Dependency to get a database session
 def get_db_session():

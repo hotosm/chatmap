@@ -1,22 +1,40 @@
 import { lazy, useState, useEffect } from "react";
-import useFileManager from "../../components/FileUpload/useFileManager.js";
-import useContentMerger from "../../components/ChatMap/useContentMerger.js";
-import Header from "../header.jsx";
-import Footer from "../footer.jsx";
+import { FormattedMessage } from "react-intl";
+
+import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
+import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
+
+import ConfirmDialog from "../../components/ConfirmDialog";
+import DownloadButton from '../../components/DownloadButton';
 import FileUploadSection from './fileUpload.section.jsx';
+import Footer from "../footer.jsx";
+import Header from "../header.jsx";
+import SaveButton from '../../components/SaveButton';
+import SaveDialog from "../../components/SaveDialog/index.jsx";
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
-import { useMapDataContext } from "../../context/MapDataContext.jsx";
-import "../../styles/home.css";
+import TagsOptions from "../../components/TagsOptions/index.jsx";
 import logo from "../../assets/chatmap-home.png";
+import useContentMerger from "../../components/ChatMap/useContentMerger.js";
+import useFileManager from "../../components/FileUpload/useFileManager.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useConfigContext } from "../../context/ConfigContext.jsx";
+import { useMapDataContext } from "../../context/MapDataContext.jsx";
+
+import "../../styles/home.css";
 
 const Map = lazy(() => import("../../components/Map/index.jsx"));
 
 function App() {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [withPhotos, setWithPhotos] = useState(true);
   const [withVideos, setWithVideos] = useState(true);
   const [withAudios, setWithAudios] = useState(true);
   const [withText, setWithText] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  const { isAuthenticated } = useAuth();
+  const { config } = useConfigContext();
 
   // File Manager: Manages files and data files.
   // - handleFiles: handle all chat files
@@ -34,7 +52,14 @@ function App() {
   });
 
   // Map Data Context: Manages map data
-  const { data, mapDataDispatch } = useMapDataContext();
+  const { data, tags, mapDataDispatch } = useMapDataContext();
+
+  const selectTagHandler = tag => {
+    mapDataDispatch({
+      type: 'set_filter_tag',
+      payload: {tag: tag},
+    });
+  }
 
   useEffect(() => {
       // Public event for external integratons
@@ -83,20 +108,54 @@ function App() {
     window.removeEventListener('beforeunload', confirmPageLeave);
   }
 
+  function handleSaveButtonClick() {
+    setSaveDialogOpen(true);
+  }
+
+  function handleSaveButtonNoSession() {
+    setConfirmDialogOpen(true);
+  }
+
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
 
   return (
     <>
       <div className="app">
-        <Header
-          dataAvailable={dataAvailable}
-          dataFiles={dataFiles}
-          mapData={data}
-          handleNewUploadClick={handleNewUploadClick}
-          showUploadButton={dataAvailable}
-          showDownloadButton={true}
-        />
+        <Header>
+          { dataAvailable && <>
+            <SlButton
+              variant="default"
+              outline
+              size="small"
+              onClick={handleNewUploadClick}
+            >
+              <SlIcon name="arrow-clockwise" slot="prefix"></SlIcon>
+              <FormattedMessage
+                id = "app.uploadNewFile"
+                defaultMessage="New file"
+              />
+            </SlButton>
+
+            <DownloadButton data={data} dataFiles={dataFiles} />
+
+            <SaveButton onClick={isAuthenticated ? handleSaveButtonClick : handleSaveButtonNoSession} />
+
+            {Object.keys(tags).length > 0 &&
+              <TagsOptions
+                onSelectTag={selectTagHandler}
+                tags={tags}
+                selectedTag={data.filterTag}
+              />
+            }
+          </>}
+
+          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && <>
+            <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
+              <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
+            </SlButton>
+          </>}
+        </Header>
 
         {!files &&
         <section className="home">
@@ -139,6 +198,34 @@ function App() {
         withAudios={withAudios} setWithAudios={setWithAudios}
         withText={withText} setWithText={setWithText}
       ></SettingsDialog>
+
+      <SaveDialog
+        open={saveDialogOpen}
+        setOpen={setSaveDialogOpen}
+        data={data}
+        dataFiles={dataFiles}
+      />
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        setOpen={setConfirmDialogOpen}
+        onConfirm={() => {
+          const returnTo = encodeURIComponent(window.location.href);
+          window.location.href = `${config.LOGIN_URL}?return_to=${returnTo}`;
+        }}
+        title={{id: "app.home.saveConfirmDialog.title", defaultMessage: "Wait"}}
+        okText={{id: "app.home.saveConfirmDialog.okText", defaultMessage: "Log in"}}
+      >
+        <p>
+          <FormattedMessage id="app.home.saveConfirmDialog.text1" defaultMessage="You need to log in to save a map. You will have to upload your export again afterwards." />
+        </p>
+
+        <p>
+          <FormattedMessage id="app.home.saveConfirmDialog.text2" defaultMessage="If you made any changes, like tagging points, we recommend downloading your progress now and upload it again after logging in." />
+        </p>
+
+        <DownloadButton data={data} dataFiles={dataFiles} />
+      </ConfirmDialog>
     </>
   );
 }

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
+
 import { useInterval } from '../../hooks/useInterval.js';
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import Map from "../../components/Map";
 import useAPI from '../../components/ChatMap/useApi.js'
+import TagsOptions from "../../components/TagsOptions/index.jsx";
 
 function MapView() {
 
@@ -27,7 +29,14 @@ function MapView() {
   }, [id]);
 
   // Map Data Context: Manages map data
-  const { data, mapDataDispatch } = useMapDataContext();
+  const { data, tags, mapDataDispatch } = useMapDataContext();
+
+  const selectTagHandler = tag => {
+    mapDataDispatch({
+      type: 'set_filter_tag',
+      payload: {tag: tag},
+    });
+  }
 
   // Updates map data context with new map data
   useEffect(() => {
@@ -46,12 +55,15 @@ function MapView() {
   return (
     <>
       <div className="app">
-        <Header
-          dataAvailable={dataAvailable}
-          mapData={data}
-          showDownloadButton={false}
-          title={mapData.name || "Untitled"}
-        />
+        <Header title={mapData.name || "Untitled"}>
+          {Object.keys(tags).length > 0 &&
+            <TagsOptions
+              onSelectTag={selectTagHandler}
+              tags={tags}
+              selectedTag={data.filterTag}
+            />
+          }
+        </Header>
 
         {dataAvailable &&
           <Map

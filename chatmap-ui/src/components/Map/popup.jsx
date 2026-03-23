@@ -109,7 +109,7 @@ export default function Popup ({
           }
           msgType={msgType}
           allTags={allTags}
-          tags={feature.properties.tags || []}
+          tags={(feature.properties.tags || "").split(",").filter(x => x)}
           onAddTag={tag => onAddTag(tag, feature)} 
           onRemoveTag={tag => onRemoveTag(tag, feature)} 
         /> : "" }

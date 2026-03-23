@@ -48,7 +48,7 @@ export const getMessage = (message, msgType, dataFiles) => {
       content = <img className="popupImage" alt={message.file} src={message.file} />;
     } else if (message.file.endsWith("mp4")) {
       content = <video controls className="popupVideo" alt={message.file} src={message.file} />
-    } else if (message.file.endsWith("jpg")) {
+    } else if (message.file.endsWith("opus")) {
       content = <audio controls className="popupAudio" alt={message.file} src={message.file} />
     }
   }
