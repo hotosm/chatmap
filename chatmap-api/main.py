@@ -231,11 +231,17 @@ async def delete_map(
 
     # Delete media associated with the map
     session = get_session()
+
+    s3_client_kwargs = {
+        'endpoint_url': S3_ENDPOINT_URL,
+    }
+    if S3_ACCESS_KEY:
+        s3_client_kwargs['aws_access_key_id'] = S3_ACCESS_KEY
+    if S3_SECRET_KEY:
+        s3_client_kwargs['aws_secret_access_key'] = S3_SECRET_KEY
+
     async with session.create_client(
-        's3', endpoint_url=S3_ENDPOINT_URL,
-        aws_secret_access_key=S3_SECRET_KEY,
-        aws_access_key_id=S3_ACCESS_KEY,
-    ) as client:
+        's3', **s3_client_kwargs) as client:
         for point in map.points:
             if not point.file:
                 continue
@@ -400,11 +406,16 @@ async def get_media(
 
     session = get_session()
 
+    s3_client_kwargs = {
+        'endpoint_url': S3_ENDPOINT_URL,
+    }
+    if S3_ACCESS_KEY:
+        s3_client_kwargs['aws_access_key_id'] = S3_ACCESS_KEY
+    if S3_SECRET_KEY:
+        s3_client_kwargs['aws_secret_access_key'] = S3_SECRET_KEY
+
     async with session.create_client(
-        's3', endpoint_url=S3_ENDPOINT_URL,
-        aws_secret_access_key=S3_SECRET_KEY,
-        aws_access_key_id=S3_ACCESS_KEY,
-    ) as client:
+        's3', **s3_client_kwargs) as client:
         try:
             resp = await client.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
 
