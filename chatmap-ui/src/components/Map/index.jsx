@@ -74,9 +74,9 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
                     '#9A969B', // --hot-color-neutral-400
                     [
                         "case",
-                        ["==", ["get", "message"], "{location-only}"],
+                        ["to-boolean", ["get", "file"]],
+                        '#D73F3F',  // --hot-color-red-600
                         '#2E4873', // --hot-color-blue-600
-                        '#D73F3F'  // --hot-color-red-600
                     ]
                 ],
                 'circle-radius': 10
@@ -229,4 +229,3 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     );
 
   }
-
