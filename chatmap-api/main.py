@@ -169,11 +169,17 @@ async def save_media(
     file: Annotated[UploadFile, File()],
 ) -> SaveMediaResponse:
     session = get_session()
+
+    s3_client_kwargs = {
+        'endpoint_url': S3_ENDPOINT_URL,
+    }
+    if S3_ACCESS_KEY:
+        s3_client_kwargs['aws_access_key_id'] = S3_ACCESS_KEY
+    if S3_SECRET_KEY:
+        s3_client_kwargs['aws_secret_access_key'] = S3_SECRET_KEY
+
     async with session.create_client(
-        's3', endpoint_url=S3_ENDPOINT_URL,
-        aws_secret_access_key=S3_SECRET_KEY,
-        aws_access_key_id=S3_ACCESS_KEY,
-    ) as client:
+        's3', **s3_client_kwargs) as client:
         ext = Path(file.filename).suffix
         filename = str(uuid4()) + ext
         resp = await client.put_object(
