@@ -23,13 +23,6 @@ export default function Header({
   const { lang, setLang } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  const selectTagHandler = tag => {
-    mapDataDispatch({
-      type: 'set_filter_tag',
-      payload: {tag: tag},
-    });
-  }
-
   function handleLanguageChange(event) {
     const lang = event.detail.item.value;
 
