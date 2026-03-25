@@ -139,7 +139,9 @@ function App() {
 
             <DownloadButton data={data} dataFiles={dataFiles} />
 
-            <SaveButton onClick={isAuthenticated ? handleSaveButtonClick : handleSaveButtonNoSession} />
+            { isAuthenticated &&  
+              <SaveButton onClick={handleSaveButtonClick} />
+            }
 
             {Object.keys(tags).length > 0 &&
               <TagsOptions
