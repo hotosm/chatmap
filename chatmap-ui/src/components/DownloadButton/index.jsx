@@ -58,7 +58,7 @@ function DownloadButton({ data, dataFiles }) {
 
   return (
     <sl-button
-      variant="primary"
+      variant="default"
       size="small"
       onClick={handleClick}
     >

@@ -120,18 +120,6 @@ function App() {
       <div className="app">
         <Header>
           { dataAvailable && <>
-            <SlButton
-              variant="default"
-              outline
-              size="small"
-              onClick={handleNewUploadClick}
-            >
-              <SlIcon name="arrow-clockwise" slot="prefix"></SlIcon>
-              <FormattedMessage
-                id = "app.uploadNewFile"
-                defaultMessage="New file"
-              />
-            </SlButton>
 
             <DownloadButton data={data} dataFiles={dataFiles} />
 
