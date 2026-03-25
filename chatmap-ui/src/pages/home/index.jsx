@@ -112,10 +112,6 @@ function App() {
     setSaveDialogOpen(true);
   }
 
-  function handleSaveButtonNoSession() {
-    setConfirmDialogOpen(true);
-  }
-
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
 
