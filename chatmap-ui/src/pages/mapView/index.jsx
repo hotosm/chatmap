@@ -3,11 +3,12 @@ import { useParams } from 'react-router';
 
 import { useInterval } from '../../hooks/useInterval.js';
 import Header from "../header.jsx";
-import Footer from "../footer.jsx";
+// import Footer from "../footer.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
 import Map from "../../components/Map";
 import useAPI from '../../components/ChatMap/useApi.js'
 import TagsOptions from "../../components/TagsOptions/index.jsx";
+import ShareButton from '../../components/ShareButton';
 
 function MapView() {
 
@@ -16,7 +17,7 @@ function MapView() {
     mapData
   } = useAPI();
 
-  const [footerVisible, setFooterVisible] = useState(true);
+  // const [footerVisible, setFooterVisible] = useState(true);
 
   // If connected, fetch map data every 1 min
   useInterval(() => { id && fetchMapData(id) }, 60000);
@@ -63,11 +64,17 @@ function MapView() {
               selectedTag={data.filterTag}
             />
           }
+          { dataAvailable && mapData.owner && <>
+            <ShareButton
+              sharing={data.sharing}
+              id={mapData.id}
+            />
+          </>}
         </Header>
 
         {dataAvailable &&
           <Map
-            onInteract={() => setFooterVisible(false)}
+            // onInteract={() => setFooterVisible(false)}
           />
         }
       </div>

@@ -259,7 +259,7 @@ async def delete_map(
     return
 
 
-def map_response(db, map_obj):
+def map_response(db, map_obj, owner):
     points = (
         db.query(
             Point.id,
@@ -279,13 +279,14 @@ def map_response(db, map_obj):
         "id": map_obj.id,
         "sharing": map_obj.sharing.value,
         "name": map_obj.name,
+        "owner": owner, 
         "type": "FeatureCollection",
         "features": [
             {
                 "type": "Feature",
                 "properties": {
                     "time": point.time,
-                    "username_id": point.username,
+                    # "username_id": point.username,
                     "message": point.message,
                     "file": point.file,
                     "tags": point.tags or "",
@@ -321,7 +322,7 @@ async def get_map(
     map_id = get_or_create_live_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
 
-    return map_response(db, map_obj)
+    return map_response(db, map_obj, True)
 
 
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
@@ -344,8 +345,9 @@ async def get_public_map(
     """
     map_obj: Map = db.get(Map, map_id)
 
-    if map_obj and (map_obj.sharing == SharePermission.PUBLIC or (user and map_obj.owner_id == user.id)):
-        return map_response(db, map_obj)
+    owner = (user and map_obj.owner_id == user.id) or False
+    if map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner):
+        return map_response(db, map_obj, owner)
     else:
         # Map is not public – reject the request
         raise HTTPException(
@@ -355,8 +357,9 @@ async def get_public_map(
 
 
 # Toggle Map Sharing Permission
-@api_router.put("/map/share")
+@api_router.put("/map/{map_id}/share/")
 async def status(
+    map_id: str,
     user: CurrentUser,
     db: Session = Depends(get_db_session),
 ) -> Dict[str, str]:
@@ -364,23 +367,29 @@ async def status(
     Toggle sharing permission of the user's map between private and public.
 
     Args:
+        map_id (str): Unique identifier of the map.
         user (CurrentUser): Authenticated user.
         db (Session): Database session.
 
     Returns:
         Dict[str, str]: Updated map ID and sharing status.
     """
-    map_id = get_or_create_live_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
-    sharing = (
-        SharePermission.PUBLIC
-        if map_obj.sharing == SharePermission.PRIVATE
-        else SharePermission.PRIVATE
-    )
-    map_obj.sharing = sharing
-    db.commit()
-    return {"map_id": map_id, "sharing": map_obj.sharing.value}
-
+    if map_obj and user and map_obj.owner_id == user.id:
+        sharing = (
+            SharePermission.PUBLIC
+            if map_obj.sharing == SharePermission.PRIVATE
+            else SharePermission.PRIVATE
+        )
+        map_obj.sharing = sharing
+        db.commit()
+        return {"map_id": map_id, "sharing": map_obj.sharing.value}
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
 
 @api_router.get("/media/{filename}", response_class=StreamingResponse)
 async def get_media(

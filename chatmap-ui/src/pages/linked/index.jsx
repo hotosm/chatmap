@@ -105,7 +105,10 @@ function App() {
           }
         >
           { dataAvailable && <>
-            <ShareButton sharing={data.sharing} />
+            <ShareButton
+              sharing={data.sharing}
+              id={mapData.id}
+            />
           </>}
         </Header>
 

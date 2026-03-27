@@ -18,7 +18,7 @@ class FeatureProperties(BaseModel):
     """
     id: str
     time: datetime
-    username_id: str
+    # username_id: str
     message: str | None = None
     file: str | None
 
@@ -38,6 +38,7 @@ class FeatureCollection(BaseModel):
     """
     id: str
     sharing: str
+    owner: bool
     name: str
     type: Literal["FeatureCollection"]
     features: List[Feature] = []
