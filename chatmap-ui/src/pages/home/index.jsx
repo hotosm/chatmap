@@ -1,9 +1,6 @@
 import { lazy, useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 
-import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
-import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
-
 import ConfirmDialog from "../../components/ConfirmDialog";
 import DownloadButton from '../../components/DownloadButton';
 import FileUploadSection from './fileUpload.section.jsx';
@@ -118,7 +115,7 @@ function App() {
   return (
     <>
       <div className="app">
-        <Header>
+        <Header dataAvailable={dataAvailable}>
           { dataAvailable && <>
 
             <DownloadButton data={data} dataFiles={dataFiles} />
@@ -136,11 +133,6 @@ function App() {
             }
           </>}
 
-          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && <>
-            <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
-              <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
-            </SlButton>
-          </>}
         </Header>
 
         {!files &&

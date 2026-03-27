@@ -73,6 +73,7 @@ export default function MapList() {
           <div className="mapscontent__header">
             <div className="mapscontent__header-left">
               <h1><FormattedMessage id="app.navigation.maps" defaultMessage="Maps" /></h1>
+              <br />
               <h2><FormattedMessage id="app.maps.subtitle" defaultMessage="Create maps from chat conversations" /></h2>
             </div>
             <div className="mapscontent__header-right">

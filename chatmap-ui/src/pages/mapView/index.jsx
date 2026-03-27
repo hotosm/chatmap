@@ -72,10 +72,10 @@ function MapView() {
         }
       </div>
 
-      <Footer
+      {/* <Footer
         visible={footerVisible}
         className="footer__floating"
-      />
+      /> */}
     </>
   );
 }

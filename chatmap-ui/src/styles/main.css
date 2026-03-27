@@ -90,7 +90,6 @@ a {
 
 .header__logo {
     height: var(--hot-spacing-2x-large);
-    filter: grayscale(1);
     display: block;
 }
 
@@ -105,6 +104,7 @@ a {
     column-gap: var(--hot-spacing-small);
     overflow: hidden;
     text-wrap: nowrap;
+    font-family: var(--hot-font-sans-variant);
 }
 
 ul.header__nav {
@@ -114,6 +114,10 @@ ul.header__nav {
     display: flex;
     font-family: var(--hot-font-sans-variant);
     text-transform: uppercase;
+    border-left: 1px solid var(--hot-color-neutral-300);
+    height: var(--hot-spacing-medium);
+    margin: var(--hot-spacing-x-small) 0;
+    padding-left: calc(var(--hot-spacing-large)/2);
 }
 
 ul.header__nav li {
@@ -122,8 +126,9 @@ ul.header__nav li {
 }
 
 .header__title-text {
-    font-size: var(--hot-font-size-medium);
+    font-size: var(--hot-font-size-x-large);
     color: var(--hot-color-gray-950);
+    margin: 0;
     text-overflow: ellipsis;
     overflow: hidden;
 }

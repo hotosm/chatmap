@@ -8,6 +8,8 @@ import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
 import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
 import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
+import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
+// import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 
 import logo from '../assets/hot-logo-gray.svg';
 import { locales, localeNames } from '../lang';
@@ -18,6 +20,7 @@ import { useLanguage } from '../context/LanguageContext';
 export default function Header({
   title,
   children,
+  dataAvailable
 }) {
   const { config } = useConfigContext();
   const { lang, setLang } = useLanguage();
@@ -37,19 +40,37 @@ export default function Header({
           <a href={`/`} className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
-          <h1 className="header__title-text">{title}</h1>
+          <h1 className="header__title-text">{title || "ChatMap"}</h1>
           { isAuthenticated && <ul className="header__nav">
             <li>
               <NavLink
                 to="/maps"
                 style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "" })}
-              ><FormattedMessage id="app.navigation.maps" defaultMessage="Maps" /></NavLink>
+              ><FormattedMessage id="app.navigation.maps" defaultMessage="My Maps" /></NavLink>
             </li>
           </ul>}
         </div>
 
         <div className="header__rest">
           { children }
+
+          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && <>
+            <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
+              <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
+            </SlButton>
+          </>}
+
+          { config.ENABLE_AUTH &&
+          <div className="header__login-button">
+            <hotosm-auth
+              hanko-url={config.HANKO_API_URL}
+              login-url={config.LOGIN_URL}
+              redirect-after-login={`${window.location.origin}`}
+              redirect-after-logout={`${window.location.origin}`}
+              lang={lang}
+            />
+          </div>
+          }
 
           <SlDropdown>
             <SlIconButton slot="trigger" name="translate" caret size="small"></SlIconButton>
@@ -66,18 +87,6 @@ export default function Header({
               )) }
             </SlMenu>
           </SlDropdown>
-
-          { config.ENABLE_AUTH &&
-          <div className="header__login-button">
-            <hotosm-auth
-              hanko-url={config.HANKO_API_URL}
-              login-url={config.LOGIN_URL}
-              redirect-after-login={`${window.location.origin}`}
-              redirect-after-logout={`${window.location.origin}`}
-              lang={lang}
-            />
-          </div>
-          }
 
           <hotosm-tool-menu
             show-logos={false}
