@@ -207,8 +207,9 @@ async def create_map(
             message=feature.properties.message,
             username=feature.properties.username,
             time=feature.properties.time,
-            tags=feature.properties.tags or None,
             file=feature.properties.file,
+            tags=feature.properties.tags,
+            removed=feature.properties.removed or False,
             map_id=new_map.id,
         ) for feature in map_data.features])
 
@@ -300,7 +301,8 @@ def map_response(db, map_obj, owner):
                     "file": point.file,
                     "tags": point.tags or "",
                     "id": point.id,
-                    "removed": point.removed
+                    "removed": point.removed,
+                    "tags": point.tags
                 },
                 "geometry": {
                     "type": "Point",

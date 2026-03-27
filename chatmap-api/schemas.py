@@ -22,6 +22,7 @@ class FeatureProperties(BaseModel):
     message: str | None = None
     file: str | None
     removed: bool = False
+    tags: str
 
 class Feature(BaseModel):
     """

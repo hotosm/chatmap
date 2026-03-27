@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useNavigate } from "react-router";
 
@@ -12,8 +12,10 @@ import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import { useConfigContext } from "../../context/ConfigContext";
 
 export default function SaveDialog({
-  open, setOpen, data, dataFiles,
+  open, setOpen, data, dataFiles
 }) {
+
+  console.log(data);
   const navigate = useNavigate();
   const { config } = useConfigContext();
   const intl = useIntl();
@@ -27,7 +29,7 @@ export default function SaveDialog({
     event.preventDefault();
 
     const mediaFiles = data.features
-      .filter(f => !f.properties.removed && f.properties.file)
+      .filter(f => f.properties.file)
       .map(f => f.properties.file);
     const allFiles = Object.entries(dataFiles).filter(([filename, blob]) => {
       return mediaFiles.indexOf(filename) > -1;

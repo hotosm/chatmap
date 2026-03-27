@@ -103,7 +103,7 @@ export default function Popup ({
             onRemove={tag => onRemoveMessage(feature)}
             showMessageOptions={true}
           />
-          { !feature.properties.removed && showMessageOptions ?
+          { !feature.properties.removed ?
           <Tagger
             placeholder={
               intl.formatMessage({
