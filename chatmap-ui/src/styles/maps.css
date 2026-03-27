@@ -23,6 +23,8 @@
 
 .mapscontent__header-right {
     padding-right: var(--hot-spacing-medium);
+    display: flex;
+    gap: var(--hot-spacing-medium);
 }
 
 .mapscontent__body {

@@ -8,8 +8,6 @@ import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
 import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
 import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
-import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
-// import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 
 import logo from '../assets/hot-logo-gray.svg';
 import { locales, localeNames } from '../lang';
@@ -19,8 +17,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 export default function Header({
   title,
-  children,
-  dataAvailable
+  children
 }) {
   const { config } = useConfigContext();
   const { lang, setLang } = useLanguage();
@@ -53,13 +50,6 @@ export default function Header({
 
         <div className="header__rest">
           { children }
-
-          { !dataAvailable && isAuthenticated && config.ENABLE_LIVE && <>
-            <SlButton className="header__live-button" href="#linked" variant="default" outline size="small">
-              <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
-            </SlButton>
-          </>}
-
           { config.ENABLE_AUTH &&
           <div className="header__login-button">
             <hotosm-auth
