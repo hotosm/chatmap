@@ -18,7 +18,7 @@ COPY ./vite.config.js ./vite.config.js
 
 RUN yarn build
 
-FROM nginx:alpine
+FROM nginx
 
 COPY --from=builder /app/build /usr/share/nginx/html
 
