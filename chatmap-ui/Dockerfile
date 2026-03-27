@@ -1,6 +1,6 @@
 # ChatMap Web UI Dockerfile
 
-FROM node:22-alpine3.21 AS builder
+FROM node:22 AS builder
 
 WORKDIR /app
 
