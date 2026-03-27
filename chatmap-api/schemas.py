@@ -22,7 +22,7 @@ class FeatureProperties(BaseModel):
     message: str | None = None
     file: str | None
     removed: bool = False
-    tags: str
+    tags: str = ""
 
 class Feature(BaseModel):
     """
@@ -54,7 +54,7 @@ class SaveMapFeatureProperties(BaseModel):
     file: str | None = None
     file_type: str | None = None
     username: str
-    tags: str | None = None
+    tags: str = ""
     removed: bool = False
 
 
@@ -78,3 +78,6 @@ class SaveMapResult(BaseModel):
 
 class SaveMediaResponse(BaseModel):
     uri: str
+
+class PointTags(BaseModel):
+    tags: str = ""

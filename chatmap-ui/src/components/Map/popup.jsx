@@ -101,7 +101,7 @@ export default function Popup ({
             dataFiles={dataFiles}
             msgType={msgType}
             onRemove={tag => onRemoveMessage(feature)}
-            showMessageOptions={true}
+            showMessageOptions={showMessageOptions}
           />
           { !feature.properties.removed ?
           <Tagger
@@ -116,6 +116,7 @@ export default function Popup ({
             tags={(feature.properties.tags || "").split(",").filter(x => x)}
             onAddTag={tag => onAddTag(tag, feature)}
             onRemoveTag={tag => onRemoveTag(tag, feature)}
+            showEditOptions={showMessageOptions}
           /> : "" }
         </div>
       </IntlProvider>

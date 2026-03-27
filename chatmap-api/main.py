@@ -25,7 +25,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult,
-    SaveMediaResponse,
+    SaveMediaResponse, PointTags
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -424,7 +424,33 @@ async def remove_point(
             )
     raise HTTPException(
         status_code=404,
-        detail="Media not found",
+        detail="Point not found",
+    )
+
+@api_router.put("/point/{point_id}/tags/")
+async def update_point_tags(
+    point_id: str,
+    tags: PointTags,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    print(tags)
+    point_obj: Point = db.get(Point, point_id)
+    if point_obj:
+        map_obj = point_obj.map
+        if map_obj.owner_id == user.id:
+            point_obj.tags = tags.tags
+            db.commit()
+            return {"tags": point_obj.tags}
+        else:
+            # User is not owner of the map
+            raise HTTPException(
+                status_code=401,
+                detail="Unauthorized."
+            )
+    raise HTTPException(
+        status_code=404,
+        detail="Point not found",
     )
 
 @api_router.get("/media/{filename}", response_class=StreamingResponse)

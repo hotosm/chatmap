@@ -170,7 +170,7 @@ function App() {
               className="mapFull"
               center={[1,1]}
               zoom={1}
-              showMessageOptions={false}
+              showMessageOptions={mapData.owner}
             />
           </div>
 

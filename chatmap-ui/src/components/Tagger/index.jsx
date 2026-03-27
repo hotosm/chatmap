@@ -9,7 +9,8 @@ export default function Tagger({
     tags,
     allTags,
     msgType,
-    placeholder
+    placeholder,
+    showEditOptions
 }) {
     const textRef = useRef();
 
@@ -34,15 +35,16 @@ export default function Tagger({
                     <sl-button
                         variant="primary"
                         size="small"
-                        onClick={() => removeTagHandler(tag)}
+                        onClick={() => showEditOptions && removeTagHandler(tag)}
                         pill
                         key={`${tag}`}
                     >
-                        <sl-icon name="x-circle" slot="prefix"></sl-icon>
+                        { showEditOptions && <sl-icon name="x-circle" slot="prefix"></sl-icon> }
                         {tag}
                     </sl-button>
                 )}
             </div>
+            { showEditOptions &&
             <div className="dropdownSelection">
                 <sl-dropdown className="taggerDropdown">
                     <sl-input
@@ -75,7 +77,7 @@ export default function Tagger({
                     </sl-menu>
                     : null}
                 </sl-dropdown>
-            </div>
-        </div>
+            </div> }
+        </div> 
     );
 }

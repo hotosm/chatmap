@@ -22,7 +22,8 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     const [editingTags, setEditingTags] = useState(false);
     const popupRef = useRef(null);
     const {
-      removePoint
+      removePoint,
+      updatePointTags
     } = useAPI();
 
     const { data, tags, mapDataDispatch } = useMapDataContext();
@@ -186,6 +187,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
       oldTags.push(tag);
 
       feature.properties.tags = oldTags.join(",");
+      updatePointTags(feature.properties.id, feature.properties.tags)
       handleChange(feature);
       setEditingTags(false);
     };
@@ -193,6 +195,7 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     const handleRemoveTag = (tag, feature) => {
       feature.properties.tags = (feature.properties.tags || "")
           .split(",").filter(x => x).filter(x => x != tag).join(",");
+        updatePointTags(feature.properties.id, feature.properties.tags)
         handleChange(feature);
         setEditingTags(false);
     }

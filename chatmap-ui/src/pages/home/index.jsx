@@ -153,11 +153,12 @@ function App() {
         }
 
         {dataAvailable &&
+        <>
           <Map
             dataFiles={dataFiles}
             data={data}
             showMessageOptions={true}
-          />
+          /></>
         }
 
         <Footer

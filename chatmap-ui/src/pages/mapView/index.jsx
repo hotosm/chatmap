@@ -74,6 +74,7 @@ function MapView() {
 
         {dataAvailable &&
           <Map
+            showMessageOptions={mapData.owner}
             // onInteract={() => setFooterVisible(false)}
           />
         }
