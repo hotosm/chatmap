@@ -20,7 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column('points', sa.Column('removed', sa.Boolean, nullable=False, default=False))
+    op.add_column('points', sa.Column('removed', sa.Boolean, nullable=True, default=False))
+    op.execute("UPDATE points SET removed = False WHERE removed IS NULL")
+    op.alter_column('points', 'removed', nullable=False, default=False)
     pass
 
 
