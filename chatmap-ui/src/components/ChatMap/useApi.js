@@ -94,7 +94,7 @@ const useApi = (params = {}) => {
     // Fetch a sharing code for accessing the map
     const updateMapShare = useCallback(async (id) => {
       await wrapper(async () => {
-            const response = await fetch(`${config.API_URL}/map/${id}/share`, {
+            const response = await fetch(`${config.API_URL}/map/${id}/share/`, {
                 method: 'PUT',
                 credentials: 'include',
             });
