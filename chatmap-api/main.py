@@ -302,7 +302,7 @@ def map_response(db, map_obj, owner):
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
-                    "tags": point.tags
+                    "tags": point.tags or ""
                 },
                 "geometry": {
                     "type": "Point",
