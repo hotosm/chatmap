@@ -17,7 +17,8 @@ export const formatDate = (time) => {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true
+    hour12: true,
+    timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone
   }).format(d).replace(/,/g, '');
 };
 
