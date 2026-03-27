@@ -5,6 +5,7 @@ import { osm } from './source';
 import Popup from './popup';
 import extent from 'turf-extent';
 import { useMapDataContext } from '../../context/MapDataContext';
+import useAPI from '../../components/ChatMap/useApi.js'
 
 /**
  *
@@ -20,6 +21,9 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     const [activePopupFeature, setActivePopupFeature] = useState(null);
     const [editingTags, setEditingTags] = useState(false);
     const popupRef = useRef(null);
+    const {
+      removePoint
+    } = useAPI();
 
     const { data, tags, mapDataDispatch } = useMapDataContext();
 
@@ -193,7 +197,8 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
         setEditingTags(false);
     }
 
-    const handleRemoveMessage = (feature) => {
+    const handleRemoveMessage = async (feature) => {
+      await removePoint(feature.properties.id);
       feature.properties.removed = !feature.properties.removed;
       handleChange(feature);
     }

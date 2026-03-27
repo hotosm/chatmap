@@ -114,6 +114,7 @@ class Point(Base):
     time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     file = Column(String)
     tags = Column(String)
+    removed = Column(Boolean, default=False)
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map    = relationship("Map", back_populates="points")

@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, NavLink } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
-import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 

@@ -260,6 +260,14 @@ async def delete_map(
 
 
 def map_response(db, map_obj, owner):
+
+    # Filter points by map id
+    base_filter = Point.map_id == map_obj.id
+    
+    # If user is not owner of the map, exclude removed points
+    if not owner:
+        base_filter = base_filter & (Point.removed == False)
+        
     points = (
         db.query(
             Point.id,
@@ -269,9 +277,10 @@ def map_response(db, map_obj, owner):
             Point.username,
             Point.time,
             Point.file,
+            Point.removed,
             Point.tags,
         )
-        .filter(Point.map_id == map_obj.id)
+        .filter(base_filter)
         .all()
     )
 
@@ -291,6 +300,7 @@ def map_response(db, map_obj, owner):
                     "file": point.file,
                     "tags": point.tags or "",
                     "id": point.id,
+                    "removed": point.removed
                 },
                 "geometry": {
                     "type": "Point",
@@ -390,6 +400,30 @@ async def status(
             status_code=401,
             detail="Unauthorized."
         )
+
+@api_router.put("/point/{point_id}/remove/")
+async def remove_point(
+    point_id: str,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    point_obj: Point = db.get(Point, point_id)
+    if point_obj:
+        map_obj = point_obj.map
+        if map_obj.owner_id == user.id:
+            point_obj.removed = not point_obj.removed
+            db.commit()
+            return {"removed": point_obj.removed}
+        else:
+            # User is not owner of the map
+            raise HTTPException(
+                status_code=401,
+                detail="Unauthorized."
+            )
+    raise HTTPException(
+        status_code=404,
+        detail="Media not found",
+    )
 
 @api_router.get("/media/{filename}", response_class=StreamingResponse)
 async def get_media(

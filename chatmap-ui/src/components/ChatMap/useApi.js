@@ -106,6 +106,20 @@ const useApi = (params = {}) => {
       });
     }, []);
 
+    // Update the removed property of a point
+    const removePoint = useCallback(async (id) => {
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/point/${id}/remove/`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch removed');
+            }
+            await response.json();
+      });
+    }, []);
+
     return {
         mapData,
         QRImgSrc,
@@ -117,6 +131,7 @@ const useApi = (params = {}) => {
         fetchQRCode,
         fetchStatus,
         updateMapShare,
+        removePoint,
         mapShare,
     };
 };

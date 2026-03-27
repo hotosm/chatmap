@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Tuple
+from typing import List, Literal, Tuple
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -21,7 +21,7 @@ class FeatureProperties(BaseModel):
     # username_id: str
     message: str | None = None
     file: str | None
-
+    removed: bool = False
 
 class Feature(BaseModel):
     """
@@ -54,6 +54,7 @@ class SaveMapFeatureProperties(BaseModel):
     file_type: str | None = None
     username: str
     tags: str | None = None
+    removed: bool = False
 
 
 class SaveMapFeature(BaseModel):
