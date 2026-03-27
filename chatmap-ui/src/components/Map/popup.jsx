@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
-import { Popup as PopupGL } from "maplibre-gl";
+import { IntlProvider } from "react-intl";
 import { createRoot } from "react-dom/client";
+
+import { Popup as PopupGL } from "maplibre-gl";
 import Tagger from '../Tagger';
 import Message from '../Message';
 import { useIntl } from 'react-intl';
+import { useLanguage } from "../../context/LanguageContext";
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
@@ -59,8 +62,8 @@ export default function Popup ({
   allTags,
   showMessageOptions,
 }) {
-  
   const intl = useIntl();
+  const { lang, messages } = useLanguage();
 
   const getMsgType = (message) => {
     if (message.file) {
@@ -90,30 +93,33 @@ export default function Popup ({
       popupRef={popupRef}
       closeOnMove={false}
       closeButton={true}
-      >
-      <div className="activePopupFeatureContent">
-        <Message
-          message={feature.properties}
-          dataFiles={dataFiles}
-          msgType={msgType}
-          onRemove={tag => onRemoveMessage(feature)} 
-          showMessageOptions={showMessageOptions}
-        />
-        { !feature.properties.removed && showMessageOptions ?
-        <Tagger
-          placeholder={
-            intl.formatMessage({
-              id: "app.yourTagHere",
-              defaultMessage: "Your tag here"
-            })
-          }
-          msgType={msgType}
-          allTags={allTags}
-          tags={feature.properties.tags || []}
-          onAddTag={tag => onAddTag(tag, feature)} 
-          onRemoveTag={tag => onRemoveTag(tag, feature)} 
-        /> : "" }
-      </div>
+    >
+      <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
+        <div className="activePopupFeatureContent">
+          <Message
+            message={feature.properties}
+            dataFiles={dataFiles}
+            msgType={msgType}
+            onRemove={tag => onRemoveMessage(feature)}
+            showMessageOptions={showMessageOptions}
+          />
+          { !feature.properties.removed ?
+          <Tagger
+            placeholder={
+              intl.formatMessage({
+                id: "app.yourTagHere",
+                defaultMessage: "Your tag here"
+              })
+            }
+            msgType={msgType}
+            allTags={allTags}
+            tags={(feature.properties.tags || "").split(",").filter(x => x)}
+            onAddTag={tag => onAddTag(tag, feature)}
+            onRemoveTag={tag => onRemoveTag(tag, feature)}
+            showEditOptions={showMessageOptions}
+          /> : "" }
+        </div>
+      </IntlProvider>
     </PopupGLWrapper>
   )
-}
+};

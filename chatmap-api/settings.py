@@ -41,3 +41,8 @@ DISABLE_STREAM_CLEANUP = (os.getenv('CHATMAP_DISABLE_STREAM_CLEANUP', 'false').l
 
 # CORS setup
 CORS_ORIGINS = os.getenv("CHATMAP_CORS_ORIGINS", "localhost,127.0.0.1,http://localhost:5173").split(",")
+
+S3_ENDPOINT_URL = os.getenv("CHATMAP_S3_ENDPOINT_URL", "http://chatmap-minio:9000")
+S3_BUCKET_NAME = os.getenv("CHATMAP_S3_BUCKET_NAME", "chatmapmedia")
+S3_ACCESS_KEY = os.getenv("CHATMAP_S3_ACCESS_KEY", "minioadmin")
+S3_SECRET_KEY = os.getenv("CHATMAP_S3_SECRET_KEY", "minioadmin")

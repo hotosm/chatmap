@@ -7,7 +7,6 @@ import { useConfigContext } from '../../context/ConfigContext.jsx'
  * @param {object} params - Parameters
  */
 const useApi = (params = {}) => {
-
     const { config } = useConfigContext();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -20,28 +19,36 @@ const useApi = (params = {}) => {
     const [status, setStatus] = useState();
     const [mapShare, setMapShare] = useState({});
 
+    /**
+     * Common pattern for all requests
+     */
+    async function wrapper(callback) {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await callback();
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     // Logout session
     const logoutSession = useCallback(async () => {
-        setIsLoading(true);
-        try {
+      await wrapper(async () => {
             const response = await fetch(`${config.API_URL}/logout`, {
                 method: 'GET',
                 credentials: 'include',
             });
             if (!response.ok) throw new Error('Failed to logout');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
+      });
     });
 
     // Fetch map data related to a session
     const fetchMapData = useCallback(async (id) => {
-        setIsLoading(true);
-        setError(null);
-        const url = id ? `${config.API_URL}/map/${id}` : `${config.API_URL}/map`;
-        try {
+        const url = id ? `${config.API_URL}/map/${id}` : `${config.API_URL}/map/new`;
+        await wrapper(async () => {
             const response = await fetch(url, {
                 method: 'GET',
                 credentials: 'include',
@@ -52,18 +59,12 @@ const useApi = (params = {}) => {
             if (!response.ok) throw new Error('Failed to fetch data');
             const result = await response.json();
             setMapData(result);
-        } catch (err) {
-            // setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
+        });
     }, [params]);
 
     // Fetch a new QR code for linking a device
     const fetchQRCode = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
+      await wrapper(async () => {
             const response = await fetch(`${config.API_URL}/qr`, {
                 method: 'GET',
                 credentials: 'include',
@@ -72,18 +73,12 @@ const useApi = (params = {}) => {
             const blob = await response.blob();
             const objectURL = URL.createObjectURL(blob);
             setQRImgSrc(objectURL);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
+      });
     }, []);
 
     // Fetch status of linking a device
     const fetchStatus = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
+      await wrapper(async () => {
             const response = await fetch(`${config.API_URL}/status`, {
                 method: 'GET',
                 credentials: 'include',
@@ -93,19 +88,13 @@ const useApi = (params = {}) => {
             }
             const result = await response.json();
             setStatus(result.status);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
+      });
     }, []);
 
-     // Fetch a sharing code for accessing the map
-    const updateMapShare = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(`${config.API_URL}/map/share`, {
+    // Fetch a sharing code for accessing the map
+    const updateMapShare = useCallback(async (id) => {
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/map/${id}/share/`, {
                 method: 'PUT',
                 credentials: 'include',
             });
@@ -114,11 +103,37 @@ const useApi = (params = {}) => {
             }
             const result = await response.json();
             setMapShare(result);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
+      });
+    }, []);
+
+    // Update the removed property of a point
+    const removePoint = useCallback(async (id) => {
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/point/${id}/remove/`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch removed');
+            }
+            await response.json();
+      });
+    }, []);
+
+    // Update the tags property of a point
+    const updatePointTags = useCallback(async (id, tags) => {
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/point/${id}/tags/`, {
+                method: 'PUT',
+                body: JSON.stringify({"tags": tags}),
+                headers: {"Content-Type": "application/json"},
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch removed');
+            }
+            await response.json();
+      });
     }, []);
 
     return {
@@ -132,9 +147,10 @@ const useApi = (params = {}) => {
         fetchQRCode,
         fetchStatus,
         updateMapShare,
-        mapShare
+        removePoint,
+        updatePointTags,
+        mapShare,
     };
-
 };
 
 export default useApi;

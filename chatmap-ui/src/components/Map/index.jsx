@@ -5,6 +5,7 @@ import { osm } from './source';
 import Popup from './popup';
 import extent from 'turf-extent';
 import { useMapDataContext } from '../../context/MapDataContext';
+import useAPI from '../../components/ChatMap/useApi.js'
 
 /**
  *
@@ -20,12 +21,16 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     const [activePopupFeature, setActivePopupFeature] = useState(null);
     const [editingTags, setEditingTags] = useState(false);
     const popupRef = useRef(null);
+    const {
+      removePoint,
+      updatePointTags
+    } = useAPI();
 
     const { data, tags, mapDataDispatch } = useMapDataContext();
 
     useEffect(() => {
       if (map.current) return;
-    
+
       // Creates a MapLibreGL object
       map.current = new MapGL({
         container: mapContainer.current,
@@ -74,9 +79,9 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
                     '#9A969B', // --hot-color-neutral-400
                     [
                         "case",
-                        ["==", ["get", "message"], "{location-only}"],
+                        ["to-boolean", ["get", "file"]],
+                        '#D73F3F',  // --hot-color-red-600
                         '#2E4873', // --hot-color-blue-600
-                        '#D73F3F'  // --hot-color-red-600
                     ]
                 ],
                 'circle-radius': 10
@@ -99,9 +104,6 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
         map.current.on("click", "pois-clickable",  (e) => {
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
-          if (feature.properties["tags"]) {
-            feature.properties.tags = JSON.parse(feature.properties.tags);
-          }
           setActivePopupFeature(feature);
         });
 
@@ -149,17 +151,15 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
           {
             map.current.getSource('locations').setData({
               ...data,
-              features: [
-                  ...data.features.filter(feature => 
-                  feature.properties.tags && feature.properties.tags.indexOf(data.filterTag) > -1
-                )
-              ]
+              features: data.features.filter(feature =>
+                feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
+              )
             });
           }
         } else {
           map.current.getSource('locations').setData(data);
         }
-        
+
       }
     }, [data]);
 
@@ -182,21 +182,26 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     // Tag handlers
 
     const handleAddTag = (tag, feature) => {
-      if (!feature.properties.tags) {
-        feature.properties.tags = [];
-      }
-      feature.properties.tags.push(tag);
+      const oldTags = (feature.properties.tags || "").split(",").filter(x => x);
+
+      oldTags.push(tag);
+
+      feature.properties.tags = oldTags.join(",");
+      updatePointTags(feature.properties.id, feature.properties.tags)
       handleChange(feature);
       setEditingTags(false);
     };
 
     const handleRemoveTag = (tag, feature) => {
-        feature.properties.tags = feature.properties.tags.filter(x => x != tag);
+      feature.properties.tags = (feature.properties.tags || "")
+          .split(",").filter(x => x).filter(x => x != tag).join(",");
+        updatePointTags(feature.properties.id, feature.properties.tags)
         handleChange(feature);
         setEditingTags(false);
     }
 
-    const handleRemoveMessage = (feature) => {
+    const handleRemoveMessage = async (feature) => {
+      await removePoint(feature.properties.id);
       feature.properties.removed = !feature.properties.removed;
       handleChange(feature);
     }
@@ -232,4 +237,3 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
     );
 
   }
-

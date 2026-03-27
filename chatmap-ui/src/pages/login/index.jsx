@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useConfigContext } from '../../context/ConfigContext.jsx';
 import logo from '../../assets/hot-logo-text.svg';
 import '../../styles/login.css';

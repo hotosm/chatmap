@@ -1,3 +1,4 @@
+import { FormattedMessage } from "react-intl";
 /*
 * Utility functions
 */
@@ -16,7 +17,8 @@ export const formatDate = (time) => {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true
+    hour12: true,
+    timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone
   }).format(d).replace(/,/g, '');
 };
 
@@ -26,7 +28,7 @@ export const formatDate = (time) => {
  * @param {object} dataFiles Files with data
  * @returns {string} Message (text message or HTML for image, video)
  */
-export const getMessage = (message, msgType, dataFiles) => {
+export function GetMessage({message, msgType, dataFiles}) {
   let content;
   if (message.file && dataFiles && message.file in dataFiles) {
 
@@ -48,21 +50,23 @@ export const getMessage = (message, msgType, dataFiles) => {
       content = <img className="popupImage" alt={message.file} src={message.file} />;
     } else if (message.file.endsWith("mp4")) {
       content = <video controls className="popupVideo" alt={message.file} src={message.file} />
-    } else if (message.file.endsWith("jpg")) {
+    } else if (message.file.endsWith("opus")) {
       content = <audio controls className="popupAudio" alt={message.file} src={message.file} />
     }
   }
 
   return <>
-      {/* Media */}
-      <div className="media">
+    {/* Media */}
+    <div className="media">
       { content ? content : null }
-      </div>
-      {/* Text */}
-      { message.message && message.message !== " " && message.message !== "{location-only}" ?
-      <p className="text">{message.message}</p> : null}
-      {  message.message === "{location-only}" ?
-        <p className="text location-only">Location only</p>
-      : null}
-    </>
-}
+    </div>
+    {/* Text */}
+    { message.message && message.message !== " " ?
+      <p className="text">{message.message}</p> : (!content ?
+        <p className="text location-only">
+          <FormattedMessage id="app.map.locationOnly" defaultMessage="Location only" />
+        </p>
+      : null)
+    }
+  </>;
+};

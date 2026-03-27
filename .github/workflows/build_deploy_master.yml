@@ -96,6 +96,10 @@ jobs:
           ENABLE_AUTH: ${{ vars.ENABLE_AUTH }}
           HANKO_API_URL: ${{ vars.HANKO_API_URL }}
           JWT_ISSUER: ${{ vars.JWT_ISSUER }}
+          CHATMAP_S3_ENDPOINT_URL: ${{ vars.CHATMAP_S3_ENDPOINT_URL }}
+          CHATMAP_S3_BUCKET_NAME: ${{ vars.CHATMAP_S3_BUCKET_NAME }}
+          CHATMAP_S3_ACCESS_KEY: ${{ vars.CHATMAP_S3_ACCESS_KEY }}
+          CHATMAP_S3_SECRET_KEY: ${{ vars.CHATMAP_S3_SECRET_KEY }}
         run: |
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
@@ -111,6 +115,10 @@ jobs:
             export ENABLE_AUTH=$ENABLE_AUTH
             export HANKO_API_URL=$HANKO_API_URL
             export JWT_ISSUER=$JWT_ISSUER
+            export CHATMAP_S3_ENDPOINT_URL=$CHATMAP_S3_ENDPOINT_URL
+            export CHATMAP_S3_BUCKET_NAME=$CHATMAP_S3_BUCKET_NAME
+            export CHATMAP_S3_ACCESS_KEY=$CHATMAP_S3_ACCESS_KEY
+            export CHATMAP_S3_SECRET_KEY=$CHATMAP_S3_SECRET_KEY
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR

@@ -13,3 +13,4 @@ media
 certbot/
 deploy/frontend/config.json
 deploy/nginx/default.conf
+hanko-config.yaml

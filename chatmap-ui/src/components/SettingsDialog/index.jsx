@@ -26,14 +26,14 @@ export default function SettingsDialog({
 
       <p className="dialog__locations">
         <FormattedMessage
-          id="app.home.dialog.locations"
+          id="app.home.settingsDialog.locations"
           defaultMessage="{num} location point(s) found"
           values={{ num: numFeatures }}
         />
       </p>
       <p className="dialog__exporttype">
         <FormattedMessage
-          id="app.home.dialog.exporttype"
+          id="app.home.settingsDialog.exporttype"
           defaultMessage="File is a {type} export"
           values={{ type: sources.join(', ') }}
         />
@@ -43,7 +43,7 @@ export default function SettingsDialog({
         <SlSwitch size="small" checked={withPhotos && "checked"} onSlChange={handleWithPhotosChange}>
           <span className="dialog__switchtext">
             <FormattedMessage
-              id="app.home.dialog.options.photos"
+              id="app.home.settingsDialog.options.photos"
               defaultMessage="Include photos"
             />
           </span>
@@ -53,7 +53,7 @@ export default function SettingsDialog({
         <SlSwitch size="small" checked={withVideos && "checked"} onSlChange={handleWithVideosChange}>
           <span className="dialog__switchtext">
             <FormattedMessage
-              id="app.home.dialog.options.videos"
+              id="app.home.settingsDialog.options.videos"
               defaultMessage="Include videos"
             />
           </span>
@@ -63,7 +63,7 @@ export default function SettingsDialog({
         <SlSwitch size="small" checked={withAudios && "checked"} onSlChange={handleWithAudiosChange}>
           <span className="dialog__switchtext">
             <FormattedMessage
-              id="app.home.dialog.options.audios"
+              id="app.home.settingsDialog.options.audios"
               defaultMessage="Include audios"
             />
           </span>
@@ -73,7 +73,7 @@ export default function SettingsDialog({
         <SlSwitch size="small" checked={withText && "checked"} onSlChange={handleWithTextChange}>
           <span className="dialog__switchtext">
             <FormattedMessage
-              id="app.home.dialog.options.text"
+              id="app.home.settingsDialog.options.text"
               defaultMessage="Include text messages"
             />
           </span>
@@ -82,7 +82,7 @@ export default function SettingsDialog({
 
       <sl-button slot="footer" variant="primary" className="dialog__btn dark-btn" onClick={() => setOpen(false)}>
         <FormattedMessage
-          id="app.home.dialog.continue"
+          id="app.home.settingsDialog.continue"
           defaultMessage="Continue"
         />
       </sl-button>

@@ -1,15 +1,15 @@
 import { FormattedMessage } from 'react-intl';
 import useAPI from '../../components/ChatMap/useApi.js'
 
-function ShareButton({ sharing }) {
+function ShareButton({ sharing, id }) {
 
   const {
     updateMapShare,
-    mapShare
+    mapShare,
   } = useAPI();
 
   const handleClick = async () => {
-    await updateMapShare();
+    await updateMapShare(id);
   };
 
   return (

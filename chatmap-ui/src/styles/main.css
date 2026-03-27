@@ -26,6 +26,22 @@ sl-icon-button::part(base) {
     color: var(--hot-color-gray-950);
 }
 
+sl-input::part(form-control-label),
+sl-textarea::part(form-control-label) {
+    font-weight: bold;
+    margin-bottom: var(--hot-spacing-small);
+}
+
+sl-input:not(:first-child),
+sl-textarea:not(:first-child) {
+    margin-top: var(--hot-spacing-medium);
+}
+
+sl-progress-bar {
+    margin-top: var(--hot-spacing-medium);
+    --indicator-color: var(--hot-color-red-950);
+}
+
 /* defaults */
 
 html, body {
@@ -74,7 +90,6 @@ a {
 
 .header__logo {
     height: var(--hot-spacing-2x-large);
-    filter: grayscale(1);
     display: block;
 }
 
@@ -89,11 +104,31 @@ a {
     column-gap: var(--hot-spacing-small);
     overflow: hidden;
     text-wrap: nowrap;
+    font-family: var(--hot-font-sans-variant);
+}
+
+ul.header__nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    font-family: var(--hot-font-sans-variant);
+    text-transform: uppercase;
+    border-left: 1px solid var(--hot-color-neutral-300);
+    height: var(--hot-spacing-medium);
+    margin: var(--hot-spacing-x-small) 0;
+    padding-left: calc(var(--hot-spacing-large)/2);
+}
+
+ul.header__nav li {
+    display: flex;
+    align-items: center;
 }
 
 .header__title-text {
-    font-size: var(--hot-font-size-medium);
+    font-size: var(--hot-font-size-x-large);
     color: var(--hot-color-gray-950);
+    margin: 0;
     text-overflow: ellipsis;
     overflow: hidden;
 }
@@ -345,6 +380,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     height: var(--hot-font-size-3x-large);
 }
 
+.error-box {
+    padding: var(--hot-spacing-medium) 0;
+}
+
+.error {
+    color: var(--hot-color-red-950);
+}
+
 /* Messages */
 
 .message {
@@ -514,6 +557,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 /* Mobile */
 @media (max-width: 790px) {
 
+    .header hotosm-tool-menu {
+        display: none;
+    }
+
+
     body, .app {
         overflow-x: hidden;
     }
@@ -544,14 +592,12 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
         height: 100vh;
     }
 
-    .header__rest .newFile sl-button::part(base),
-    .header__rest .saveFile sl-button::part(base) {
+    .header__rest sl-button::part(base) {
         width: 40px;
         padding-inline-start: 0;
     }
 
-    .header__rest .newFile sl-button::part(label),
-    .header__rest .saveFile sl-button::part(label) {
+    .header__rest sl-button::part(label) {
         display: none;
     }
 
