@@ -15,7 +15,6 @@ export default function SaveDialog({
   open, setOpen, data, dataFiles
 }) {
 
-  console.log(data);
   const navigate = useNavigate();
   const { config } = useConfigContext();
   const intl = useIntl();
