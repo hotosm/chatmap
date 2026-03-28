@@ -73,7 +73,7 @@ the Live feature.
 |✅| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
 |✅| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |✅| [User profile](https://github.com/hotosm/chatmap/issues/58)
-|⚙️| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64)
+|✅| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64) - Thanks [Abraham](https://github.com/categulario)!
 |⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Form for user content licensing |
 | | [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
