@@ -31,7 +31,7 @@ export default function Header({
 
   return (
     <>
-      <title>{title || "HOT ChatMap - Create maps with WhatsApp, Telegram or Signal"}</title>
+      <title>{`HOT ChatMap - ${title || "Create maps with WhatsApp, Telegram or Signal"}`}</title>
       <header className="header">
         {/* Logo */}
         <div className="header__title">
