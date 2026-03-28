@@ -56,7 +56,7 @@ function MapView() {
   return (
     <>
       <div className="app">
-        <Header title={mapData.name || "Untitled"}>
+        <Header title={mapData.name} pageTitle={mapData.name}>
           {Object.keys(tags).length > 0 &&
             <TagsOptions
               onSelectTag={selectTagHandler}

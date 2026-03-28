@@ -17,6 +17,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 export default function Header({
   title,
+  pageTitle,
   children
 }) {
   const { config } = useConfigContext();
@@ -31,7 +32,7 @@ export default function Header({
 
   return (
     <>
-      <title>{`HOT ChatMap - ${title || "Create maps with WhatsApp, Telegram or Signal"}`}</title>
+      <title>{`HOT ChatMap - ${pageTitle || "Create maps with WhatsApp, Telegram or Signal"}`}</title>
       <header className="header">
         {/* Logo */}
         <div className="header__title">

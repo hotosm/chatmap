@@ -67,7 +67,7 @@ export default function MapList() {
   return (
     <>
       <div className="app">
-        <Header title="My Maps" />
+        <Header pageTitle="My Maps" />
 
         <div className="mapscontent">
           <div className="mapscontent__header">
