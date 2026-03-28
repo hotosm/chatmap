@@ -88,6 +88,7 @@ function App() {
     <div className="app">
 
         <Header
+          title="Live Map"
           handleSettingsClick={handleSettingsClick}
           showLogoutIcon={true}
           handleLogoutClick={handleLogoutClick}
