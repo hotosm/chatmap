@@ -317,6 +317,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .msgDatetime {
     color: var(--hot-color-neutral-300);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
 }
 
 .maplibregl-popup-close-button {
@@ -326,9 +330,18 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     border-radius: var(--hot-border-radius-medium);
 }
 
+.popup {
+    border-radius: 20px;
+
+}
+.popup img,
+.popup video {
+    max-height: 60vh;
+    object-fit: cover;
+}
 .popup .maplibregl-popup-content {
-    box-shadow: var(--hot-shadow-small);
-    border-radius: var(--hot-border-radius-large);
+    box-shadow: 0 0 10px rgba(0,0,0,.2);
+    border-radius: 20px;
 }
 
 /* Error boundary */
@@ -428,6 +441,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .message.removed .removeIcon {
     color: var(--hot-color-primary-400);
+    margin-right: 10px;
 }
 
 .removeIcon::part(base) {
