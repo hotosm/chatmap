@@ -42,8 +42,8 @@ class FeatureCollection(BaseModel):
     owner: bool
     name: str
     type: Literal["FeatureCollection"]
+    centroid: str = ""
     features: List[Feature] = []
-
 
 class SaveMapFeatureProperties(BaseModel):
     """
