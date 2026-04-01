@@ -152,7 +152,7 @@ async def list_maps(
     user: CurrentUserOptional,
     db: Session = Depends(get_db_session),
 ):
-    return list_maps_result(user.id, db)
+    return list_maps_result(user.id if user else None, db)
 
 # Function for listing maps
 def list_maps_result(
