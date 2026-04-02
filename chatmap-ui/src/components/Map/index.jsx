@@ -104,7 +104,14 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
         map.current.on("click", "pois-clickable",  (e) => {
           const feature = {...e.features[0]};
           feature.geometry = e.features[0].geometry;
-          setActivePopupFeature(feature);
+          setActivePopupFeature({
+            geometry: feature.geometry,
+            properties: {
+              ...feature.properties,
+              // Fix issue with time conversion
+              time: new Date(feature.properties.time.replaceAll('"',''))
+            }
+          });
         });
 
         map.current.on("click", (e) => {

@@ -14,7 +14,7 @@
     "@shoelace-style/shoelace": "^2.20.1",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
-    "maplibre-gl": "^4.3.2",
+    "maplibre-gl": "^5.21.1",
     "moment": "^2.30.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

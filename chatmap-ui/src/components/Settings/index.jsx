@@ -30,10 +30,6 @@ function Settings({
         })
     }
 
-    // useEffect(() => {
-    //     console.log(settings)
-    // }, [settings]);
-
     return (
         <div className="settings">
             <sl-icon-button
