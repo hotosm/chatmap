@@ -63,7 +63,6 @@ function useContentMerger({ files, withPhotos, withVideos, withAudios, withText 
         const geoJSON = chatmap.pairContentAndLocations(searchLocation, {
           withPhotos, withVideos, withAudios, withText,
         });
-
         features = features.concat(geoJSON.features);
 
         for (let source of localSources) {

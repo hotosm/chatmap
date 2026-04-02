@@ -89,22 +89,6 @@ function App() {
     }
   }, [data.hasChanged]);
 
-  // The user wants to upload a new file, clear everything
-  // (files, map data, errors)
-  const handleNewUploadClick = () => {
-    if (data.hasChanged === true) {
-      if (!window.confirm("Are you sure?")) {
-        return;
-      }
-    }
-    resetFileManager();
-    resetMerger();
-    mapDataDispatch({
-      type: 'reset'
-    })
-    window.removeEventListener('beforeunload', confirmPageLeave);
-  }
-
   function handleSaveButtonClick() {
     setSaveDialogOpen(true);
   }
@@ -156,7 +140,6 @@ function App() {
         <>
           <Map
             dataFiles={dataFiles}
-            data={data}
             showMessageOptions={true}
           /></>
         }

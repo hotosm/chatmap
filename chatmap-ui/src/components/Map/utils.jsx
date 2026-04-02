@@ -5,11 +5,15 @@ import { FormattedMessage } from "react-intl";
 
 /**
  *
- * @param {string} time An ISO datetime
+ * @param {string} datetime An ISO datetime
  * @returns {string} A formatted and padded datetime, ex: 02:15:22
  */
-export const formatDate = (time) => {
-  const d = new Date(time);
+export const formatDate = (datetime) => {
+  const d = new Date(datetime);
+
+  if (isNaN(d.getTime())) {
+    return ""; // Something went wrong with datetime parsing
+  }
 
   return new Intl.DateTimeFormat(undefined, {
     year: "2-digit",

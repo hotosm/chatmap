@@ -35,6 +35,7 @@ from settings import (
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
 )
 from sqlalchemy import func, select
+from geoalchemy2.shape import to_shape
 from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
 
 # Logs
@@ -137,30 +138,71 @@ async def logout(user: CurrentUser) -> Dict[str, str]:
         return {'status': "logged out"}
 
 
-@api_router.get("/map")
-async def list_maps(
-    user: CurrentUser,
+# List user maps endpoint
+@api_router.get("/user/{user_id}/map")
+async def list_user_maps(
+    user_id: str,
     db: Session = Depends(get_db_session),
 ):
+    return list_maps_result(user_id, db)
+
+# List maps endpoint
+@api_router.get("/map")
+async def list_maps(
+    user: CurrentUserOptional,
+    db: Session = Depends(get_db_session),
+):
+    return list_maps_result(user.id if user else None, db)
+
+# Function for listing maps
+def list_maps_result(
+    userId: str,
+    db: Session,
+):
+    """
+    List maps
+
+    Args:
+        user (CurrentUserOptional): Authenticated user (optional)
+        db (Session): Database session.
+
+    Returns:
+        List[Dict[str, str]]: List of maps
+    """
     subq = (
         select(func.count(Point.id).label("count"), Point.map_id)
             .group_by(Point.map_id)
             .subquery()
     )
+    if userId:
+        map_filter = Map.owner_id == userId
+    else:
+        map_filter = Map.sharing == SharePermission.PUBLIC
     maps = db.execute(
         select(Map, subq.c.count)
             .join_from(Map, subq)
-            .where(Map.owner_id == user.id)
+            .where(map_filter)
             .order_by(Map.created_at.desc())
     )
 
-    return [{
-        "id":  map.id,
-        "name": map.name,
-        "updated_at": map.updated_at,
-        "sharing": map.sharing,
-        "count": count,
-    } for map, count in maps]
+    results = []
+    for map_obj, count in maps:
+        centroid = map_obj.centroid
+        if centroid:
+            geom = to_shape(centroid)
+            centroid_coords = [geom.y, geom.x]
+        else:
+            centroid_coords = None
+
+        results.append({
+            "id": map_obj.id,
+            "name": map_obj.name,
+            "updated_at": map_obj.updated_at,
+            "sharing": map_obj.sharing,
+            "count": count,
+            "centroid": centroid_coords
+    })
+    return results
 
 
 @api_router.post("/map/media")

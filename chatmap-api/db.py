@@ -12,12 +12,11 @@ import uuid
 import logging
 from enum import Enum
 from sqlalchemy import (
-    create_engine, Column, String, select, DateTime, text, ForeignKey, func,
+    create_engine, Column, String, select, DateTime, ForeignKey, func,
     Enum as SqlEnum, Boolean,
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from geoalchemy2 import Geometry
 from settings import CHATMAP_DB, CHATMAP_DB_USER, CHATMAP_DB_PASSWORD, CHATMAP_DB_PORT, CHATMAP_DB_HOST
@@ -69,6 +68,7 @@ class Map(Base):
     created_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
     updated_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
     is_live = Column(Boolean, default=False, nullable=False)
+    centroid = Column(Geometry(geometry_type="POINT", srid=4326), nullable=True, default=None)
 
     # Relationship to Point model
     points = relationship(
