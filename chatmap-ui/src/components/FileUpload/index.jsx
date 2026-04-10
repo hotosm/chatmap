@@ -36,7 +36,7 @@ const getFileFormat = (filename) => {
 // Upload a file to the app
 // It shows an upload area, reacts when files are uploaded.
 // It can manage all file formats ("chat", "zip" or "media")
-const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
+const FileUpload = ({ onFilesLoad, onDataFileLoad, onError, children}) => {
   const [files, setFiles] = useState();
   const [loadedFilesCount, setLoadedFilesCount] = useState(0);
   const [filesCount, setFilesCount] = useState(0);
@@ -133,19 +133,15 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
           types={fileTypes}
           name="file"
           classes="fileUploadMain"
-          children={
-            <sl-button size="large" className="featured">
-              <sl-icon slot="prefix" name="file-earmark-plus-fill"></sl-icon>
-              <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
-            </sl-button>
-          }
           dropMessageStyle={{
             backgroundColor: "var(--hot-color-neutral-0)",
             fontSize: "var(--hot-font-size-medium)",
             fontWeight: "bold"
           }}
           hoverTitle={hoverTitle}
-        />
+        >
+          { children }
+        </FileUploader>
       </div>
     </>
   );

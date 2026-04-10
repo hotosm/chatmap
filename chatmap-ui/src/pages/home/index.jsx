@@ -3,7 +3,7 @@ import { FormattedMessage } from "react-intl";
 
 import ConfirmDialog from "../../components/ConfirmDialog";
 import DownloadButton from '../../components/DownloadButton';
-import FileUploadSection from './fileUpload.section.jsx';
+import FileUpload from "../../components/FileUpload";
 import Footer from "../footer.jsx";
 import Header from "../header.jsx";
 import SaveButton from '../../components/SaveButton';
@@ -124,10 +124,19 @@ function App() {
           <div className="home__center">
             <div className="home__actions">
               <h1 className="home__title">ChatMap</h1>
-              <FileUploadSection
-                handleFiles={handleFiles}
-                handleDataFile={handleDataFile}
-              />
+              <p className="home__subtitle"><FormattedMessage id="app.home.subtitle" defaultMessage="Convert your chats into maps."/></p>
+              <FileUpload
+                onDataFileLoad={handleDataFile}
+                onFilesLoad={handleFiles}
+              >
+                <sl-button size="large" className="featured">
+                  <sl-icon slot="prefix" name="file-earmark-plus-fill"></sl-icon>
+                  <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
+                </sl-button>
+              </FileUpload>
+              <p className="home__note">
+                <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
+              </p>
             </div>
             <div className="home__image">
               <img src={logo} />
