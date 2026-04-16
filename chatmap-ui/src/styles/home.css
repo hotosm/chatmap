@@ -95,6 +95,25 @@ sl-switch[checked]::part(control) {
 sl-dialog::part(panel) {
     border-radius: var(--hot-border-radius-x-large);
     padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+    width: 100%;
+}
+
+sl-dialog.dialog__video::part(panel) {
+    width: 80vw;
+    overflow: hidden;
+}
+
+.dialog__video video {
+    width: 100%;
+}
+
+.dialog__video video::part(body) {
+    overflow: hidden;
+}
+
+.home__video_link {
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 sl-dialog::part(overlay) {
