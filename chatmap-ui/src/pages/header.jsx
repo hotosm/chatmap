@@ -9,7 +9,7 @@ import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.
 import SlMenu from '@shoelace-style/shoelace/dist/react/menu/index.js';
 import SlMenuItem from '@shoelace-style/shoelace/dist/react/menu-item/index.js';
 
-import logo from '../assets/hot-logo-gray.svg';
+import logo from '../assets/chatmap-logo-gray.svg';
 import { locales, localeNames } from '../lang';
 import { useAuth } from './../context/AuthContext';
 import { useConfigContext } from '../context/ConfigContext.jsx';
