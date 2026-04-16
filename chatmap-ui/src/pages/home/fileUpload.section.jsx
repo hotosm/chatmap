@@ -16,7 +16,7 @@ export default function FileUploadSection({
         onError={onError}
       />
       <p className="home__note">
-        <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
+        <FormattedMessage id="app.home.itWorks" defaultMessage="WhatsApp, Telegram or Signal" />
         {/* <sl-icon-button name="plus-circle-dotted" /> */}
       </p>
     </>
