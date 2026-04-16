@@ -1,5 +1,7 @@
 # ChatMap
 
+[![Deploy master to chatmap.hotosm.org](https://github.com/hotosm/chatmap/actions/workflows/build_deploy_master.yml/badge.svg)](https://github.com/hotosm/chatmap/actions/workflows/build_deploy_master.yml)
+
 ## Field mapping has never been easier!
 
 Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize locations, messages and media.
