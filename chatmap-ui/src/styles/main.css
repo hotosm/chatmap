@@ -495,6 +495,20 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     color: var(--hot-color-neutral-600)
 }
 
+.connectForm__warning {
+    padding-top: var(--hot-spacing-2x-small);
+    font-weight: bold;
+    display: flex;
+}
+
+.connectForm__warning span {
+    padding-left: var(--hot-spacing-x-small);
+}
+
+.connectForm__warning sl-icon {
+    color: var(--hot-color-danger-700);
+}
+
 .qrCode {
     border: 1px solid var(--hot-color-neutral-300);
 }

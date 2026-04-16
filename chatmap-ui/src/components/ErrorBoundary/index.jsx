@@ -22,7 +22,7 @@ export default class ErrorBoundary extends React.Component {
         const mailLink = `mailto:emilio.mariscal@hotosm.org?subject=ChatMap Error&body=Hi, something went wrong with chatmap: ${errorMsg}`
         return (
           <div className="errorMessage">
-            <header className="header">
+            <header className="header__error">
               <h1 className="title"><img src={logo} className="logo" alt="logo" /> ChatMap</h1>
             </header>
             <div>
