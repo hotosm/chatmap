@@ -1,3 +1,4 @@
+import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import { FormattedMessage } from 'react-intl';
 
 function QRCode({ img }) {
@@ -17,6 +18,15 @@ function QRCode({ img }) {
                             defaultMessage="Receive all your chat messages and convert them into a map"
                         />
                     </h3>
+                    <div className="connectForm__warning">
+                        <SlIcon name="exclamation-square-fill" />
+                        <span>
+                            <FormattedMessage
+                                id = "app.linked.linkYourDevice.warning"
+                                defaultMessage="We do not recommend to link a personal device"
+                            />
+                        </span>
+                    </div>
                     <ol>
                         <li>
                             <FormattedMessage
@@ -98,14 +108,6 @@ function QRCode({ img }) {
                     <img className="qrCode" src={img} alt="QR Code" />
                 </div>
             </div>
-            <hr />
-            <small>
-                 <FormattedMessage
-                    id = "app.linked.linkYourDevice.warning"
-                    defaultMessage="All your messages, including media, will be stored encrypted. Only
-                    locations and related content will be available for creating your map."
-                />
-            </small>
         </div>
     )
 }

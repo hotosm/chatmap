@@ -95,7 +95,6 @@ sl-switch[checked]::part(control) {
 sl-dialog::part(panel) {
     border-radius: var(--hot-border-radius-x-large);
     padding: var(--hot-spacing-small) var(--hot-spacing-medium);
-    width: 100%;
 }
 
 sl-dialog.dialog__video::part(panel) {
