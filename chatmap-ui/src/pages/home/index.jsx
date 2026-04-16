@@ -17,6 +17,7 @@ import useFileManager from "../../components/FileUpload/useFileManager.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
+import { useLanguage } from '../../context/LanguageContext';
 
 import "../../styles/home.css";
 
@@ -31,6 +32,7 @@ function App() {
   const [withAudios, setWithAudios] = useState(true);
   const [withText, setWithText] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const { lang } = useLanguage();
 
   const { isAuthenticated } = useAuth();
   const { config } = useConfigContext();
@@ -167,7 +169,7 @@ function App() {
       ></SettingsDialog>
 
       <VideoDialog
-        url="https://cdn.hotosm.org/chatmap.hotosm.org/chatmap-tutorial-1.mp4"
+        url={`https://cdn.hotosm.org/chatmap.hotosm.org/${ lang === "es" ? "es-" : "" }chatmap-tutorial-1.mp4`}
         open={videoDialogOpen}
         setOpen={setVideoDialogOpen}
       />
