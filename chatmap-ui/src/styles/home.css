@@ -191,6 +191,10 @@ sl-button.featured::part(prefix) {
         margin-bottom: var(--hot-spacing-x-large);
     }
 
+    .home__video_link {
+        text-align: center;
+    }
+
 }
 
 /* Mobile */
