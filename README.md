@@ -76,6 +76,7 @@ the Live feature.
 |✅| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |✅| [User profile](https://github.com/hotosm/chatmap/issues/58)
 |✅| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64) - Thanks [Abraham](https://github.com/categulario)!
+|⚙️| [Update a saved map with new data](https://github.com/hotosm/chatmap/issues/60)
 |⚙️| [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Content filtering options |
 | | Tagger view |
