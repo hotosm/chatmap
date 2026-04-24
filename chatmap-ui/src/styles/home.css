@@ -102,6 +102,10 @@ sl-dialog.dialog__video::part(panel) {
     overflow: hidden;
 }
 
+sl-dialog::part(close-button__base) {
+    opacity: 0;
+}
+
 .dialog__video video {
     width: 100%;
 }

@@ -61,6 +61,7 @@ class Map(Base):
     __tablename__ = "maps"
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, default="Untitled")
+    description = Column(String, default="")
     sharing = Column(SqlEnum(SharePermission, name="sharing_permission"),
                      nullable=False,
                      default=SharePermission.PRIVATE)

@@ -15,7 +15,7 @@ from collections import defaultdict
 from aiobotocore.session import get_session
 from typing import Annotated
 from fastapi import (
-    FastAPI, HTTPException, Depends, Request, APIRouter, File, Form, UploadFile,
+    FastAPI, HTTPException, Depends, Request, APIRouter, File, UploadFile,
 )
 from fastapi.responses import StreamingResponse, FileResponse
 from typing import Dict
@@ -25,7 +25,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult,
-    SaveMediaResponse, PointTags
+    SaveMediaResponse, PointTags, UpdateMap
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -240,7 +240,7 @@ async def create_map(
     db: Session = Depends(get_db_session),
 ) -> SaveMapResult:
     with db.begin():
-        new_map = Map(owner_id=user.id, name=map_data.name)
+        new_map = Map(owner_id=user.id, name=map_data.name, description=map_data.description)
         db.add(new_map)
         db.flush()
 
@@ -331,6 +331,7 @@ def map_response(db, map_obj, owner):
         "id": map_obj.id,
         "sharing": map_obj.sharing.value,
         "name": map_obj.name,
+        "description": map_obj.description,
         "owner": owner, 
         "type": "FeatureCollection",
         "features": [
@@ -438,6 +439,39 @@ async def status(
         map_obj.sharing = sharing
         db.commit()
         return {"map_id": map_id, "sharing": map_obj.sharing.value}
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+# Update map
+@api_router.put("/map/{map_id}")
+async def status(
+    map_id: str,
+    map_data: UpdateMap,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+) -> Dict[str, str]:
+    """
+    Edit user's map title, description
+
+    Args:
+        map_id (str): Unique identifier of the map.
+        title (str): Map's title
+        description (str): Map's description
+        db (Session): Database session.
+
+    Returns:
+        Dict[str, str]: Updated map ID, title and descrition.
+    """
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and user and map_obj.owner_id == user.id:
+        map_obj.name = map_data.name
+        map_obj.description = map_data.description
+        db.commit()
+        return {"map_id": map_id, "name": map_obj.name, "description": map_obj.description}
     else:
         # User is not owner of the map
         raise HTTPException(
