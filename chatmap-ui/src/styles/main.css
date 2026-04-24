@@ -138,6 +138,7 @@ ul.header__nav li {
 
 .header__infoIcon {
     margin-top: 5px;
+    cursor: pointer;
 }
 
 .header hotosm-tool-menu {
