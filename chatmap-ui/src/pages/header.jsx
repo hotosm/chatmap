@@ -48,7 +48,7 @@ export default function Header({
               <NavLink
                 to="/maps"
                 style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "" })}
-              ><FormattedMessage id="app.navigation.maps" defaultMessage="My Maps" /></NavLink>
+              ><FormattedMessage id="app.navigation.mymaps" defaultMessage="My Maps" /></NavLink>
             </li>
           </ul>}
         </div>
