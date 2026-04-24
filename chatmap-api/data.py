@@ -9,7 +9,7 @@ import logging
 import httpx
 import base64
 import hashlib
-from db import add_points, get_db_session, Map
+from db import add_points, get_db_session
 from Crypto.Cipher import AES
 from typing import Dict, Sequence, Tuple
 from chatmap_py import parser as chatmap_parser
@@ -95,7 +95,7 @@ async def process_chat_entries(
         entries (Sequence[Tuple[str, Dict[str, bytes]]]): List of Redis stream entries,
             each entry is a tuple of (entry_id, fields).
     """
-    logger.debug(f'get_chatmap: session {user}')
+    logger.debug(f'process_chat_entries: session {user}')
     db = get_db_session()
 
     # Convert Redis entries to indexed list of dictionaries

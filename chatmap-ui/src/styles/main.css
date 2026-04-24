@@ -131,6 +131,13 @@ ul.header__nav li {
     margin: 0;
     text-overflow: ellipsis;
     overflow: hidden;
+    display: inline-flex;
+    flex-direction: row;
+    gap: var(--hot-spacing-small);
+}
+
+.header__infoIcon {
+    margin-top: 5px;
 }
 
 .header hotosm-tool-menu {
