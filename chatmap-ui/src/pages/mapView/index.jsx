@@ -16,6 +16,7 @@ import FileUpload from "../../components/FileUpload/index.jsx";
 import useFileManager from "../../components/FileUpload/useFileManager.js";
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
+import UpdateButton from "../../components/UpdateButton/index.jsx";
 
 function MapView() {
 
@@ -25,7 +26,9 @@ function MapView() {
   } = useAPI();
 
   // File management stuff
-  const [handleFiles, handleDataFile, resetFileManager, dataFiles, files] = useFileManager();
+  const [
+    handleFiles, handleDataFile, resetFileManager, dataFiles, files,
+  ] = useFileManager();
   const { data, tags, mapDataDispatch } = useMapDataContext();
   const [withPhotos, setWithPhotos] = useState(true);
   const [withVideos, setWithVideos] = useState(true);
@@ -89,10 +92,22 @@ function MapView() {
       type: 'add_tmp_features',
       payload: {
         ...newMapData,
-        features: newMapData.features.filter((f) => !alreadyExists[f.geometry.coordinates.join(':')]),
+        features: newMapData.features.filter((f) => {
+          return !alreadyExists[f.geometry.coordinates.join(':')];
+        }),
       },
     });
   }, [newMapData]);
+
+  function handleDiscard() {
+    mapDataDispatch({
+      type: 'add_tmp_features',
+      payload: {
+        ...newMapData,
+        features: [],
+      },
+    });
+  }
 
   // There's data for the map!
   const dataAvailable = data && data.features && data.features.length > 0;
@@ -127,12 +142,15 @@ function MapView() {
             </FileUpload>
 
             { hasNewData && <>
-              <SlButton size="small">
-                Guardar
-              </SlButton>
+              <UpdateButton
+                mapData={mapData}
+                data={data}
+                dataFiles={dataFiles}
+                onUpdate={() => fetchMapData(id)}
+              />
 
-              <SlButton size="small">
-                Descartar cambios
+              <SlButton size="small" onClick={handleDiscard}>
+                <FormattedMessage id="app.map.discard" defaultMessage="Discard" />
               </SlButton>
             </> }
           </>}

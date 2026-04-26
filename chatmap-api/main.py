@@ -25,7 +25,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult,
-    SaveMediaResponse, PointTags
+    SaveMediaResponse, PointTags, UpdateMapFeatureCollection, UpdateMapResult,
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -256,6 +256,36 @@ async def create_map(
         ) for feature in map_data.features])
 
     return SaveMapResult(id=new_map.id, name=new_map.name)
+
+
+@api_router.put("/map/{map_id}")
+async def update_map(
+    map_id: str,
+    map_data: UpdateMapFeatureCollection,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    map = db.get(Map, map_id)
+
+    if map is None or map.owner_id != user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found",
+        )
+
+    db.add_all([Point(
+        geom=f"POINT ({feature.geometry.coordinates[0]} {feature.geometry.coordinates[1]})",
+        message=feature.properties.message,
+        username=feature.properties.username,
+        time=feature.properties.time,
+        file=feature.properties.file,
+        tags=feature.properties.tags,
+        removed=feature.properties.removed or False,
+        map_id=map.id,
+    ) for feature in map_data.features])
+    db.commit()
+
+    return UpdateMapResult(id=map_id)
 
 
 @api_router.delete("/map/{map_id}")

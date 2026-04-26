@@ -50,6 +50,7 @@
     "app.linked.subtitle": "Live updated maps with linked devices",
     "app.loading": "Loading",
     "app.map.addNew": "Add new data",
+    "app.map.discard": "Discard",
     "app.map.locationOnly": "Location only",
     "app.map.save": "Save",
     "app.maps.confirmDelete.title": "Delete this map?",

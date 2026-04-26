@@ -50,6 +50,7 @@
     "app.linked.subtitle": "Mapas actualizados en tiempo real",
     "app.loading": "Cargando",
     "app.map.addNew": "Añadir puntos",
+    "app.map.discard": "Descartar",
     "app.map.locationOnly": "Sólo ubicación",
     "app.map.save": "Guardar",
     "app.maps.confirmDelete.title": "¿Borrar este mapa?",

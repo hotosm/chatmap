@@ -89,10 +89,6 @@ function App() {
     }
   }, [data.hasChanged]);
 
-  function handleSaveButtonClick() {
-    setSaveDialogOpen(true);
-  }
-
   // There's data for the map!
   const dataAvailable = files && data && data.features && data.features.length > 0;
 
@@ -105,7 +101,7 @@ function App() {
             <DownloadButton data={data} dataFiles={dataFiles} />
 
             { isAuthenticated &&  
-              <SaveButton onClick={handleSaveButtonClick} />
+              <SaveButton onClick={() => setSaveDialogOpen(true)} />
             }
 
             {Object.keys(tags).length > 0 &&

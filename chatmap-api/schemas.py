@@ -72,9 +72,20 @@ class SaveMapFeatureCollection(BaseModel):
     features: List[SaveMapFeature]
 
 
+class UpdateMapFeatureCollection(BaseModel):
+    type: Literal["FeatureCollection"]
+    name: str | None = None
+    description: str | None = None
+    features: List[SaveMapFeature]
+
+
 class SaveMapResult(BaseModel):
     id: str
     name: str
+
+
+class UpdateMapResult(BaseModel):
+    id: str
 
 
 class SaveMediaResponse(BaseModel):
