@@ -332,13 +332,13 @@ def map_response(db, map_obj, owner):
         "sharing": map_obj.sharing.value,
         "name": map_obj.name,
         "owner": owner, 
+        "is_live": map_obj.is_live,
         "type": "FeatureCollection",
         "features": [
             {
                 "type": "Feature",
                 "properties": {
                     "time": point.time,
-                    # "username_id": point.username,
                     "message": point.message,
                     "file": point.file,
                     "tags": point.tags or "",

@@ -40,6 +40,7 @@ class FeatureCollection(BaseModel):
     id: str
     sharing: str
     owner: bool
+    is_live: bool
     name: str
     type: Literal["FeatureCollection"]
     centroid: str = ""
