@@ -53,6 +53,7 @@
     "app.map.discard": "Discard",
     "app.map.locationOnly": "Location only",
     "app.map.save": "Save",
+    "app.map.update": "Update",
     "app.maps.confirmDelete.title": "Delete this map?",
     "app.maps.new": "Create new map",
     "app.maps.point_count": "{count} points",
