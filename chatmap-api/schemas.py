@@ -24,6 +24,7 @@ class FeatureProperties(BaseModel):
     removed: bool = False
     tags: str = ""
 
+
 class Feature(BaseModel):
     """
     Represents a GeoJSON feature.
@@ -46,6 +47,7 @@ class FeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]
     centroid: str = ""
     features: List[Feature] = []
+
 
 class SaveMapFeatureProperties(BaseModel):
     """
@@ -72,14 +74,14 @@ class SaveMapFeatureCollection(BaseModel):
     description: str | None = None
     features: List[SaveMapFeature]
 
+
 class UpdateMap(BaseModel):
     name: str
     description: str | None = None
 
-class UpdateMapFeatureCollection(BaseModel):
+
+class AddPointsFeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]
-    name: str | None = None
-    description: str | None = None
     features: List[SaveMapFeature]
 
 
@@ -88,12 +90,14 @@ class SaveMapResult(BaseModel):
     name: str
 
 
-class UpdateMapResult(BaseModel):
+class AddPointsResult(BaseModel):
     id: str
+    count: int
 
 
 class SaveMediaResponse(BaseModel):
     uri: str
+
 
 class PointTags(BaseModel):
     tags: str = ""

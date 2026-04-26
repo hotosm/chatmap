@@ -25,7 +25,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
-    SaveMediaResponse, PointTags, UpdateMapFeatureCollection, UpdateMapResult,
+    SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -259,9 +259,9 @@ async def create_map(
 
 
 @api_router.post("/map/{map_id}/points/")
-async def update_map(
+async def add_points_to_map(
     map_id: str,
-    map_data: UpdateMapFeatureCollection,
+    map_data: AddPointsFeatureCollection,
     user: CurrentUser,
     db: Session = Depends(get_db_session),
 ):
@@ -297,7 +297,7 @@ async def update_map(
     ) for feature in map_data.features])
     db.commit()
 
-    return UpdateMapResult(id=map_id)
+    return AddPointsResult(id=map_id, count=len(map_data.features))
 
 
 @api_router.delete("/map/{map_id}")
