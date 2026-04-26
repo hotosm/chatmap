@@ -32,13 +32,13 @@ function App() {
     fetchStatus
   } = useAPI();
 
-  // If connected, fetch map data every 10 sec
-  useInterval(() => { status === "connected" && fetchMapData() }, 10000);
-
-  // If connected, fetch map data
+  // If connected, fetch map data once
   useEffect(() => {
     status === "connected" && fetchMapData();
   }, [status]);
+
+  // If connected, keep fetching map data every 10 sec
+  useInterval(() => { status === "connected" && fetchMapData() }, 10000);
 
   // If not connected, fetch status every 1 sec
   useInterval(() => fetchStatus(), status !== "connected" ? 1000 : null);

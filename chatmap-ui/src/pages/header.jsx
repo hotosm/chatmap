@@ -18,7 +18,8 @@ import { useLanguage } from '../context/LanguageContext';
 export default function Header({
   title,
   pageTitle,
-  children
+  children,
+  onTitleClick
 }) {
   const { config } = useConfigContext();
   const { lang, setLang } = useLanguage();
@@ -39,13 +40,15 @@ export default function Header({
           <a href={`/`} className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
-          <h1 className="header__title-text">{title || "ChatMap"}</h1>
+          <h1 onClick={() => onTitleClick && onTitleClick()} className="header__title-text">{title || "ChatMap"}
+            { !isAuthenticated && title && <sl-icon className="header__infoIcon" name="info-circle"></sl-icon> }
+          </h1>
           { isAuthenticated && <ul className="header__nav">
             <li>
               <NavLink
                 to="/maps"
                 style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "" })}
-              ><FormattedMessage id="app.navigation.maps" defaultMessage="My Maps" /></NavLink>
+              ><FormattedMessage id="app.navigation.mymaps" defaultMessage="My Maps" /></NavLink>
             </li>
           </ul>}
         </div>

@@ -52,8 +52,8 @@ export default function UpdateButton({
         });
       }
 
-      const response = await fetch(`${config.API_URL}/map/${mapData.id}`, {
-        method: "PUT",
+      const response = await fetch(`${config.API_URL}/map/${mapData.id}/points/`, {
+        method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",

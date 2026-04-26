@@ -42,6 +42,7 @@ class FeatureCollection(BaseModel):
     owner: bool
     is_live: bool
     name: str
+    description: str | None = None
     type: Literal["FeatureCollection"]
     centroid: str = ""
     features: List[Feature] = []
@@ -71,6 +72,9 @@ class SaveMapFeatureCollection(BaseModel):
     description: str | None = None
     features: List[SaveMapFeature]
 
+class UpdateMap(BaseModel):
+    name: str
+    description: str | None = None
 
 class UpdateMapFeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]

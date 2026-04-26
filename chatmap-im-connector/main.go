@@ -329,10 +329,10 @@ func initClient(sessionID string) {
                     sessionMetaMu.Lock()
                     sessionMeta[sessionID].QRCode = evt.Code
                     sessionMetaMu.Unlock()
-                    log.Printf("QR code generated sucessfully")
+                    log.Printf("New QR code generated sucessfully")
                 } else if evt.Event == "success" {
                     userID := hash(client.Store.ID.User)
-                    // Logout existing sessions of the same user
+                    // Logout existing sessions for the same user
                     existingSessionId := getExistingSessionId(userID, sessionID)
                     if (existingSessionId != "") {
                         log.Printf("Logging out existing SessionId %s \n", existingSessionId)
@@ -344,6 +344,7 @@ func initClient(sessionID string) {
                     sessionMeta[sessionID].User = userID
                     sessionMeta[sessionID].SessionID = sessionID
                     log.Printf("Session %s CONNECTED (1) ClientID: %s\n", sessionID,  userID)
+                    sessionMeta[sessionID].QRCode = ""
                     sessionMetaMu.Unlock()
                     break
                 }
@@ -357,6 +358,7 @@ func initClient(sessionID string) {
         sessionMeta[sessionID].User = userID
         sessionMeta[sessionID].SessionID = sessionID
         log.Printf("Session %s CONNECTED (2) ClientID: %s\n", sessionID,  userID)
+        sessionMeta[sessionID].QRCode = ""
         sessionMetaMu.Unlock()
     }
 
@@ -830,10 +832,14 @@ func startAndQRHandler(w http.ResponseWriter, r *http.Request) {
     _, exists := clients[sessionID]
     clientsMu.RUnlock()
 
-    if !exists {
-        go initClient(sessionID)
+    if exists {
+        log.Printf("Session %s found, logging out ... \n", sessionID)
+        logout(sessionID)
     }
 
+    go initClient(sessionID)
+
+    log.Printf("New session %s waiting for QR code ... \n", sessionID)
     timeout := time.After(QRCodeExpiry)
     ticker := time.NewTicker(100 * time.Millisecond)
     defer ticker.Stop()
@@ -848,6 +854,7 @@ func startAndQRHandler(w http.ResponseWriter, r *http.Request) {
             meta, ok := sessionMeta[sessionID]
             sessionMetaMu.RUnlock()
             if ok && meta.QRCode != "" {
+                log.Printf("QR code available, returning image \n")
                 png, err := qrcode.Encode(meta.QRCode, qrcode.Medium, 256)
                 if err != nil {
                     http.Error(w, "QR encode error", http.StatusInternalServerError)

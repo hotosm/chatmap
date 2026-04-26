@@ -9,12 +9,14 @@ import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
+import { useAuth } from '../../context/AuthContext';
 
 import '../../styles/maps.css';
 
 export default function MapList() {
   const navigate = useNavigate();
   const { config } = useConfigContext();
+  const { isAuthenticated } = useAuth();
   const [mapList, setMapList] = useState([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmDialogData, setConfirmDialogData] = useState();
@@ -71,7 +73,10 @@ export default function MapList() {
         <div className="mapscontent">
           <div className="mapscontent__header">
             <div className="mapscontent__header-left">
-              <h1><FormattedMessage id="app.navigation.maps" defaultMessage="Maps" /></h1>
+              <h1>
+                {isAuthenticated ? <FormattedMessage id="app.navigation.mymaps" defaultMessage="My maps" /> :
+                <FormattedMessage id="app.navigation.maps" defaultMessage="Maps" /> }
+              </h1>
               <br />
               <h2><FormattedMessage id="app.maps.subtitle" defaultMessage="Create maps from chat conversations" /></h2>
             </div>
@@ -101,9 +106,10 @@ export default function MapList() {
                   <th>
                     <FormattedMessage id="app.maps.table.updated" defaultMessage="Updated" />
                   </th>
+                  { isAuthenticated ?
                   <th>
                     <FormattedMessage id="app.maps.table.actions" defaultMessage="Actions" />
-                  </th>
+                  </th> : ""}
                 </tr>
               </thead>
 
@@ -138,11 +144,13 @@ export default function MapList() {
                       } unit="second" updateIntervalInSeconds={1} />
                     </strong>
                   </td>
+                  { isAuthenticated ?
                   <td className="mapscontent__actions">
                     <SlButton outline loading={!!map.loading} onClick={() => handleDeleteRequest(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
                   </td>
+                  : ""}
                 </tr>)) }
               </tbody>
             </table>

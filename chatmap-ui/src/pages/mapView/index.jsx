@@ -8,6 +8,7 @@ import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import { useInterval } from '../../hooks/useInterval.js';
 import Header from "../header.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
+import { useAuth } from '../../context/AuthContext';
 import Map from "../../components/Map";
 import useAPI from '../../components/ChatMap/useApi.js'
 import TagsOptions from "../../components/TagsOptions/index.jsx";
@@ -17,8 +18,14 @@ import useFileManager from "../../components/FileUpload/useFileManager.js";
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import UpdateButton from "../../components/UpdateButton/index.jsx";
+import EditMapDialog from '../../components/EditMapDialog/index.jsx';
+import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
 
 function MapView() {
+
+  const [editMapDialogOpen, setEditMapDialogOpen] = useState(false);
+  const [infoMapDialogOpen, setInfoMapDialogOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const {
     fetchMapData,
@@ -46,6 +53,9 @@ function MapView() {
     _chatmapId: null,
     _sources: []
   });
+
+  const [mapName, setMapName] = useState(null);
+  const [mapDescription, setMapDescription] = useState(null);
 
   const { id } = useParams();
 
@@ -116,7 +126,11 @@ function MapView() {
   return (
     <>
       <div className="app">
-        <Header title={mapData.name} pageTitle={mapData.name}>
+        <Header
+          title={mapName || mapData.name}
+          pageTitle={mapName || mapData.name}
+          onTitleClick={() => isAuthenticated ? setEditMapDialogOpen(true) : setInfoMapDialogOpen(true)}
+        >
           {Object.keys(tags).length > 0 &&
             <TagsOptions
               onSelectTag={selectTagHandler}
@@ -157,11 +171,34 @@ function MapView() {
         </Header>
 
         {dataAvailable &&
-          <Map
-            showMessageOptions={mapData.owner}
-            dataFiles={dataFiles}
-            // onInteract={() => setFooterVisible(false)}
-          />
+          <>
+            <Map
+              showMessageOptions={mapData.owner}
+              dataFiles={dataFiles}
+            />
+            <EditMapDialog
+              mapData={{
+                ...mapData,
+                name: mapName || mapData.name,
+                description: mapDescription || mapData.description
+              }}
+              open={editMapDialogOpen}
+              setOpen={setEditMapDialogOpen}
+              onSuccess={(response) => {
+                setMapName(response.name);
+                setMapDescription(response.description);
+              }}
+            />
+            <InfoMapDialog
+              mapData={{
+                ...mapData,
+                name: mapName || mapData.name,
+                description: mapDescription || mapData.description
+              }}
+              open={infoMapDialogOpen}
+              setOpen={setInfoMapDialogOpen}
+            />
+          </>
         }
       </div>
 
