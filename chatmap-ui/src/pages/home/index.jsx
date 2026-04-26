@@ -8,6 +8,7 @@ import Footer from "../footer.jsx";
 import Header from "../header.jsx";
 import SaveButton from '../../components/SaveButton';
 import SaveDialog from "../../components/SaveDialog/index.jsx";
+import VideoDialog from "../../components/VideoDialog/index.jsx";
 import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import TagsOptions from "../../components/TagsOptions/index.jsx";
 import logo from "../../assets/chatmap-home.png";
@@ -16,6 +17,7 @@ import useFileManager from "../../components/FileUpload/useFileManager.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
 import { useMapDataContext } from "../../context/MapDataContext.jsx";
+import { useLanguage } from '../../context/LanguageContext';
 
 import "../../styles/home.css";
 
@@ -24,11 +26,13 @@ const Map = lazy(() => import("../../components/Map/index.jsx"));
 function App() {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [withPhotos, setWithPhotos] = useState(true);
   const [withVideos, setWithVideos] = useState(true);
   const [withAudios, setWithAudios] = useState(true);
   const [withText, setWithText] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const { lang } = useLanguage();
 
   const { isAuthenticated } = useAuth();
   const { config } = useConfigContext();
@@ -133,6 +137,9 @@ function App() {
               <p className="home__note">
                 <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
               </p>
+              <p className="home__video_link" onClick={() => setVideoDialogOpen(true)}>
+                <FormattedMessage id="app.howItWorks" defaultMessage="How it works?" />
+              </p>
             </div>
             <div className="home__image">
               <img src={logo} />
@@ -165,6 +172,12 @@ function App() {
         withAudios={withAudios} setWithAudios={setWithAudios}
         withText={withText} setWithText={setWithText}
       ></SettingsDialog>
+
+      <VideoDialog
+        url={`https://cdn.hotosm.org/chatmap.hotosm.org/${ lang === "es" ? "es-" : "" }chatmap-tutorial-1.mp4`}
+        open={videoDialogOpen}
+        setOpen={setVideoDialogOpen}
+      />
 
       <SaveDialog
         open={saveDialogOpen}

@@ -97,6 +97,24 @@ sl-dialog::part(panel) {
     padding: var(--hot-spacing-small) var(--hot-spacing-medium);
 }
 
+sl-dialog.dialog__video::part(panel) {
+    width: 80vw;
+    overflow: hidden;
+}
+
+.dialog__video video {
+    width: 100%;
+}
+
+.dialog__video video::part(body) {
+    overflow: hidden;
+}
+
+.home__video_link {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 sl-dialog::part(overlay) {
     background-color: rgba(0, 0, 0, 0.80);
 }
@@ -173,6 +191,10 @@ sl-button.featured::part(prefix) {
         margin-bottom: var(--hot-spacing-x-large);
     }
 
+    .home__video_link {
+        text-align: center;
+    }
+
 }
 
 /* Mobile */
@@ -227,6 +249,9 @@ sl-button.featured::part(prefix) {
         margin-bottom: var(--hot-spacing-x-large);
     }
 
+    .home__video_link {
+        text-align: center;
+    }
 
 }
 

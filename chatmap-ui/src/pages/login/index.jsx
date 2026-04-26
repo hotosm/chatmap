@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { useConfigContext } from '../../context/ConfigContext.jsx';
-import logo from '../../assets/hot-logo-text.svg';
+import logo from '../../assets/chatmap-logo-gray.svg';
 import '../../styles/login.css';
 import('@hotosm/hanko-auth');
 
