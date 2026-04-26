@@ -65,6 +65,7 @@ export default function UpdateButton({
 
       if (response.ok) {
         onUpdate();
+        setLoading(false);
       } else {
         throw new Error("Your map contains errors that prevent it from saving");
       }
