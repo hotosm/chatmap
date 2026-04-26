@@ -4,11 +4,10 @@ import { useNavigate, NavLink } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
-import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 
+import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
-
 import { useConfigContext } from "../../context/ConfigContext.jsx";
 
 import '../../styles/maps.css';

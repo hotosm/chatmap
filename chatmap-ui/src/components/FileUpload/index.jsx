@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import JSZip from "jszip";
 import { useIntl } from 'react-intl';
-import { FormattedMessage } from 'react-intl';
 
 // Accepted file types
 const fileTypes = ["zip"];
