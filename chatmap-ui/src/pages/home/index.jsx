@@ -175,11 +175,13 @@ function App() {
         withText={withText} setWithText={setWithText}
       ></SettingsDialog>
 
-      <VideoDialog
-        url={`https://cdn.hotosm.org/chatmap.hotosm.org/${ lang === "es" ? "es-" : "" }chatmap-tutorial-1.mp4`}
-        open={videoDialogOpen}
-        setOpen={setVideoDialogOpen}
-      />
+      { videoDialogOpen &&
+        <VideoDialog
+          url={`https://cdn.hotosm.org/chatmap.hotosm.org/${ lang === "es" ? "es-" : "" }chatmap-tutorial-1.mp4`}
+          open={videoDialogOpen}
+          setOpen={setVideoDialogOpen}
+        />
+      }
 
       <SaveDialog
         open={saveDialogOpen}
