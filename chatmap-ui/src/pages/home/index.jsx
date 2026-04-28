@@ -132,8 +132,15 @@ function App() {
                 handleFiles={handleFiles}
                 handleDataFile={handleDataFile}
               />
-              <p className="home__video_link" onClick={() => setVideoDialogOpen(true)}>
-                <FormattedMessage id="app.howItWorks" defaultMessage="How it works?" />
+              <p className="home__video_link">
+                <span
+                  onClick={() => setVideoDialogOpen(!videoDialogOpen)}
+                >
+                <FormattedMessage
+                  id="app.howItWorks"
+                  defaultMessage="How it works?"
+                />
+                </span>
               </p>
             </div>
             <div className="home__image">
