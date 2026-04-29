@@ -68,7 +68,7 @@ export default function MapList() {
   return (
     <>
       <div className="app">
-        <Header pageTitle="My Maps" />
+        <Header pageTitle={isAuthenticated ? "My Maps" : "Maps"} />
 
         <div className="mapscontent">
           <div className="mapscontent__header">

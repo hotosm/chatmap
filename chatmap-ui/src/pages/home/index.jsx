@@ -137,8 +137,15 @@ function App() {
               <p className="home__note">
                 <FormattedMessage id="app.home.itWorks" defaultMessage="It works with WhatsApp, Telegram or Signal" />
               </p>
-              <p className="home__video_link" onClick={() => setVideoDialogOpen(true)}>
-                <FormattedMessage id="app.howItWorks" defaultMessage="How it works?" />
+              <p className="home__video_link">
+                <span
+                  onClick={() => setVideoDialogOpen(!videoDialogOpen)}
+                >
+                <FormattedMessage
+                  id="app.howItWorks"
+                  defaultMessage="How it works?"
+                />
+                </span>
               </p>
             </div>
             <div className="home__image">
@@ -173,11 +180,13 @@ function App() {
         withText={withText} setWithText={setWithText}
       ></SettingsDialog>
 
-      <VideoDialog
-        url={`https://cdn.hotosm.org/chatmap.hotosm.org/${ lang === "es" ? "es-" : "" }chatmap-tutorial-1.mp4`}
-        open={videoDialogOpen}
-        setOpen={setVideoDialogOpen}
-      />
+      { videoDialogOpen &&
+        <VideoDialog
+          url={`https://cdn.hotosm.org/chatmap.hotosm.org/${ lang === "es" ? "es-" : "" }chatmap-tutorial-1.mp4`}
+          open={videoDialogOpen}
+          setOpen={setVideoDialogOpen}
+        />
+      }
 
       <SaveDialog
         open={saveDialogOpen}
