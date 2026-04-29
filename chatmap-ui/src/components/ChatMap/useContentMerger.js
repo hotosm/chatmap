@@ -13,7 +13,6 @@ import ChatMap from "../ChatMap/chatmap";
  * (empty for default) to each location.
  */
 function useContentMerger({ files, withPhotos, withVideos, withAudios, withText }) {
-
     // Hook's response: a GeoJSON object
     const [parsedChats, setParsedChats] = useState([]);
     const [geoJSON, setGeoJSON] = useState({

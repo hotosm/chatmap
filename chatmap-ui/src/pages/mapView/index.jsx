@@ -45,14 +45,6 @@ function MapView() {
   const [newMapData, resetMerger] = useContentMerger({
     files, withPhotos, withVideos, withAudios, withText,
   });
-  const [newData, setNewData] = useState({
-    type: "FeatureCollection",
-    features: [],
-    filterTag: null,
-    hasChanged: false,
-    _chatmapId: null,
-    _sources: []
-  });
 
   const [mapName, setMapName] = useState(null);
   const [mapDescription, setMapDescription] = useState(null);
@@ -84,8 +76,8 @@ function MapView() {
       history.replaceState(null, '', `/#map/${mapData.id}`);
     }
   }, [mapData]);
+
   useEffect(() => {
-    setNewData(newMapData);
     if (newMapData.features.length > 0) {
       setSettingsDialogOpen(true);
     }
@@ -205,8 +197,8 @@ function MapView() {
       <SettingsDialog
         open={settingsDialogOpen}
         setOpen={setSettingsDialogOpen}
-        numFeatures={newData.features.length}
-        sources={newData._sources}
+        numFeatures={newMapData.features.length}
+        sources={newMapData._sources}
         withPhotos={withPhotos} setWithPhotos={setWithPhotos}
         withVideos={withVideos} setWithVideos={setWithVideos}
         withAudios={withAudios} setWithAudios={setWithAudios}
