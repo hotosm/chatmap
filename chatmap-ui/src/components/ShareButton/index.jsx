@@ -11,18 +11,15 @@ function ShareButton({ sharing, id }) {
   const handleClick = async () => {
     await updateMapShare(id);
   };
-
+  const sharingStatus = mapShare.sharing || sharing;
   return (
     <sl-button
       variant="primary"
       size="small"
       onClick={handleClick}
     >
-      <FormattedMessage
-        id = "app.share"
-        defaultMessage={mapShare.sharing || sharing || "Share"}
-      />
-      <sl-icon name="link" slot="prefix"></sl-icon>
+      <FormattedMessage id={"app.maps.sharing." + sharingStatus} />
+      <sl-icon name={sharingStatus === "private" ? "lock" : "link"} slot="prefix"></sl-icon>
     </sl-button>
   );
 }

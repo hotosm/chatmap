@@ -17,7 +17,7 @@ from typing import Annotated
 from fastapi import (
     FastAPI, HTTPException, Depends, Request, APIRouter, File, UploadFile,
 )
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
 from typing import Dict
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
@@ -301,6 +301,72 @@ async def delete_map(
 
     return
 
+@api_router.get("/media_player/{media_url}", response_class=HTMLResponse)
+async def get_video_player(
+    media_url: str,
+    request: Request,
+):
+    """
+    Retrieve HTML for a video player
+
+    Args:
+        file (str): Media file URL
+        request (Request): FastAPI request object.
+
+    Returns:
+        HTML for a video player
+    """
+    html_response = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><title>Video</title></head>
+    <body>
+    """
+
+    if media_url.endswith("mp4"):
+        html_response += f"""
+        <video width="490" height="350" style="background-color: #111; border-radius: 4px" controls>
+        <source src="/v{API_VERSION}/media/{media_url}" type="video/mp4">
+        Your browser does not support the video tag.
+        </video>
+        """
+    elif (media_url.endswith("ogg") or
+        media_url.endswith("opus") or
+        media_url.endswith("mp3") or
+        media_url.endswith("m4a") or
+        media_url.endswith("wav")
+    ):
+        file_type = media_url[-4:] if media_url.endswith("opus") else media_url[-3:]
+        html_response += f"""
+        <audio width="490" height="68" style="background-color: #111; border-radius: 4px" controls>
+        <source src="/v{API_VERSION}/media/{media_url}" type="audio/{file_type}">
+        Your browser does not support the audio tag.
+        </audio>
+        """
+
+    html_response += """
+    </body>
+    </html>
+    """
+    return html_response
+
+# Retrieve HTML for embedded media (image/video/audio)
+def html_for_embedded_media(file):
+    if file:
+      file_url = file.replace("http:", "").replace("https:", "").replace("media", "media_player")
+      if file.endswith("jpg") or file.endswith("jpeg"):
+        return file
+      elif file.endswith("mp4"):
+        return f"<iframe width=\"495\" height=\"365\" src=\"{file_url}\" title=\"Video player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
+      elif (file.endswith("ogg") or
+        file.endswith("opus") or
+        file.endswith("mp3") or
+        file.endswith("m4a") or
+        file.endswith("wav")
+      ):
+        return f"<iframe width=\"495\" height=\"65\" src=\"{file_url}\" title=\"Audio player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
+    else:
+      return None
 
 def map_response(db, map_obj, owner):
 
@@ -342,6 +408,7 @@ def map_response(db, map_obj, owner):
                     # "username_id": point.username,
                     "message": point.message,
                     "file": point.file,
+                    "file_embedded": html_for_embedded_media(point.file),
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
@@ -355,7 +422,6 @@ def map_response(db, map_obj, owner):
             for point in points
         ]
     }
-
 
 @api_router.get("/map/new", response_model=FeatureCollection)
 async def get_map(
