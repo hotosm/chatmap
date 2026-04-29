@@ -21,6 +21,7 @@ class FeatureProperties(BaseModel):
     # username_id: str
     message: str | None = None
     file: str | None
+    file_embedded: str | None
     removed: bool = False
     tags: str = ""
 
