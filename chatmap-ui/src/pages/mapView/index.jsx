@@ -20,9 +20,9 @@ import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import UpdateButton from "../../components/UpdateButton/index.jsx";
 import EditMapDialog from '../../components/EditMapDialog/index.jsx';
 import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
+import Progress from "../../components/Progress/index.jsx";
 
 function MapView() {
-
   const [editMapDialogOpen, setEditMapDialogOpen] = useState(false);
   const [infoMapDialogOpen, setInfoMapDialogOpen] = useState(false);
   const { isAuthenticated } = useAuth();
@@ -45,6 +45,8 @@ function MapView() {
   const newMapData = useContentMerger({
     files, withPhotos, withVideos, withAudios, withText,
   });
+  const [uploaded, setUploaded] = useState(0);
+  const [beingSaved, setBeingSaved] = useState(false);
 
   const [mapName, setMapName] = useState(null);
   const [mapDescription, setMapDescription] = useState(null);
@@ -158,6 +160,9 @@ function MapView() {
                 data={data}
                 dataFiles={dataFiles}
                 onUpdate={handleFinishUpdate}
+                setUploaded={setUploaded}
+                loading={beingSaved}
+                setLoading={setBeingSaved}
               />
 
               <SlButton size="small" onClick={handleDiscard}>
@@ -209,6 +214,15 @@ function MapView() {
         withAudios={withAudios} setWithAudios={setWithAudios}
         withText={withText} setWithText={setWithText}
       ></SettingsDialog>
+
+      <Progress
+        open={beingSaved}
+        setOpen={setBeingSaved}
+        left={uploaded}
+        total={Object.keys(dataFiles || {}).length}
+      >
+        <FormattedMessage id="app.save.uploading" defaultMessage="Uploading media..." />
+      </Progress>
     </>
   );
 }

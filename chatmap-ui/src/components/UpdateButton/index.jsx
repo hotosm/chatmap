@@ -2,8 +2,6 @@
  * This is the save button in the home screen that only triggers a dialog that
  * actually does the saving
  */
-import { useState } from 'react';
-
 import { FormattedMessage } from 'react-intl';
 
 import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
@@ -12,9 +10,8 @@ import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 import { useConfigContext } from '../../context/ConfigContext';
 
 export default function UpdateButton({
-  mapData, data, dataFiles, onUpdate,
+  mapData, data, dataFiles, onUpdate, setUploaded, loading, setLoading,
 }) {
-  const [loading, setLoading] = useState(false);
   const { config } = useConfigContext();
 
   async function handleClick() {
@@ -29,6 +26,7 @@ export default function UpdateButton({
       // This has to happen before setLoading(true) because that call makes the
       // for disapear from the DOM, this returning an empty object.
       setLoading(true);
+      setUploaded(0);
 
       for (let [filename, blob] of allFiles) {
         const formData = new FormData();
@@ -50,6 +48,8 @@ export default function UpdateButton({
             feature.properties.file = newFilename;
           }
         });
+
+        setUploaded((prev) => prev + 1);
       }
 
       const response = await fetch(`${config.API_URL}/map/${mapData.id}/points/`, {
