@@ -25,8 +25,6 @@ function useContentMerger({ files, withPhotos, withVideos, withAudios, withText 
     // with a GeoJSON response and messages
     useEffect(() => {
         async function parseData() {
-            if (!files) return;
-
             // Parse each file and concatate the results
             // This way, multiple .zip files with multiple chats
             // can be imported.
@@ -80,17 +78,7 @@ function useContentMerger({ files, withPhotos, withVideos, withAudios, withText 
       });
     }, [parsedChats, withPhotos, withVideos, withAudios, withText]);
 
-    // It resets data, initializing with an empty GeoJSON object.
-    const resetMerger = () => {
-        setGeoJSON({
-            type: "FeatureCollection",
-            features: [],
-            _sources: [],
-        });
-    }
-
-    return [geoJSON, resetMerger];
-
+    return geoJSON;
 };
 
 export default useContentMerger;

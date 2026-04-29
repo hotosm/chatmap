@@ -42,7 +42,7 @@ function MapView() {
   const [withAudios, setWithAudios] = useState(true);
   const [withText, setWithText] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState();
-  const [newMapData, resetMerger] = useContentMerger({
+  const newMapData = useContentMerger({
     files, withPhotos, withVideos, withAudios, withText,
   });
 
