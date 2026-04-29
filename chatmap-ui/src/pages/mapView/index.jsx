@@ -111,6 +111,11 @@ function MapView() {
     });
   }
 
+  function handleFinishUpdate() {
+    resetFileManager();
+    fetchMapData(id);
+  }
+
   // There's data for the map!
   const dataAvailable = data && data.features && data.features.length > 0;
   const hasNewData = data && data.features.filter((f) => f._temporary).length > 0;
@@ -152,7 +157,7 @@ function MapView() {
                 mapData={mapData}
                 data={data}
                 dataFiles={dataFiles}
-                onUpdate={() => fetchMapData(id)}
+                onUpdate={handleFinishUpdate}
               />
 
               <SlButton size="small" onClick={handleDiscard}>
