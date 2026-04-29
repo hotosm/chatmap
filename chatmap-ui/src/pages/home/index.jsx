@@ -48,7 +48,7 @@ function App() {
   // Content Merger: Handle chat content
   // - mapData: ready to use GeoJSON data created from chats
   // - resetMerger: clean everthing to upload a new file
-  const [mapData, resetMerger] = useContentMerger({
+  const mapData = useContentMerger({
     files, withPhotos, withVideos, withAudios, withText,
   });
 
