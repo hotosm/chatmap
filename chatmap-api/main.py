@@ -326,7 +326,7 @@ async def get_video_player(
     if media_url.endswith("mp4"):
         html_response += f"""
         <video width="490" height="350" style="background-color: #111; border-radius: 4px" controls>
-        <source src="/v{API_VERSION}/media/{media_url}" type="video/mp4">
+        <source src="{API_URL}/v{API_VERSION}/media?filename={media_url}" type="video/mp4">
         Your browser does not support the video tag.
         </video>
         """
@@ -339,7 +339,7 @@ async def get_video_player(
         file_type = media_url[-4:] if media_url.endswith("opus") else media_url[-3:]
         html_response += f"""
         <audio width="490" height="68" style="background-color: #111; border-radius: 4px" controls>
-        <source src="/v{API_VERSION}/media/{media_url}" type="audio/{file_type}">
+        <source src="{API_URL}/v{API_VERSION}/media?filename={media_url}" type="audio/{file_type}">
         Your browser does not support the audio tag.
         </audio>
         """
@@ -353,7 +353,7 @@ async def get_video_player(
 # Retrieve HTML for embedded media (image/video/audio)
 def html_for_embedded_media(file):
     if file:
-      file_url = file.replace("http:", "").replace("https:", "").replace("media", "media_player")
+      file_url = f"{API_URL}/v{API_VERSION}/media_player/{file}"
       if file.endswith("jpg") or file.endswith("jpeg"):
         return file
       elif file.endswith("mp4"):
@@ -641,7 +641,6 @@ async def get_media(
                 status_code=404,
                 detail="Media not found",
             )
-
 
 # Media File Endpoint
 @api_router.get("/media")
