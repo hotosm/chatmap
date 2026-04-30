@@ -34,6 +34,18 @@ const reducer = (state, action) => {
     case 'reset':
       return { ...initialState };
 
+    case 'add_tmp_features':
+      const newState = { ...state, ...{ hasChanged: true } };
+      newState.features = Array.prototype.concat.call(state.features.filter((f) => {
+        return !f._temporary;
+      }), action.payload.features.map((f) => {
+        return {
+          ...f,
+          _temporary: true,
+        };
+      }));
+      return newState;
+
     default:
       throw new Error();
   }

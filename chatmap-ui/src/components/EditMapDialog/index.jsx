@@ -14,7 +14,6 @@ export default function EditMapDialog({
   open, setOpen, mapData, onSuccess
 }) {
 
-  const navigate = useNavigate();
   const { config } = useConfigContext();
   const intl = useIntl();
 

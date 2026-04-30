@@ -18,7 +18,6 @@ function stripPath(filename) {
  *  dataFiles: data files (ex: images, videos) as a dictionary
  */
 function useFileManager() {
-
     const [dataFiles, setDataFiles] = useState();
     const [files, setFiles] = useState(null);
 

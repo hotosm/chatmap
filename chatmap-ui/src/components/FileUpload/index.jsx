@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import JSZip from "jszip";
 import { useIntl } from 'react-intl';
-import { FormattedMessage } from 'react-intl';
 
 // Accepted file types
 const fileTypes = ["zip"];
@@ -36,72 +35,49 @@ const getFileFormat = (filename) => {
 // Upload a file to the app
 // It shows an upload area, reacts when files are uploaded.
 // It can manage all file formats ("chat", "zip" or "media")
-const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
-  const [files, setFiles] = useState();
+const FileUpload = ({ onFilesLoad, onDataFileLoad, children}) => {
   const [loadedFilesCount, setLoadedFilesCount] = useState(0);
   const [filesCount, setFilesCount] = useState(0);
-  const [zipFilesCount, setZipFilesCount] = useState(0);
-  const [loadedZipFilesCount, setLoadedZipFilesCount] = useState(0);
   const intl = useIntl();
 
   const handleChange = (loadedFiles) => {
-    setZipFilesCount(loadedFiles.length);
-    for (let i = 0; i < loadedFiles.length; i++) {
+    setFilesCount(loadedFiles.length);
+    setLoadedFilesCount(0);
 
-      // Get file object
-      const file = loadedFiles[i];
-      const fileFormat = getFileFormat(file.name);
+    Promise.all(Array.from(loadedFiles).map((file) => {
+      return new Promise((resolve, reject) => {
+        const fileFormat = getFileFormat(file.name);
 
-      // The chat was exported as a .zip file
-      if (fileFormat === "zip") {
-        // Un-compress file
-        new JSZip().loadAsync( file )
-        .then(function(zip) {
-            setFilesCount(prev => prev += Object.keys(zip.files).length);
+        // The chat was exported as a .zip file
+        if (fileFormat === "zip") {
+          // Un-compress file
+          new JSZip().loadAsync( file )
+          .then(function(zip) {
             Object.keys(zip.files).forEach(filename => {
               // Process each file, depending on the file format
               const fileFormat = getFileFormat(filename);
               // Chat files
               if (fileFormat === "chat") {
                 zip.files[filename].async("string").then(function (data) {
-                  setFiles(prevFiles => (
-                    {...prevFiles, ...{[file.name]: data}}
-                  ));
-                  // Keeps loaded file count
-                  setLoadedFilesCount(prev => prev+=1);
+                  setLoadedFilesCount((prev) => prev + 1);
+                  resolve({[file.name]: data});
                 });
-            // Media files (jpg, jpeg, mp4 and audio files)
-            } else if (fileFormat === "media") {
+              } else if (fileFormat === "media") {
+                // Media files (jpg, jpeg, mp4 and audio files)
                 zip.files[filename].async("arraybuffer").then(function (data) {
                   const buffer = new Uint8Array(data);
                   const blob = new Blob([buffer.buffer]);
                   onDataFileLoad(filename, blob)
-                  // Keeps loaded file count
-                  setLoadedFilesCount(prev => prev+=1);
                 });
-              } else {
-                // Keeps loaded file count
-                setLoadedFilesCount(prev => prev+=1);
               }
-            })
+            });
           });
-          setLoadedZipFilesCount(prev => prev+=1);
-      }
-    };
+        }
+      });
+    })).then((files) => {
+      onFilesLoad(files.reduce((acc, cur) => ({...acc, ...cur})));
+    });
   };
-
-  // All files are loaded into memory.
-  useEffect(() => {
-    if (filesCount > 0 && filesCount === loadedFilesCount &&
-        files && zipFilesCount === Object.keys(files).length
-    ) {
-      if (files) {
-        onFilesLoad(files);
-      } else {
-        onError && onError();
-      }
-    }
-  }, [files, filesCount, loadedFilesCount, loadedZipFilesCount, onFilesLoad]);
 
   const loading = filesCount != loadedFilesCount;
 
@@ -133,19 +109,15 @@ const FileUpload = ({ onFilesLoad, onDataFileLoad, onError}) => {
           types={fileTypes}
           name="file"
           classes="fileUploadMain"
-          children={
-            <sl-button size="large" className="featured">
-              <sl-icon slot="prefix" name="file-earmark-plus-fill"></sl-icon>
-              <FormattedMessage id="app.home.openChatExport" defaultMessage="Open your chat export" />
-            </sl-button>
-          }
           dropMessageStyle={{
             backgroundColor: "var(--hot-color-neutral-0)",
             fontSize: "var(--hot-font-size-medium)",
             fontWeight: "bold"
           }}
           hoverTitle={hoverTitle}
-        />
+        >
+          { children }
+        </FileUploader>
       </div>
     </>
   );
