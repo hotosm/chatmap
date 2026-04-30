@@ -356,7 +356,7 @@ def html_for_embedded_media(file):
       filename = file.split("=")[1]
       file_url = f"{API_URL}/v{API_VERSION}/media_player/{filename}"
       if file.endswith("jpg") or file.endswith("jpeg"):
-        return file
+        return f"<img src=\"{file}\" />"
       elif file.endswith("mp4"):
         return f"<iframe width=\"495\" height=\"365\" src=\"{file_url}\" title=\"Video player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
       elif (file.endswith("ogg") or
@@ -407,7 +407,7 @@ def map_response(db, map_obj, owner):
                 "properties": {
                     "time": point.time,
                     # "username_id": point.username,
-                    "message": point.message,
+                    "message": point.message or "",
                     "file": point.file,
                     "file_embedded": html_for_embedded_media(point.file),
                     "tags": point.tags or "",
