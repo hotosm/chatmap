@@ -367,7 +367,7 @@ def html_for_embedded_media(file):
       ):
         return f"<iframe width=\"495\" height=\"65\" src=\"{file_url}\" title=\"Audio player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
     else:
-      return None
+      return "Location only"
 
 def map_response(db, map_obj, owner):
 
