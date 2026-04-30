@@ -135,7 +135,9 @@ export default function MapList() {
                   <td>
                     <strong>
                       <FormattedMessage id={"app.maps.sharing." + map.sharing} />
-                    </strong> (<FormattedMessage id={"app.maps.sharing_explain." + map.sharing} />)
+                    </strong> {map.sharing === 'private' && '('}
+                    {map.sharing === 'private' && <FormattedMessage id={"app.maps.sharing_explain.private"} />}
+                    {map.sharing === 'private' && ')'}
                   </td>
                   <td>
                     <strong>
