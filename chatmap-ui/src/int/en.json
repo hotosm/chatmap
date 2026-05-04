@@ -21,6 +21,7 @@
     "app.home.saveConfirmDialog.title": "Wait",
     "app.home.saveDialog.continue": "Continue",
     "app.home.saveYourMap": "Save your map",
+    "app.home.settingsDialog.cancel": "Cancel",
     "app.home.settingsDialog.continue": "Continue",
     "app.home.settingsDialog.exporttype": "File is a {type} export",
     "app.home.settingsDialog.locations": "{num} location points found",

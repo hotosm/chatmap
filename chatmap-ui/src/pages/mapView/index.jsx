@@ -111,6 +111,7 @@ function MapView() {
         features: [],
       },
     });
+    setSettingsDialogOpen(false);
   }
 
   function handleFinishUpdate() {
@@ -209,6 +210,7 @@ function MapView() {
         setOpen={setSettingsDialogOpen}
         numFeatures={newMapData.features.length}
         sources={newMapData._sources}
+        onCancel={handleDiscard}
         withPhotos={withPhotos} setWithPhotos={setWithPhotos}
         withVideos={withVideos} setWithVideos={setWithVideos}
         withAudios={withAudios} setWithAudios={setWithAudios}
