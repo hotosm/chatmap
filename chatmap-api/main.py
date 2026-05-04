@@ -24,8 +24,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import (
-    FeatureCollection, SaveMapFeatureCollection, SaveMapResult,
-    SaveMediaResponse, PointTags, UpdateMap
+    FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
+    SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -258,6 +258,48 @@ async def create_map(
     return SaveMapResult(id=new_map.id, name=new_map.name)
 
 
+@api_router.post("/map/{map_id}/points/")
+async def add_points_to_map(
+    map_id: str,
+    map_data: AddPointsFeatureCollection,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+):
+    """
+    Add points to an existing map
+
+    Args:
+        map_id (str): Unique identifier of the map.
+        map_data (dict): FeatureCollection with the new points
+        user: Authenticated user
+        db (Session): Database session.
+
+    Returns:
+        Dict[str, str]: Updated map ID
+    """
+    map = db.get(Map, map_id)
+
+    if map is None or map.owner_id != user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found",
+        )
+
+    db.add_all([Point(
+        geom=f"POINT ({feature.geometry.coordinates[0]} {feature.geometry.coordinates[1]})",
+        message=feature.properties.message,
+        username=feature.properties.username,
+        time=feature.properties.time,
+        file=feature.properties.file,
+        tags=feature.properties.tags,
+        removed=feature.properties.removed or False,
+        map_id=map.id,
+    ) for feature in map_data.features])
+    db.commit()
+
+    return AddPointsResult(id=map_id, count=len(map_data.features))
+
+
 @api_router.delete("/map/{map_id}")
 async def delete_map(
     map_id: str,
@@ -400,13 +442,13 @@ def map_response(db, map_obj, owner):
         "name": map_obj.name,
         "description": map_obj.description,
         "owner": owner, 
+        "is_live": map_obj.is_live,
         "type": "FeatureCollection",
         "features": [
             {
                 "type": "Feature",
                 "properties": {
                     "time": point.time,
-                    # "username_id": point.username,
                     "message": point.message or "",
                     "file": point.file,
                     "file_embedded": html_for_embedded_media(point.file),
@@ -545,6 +587,7 @@ async def status(
             status_code=401,
             detail="Unauthorized."
         )
+
 
 @api_router.put("/point/{point_id}/remove/")
 async def remove_point(
