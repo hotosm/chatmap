@@ -12,7 +12,7 @@ import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import { useConfigContext } from "../../context/ConfigContext";
 
 export default function SaveDialog({
-  open, setOpen, data, dataFiles
+  open, setOpen, data, dataFiles,
 }) {
 
   const navigate = useNavigate();

@@ -4,7 +4,7 @@ import SlSwitch from "@shoelace-style/shoelace/dist/react/switch/index.js";
 import SlDialog from "@shoelace-style/shoelace/dist/react/dialog/index.js";
 
 export default function SettingsDialog({
-  open, setOpen, numFeatures, sources,
+  open, setOpen, numFeatures, sources, onCancel,
   withPhotos, setWithPhotos,
   withVideos, setWithVideos,
   withAudios, setWithAudios,
@@ -80,6 +80,12 @@ export default function SettingsDialog({
         </SlSwitch>
       </div>
 
+      { onCancel && <sl-button slot="footer" variant="default" onClick={onCancel}>
+        <FormattedMessage
+          id="app.home.settingsDialog.cancel"
+          defaultMessage="Cancel"
+        />
+      </sl-button> }
       <sl-button slot="footer" variant="primary" className="dialog__btn dark-btn" onClick={() => setOpen(false)}>
         <FormattedMessage
           id="app.home.settingsDialog.continue"
