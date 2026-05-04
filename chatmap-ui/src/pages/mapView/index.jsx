@@ -145,15 +145,17 @@ function MapView() {
             />
           </>}
           { !mapData.is_live && <>
+
+            { !hasNewData &&
             <FileUpload
               onDataFileLoad={handleDataFile}
               onFilesLoad={handleFiles}
             >
               <SlButton size="small">
                 <SlIcon name="file-earmark-plus-fill" slot="prefix" />
-                <FormattedMessage id="app.map.addNew" defaultMessage="Add new data" />
+                <FormattedMessage id="app.map.addNew" defaultMessage="Add" />
               </SlButton>
-            </FileUpload>
+            </FileUpload> }
 
             { hasNewData && <>
               <UpdateButton
@@ -165,10 +167,6 @@ function MapView() {
                 loading={beingSaved}
                 setLoading={setBeingSaved}
               />
-
-              <SlButton size="small" onClick={handleDiscard}>
-                <FormattedMessage id="app.map.discard" defaultMessage="Discard" />
-              </SlButton>
             </> }
           </>}
         </Header>

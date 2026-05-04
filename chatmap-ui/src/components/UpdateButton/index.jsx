@@ -84,7 +84,7 @@ export default function UpdateButton({
       onClick={handleClick}
     >
       <SlIcon slot="prefix" name="cloud-arrow-up-fill"></SlIcon>
-      <FormattedMessage id="app.map.update" defaultMessage="Update" />
+      <FormattedMessage id="app.map.save" defaultMessage="Save" />
     </SlButton>
   );
 }
