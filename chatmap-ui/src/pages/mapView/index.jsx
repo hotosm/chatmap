@@ -144,7 +144,7 @@ function MapView() {
               id={mapData.id}
             />
           </>}
-          { !mapData.is_live && <>
+          { dataAvailable && mapData.owner && !mapData.is_live && <>
 
             { !hasNewData &&
             <FileUpload
