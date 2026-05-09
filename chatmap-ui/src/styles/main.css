@@ -310,7 +310,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     margin-top: 52px;
     padding-top: var(--hot-spacing-medium);
     margin-right: var(--hot-spacing-x-small);
-    z-index: 0;
+    z-index: 0 !important;
 }
 
 .map-ctrl {
