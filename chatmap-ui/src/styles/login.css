@@ -70,3 +70,11 @@ hotosm-auth {
 .login__logo img {
     height: var(--hot-spacing-2x-large);
 }
+
+
+/* Mobile */
+@media (max-width: 790px) {
+    .map-view.no-auth hotosm-auth  {
+        display: none;
+    }
+}

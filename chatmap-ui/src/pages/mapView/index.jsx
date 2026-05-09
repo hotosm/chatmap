@@ -125,7 +125,7 @@ function MapView() {
 
   return (
     <>
-      <div className="app">
+      <div className={`app map-view ${!isAuthenticated ? "no-auth" : ""}`}>
         <Header
           title={mapName || mapData.name}
           pageTitle={mapName || mapData.name}
