@@ -22,3 +22,24 @@ export const osm = {
     }
   ]
 };
+
+export const esri = {
+  "version": 8,
+	"sources": {
+    "esri": {
+			"type": "raster",
+			"tiles": ["https://services.arcgisonline.com/ArcGis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png"],
+			"tileSize": 256,
+      "attribution": "&copy; ESRI",
+      "maxzoom": 19
+    }
+  },
+  "layers": [
+    {
+      "id": "esri",
+      "type": "raster",
+      "source": "esri" // This must match the source key above
+    }
+  ]
+};
+

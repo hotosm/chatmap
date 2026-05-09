@@ -6,6 +6,7 @@ import Popup from './popup';
 import extent from 'turf-extent';
 import { useMapDataContext } from '../../context/MapDataContext';
 import useAPI from '../../components/ChatMap/useApi.js'
+import { BackgroundControl } from  "./controls.jsx";
 
 /**
  *
@@ -40,10 +41,13 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
         minZoom: 2,
       });
 
-      map.current.on("load", () => {
+      map.current.on("load", async () => {
 
         // Center the map on the first feature
         map.current.setCenter(data.features[0].geometry.coordinates)
+
+        // Add background control
+        map.current.addControl(new BackgroundControl());
 
         // Add geojson data source
         map.current.addSource('locations', {

@@ -305,11 +305,38 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding: 0;
 }
 
+.maplibregl-ctrl-top-right  {
+    margin-top: 60px;
+    padding-top: var(--hot-spacing-medium);
+    margin-right: var(--hot-spacing-x-small);
+}
+
+.map-ctrl {
+    box-shadow: 0 0 5px color-mix(in srgb, var(--hot-color-neutral-1000) 50%, transparent);;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--hot-border-radius-large);
+    background-color: var(--hot-color-neutral-0);
+    border: 1px solid var(--hot-color-gray-50);
+    cursor: pointer;
+}
+
+.map-background-ctrl {
+    background-size: cover;
+}
+
+.map-background-ctrl-sat {
+    background-image: url("/assets/map-sat.png");
+}
+.map-background-ctrl-osm {
+    background-image: url("/assets/map-osm.png");
+}
+
 .userinfo {
     font-size: var(--hot-font-size-small);
     text-align: left;
     padding-left: var(--hot-spacing-medium);
-    margin-top:  var(--hot-spacing-small);
+    margin-top: var(--hot-spacing-small);
     display: flex;
     max-width: 85%;
 }
