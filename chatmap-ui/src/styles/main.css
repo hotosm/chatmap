@@ -97,6 +97,7 @@ a {
     display: flex;
     align-items: center;
     gap: var(--hot-spacing-large);
+    padding-left: var(--hot-spacing-small);;
 }
 
 .header__title {
