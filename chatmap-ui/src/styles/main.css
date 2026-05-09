@@ -307,13 +307,14 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 }
 
 .maplibregl-ctrl-top-right  {
-    margin-top: 60px;
+    margin-top: 52px;
     padding-top: var(--hot-spacing-medium);
     margin-right: var(--hot-spacing-x-small);
+    z-index: 0;
 }
 
 .map-ctrl {
-    box-shadow: 0 0 5px color-mix(in srgb, var(--hot-color-neutral-1000) 50%, transparent);;
+    box-shadow: 0 0 3px color-mix(in srgb, var(--hot-color-neutral-1000) 50%, transparent);;
     width: 48px;
     height: 48px;
     border-radius: var(--hot-border-radius-large);
@@ -376,7 +377,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     object-fit: cover;
 }
 .popup .maplibregl-popup-content {
-    box-shadow: 0 0 10px rgba(0,0,0,.2);
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
     border-radius: 20px;
 }
 
