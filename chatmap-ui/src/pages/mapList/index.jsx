@@ -103,9 +103,9 @@ export default function MapList() {
                   <th>
                     <FormattedMessage id="app.maps.table.permission" defaultMessage="Who can see" />
                   </th>
-                  <th>
+                  {/* <th>
                     <FormattedMessage id="app.maps.table.updated" defaultMessage="Updated" />
-                  </th>
+                  </th> */}
                   { isAuthenticated ?
                   <th>
                     <FormattedMessage id="app.maps.table.actions" defaultMessage="Actions" />
@@ -139,20 +139,28 @@ export default function MapList() {
                     {map.sharing === 'private' && <FormattedMessage id={"app.maps.sharing_explain.private"} />}
                     {map.sharing === 'private' && ')'}
                   </td>
-                  <td>
+                  {/* <td>
                     <strong>
                       <FormattedRelativeTime value={
                         ((new Date(map.updated_at)).getTime() - (new Date()).getTime()) / 1000
                       } unit="second" updateIntervalInSeconds={1} />
                     </strong>
-                  </td>
-                  { isAuthenticated ?
+                  </td> */}
+                  { isAuthenticated ? <>
                   <td className="mapscontent__actions">
                     <SlButton outline loading={!!map.loading} onClick={() => handleDeleteRequest(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
+                    { map.sharing === 'public' &&
+                    <SlButton
+                      outline 
+                      href={`https://umap.hotosm.org/en/map/?templateUrl=https://umap.hotosm.org/map/2685/download&dataUrl=${config.API_URL}/map/${map.id}`}
+                    >
+                      <SlIcon name="umap" slot="prefix" />
+                    </SlButton>
+                    }
                   </td>
-                  : ""}
+                  </> : ""}
                 </tr>)) }
               </tbody>
             </table>
