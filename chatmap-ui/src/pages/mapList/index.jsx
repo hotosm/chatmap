@@ -153,7 +153,8 @@ export default function MapList() {
                     </SlButton>
                     { map.sharing === 'public' &&
                     <SlButton
-                      outline 
+                      outline
+                      target="_blank"
                       href={`https://umap.hotosm.org/en/map/?templateUrl=https://umap.hotosm.org/map/2685/download&dataUrl=${config.API_URL}/map/${map.id}`}
                     >
                       <SlIcon name="umap" slot="prefix" />
