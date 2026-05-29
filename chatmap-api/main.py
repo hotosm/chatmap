@@ -27,7 +27,7 @@ from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
     SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
 )
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import Session
 from stream import stream_listener
 from settings import (
@@ -648,18 +648,27 @@ async def get_media(
     # first check if file is registered and accesible to the current user
     try:
         point = db.query(Point).filter(Point.file.like(f"%{filename}")).one()
-        map_obj = point.map
-
-        if map_obj.sharing != SharePermission.PUBLIC and (not user or map_obj.owner_id != user.id):
-            raise HTTPException(
-                status_code=404,
-                detail="Media not found",
-            )
     except NoResultFound:
         raise HTTPException(
             status_code=404,
             detail="Media not found",
         )
+    except MultipleResultsFound:
+        points = db.query(Point).filter(Point.file.like(f"%{filename}%")).all()
+        point = points[0] if points else None
+        if point:
+            map_obj = point.map
+
+            if map_obj.sharing != SharePermission.PUBLIC and (not user or map_obj.owner_id != user.id):
+                raise HTTPException(
+                    status_code=404,
+                    detail="Media not found",
+                )
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail="Media not found",
+            )
 
     session = get_session()
 
