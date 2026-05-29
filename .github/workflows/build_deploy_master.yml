@@ -146,7 +146,7 @@ jobs:
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull
-            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-api-migrate chatmap-go --force-recreate
+            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-nginx chatmap-api-migrate chatmap-go --force-recreate
             # Cleanup
             docker image prune -af
             echo "✅ Deployment complete"
