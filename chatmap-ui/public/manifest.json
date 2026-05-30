@@ -1,16 +1,31 @@
 {
   "short_name": "ChatMap",
-  "name": "Export and upload a chat to visualize locations, messages and media",
+  "name": "HOT ChatMap - Create maps with WhatsApp, Telegram or Signal",
   "icons": [
     {
-      "src": "fabicon-16x16.png",
+      "src": "favicon-16x16.png",
       "type": "image/png",
       "sizes": "16x16"
     },
     {
-      "src": "fabicon-32x32.png",
+      "src": "favicon-32x32.png",
       "type": "image/png",
       "sizes": "32x32"
+    },
+    {
+      "src": "favicon-180x180.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "favicon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "favicon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": ".",
