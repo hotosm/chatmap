@@ -381,6 +381,11 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     border-radius: 20px;
 }
 
+.map__options {
+    background-color: var(--hot-color-neutral-0);
+    padding: var(--hot-spacing-large)
+}
+
 /* Error boundary */
 
 .errorMessage {
@@ -536,6 +541,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding-top: var(--hot-spacing-2x-small);
     font-weight: bold;
     display: flex;
+    font-size: var(--hot-font-size-large);
 }
 
 .connectForm__warning span {

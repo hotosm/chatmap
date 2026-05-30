@@ -80,3 +80,9 @@ a.mapitem__name:link {
 .mapitem__name small {
     font-weight: bold;
 }
+
+.mapitem__live_label {
+    color: var(--hot-color-red-700);
+    font-size: var(--hot-font-size-x-small);
+    text-transform: uppercase;
+}

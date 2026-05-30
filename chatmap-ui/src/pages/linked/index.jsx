@@ -9,6 +9,7 @@ import QRCode from '../../components/QRCode';
 import { useInterval } from '../../hooks/useInterval.js';
 import Settings from '../../components/Settings';
 import ShareButton from '../../components/ShareButton';
+import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 
 const Map = lazy(() => import('../../components/Map'));
 
@@ -17,6 +18,8 @@ function App() {
   const intl = useIntl();
 
   const [showSettings, setShowSettings] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState();
   const navigate = useNavigate();
 
   // Get data from API
@@ -27,7 +30,7 @@ function App() {
     isLoading,
     error,
     fetchMapData,
-    logoutSession,
+    unlinkDevice,
     fetchQRCode,
     fetchStatus
   } = useAPI();
@@ -79,9 +82,9 @@ function App() {
     setShowSettings(false);
   }
 
-  const handleLogoutClick = async () => {
-    await logoutSession();
-    navigate("/", { replace: true });
+  async function handleUnlinkDevice(data) {
+    await unlinkDevice();
+    await fetchStatus();
   }
 
   return (
@@ -91,7 +94,6 @@ function App() {
           pageTitle="Live Map"
           handleSettingsClick={handleSettingsClick}
           showLogoutIcon={true}
-          handleLogoutClick={handleLogoutClick}
           subtitle={
             intl.formatMessage({
               id: "app.linked.subtitle",
@@ -111,6 +113,25 @@ function App() {
               id={mapData.id}
             />
           </>}
+
+          { status === "connected" &&
+          <sl-dropdown>
+            <sl-button size="large" variant="text" slot="trigger">
+              <sl-icon name="three-dots-vertical" slot="prefix" />
+            </sl-button>
+            <div className="map__options">
+                <h3>Live</h3>
+                <p>
+                  <FormattedMessage id="app.map.linkedMap" defaultMessage="This map is linked to a device" />.
+                </p>
+                <sl-button variant="danger" onClick={() => { setConfirmDialogData("unlink-device"); setConfirmDialogOpen(true);} }>
+                    <sl-icon name="dash-circle-fill" slot="prefix" />
+                    <FormattedMessage id="app.map.unlinkDevice" defaultMessage="Unlink device" />
+                </sl-button>
+            </div>
+          </sl-dropdown>
+          }
+
         </Header>
 
         {/* Loading message */}
@@ -184,6 +205,22 @@ function App() {
             handleCloseClick={handleSettingsCloseClick}
           />
         }
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        setOpen={setConfirmDialogOpen}
+        onConfirm={() => handleUnlinkDevice(confirmDialogData)}
+        data={confirmDialogData}
+        title={{id: "app.maps.areYouSure", defaultMessage: "Are you sure?"}}
+      >
+        { confirmDialogData === "unlink-device" &&
+        <FormattedMessage id="app.maps.unlinkActionInformation" defaultMessage="You will stop receiving data from the linked device." />
+        }
+        { confirmDialogData === "unlink-map" &&
+        <FormattedMessage id="app.maps.unlinkMapInformation" defaultMessage="This map will stop receiving data from the linked device." />
+        }
+      </ConfirmDialog>
+
     </div>
   );
 }

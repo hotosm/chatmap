@@ -917,13 +917,20 @@ func logout(sessionID string) {
     }
 
     clientsMu.Lock()
-    client, exists := clients[sessionID]
-    if exists {
+    client, clientExists := clients[sessionID]
+    if clientExists {
         client.Disconnect()
         client.Logout(ctx)
         delete(clients, sessionID)
     }
     clientsMu.Unlock()
+
+    sessionMetaMu.Lock()
+    sessionMeta, sessionExists := sessionMeta[sessionID]
+    if sessionExists {
+        sessionMeta.Connected = false
+    }
+    sessionMetaMu.Unlock()
 
 }
 

@@ -25,6 +25,11 @@ redis_host = os.getenv("REDIS_HOST", "localhost")
 redis_port = int(os.getenv("REDIS_PORT", 6379))
 redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
 
+# Cleanup all messages for an user
+async def clean_user_stream(user: str):
+    await redis_client.delete(f"{STREAM_KEY}:{user}")
+    logger.info(f'cleanup: all messages deleted for user {user}')
+
 # Cleanup old messages
 async def cleanup(user: str):
     """
