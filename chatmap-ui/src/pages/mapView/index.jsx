@@ -21,15 +21,26 @@ import UpdateButton from "../../components/UpdateButton/index.jsx";
 import EditMapDialog from '../../components/EditMapDialog/index.jsx';
 import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
 import Progress from "../../components/Progress/index.jsx";
+import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 
 function MapView() {
   const [editMapDialogOpen, setEditMapDialogOpen] = useState(false);
   const [infoMapDialogOpen, setInfoMapDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState();
   const { isAuthenticated } = useAuth();
 
   const {
     fetchMapData,
-    mapData
+    mapData,
+    unlinkMap,
+    unlinkDevice
+  } = useAPI();
+
+
+    const {
+    updateMapShare,
+    mapShare,
   } = useAPI();
 
   // File management stuff
@@ -119,6 +130,17 @@ function MapView() {
     fetchMapData(id);
   }
 
+  async function handleUnlinkDevice(data) {
+    if (data === "unlink-map") {
+      await unlinkMap(id);
+      fetchMapData(id)
+    } else if (data === "unlink-device") {
+      await unlinkDevice();
+      await unlinkMap(id);
+      fetchMapData(id)
+    }
+  }
+
   // There's data for the map!
   const dataAvailable = data && data.features && data.features.length > 0;
   const hasNewData = data && data.features.filter((f) => f._temporary).length > 0;
@@ -127,7 +149,7 @@ function MapView() {
     <>
       <div className={`app map-view ${!isAuthenticated ? "no-auth" : ""}`}>
         <Header
-          title={mapName || mapData.name}
+          title={`${mapName || mapData.name} ${mapData.is_live && "(live)"} `}
           pageTitle={mapName || mapData.name}
           onTitleClick={() => isAuthenticated ? setEditMapDialogOpen(true) : setInfoMapDialogOpen(true)}
         >
@@ -143,6 +165,28 @@ function MapView() {
               sharing={data.sharing}
               id={mapData.id}
             />
+          </>}
+          { mapData.is_live && <>
+              <sl-dropdown>
+                <SlButton size="large" variant="text" slot="trigger">
+                  <SlIcon name="three-dots-vertical" slot="prefix" />
+                </SlButton>
+                <div className="map__options">
+                    <h3>Live</h3>
+                    <p>
+                      <FormattedMessage id="app.map.linkedMap" defaultMessage="This map is linked to a device" />.
+                    </p>
+                    <SlButton variant="danger" onClick={() => { setConfirmDialogData("unlink-device"); setConfirmDialogOpen(true);} }>
+                        <SlIcon name="dash-circle-fill" slot="prefix" />
+                        <FormattedMessage id="app.map.unlinkDevice" defaultMessage="Unlink device" />
+                    </SlButton>
+                    <p><FormattedMessage id="app.map.unlinkOption2" defaultMessage="Or, if you want to start a new Live map" />:</p>
+                    <SlButton variant="default" onClick={() => { setConfirmDialogData("unlink-map"); setConfirmDialogOpen(true); }}>
+                        <SlIcon name="dash-circle-fill" slot="prefix" />
+                        <FormattedMessage id="app.map.unlinkThisMap" defaultMessage="Unlink this map" />
+                    </SlButton>
+                </div>
+              </sl-dropdown>
           </>}
           { dataAvailable && mapData.owner && !mapData.is_live && <>
 
@@ -223,6 +267,21 @@ function MapView() {
       >
         <FormattedMessage id="app.save.uploading" defaultMessage="Uploading media..." />
       </Progress>
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        setOpen={setConfirmDialogOpen}
+        onConfirm={() => handleUnlinkDevice(confirmDialogData)}
+        data={confirmDialogData}
+        title={{id: "app.maps.areYouSure", defaultMessage: "Are you sure?"}}
+      >
+        { confirmDialogData === "unlink-device" &&
+        <FormattedMessage id="app.maps.unlinkActionInformation" defaultMessage="You will stop receiving data from the linked device." />
+        }
+        { confirmDialogData === "unlink-map" &&
+        <FormattedMessage id="app.maps.unlinkMapInformation" defaultMessage="This map will stop receiving data from the linked device." />
+        }
+      </ConfirmDialog>
     </>
   );
 }

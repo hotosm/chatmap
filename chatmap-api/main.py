@@ -29,7 +29,7 @@ from schemas import (
 )
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import Session
-from stream import stream_listener
+from stream import stream_listener, clean_user_stream
 from settings import (
     DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS,
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
@@ -132,6 +132,7 @@ async def logout(user: CurrentUser) -> Dict[str, str]:
         Dict[str, str]: Confirmation of logout.
     """
     async with httpx.AsyncClient() as client:
+        await clean_user_stream(user.id)
         response = await client.get(f'{SERVER_URL}/logout?session={user.id}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to logout")
@@ -199,6 +200,7 @@ def list_maps_result(
             "name": map_obj.name,
             "updated_at": map_obj.updated_at,
             "sharing": map_obj.sharing,
+            "is_live": map_obj.is_live,
             "count": count,
             "centroid": centroid_coords
     })
@@ -548,6 +550,37 @@ async def status(
         map_obj.sharing = sharing
         db.commit()
         return {"map_id": map_id, "sharing": map_obj.sharing.value}
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+# Unlink a live map
+@api_router.put("/map/{map_id}/unlink/")
+async def status(
+    map_id: str,
+    user: CurrentUser,
+    db: Session = Depends(get_db_session),
+) -> Dict[str, bool]:
+    """
+    Toggle is_live property for the map to stop receiving data from a linked device
+
+    Args:
+        map_id (str): Unique identifier of the map.
+        user (CurrentUser): Authenticated user.
+        db (Session): Database session.
+
+    Returns:
+        Dict[str, str]: Updated map ID and is_live status.
+    """
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and user and map_obj.owner_id == user.id:
+        map_obj.is_live = False
+        db.commit()
+        await clean_user_stream(user.id)
+        return {"is_live": map_obj.is_live}
     else:
         # User is not owner of the map
         raise HTTPException(

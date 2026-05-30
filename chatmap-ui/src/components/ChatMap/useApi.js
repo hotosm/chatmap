@@ -34,8 +34,8 @@ const useApi = (params = {}) => {
       }
     }
 
-    // Logout session
-    const logoutSession = useCallback(async () => {
+    // Unlink device
+    const unlinkDevice = useCallback(async () => {
       await wrapper(async () => {
             const response = await fetch(`${config.API_URL}/logout`, {
                 method: 'GET',
@@ -44,6 +44,21 @@ const useApi = (params = {}) => {
             if (!response.ok) throw new Error('Failed to logout');
       });
     });
+
+    // Unlink a live map
+    const unlinkMap = useCallback(async (id) => {
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/map/${id}/unlink/`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch is_live');
+            }
+            const result = await response.json();
+            console.debug(result);
+      });
+    }, []);
 
     // Fetch map data related to a session
     const fetchMapData = useCallback(async (id) => {
@@ -143,7 +158,8 @@ const useApi = (params = {}) => {
         isLoading,
         error,
         fetchMapData,
-        logoutSession,
+        unlinkMap,
+        unlinkDevice,
         fetchQRCode,
         fetchStatus,
         updateMapShare,

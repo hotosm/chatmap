@@ -121,7 +121,7 @@ export default function MapList() {
                         <SlIcon name="file-earmark-fill" />
                       </div>
                       <NavLink to={"/map/" + map.id} className="mapitem__name">
-                        <strong>{ map.name }</strong>
+                        <strong>{ map.name } {map.is_live && <span className="mapitem__live_label">(live)</span>}</strong>
                         <small>
                           <FormattedMessage
                             id="app.maps.point_count"
