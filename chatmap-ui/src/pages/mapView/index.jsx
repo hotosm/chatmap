@@ -149,7 +149,7 @@ function MapView() {
     <>
       <div className={`app map-view ${!isAuthenticated ? "no-auth" : ""}`}>
         <Header
-          title={`${mapName || mapData.name} ${mapData.is_live && "(live)"} `}
+          title={`${mapName || mapData.name} ${mapData.is_live ? "(live)" : ""} `}
           pageTitle={mapName || mapData.name}
           onTitleClick={() => isAuthenticated ? setEditMapDialogOpen(true) : setInfoMapDialogOpen(true)}
         >
