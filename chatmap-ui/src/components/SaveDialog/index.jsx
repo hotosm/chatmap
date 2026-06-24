@@ -67,13 +67,16 @@ export default function SaveDialog({
         setSentFiles((value) => value + 1);
       }
 
+      // Make sure that no invalid data is sent to the API
+      const data_clean = {...data, features: data.features.filter(x => x.properties.time !== null)};
+
       const response = await fetch(`${config.API_URL}/map`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({...data, ...formData}),
+        body: JSON.stringify({...data_clean, ...formData}),
       });
 
       setSentFiles((value) => value + 1);
