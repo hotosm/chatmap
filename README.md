@@ -40,24 +40,14 @@ Check docs for each instant messaging app [here](https://github.com/hotosm/chatm
 
 The advanced mode provides features for user authentication and live updates with linked devices.
 
-### User accounts
+```bash
+docker compose -f compose.dev.yml up
+```
 
-ChatMap supports two authentication modes:
+Then open http://localhost:5173 and create an account using any e-mail.
 
-- **Standalone Mode**: Uses its own Hanko instance
-- **SSO Mode**: Uses login.hotosm.org
-
-Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) for enabling
-user authentication.
-
-### ChatMap Live
-
-In Live mode, people can link a device to get a live stream of data and update maps in real-time,
-even with locations coming from direct messages, not only groups, and without the need of manually
-exporting chats.
-
-Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md) for enabling
-the Live feature.
+Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) for authentication docs.
+Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md) for Live feature docs.
 
 ## Roadmap
 
