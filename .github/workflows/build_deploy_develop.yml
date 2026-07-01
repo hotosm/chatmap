@@ -1,4 +1,4 @@
-name: Deploy develop to chatmap-dev.hotosm.org
+name: Deploy develop to dev.chatmap.hotosm.org
 
 on:
   push:
@@ -98,7 +98,6 @@ jobs:
           CHATMAP_S3_BUCKET_NAME: ${{ vars.CHATMAP_S3_BUCKET_NAME }}
           CHATMAP_S3_ACCESS_KEY: ${{ vars.CHATMAP_S3_ACCESS_KEY }}
           CHATMAP_S3_SECRET_KEY: ${{ vars.CHATMAP_S3_SECRET_KEY }}
-          
         run: |
           ssh $EC2_USER@$EC2_HOST << ENDSSH
             set -e
@@ -118,8 +117,7 @@ jobs:
             export CHATMAP_S3_BUCKET_NAME=$CHATMAP_S3_BUCKET_NAME
             export CHATMAP_S3_ACCESS_KEY=$CHATMAP_S3_ACCESS_KEY
             export CHATMAP_S3_SECRET_KEY=$CHATMAP_S3_SECRET_KEY
-
-
+            export CHATMAP_ENC_KEY=$CHATMAP_ENC_KEY
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR
@@ -147,7 +145,7 @@ jobs:
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull
-            docker compose -f compose.yml up -d --force-recreate
+            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-nginx chatmap-api-migrate chatmap-go --force-recreate
             # Cleanup
             docker image prune -af
             echo "✅ Deployment complete"
