@@ -46,8 +46,7 @@ docker compose -f compose.dev.yml up
 
 Then open http://localhost:5173 and create an account using any e-mail.
 
-Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) for authentication docs.
-Check [docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md) for Live feature docs.
+Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) and [Live feature docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md).
 
 ## Roadmap
 
