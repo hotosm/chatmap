@@ -114,7 +114,7 @@ function App() {
             />
           </>}
 
-          { status === "connected" &&
+          { status === "connected" && mapData.owner &&
           <sl-dropdown>
             <sl-button size="large" variant="text" slot="trigger">
               <sl-icon name="three-dots-vertical" slot="prefix" />
@@ -164,7 +164,7 @@ function App() {
         {/* No data, show an empty map */}
         { !dataAvailable &&
         <>
-          {status === "connected" &&
+          {status === "connected" && mapData.owner &&
             <div className="mapMessage">
               <h2>
                 <FormattedMessage
