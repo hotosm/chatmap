@@ -186,11 +186,17 @@ function getTimeParts(match) {
 }
 
 function normalizeParts(dateParts, yearIndex, monthIndex, dayIndex, match) {
-  const year = (dateParts[yearIndex] < 100 ? dateParts[yearIndex] + 2000 : dateParts[yearIndex]).toString();
-  const [month, day] = [dateParts[monthIndex].toString().padStart(2, "0"), dateParts[dayIndex].toString().padStart(2, "0")];
-  const [hour, minute, second] = getTimeParts(match[1]);
-
-  return [year, month, day, hour, minute, second];
+  try {
+    const year = (dateParts[yearIndex] < 100 ? dateParts[yearIndex] + 2000 : dateParts[yearIndex]).toString();
+    const [month, day] = [dateParts[monthIndex].toString().padStart(2, "0"), dateParts[dayIndex].toString().padStart(2, "0")];
+    const [hour, minute, second] = getTimeParts(match[1]);
+    return [year, month, day, hour, minute, second];
+  } catch (e) {
+    // This prevents errors with date parsing, but we should review date parsing for preventing errors
+    const now = new Date();
+    return [now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()]
+  }
+  
 }
 
 /**
