@@ -17,9 +17,9 @@ export default function Footer({ className, visible = true }) {
         <div className="footer__top-left">
           <h2 dangerouslySetInnerHTML={{__html: msg}}></h2>
           <ul>
-            <li><a href="https://learning.hotosm.org/course/chatmap-umap-trash-mapping"><FormattedMessage id="app.footer.takeTheCourse" defaultMessage="Take the course" /></a></li>
-            <li><a href="https://www.youtube.com/watch?v=rIH5cXs40cE"><FormattedMessage id="app.footer.getInspired" defaultMessage="Get inspired" /></a></li>
-            <li><a href="https://github.com/hotosm/chatmap/blob/master/docs/index.md"><FormattedMessage id="app.footer.checkTheDocs" defaultMessage="Check the docs" /></a></li>
+            <li><a href="https://learning.hotosm.org/course/chatmap-umap-trash-mapping" target="_blank"><FormattedMessage id="app.footer.takeTheCourse" defaultMessage="Take the course" /></a></li>
+            <li><a href="https://www.youtube.com/watch?v=rIH5cXs40cE" target="_blank"><FormattedMessage id="app.footer.getInspired" defaultMessage="Get inspired" /></a></li>
+            <li><a href="https://roadmap.hotosm.org/#tech-request" target="_blank"><FormattedMessage id="app.footer.talkWithTech" defaultMessage="Talk with Tech" /></a></li>
           </ul>
         </div>
         <div className="footer__top-right">
