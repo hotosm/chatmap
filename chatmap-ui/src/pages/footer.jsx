@@ -19,7 +19,7 @@ export default function Footer({ className, visible = true }) {
           <ul>
             <li><a href="https://learning.hotosm.org/course/chatmap-umap-trash-mapping" target="_blank"><FormattedMessage id="app.footer.takeTheCourse" defaultMessage="Take the course" /></a></li>
             <li><a href="https://www.youtube.com/watch?v=rIH5cXs40cE" target="_blank"><FormattedMessage id="app.footer.getInspired" defaultMessage="Get inspired" /></a></li>
-            <li><a href="https://roadmap.hotosm.org/#tech-request" target="_blank"><FormattedMessage id="app.footer.talkWithTech" defaultMessage="Talk with Tech" /></a></li>
+            <li><a href="https://roadmap.hotosm.org/#tech-request" target="_blank"><FormattedMessage id="app.footer.talkWithTech" defaultMessage="Tech request" /></a></li>
           </ul>
         </div>
         <div className="footer__top-right">
