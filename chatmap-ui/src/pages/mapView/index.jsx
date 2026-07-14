@@ -166,7 +166,7 @@ function MapView() {
               id={mapData.id}
             />
           </>}
-          { mapData.is_live && <>
+          { mapData.is_live && mapData.owner && <>
               <sl-dropdown>
                 <SlButton size="large" variant="text" slot="trigger">
                   <SlIcon name="three-dots-vertical" slot="prefix" />
