@@ -52,6 +52,7 @@ services:
     volumes:
       - ./chatmap-api:/app
       - ./media:/app/media:rw
+      - /app/.venv
     networks:
       - chatmap_net
 
