@@ -68,12 +68,12 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 |✅| [Update a saved map with new data](https://github.com/hotosm/chatmap/issues/60) - Thanks [Abraham](https://github.com/categulario)!
 |⚙️| ChatBot for creating automated surveys
 |⚙️| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
+|⚙️| [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
+|⚙️| User content licensing options |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Content filtering options |
 | | Tagger view |
-| | Form for user content licensing |
 | | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
-| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 
 Contributors are welcome!
 
