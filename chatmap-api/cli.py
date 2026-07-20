@@ -1,10 +1,19 @@
 import enum
+import logging
 import typer
 import asyncio
 from datetime import datetime, timezone
 from redis import asyncio as async_redis
+
 from producers.redis_producer import RedisProducer
 from consumers.redis_consumer import RedisConsumer
+from consumers.listener import ConversationsStateListener
+
+logging.basicConfig(
+    format='[CLI] %(levelname)s: %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 app = typer.Typer()
 
@@ -25,21 +34,20 @@ def _build_client() -> async_redis.client.Redis:
     return async_redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
 
 
-def _stream_name(session_id: str) -> str:
-    return f"messages:{session_id}"
+def _stream_key() -> str:
+    return "messages"
 
 
 @app.command("delete-all-entries")
-def delete_all_entries(session_id: str = typer.Option(..., help="Session id whose stream will be cleared")):
+def delete_all_entries(device: str = typer.Option(..., help="Session id whose stream will be cleared")):
     """Delete every entry in a Redis stream, read or not."""
 
     async def run():
-        stream_name = _stream_name(session_id)
         client = _build_client()
-        producer = RedisProducer(client)
-        await producer.delete_all_entries(stream_name)
+        producer = RedisProducer(client=client, stream_key=_stream_key())
+        await producer.delete_all_entries_for(device)
 
-        typer.echo(f"deleted all entries from stream '{stream_name}'")
+        typer.echo(f"deleted all entries from device '{device}'")
 
         await client.aclose()
 
@@ -48,16 +56,15 @@ def delete_all_entries(session_id: str = typer.Option(..., help="Session id whos
 
 @app.command("add-entries")
 def add_entries(
-        session_id: str = typer.Option(..., help="Session id whose stream will receive the entries"),
+        device: str = typer.Option(..., help="Session id whose stream will receive the entries"),
         entry_type: EntryType = typer.Option(..., help="Kind of message content to simulate"),
         count: int = typer.Option(5, help="How many entries to add"),
 ):
     """Add `count` test entries of a given type to a Redis stream."""
 
     async def run():
-        stream_name = _stream_name(session_id)
         client = _build_client()
-        producer = RedisProducer(client)
+        producer = RedisProducer(client=client, stream_key=_stream_key())
         for i in range(count):
             date = datetime.now(timezone.utc)
             # Sequence part uses `i` so entries within the same millisecond don't collide
@@ -74,9 +81,9 @@ def add_entries(
                 "video": "",
                 "audio": "",
                 "file": "",
+                entry_type.value: f"test {entry_type.value} {i}"
             }
-            entry[entry_type.value] = f"test {entry_type.value} {i}"
-            entry_id = await producer.add_entry(stream_name, entry, stream_id)
+            entry_id = await producer.add_entry_for(device=device, entry=entry, stream_id=stream_id)
             typer.echo(f"added entry {entry_id}")
 
         await client.aclose()
@@ -85,23 +92,36 @@ def add_entries(
 
 
 @app.command("list-entries")
-def list_entries(session_id: str = typer.Option(..., help="Session id whose stream will be listed")):
-    """List every entry currently in a Redis stream, without consuming them."""
-
+def list_messages(device: str = typer.Option(..., help="Session id whose stream will be listed")):
     async def run():
-        stream_name = _stream_name(session_id)
         client = _build_client()
         consumer = RedisConsumer(
             redis_client=client,
-            stream_name=stream_name,
+            stream_key=_stream_key(),
             group_name="cli-group",
             consumer_name="cli-consumer",
         )
-        entries = await consumer.list_entries()
-        for entry in entries:
-            typer.echo(entry)
+        messages = await consumer.list_messages_for(device)
+        for message in messages:
+            typer.echo(message)
 
         await client.aclose()
+
+    asyncio.run(run())
+
+
+@app.command("conversations-listener")
+def conversations_listener():
+    """List every entry in a Redis stream and report which State(s), if any, it matches."""
+
+    async def run():
+        client = _build_client()
+        listener = ConversationsStateListener(client=client)
+
+        try:
+            await listener.start()
+        finally:
+            await client.aclose()
 
     asyncio.run(run())
 
