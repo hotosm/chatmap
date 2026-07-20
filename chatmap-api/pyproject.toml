@@ -54,6 +54,11 @@ prepend_sys_path = [
     "."
 ]
 
+[tool.pytest.ini_options]
+testpaths = [
+    "test",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
