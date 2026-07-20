@@ -4,7 +4,7 @@
 
 ## Field mapping has never been easier!
 
-Export a chat (WhatsApp, Telegram or Signal) and upload it to visualize locations, messages and media.
+Export a chat (WhatsApp, Telegram or Signal) and open it to visualize locations, messages and media.
 
 ### Try it here! [chatmap.hotosm.org](https://chatmap.hotosm.org)
 
@@ -29,16 +29,16 @@ Test with `yarn test`.
 Create a group and ask people to post locations and messages. Each location will be paired 
 with the closest message from the same user.
 
-1. Export a WhatsApp, Telegram or Signal chat with shared locations
+1. Export a WhatsApp, Telegram or Signal chat with shared locations, to a zip file
 2. Open the .zip file with ChatMap
 3. It will extract all the locations and display them on a map, together with the paired message (text or media)
-4. You can also download the locations + messages as a .zip file from there
+4. You can also download the locations + messages as a .zip file from there, and open it again if needed!
 
 Check docs for each instant messaging app [here](https://github.com/hotosm/chatmap/blob/master/docs/apps.md).
 
 ## Advanced mode
 
-The advanced mode provides features for user authentication and live updates with linked devices.
+The advanced mode provides features for user authentication, saving and publishing maps, and live updates with linked devices.
 
 ```bash
 docker compose -f compose.dev.yml up
@@ -74,8 +74,6 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 | | Content filtering options |
 | | Tagger view |
 | | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
-
-Contributors are welcome!
 
 ## Licensing
 
