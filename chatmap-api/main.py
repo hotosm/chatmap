@@ -794,7 +794,7 @@ async def get_public_map(
     # Get map
     map_obj: Map = db.get(Map, map_id)
     owner = (user and map_obj.owner_id == user.id) or False
-    if map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner):
+    if map_obj and owner:
         map = map_response(db, map_obj, owner)
         memory_file = io.BytesIO()
 

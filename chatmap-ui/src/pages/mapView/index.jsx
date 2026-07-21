@@ -206,7 +206,10 @@ function MapView() {
                       </FileUpload> }
                     </>}
 
-                    <DownloadButton disabled={hasNewData && newMapData.features.length > 0} url={`${config.API_URL}/export/${mapData.id}`} className="map__options_button" />
+                    {/* Data access */}
+                    { mapData.owner &&
+                      <DownloadButton disabled={hasNewData && newMapData.features.length > 0} url={`${config.API_URL}/export/${mapData.id}`} className="map__options_button" />
+                    }
                     <SlButton
                       target="_blank"
                       href={`${config.API_URL}/map/${mapData.id}`}
