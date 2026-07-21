@@ -6,6 +6,7 @@ from typing import Self
 
 
 class EventName(StrEnum):
+    USER_SEND_TEXT = auto()
     USER_UPLOAD_PHOTO = auto()
     USER_UPLOAD_PHOTO_WITH_TEXT = auto()
     USER_SEND_COORDINATES = auto()
@@ -21,13 +22,12 @@ class Event:
         occurred_at = datetime.fromisoformat(message.date)
         match message:
             case MessageEvent(photo=photo, text=text) if photo and text:
-                # TODO: we should use the message.date field?
                 return cls(name=EventName.USER_UPLOAD_PHOTO_WITH_TEXT, occurred_at=occurred_at)
+            case MessageEvent(text=text) if text:
+                return cls(name=EventName.USER_SEND_TEXT, occurred_at=occurred_at)
             case MessageEvent(photo=photo) if photo:
-                # TODO: we should use the message.date field?
                 return cls(name=EventName.USER_UPLOAD_PHOTO, occurred_at=occurred_at)
             case MessageEvent(location=location) if location:
-                # TODO: we should use the message.date field?
                 return cls(name=EventName.USER_SEND_COORDINATES, occurred_at=occurred_at)
             case _:
                 return None
