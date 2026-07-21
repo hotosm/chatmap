@@ -23,7 +23,6 @@ from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-import consumers
 from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
