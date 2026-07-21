@@ -44,8 +44,10 @@ import (
 
     _ "github.com/mattn/go-sqlite3"
     "go.mau.fi/whatsmeow"
+    "go.mau.fi/whatsmeow/proto/waE2E"
     "go.mau.fi/whatsmeow/store"
     "go.mau.fi/whatsmeow/store/sqlstore"
+    "go.mau.fi/whatsmeow/types"
     "go.mau.fi/whatsmeow/types/events"
     "github.com/redis/go-redis/v9"
     qrcode "github.com/skip2/go-qrcode"
@@ -71,6 +73,15 @@ const (
     // QRCodeExpiry is the maximum duration the client will wait for a
     // QR code to be generated before giving up.
     QRCodeExpiry = 10 * time.Second
+
+    // OutboundGroup is the Redis consumer group used to read the
+    // per-session ``to_send:<sessionID>`` streams.
+    OutboundGroup = "connector"
+
+    // OutboundConsumer is the Redis consumer name used within
+    // OutboundGroup. Since each session has its own stream key, this
+    // can safely be a shared literal across sessions.
+    OutboundConsumer = "connector"
 )
 
 // List of messages
@@ -171,6 +182,11 @@ var (
     response     Response
     mu           sync.Mutex
     redisClient  *redis.Client
+
+    // outboundCancel holds the cancel function for each session's
+    // consumeOutbound goroutine, so logout can stop it cleanly.
+    outboundCancel   = make(map[string]context.CancelFunc)
+    outboundCancelMu sync.Mutex
 )
 
 var locationPattern = regexp.MustCompile(`[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?).*`)
@@ -253,6 +269,37 @@ func encrypt(plaintext []byte, key []byte) (string) {
     encoded := base64.StdEncoding.EncodeToString(payload)
 
     return encoded
+}
+
+// decrypt reverses encrypt, returning the original plaintext.  The key
+// must be the same 32-byte AES key that was used to encrypt.
+func decrypt(ciphertext string, key []byte) (string, error) {
+    payload, err := base64.StdEncoding.DecodeString(ciphertext)
+    if err != nil {
+        return "", fmt.Errorf("failed to decode ciphertext: %w", err)
+    }
+
+    block, err := aes.NewCipher(key)
+    if err != nil {
+        return "", fmt.Errorf("failed to create cipher: %w", err)
+    }
+
+    aesGCM, err := cipher.NewGCM(block)
+    if err != nil {
+        return "", fmt.Errorf("failed to create GCM: %w", err)
+    }
+
+    nonceSize := aesGCM.NonceSize()
+    if len(payload) < nonceSize {
+        return "", fmt.Errorf("ciphertext too short")
+    }
+    nonce, encrypted := payload[:nonceSize], payload[nonceSize:]
+
+    plaintext, err := aesGCM.Open(nil, nonce, encrypted, nil)
+    if err != nil {
+        return "", fmt.Errorf("failed to decrypt: %w", err)
+    }
+    return string(plaintext), nil
 }
 
 // hash returns the SHA‑256 digest of the supplied string as a
@@ -373,6 +420,13 @@ func initClient(sessionID string) {
                 sessionMeta[sessionID].Connected = false
             }
     })
+
+    // Start outbound message consumer
+    outboundCtx, cancel := context.WithCancel(context.Background())
+    outboundCancelMu.Lock()
+    outboundCancel[sessionID] = cancel
+    outboundCancelMu.Unlock()
+    go consumeOutbound(outboundCtx, sessionID, client, enc_key)
 
     // Try to connect client
     go func() {
@@ -569,6 +623,117 @@ func decryptAndDownloadMedia(client *whatsmeow.Client, meta MediaReference, file
 }
 
 
+// sendMessage sends a plain-text WhatsApp message to ``to`` using the
+// supplied client.  ``to`` may be a bare phone number (defaults to the
+// standard WhatsApp user server) or a fully qualified JID.
+func sendMessage(client *whatsmeow.Client, to string, text string) (whatsmeow.SendResponse, error) {
+    if !strings.Contains(to, "@") {
+        to = to + "@" + types.DefaultUserServer
+    }
+    recipient, err := types.ParseJID(to)
+    if err != nil {
+        return whatsmeow.SendResponse{}, fmt.Errorf("invalid recipient JID: %w", err)
+    }
+
+    msg := &waE2E.Message{
+        Conversation: proto.String(text),
+    }
+
+    resp, err := client.SendMessage(context.Background(), recipient, msg)
+    if err != nil {
+        return whatsmeow.SendResponse{}, fmt.Errorf("send error: %w", err)
+    }
+    return resp, nil
+}
+
+// consumeOutbound reads the ``to_send:<sessionID>`` stream via a Redis
+// consumer group and sends each entry as a WhatsApp message.  It first
+// drains any entries left pending (unacked) by a previous run of this
+// consumer, then blocks waiting for new entries until ``ctx`` is
+// cancelled (session logout).
+func consumeOutbound(ctx context.Context, sessionID string, client *whatsmeow.Client, encKey string) {
+    stream := fmt.Sprintf("to_send:%s", sessionID)
+
+    if err := redisClient.XGroupCreateMkStream(ctx, stream, OutboundGroup, "0").Err(); err != nil && !strings.Contains(err.Error(), "BUSYGROUP") {
+        log.Printf("consumeOutbound[%s]: failed to create group: %v", sessionID, err)
+        return
+    }
+
+    // Recover entries left pending by a previous run before reading new ones.
+    for {
+        res, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
+            Group:    OutboundGroup,
+            Consumer: OutboundConsumer,
+            Streams:  []string{stream, "0"},
+            Count:    10,
+        }).Result()
+        if err != nil && err != redis.Nil {
+            log.Printf("consumeOutbound[%s]: pending read error: %v", sessionID, err)
+            break
+        }
+        if len(res) == 0 || len(res[0].Messages) == 0 {
+            break
+        }
+        for _, entry := range res[0].Messages {
+            sendOutboundEntry(ctx, client, stream, entry, encKey)
+        }
+    }
+
+    // Block waiting for new entries until the session is torn down.
+    for {
+        if ctx.Err() != nil {
+            return
+        }
+        res, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
+            Group:    OutboundGroup,
+            Consumer: OutboundConsumer,
+            Streams:  []string{stream, ">"},
+            Count:    10,
+            Block:    5 * time.Second,
+        }).Result()
+        if err != nil {
+            if err == redis.Nil {
+                continue // block timeout, no new entries yet
+            }
+            if ctx.Err() != nil {
+                return
+            }
+            log.Printf("consumeOutbound[%s]: read error: %v", sessionID, err)
+            time.Sleep(time.Second)
+            continue
+        }
+        for _, entry := range res[0].Messages {
+            sendOutboundEntry(ctx, client, stream, entry, encKey)
+        }
+    }
+}
+
+// sendOutboundEntry sends a single stream entry and acknowledges it on
+// success.  On failure the entry is left un-acked in the group's PEL so
+// it gets redelivered (recovered) the next time this consumer starts.
+func sendOutboundEntry(ctx context.Context, client *whatsmeow.Client, stream string, entry redis.XMessage, encKey string) {
+    encryptedTo, _ := entry.Values["to"].(string)
+    text, _ := entry.Values["text"].(string)
+    if encryptedTo == "" || text == "" {
+        log.Printf("consumeOutbound: entry %s missing to/text, skipping", entry.ID)
+        redisClient.XAck(ctx, stream, OutboundGroup, entry.ID)
+        return
+    }
+
+    to, err := decrypt(encryptedTo, []byte(encKey))
+    if err != nil {
+        log.Printf("consumeOutbound: failed to decrypt recipient for entry %s: %v", entry.ID, err)
+        return
+    }
+
+    if _, err := sendMessage(client, to, text); err != nil {
+        log.Printf("consumeOutbound: failed to send entry %s: %v", entry.ID, err)
+        return
+    }
+    redisClient.XAck(ctx, stream, OutboundGroup, entry.ID)
+    log.Printf("consumeOutbound: sent entry %s", entry.ID)
+}
+
 /***
     HTTP handlers
 ***/
@@ -732,7 +897,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             Values: map[string]interface{}{
                 "id":      streamID,
                 "user":    userId,
-                "from":    hash(message.From),
+                "from":    encrypt([]byte(message.From), []byte(enc_key)),
                 "chat":    hash(message.Chat),
                 "text":    message.Text,
                 "date":    message.Date,
@@ -924,6 +1089,13 @@ func logout(sessionID string) {
         delete(clients, sessionID)
     }
     clientsMu.Unlock()
+
+    outboundCancelMu.Lock()
+    if cancel, ok := outboundCancel[sessionID]; ok {
+        cancel()
+        delete(outboundCancel, sessionID)
+    }
+    outboundCancelMu.Unlock()
 
     sessionMetaMu.Lock()
     sessionMeta, sessionExists := sessionMeta[sessionID]
