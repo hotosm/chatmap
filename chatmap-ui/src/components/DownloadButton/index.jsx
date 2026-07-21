@@ -50,14 +50,20 @@ function createAndDownloadZip(data, dataFiles) {
   });
 }
 
-function DownloadButton({ data, dataFiles }) {
+function DownloadButton({ data, dataFiles, url, className, disabled }) {
 
   const handleClick = () => {
-    createAndDownloadZip(data, dataFiles);
+    if (url) {
+      window.open(url);
+    } else {
+      createAndDownloadZip(data, dataFiles);
+    }
   };
 
   return (
     <sl-button
+      disabled={disabled}
+      className={className}
       variant="default"
       outline
       size="small"

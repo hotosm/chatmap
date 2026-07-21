@@ -22,8 +22,11 @@ import EditMapDialog from '../../components/EditMapDialog/index.jsx';
 import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
 import Progress from "../../components/Progress/index.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
+import DownloadButton from '../../components/DownloadButton';
+import { useConfigContext } from "../../context/ConfigContext.jsx"
 
 function MapView() {
+  const { config } = useConfigContext();
   const [editMapDialogOpen, setEditMapDialogOpen] = useState(false);
   const [infoMapDialogOpen, setInfoMapDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -166,42 +169,9 @@ function MapView() {
               id={mapData.id}
             />
           </>}
-          { mapData.is_live && mapData.owner && <>
-              <sl-dropdown>
-                <SlButton size="large" variant="text" slot="trigger">
-                  <SlIcon name="three-dots-vertical" slot="prefix" />
-                </SlButton>
-                <div className="map__options">
-                    <h3>Live</h3>
-                    <p>
-                      <FormattedMessage id="app.map.linkedMap" defaultMessage="This map is linked to a device" />.
-                    </p>
-                    <SlButton variant="danger" onClick={() => { setConfirmDialogData("unlink-device"); setConfirmDialogOpen(true);} }>
-                        <SlIcon name="dash-circle-fill" slot="prefix" />
-                        <FormattedMessage id="app.map.unlinkDevice" defaultMessage="Unlink device" />
-                    </SlButton>
-                    <p><FormattedMessage id="app.map.unlinkOption2" defaultMessage="Or, if you want to start a new Live map" />:</p>
-                    <SlButton variant="default" onClick={() => { setConfirmDialogData("unlink-map"); setConfirmDialogOpen(true); }}>
-                        <SlIcon name="dash-circle-fill" slot="prefix" />
-                        <FormattedMessage id="app.map.unlinkThisMap" defaultMessage="Unlink this map" />
-                    </SlButton>
-                </div>
-              </sl-dropdown>
-          </>}
-          { dataAvailable && mapData.owner && !mapData.is_live && <>
 
-            { !hasNewData &&
-            <FileUpload
-              onDataFileLoad={handleDataFile}
-              onFilesLoad={handleFiles}
-            >
-              <SlButton size="small">
-                <SlIcon name="file-earmark-plus-fill" slot="prefix" />
-                <FormattedMessage id="app.map.addNew" defaultMessage="Add" />
-              </SlButton>
-            </FileUpload> }
-
-            { hasNewData && <>
+            {/* Update map with new data */}
+            { hasNewData && newMapData.features.length > 0 && <>
               <UpdateButton
                 mapData={mapData}
                 data={data}
@@ -212,7 +182,62 @@ function MapView() {
                 setLoading={setBeingSaved}
               />
             </> }
-          </>}
+
+              <sl-dropdown>
+                <SlButton size="large" variant="text" slot="trigger">
+                  <SlIcon name="three-dots-vertical" slot="prefix" />
+                </SlButton>
+                <div className="map__options">
+
+                    <div className="map__options_data">
+                    <h3>Data</h3>
+
+                    { dataAvailable && mapData.owner && !mapData.is_live && <>
+                      {/* Add new data to the map */}
+                      { !hasNewData &&
+                      <FileUpload
+                        onDataFileLoad={handleDataFile}
+                        onFilesLoad={handleFiles}
+                      >
+                        <SlButton size="small" className="map__options_button">
+                          <SlIcon name="file-earmark-plus-fill" slot="prefix" />
+                          <FormattedMessage id="app.map.addNew" defaultMessage="Add" />
+                        </SlButton>
+                      </FileUpload> }
+                    </>}
+
+                    <DownloadButton disabled={hasNewData && newMapData.features.length > 0} url={`${config.API_URL}/export/${mapData.id}`} className="map__options_button" />
+                    <SlButton
+                      target="_blank"
+                      href={`${config.API_URL}/map/${mapData.id}`}
+                      className="map__options_button" size="small"
+                    >
+                      API link
+                    </SlButton>
+
+                    </div>
+
+                    {/* Live options */}
+                    { mapData.is_live && mapData.owner && <>
+                      <div className="map__options_live">
+                        <h3>Live</h3>
+                        <p>
+                          <FormattedMessage id="app.map.linkedMap" defaultMessage="This map is linked to a device" />.
+                        </p>
+                        <SlButton className="map__options_button" size="small" variant="danger" onClick={() => { setConfirmDialogData("unlink-device"); setConfirmDialogOpen(true);} }>
+                            <SlIcon name="dash-circle-fill" slot="prefix" />
+                            <FormattedMessage id="app.map.unlinkDevice" defaultMessage="Unlink device" />
+                        </SlButton>
+                        <p><FormattedMessage id="app.map.unlinkOption2" defaultMessage="Or, if you want to start a new Live map" />:</p>
+                        <SlButton className="map__options_button" size="small" variant="default" onClick={() => { setConfirmDialogData("unlink-map"); setConfirmDialogOpen(true); }}>
+                            <SlIcon name="dash-circle-fill" slot="prefix" />
+                            <FormattedMessage id="app.map.unlinkThisMap" defaultMessage="Unlink this map" />
+                        </SlButton>
+                      </div>
+                    </>}
+                </div>
+              </sl-dropdown>
+
         </Header>
 
         {dataAvailable &&
