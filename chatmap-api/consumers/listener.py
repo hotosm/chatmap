@@ -43,6 +43,7 @@ class ConversationsStateListener:
                     conversation_key = ConversationKey(sender=message.sender, chat=message.chat)
 
                     await Flows.call_tools_for(event, message, device)
+                    
                     await conversation_store.add_event(key=conversation_key, event=event)
 
                     conversation = await conversation_store.load(
