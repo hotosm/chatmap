@@ -1,5 +1,3 @@
-import pytest
-
 from events.message_event import MessageEvent
 from conversation_engine.event import Event, EventName
 

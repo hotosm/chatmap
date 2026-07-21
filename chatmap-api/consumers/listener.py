@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from conversation_engine.flow import Flows
 from store.conversation_store import ConversationStore
@@ -13,8 +13,8 @@ from asyncio import Semaphore
 
 from consumers.redis_consumer import RedisConsumer
 from conversation_engine.device import Devices
-from conversation_engine.event import Event, EventName
-from conversation_engine.conversation import Conversation, ConversationKey
+from conversation_engine.event import Event
+from conversation_engine.conversation import ConversationKey
 
 
 class ConversationsStateListener:
