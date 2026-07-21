@@ -38,6 +38,10 @@ def _stream_key() -> str:
     return "messages"
 
 
+def _send_stream_key() -> str:
+    return "to_send"
+
+
 @app.command("delete-all-entries")
 def delete_all_entries(device: str = typer.Option(..., help="Session id whose stream will be cleared")):
     """Delete every entry in a Redis stream, read or not."""
@@ -91,6 +95,30 @@ def add_entries(
     asyncio.run(run())
 
 
+@app.command("add-message-to-send")
+def add_message_to_send(
+        device: str = typer.Option(..., help="Session id whose outbound stream will receive the message"),
+        to: str = typer.Option(...,
+                               help="Encrypted recipient JID, as received in the 'from' field of a messages:<device> entry"),
+        message: str = typer.Option(..., help="Text of the message to send"),
+):
+    """Queue a text message on the to_send stream for chatmap-im-connector to deliver."""
+
+    async def run():
+        client = _build_client()
+        producer = RedisProducer(client=client, stream_key=_send_stream_key())
+        entry = {
+            "to": to,
+            "text": message,
+        }
+        entry_id = await producer.add_entry_for(device=device, entry=entry)
+        typer.echo(f"queued message {entry_id} for device '{device}' -> {to}")
+
+        await client.aclose()
+
+    asyncio.run(run())
+
+
 @app.command("list-entries")
 def list_messages(device: str = typer.Option(..., help="Session id whose stream will be listed")):
     async def run():
@@ -101,7 +129,7 @@ def list_messages(device: str = typer.Option(..., help="Session id whose stream 
             group_name="cli-group",
             consumer_name="cli-consumer",
         )
-        messages = await consumer.list_messages_for(device)
+        messages = await consumer.get_messages_for(device)
         for message in messages:
             typer.echo(message)
 
