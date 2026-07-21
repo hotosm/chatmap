@@ -6,9 +6,12 @@ and related content.
 """
 
 import os
+import io
 import httpx
 import logging
 import asyncio
+import zipfile
+import json
 from pathlib import Path
 from uuid import uuid4
 from collections import defaultdict
@@ -37,6 +40,7 @@ from settings import (
 from sqlalchemy import func, select
 from geoalchemy2.shape import to_shape
 from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
+
 
 # Logs
 logging.basicConfig(
@@ -112,7 +116,6 @@ async def status(
         Dict[str, str]: Status of the session.
     """
     async with httpx.AsyncClient() as client:
-        print(user.id)
         response = await client.get(f'{SERVER_URL}/status?session={user.id}')
         if response.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to get session")
@@ -653,7 +656,6 @@ async def update_point_tags(
     user: CurrentUser,
     db: Session = Depends(get_db_session),
 ):
-    print(tags)
     point_obj: Point = db.get(Point, point_id)
     if point_obj:
         map_obj = point_obj.map
@@ -768,6 +770,72 @@ async def me(user: CurrentUser):
         'email': user.email,
         'username': user.username,
     }
+
+# Export
+@api_router.get("/export/{map_id}", response_model=None)
+async def get_public_map(
+    map_id: str,
+    request: Request,
+    user: CurrentUserOptional,
+    db: Session = Depends(get_db_session),
+):
+    """
+    Export map for download (Zip) for a given map ID.
+
+    Args:
+        map_id (str): Unique identifier of the map.
+        request (Request): FastAPI request object.
+        db (Session): Database session.
+
+    Returns:
+        StreamingResponse
+    """
+
+    # Get map
+    map_obj: Map = db.get(Map, map_id)
+    owner = (user and map_obj.owner_id == user.id) or False
+    if map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner):
+        map = map_response(db, map_obj, owner)
+        memory_file = io.BytesIO()
+
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            async with httpx.AsyncClient() as client:
+                # Get map files
+                for feature in map['features']:
+                    fileUrl = feature['properties']['file']
+                    if not fileUrl:
+                        continue
+                    try:
+                        response = await client.get(fileUrl)
+                        response.raise_for_status()  # Raise for 4xx/5xx
+                        content = response.content
+                        # Get filename
+                        filename = fileUrl.replace("media?filename=", "/")
+                        filename = filename[filename.rfind("/") + 1:]
+                        # Update file properties
+                        feature['properties']['file_url'] = feature['properties']['file']
+                        feature['properties']['file'] = filename
+                        # Add file to zip
+                        zf.writestr(filename, content)
+                    except httpx.HTTPError as e:
+                        logger.error(f"Failed to download: {str(e)}")
+            # Replace 'id' by '_chatmapId'
+            map['_chatmapId'] = map['id']
+            del map['id']
+            zf.writestr(f"chatmap_{map_id}.geojson", json.dumps(map, default=str))
+
+        memory_file.seek(0)
+        return StreamingResponse(
+            memory_file,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename=chatmap_{map_id}.zip"}
+        )
+    else:
+        # Map is not public – reject the request
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: the requested map is not publicly shared."
+        )
 
 # Include API Router
 app.include_router(api_router)

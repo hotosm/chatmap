@@ -120,7 +120,7 @@ export default function SaveDialog({
           <SlTextarea
             name="description"
             label={intl.formatMessage({id: "app.save.description", defaultMessage: "What is this map about?"})}
-            placeholder={intl.formatMessage({id: "app.save.descriptionPlaceholder", defaultMessage: "You can use markdown"})}
+            placeholder={intl.formatMessage({id: "app.save.descriptionPlaceholder", defaultMessage: ""})}
           />
 
           <SlButton type="submit" variant="primary" className="dialog__btn dark-btn">

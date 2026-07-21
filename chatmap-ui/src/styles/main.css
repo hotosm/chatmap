@@ -383,7 +383,24 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .map__options {
     background-color: var(--hot-color-neutral-0);
-    padding: var(--hot-spacing-large)
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    border-radius: var(--hot-border-radius-medium);
+    margin-right: var(--hot-spacing-small);
+}
+
+.map__options_live {
+    border-top: 1px solid var(--hot-color-gray-200);
+    padding-bottom:  var(--hot-spacing-small);
+}
+
+.map__options p {
+    font-size: var(--hot-font-size-small);
+}
+
+.map__options_button {
+    width: 100%;
+    margin-bottom: var(--hot-spacing-small);
 }
 
 /* Error boundary */
