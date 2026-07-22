@@ -403,6 +403,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     margin-bottom: var(--hot-spacing-small);
 }
 
+
 /* Error boundary */
 
 .errorMessage {
@@ -678,15 +679,6 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
     .maplibregl-map {
         height: 100vh;
-    }
-
-    .header__rest sl-button::part(base) {
-        width: 40px;
-        padding-inline-start: 0;
-    }
-
-    .header__rest sl-button::part(label) {
-        display: none;
     }
 
     .connectFormWrapper {

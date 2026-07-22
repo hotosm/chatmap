@@ -40,7 +40,8 @@ from settings import (
 from sqlalchemy import func, select
 from geoalchemy2.shape import to_shape
 from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
-
+import csv
+from datetime import datetime
 
 # Logs
 logging.basicConfig(
@@ -771,16 +772,40 @@ async def me(user: CurrentUser):
         'username': user.username,
     }
 
-# Export
+
+# Export media
+async def export_media(features, zf):
+    async with httpx.AsyncClient() as client:
+        for feature in features:
+            fileUrl = feature['properties']['file']
+            if not fileUrl:
+                continue
+            try:
+                response = await client.get(fileUrl)
+                response.raise_for_status()  # Raise for 4xx/5xx
+                content = response.content
+                # Get filename
+                filename = fileUrl.replace("media?filename=", "/")
+                filename = filename[filename.rfind("/") + 1:]
+                # Update file properties
+                feature['properties']['file_url'] = feature['properties']['file']
+                feature['properties']['file'] = filename
+                # Add file to zip
+                zf.writestr(filename, content)
+            except httpx.HTTPError as e:
+                logger.error(f"Failed to download: {str(e)}")
+
+
+# Export map as Zip (GeoJSON + media)
 @api_router.get("/export/{map_id}", response_model=None)
-async def get_public_map(
+async def export(
     map_id: str,
     request: Request,
     user: CurrentUserOptional,
     db: Session = Depends(get_db_session),
 ):
     """
-    Export map for download (Zip) for a given map ID.
+    Export map for download (Zip w/ GeoJSON and media) for a given map ID.
 
     Args:
         map_id (str): Unique identifier of the map.
@@ -797,33 +822,104 @@ async def get_public_map(
     if map_obj and owner:
         map = map_response(db, map_obj, owner)
         memory_file = io.BytesIO()
-
         with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
-            async with httpx.AsyncClient() as client:
-                # Get map files
-                for feature in map['features']:
-                    fileUrl = feature['properties']['file']
-                    if not fileUrl:
-                        continue
-                    try:
-                        response = await client.get(fileUrl)
-                        response.raise_for_status()  # Raise for 4xx/5xx
-                        content = response.content
-                        # Get filename
-                        filename = fileUrl.replace("media?filename=", "/")
-                        filename = filename[filename.rfind("/") + 1:]
-                        # Update file properties
-                        feature['properties']['file_url'] = feature['properties']['file']
-                        feature['properties']['file'] = filename
-                        # Add file to zip
-                        zf.writestr(filename, content)
-                    except httpx.HTTPError as e:
-                        logger.error(f"Failed to download: {str(e)}")
+            # Get map files
+            await export_media(map['features'], zf)
             # Replace 'id' by '_chatmapId'
             map['_chatmapId'] = map['id']
             del map['id']
             zf.writestr(f"chatmap_{map_id}.geojson", json.dumps(map, default=str))
+        memory_file.seek(0)
+        return StreamingResponse(
+            memory_file,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename=chatmap_{map_id}.zip"}
+        )
+    else:
+        # Map is not public – reject the request
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: the requested map is not publicly shared."
+        )
 
+def map_to_csv(features):
+    """
+    Convert a map dictionary to a CSV.
+
+    Columns: file, lon, lat, capture_time (RFC 3339)
+    """
+    rows = []
+    for feature in features:
+        props = feature.get("properties", {})
+        geometry = feature.get("geometry", {})
+        coordinates = geometry.get("coordinates", [])
+
+        # Extract fields
+        file_name = props.get("file", "")
+        lon = coordinates[0] if len(coordinates) >= 2 else ""
+        lat = coordinates[1] if len(coordinates) >= 2 else ""
+
+        # Time parsing
+        time_input = props.get("time", "")
+        capture_time = None
+        if time_input:
+            try:
+                capture_time = time_input.strftime("%Y-%m-%dT%H:%M:%SZ")
+            except ValueError:
+                capture_time = None
+
+        if file_name and lon and lat and capture_time:
+            rows.append({
+                "file": file_name,
+                "lon": lon,
+                "lat": lat,
+                "capture_time": capture_time
+            })
+
+    # Write output
+    output_buffer = io.StringIO()
+    fieldnames = ["file", "lon", "lat", "capture_time"]
+    writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    csv_string = output_buffer.getvalue()
+    output_buffer.close()
+
+    return csv_string
+
+# Export map as Zip (CSV + media)
+@api_router.get("/export/csv/{map_id}", response_model=None)
+async def export(
+    map_id: str,
+    request: Request,
+    user: CurrentUserOptional,
+    db: Session = Depends(get_db_session),
+):
+    """
+    Export map for download (Zip w/ CSV and media) for a given map ID.
+
+    Args:
+        map_id (str): Unique identifier of the map.
+        request (Request): FastAPI request object.
+        db (Session): Database session.
+
+    Returns:
+        StreamingResponse
+    """
+
+    # Get map
+    map_obj: Map = db.get(Map, map_id)
+    owner = (user and map_obj.owner_id == user.id) or False
+    if map_obj and owner:
+        map = map_response(db, map_obj, owner)
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            # Get map files
+            await export_media(map['features'], zf)
+            # Replace 'id' by '_chatmapId'
+            map['_chatmapId'] = map['id']
+            del map['id']
+            zf.writestr(f"chatmap_{map_id}.csv", map_to_csv(map['features']))
         memory_file.seek(0)
         return StreamingResponse(
             memory_file,

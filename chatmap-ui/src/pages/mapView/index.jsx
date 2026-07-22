@@ -207,13 +207,26 @@ function MapView() {
                     </>}
 
                     {/* Data access */}
-                    { mapData.owner &&
-                      <DownloadButton disabled={hasNewData && newMapData.features.length > 0} url={`${config.API_URL}/export/${mapData.id}`} className="map__options_button" />
+                    { mapData.owner && <>
+                      <DownloadButton
+                        disabled={hasNewData && newMapData.features.length > 0}
+                        url={`${config.API_URL}/export/${mapData.id}`}
+                        className="map__options_button"
+                        format="GeoJSON"
+                      />
+                      <DownloadButton
+                        disabled={hasNewData && newMapData.features.length > 0}
+                        url={`${config.API_URL}/export/csv/${mapData.id}`}
+                        className="map__options_button"
+                        format="CSV"
+                      />
+                      </>
                     }
                     <SlButton
                       target="_blank"
                       href={`${config.API_URL}/map/${mapData.id}`}
-                      className="map__options_button" size="small"
+                      className="map__options_button"
+                      size="small"
                     >
                       API link
                     </SlButton>
