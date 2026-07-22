@@ -50,7 +50,7 @@ function createAndDownloadZip(data, dataFiles) {
   });
 }
 
-function DownloadButton({ data, dataFiles, url, className, disabled }) {
+function DownloadButton({ data, dataFiles, url, className, disabled, format, label}) {
 
   const handleClick = () => {
     if (url) {
@@ -69,10 +69,10 @@ function DownloadButton({ data, dataFiles, url, className, disabled }) {
       size="small"
       onClick={handleClick}
     >
-      <FormattedMessage
+      {label ? label : <FormattedMessage
         id = "app.download"
         defaultMessage="Download"
-      />
+      />} {format && `(${format})`}
       <sl-icon name="save2" slot="prefix"></sl-icon>
     </sl-button>
   );
