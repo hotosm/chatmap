@@ -48,7 +48,7 @@ Then open http://localhost:5173 and create an account using any e-mail.
 
 Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) and [Live feature docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md).
 
-## Roadmap
+## Roadmap 2026
 
 ✅ Done
 ⚙️ In progress
@@ -56,10 +56,6 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
-|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!
-|✅| Link a device and get a stream of locations + content (live community reporting)
-|✅| Backend with user authentication and saved maps
-|✅| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
 |✅| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
 |✅| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
 |✅| [Map options](https://github.com/hotosm/chatmap/issues/56)
@@ -73,7 +69,6 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Content filtering options |
 | | Tagger view |
-| | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 
 ## Licensing
 
