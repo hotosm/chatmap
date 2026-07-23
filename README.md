@@ -66,8 +66,8 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 |✅| [User profile](https://github.com/hotosm/chatmap/issues/58)
 |✅| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64) - Thanks [Abraham](https://github.com/categulario)!
 |✅| [Update a saved map with new data](https://github.com/hotosm/chatmap/issues/60) - Thanks [Abraham](https://github.com/categulario)!
-|⚙️| ChatBot for creating automated surveys
-|⚙️| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
+|✅| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
+|⚙️| [ChatBot for creating automated surveys](https://github.com/hotosm/chatmap/issues/186)
 |⚙️| [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 |⚙️| User content licensing options |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
