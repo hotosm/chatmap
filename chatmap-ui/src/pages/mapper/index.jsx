@@ -1,4 +1,4 @@
-import { openDB } from 'idb';
+import { openDB, deleteDB } from 'idb';
 import { useState, useRef, useEffect } from "react";
 import { FormattedMessage, FormattedRelativeTime } from "react-intl";
 import Header from "../header.jsx";
@@ -8,6 +8,7 @@ import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
 import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 import DownloadButton from '../../components/DownloadButton';
+import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 
 import '../../styles/mapper.css';
 
@@ -22,6 +23,13 @@ async function getDB() {
       }
     },
   });
+}
+
+async function removeDataFiles(dataFilesIndex) {
+  const db = await getDB();
+  for (let i = 0; i < dataFilesIndex; i++) {
+    await db.delete(storeName, `${i+1}.jpg`);
+  }
 }
 
 async function saveToIndexedDB(key, value) {
@@ -62,11 +70,13 @@ export default function Mapper() {
   const [locationShared, setLocationShared] = useState(false);
   const [messages, setMessages] = useState([]);
   const [data, setData] = useState({
-    type: "FeatureCollection", 
+    type: "FeatureCollection",
     _chatmapId: Date.now().toString(),
     features: []
   });
   const [dataFilesIndex, setDataFilesIndex] = useState(0);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState();
 
   const initializedRef = useRef(false);
   const dbRef = useRef(null)
@@ -137,7 +147,6 @@ export default function Mapper() {
       );
 
     });
-
 
     const { latitude, longitude } = position.coords;
     const featureIndex = data.features.length;
@@ -241,6 +250,18 @@ export default function Mapper() {
     }
   };
 
+  const cleanChatHandler = async () => {
+    await removeDataFiles(dataFilesIndex);
+    setLocationShared(false);
+    setMessages([]);
+    setData({
+      type: "FeatureCollection",
+      _chatmapId: Date.now().toString(),
+      features: []
+    });
+    setDataFilesIndex(0);
+  }
+
   return (
     <div className="mapper">
         <Header pageTitle={isAuthenticated ? "My Maps" : "Maps"} noAuth>
@@ -251,6 +272,14 @@ export default function Mapper() {
             data={data}
             getDataFiles={getDataFiles}
           />
+          <SlIconButton
+            className="mapper_cleanChatButton"
+            name="trash-fill"
+            variant="text"
+            caret
+            onClick={() => setConfirmDialogOpen(true)}
+          >
+          </SlIconButton>
         </Header>
         <div className="mapper_container">
           <div className="mapper_messages">
@@ -304,6 +333,14 @@ export default function Mapper() {
             </SlIconButton>
           </div>
         </div>
+        <ConfirmDialog
+          open={confirmDialogOpen}
+          setOpen={setConfirmDialogOpen}
+          onConfirm={() => cleanChatHandler()}
+          title={{id: "app.maps.areYouSure", defaultMessage: "Are you sure?"}}
+        >
+          All data will be removed.
+        </ConfirmDialog>
     </div>
   );
 };
