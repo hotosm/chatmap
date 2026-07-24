@@ -198,6 +198,9 @@ export default function Mapper() {
   };
 
   const cameraClickHandler = async () => {
+    if (!locationShared) {
+      return;
+    }
     try {
 
       // Use a hidden file input element
