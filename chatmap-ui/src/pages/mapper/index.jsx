@@ -133,51 +133,69 @@ export default function Mapper() {
       console.error("Geolocation is not supported by your browser");
       return;
     }
-    const position = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(
-        resolve,
-        reject, (e) => { console.log(e) },
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        const watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            navigator.geolocation.clearWatch(watchId);
+            clearTimeout(timeoutId);
+            resolve(pos);
+          },
+          (err) => {
+            navigator.geolocation.clearWatch(watchId);
+            clearTimeout(timeoutId);
+            reject(err);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+        );
+
+        const timeoutId = setTimeout(() => {
+          navigator.geolocation.clearWatch(watchId);
+          reject(new Error("Location timeout: Could not get GPS fix within 15s"));
+        }, 15000);
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      const featureIndex = data.features.length;
+
+      setMessages([
+        ...messages,
         {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
+          id: messages.length,
+          dataIndex: featureIndex,
+          type: "LOCATION"
         }
-      );
+      ]);
 
-    });
-
-    const { latitude, longitude } = position.coords;
-    const featureIndex = data.features.length;
-    setMessages([
-      ...messages,
-      {
-        id: messages.length,
-        dataIndex: featureIndex,
-        type: "LOCATION"
-      }
-    ]);
-    setData({
-      ...data,
-      features:
-        [
-            ...data.features,
-            {
-            "type": "Feature",
-            "properties": {
-              "time": new Date()
+      setData({
+        ...data,
+        features: [
+          ...data.features,
+          {
+            type: "Feature",
+            properties: {
+              time: new Date()
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [
-                longitude,
-                latitude
-              ]
+            geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude]
             }
           }
         ]
-    });
-    setLocationShared(true);
-  }
+      });
+
+      setLocationShared(true);
+
+    } catch (error) {
+      console.error("Failed to get location:", error.message || error);
+    }
+  };
 
   const cameraClickHandler = async () => {
     try {
