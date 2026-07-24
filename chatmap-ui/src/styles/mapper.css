@@ -92,6 +92,6 @@
 }
 
 .mapper_cleanChatButton::part(base) {
-    color: var(--hot-color-danger-700);
+    color: black;
     font-size: var(--hot-font-size-small);
 }
