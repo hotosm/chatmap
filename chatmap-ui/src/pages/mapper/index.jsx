@@ -21,24 +21,12 @@ export default function Mapper() {
   const { isAuthenticated } = useAuth();
   const [locationShared, setLocationShared] = useState(false);
   const [messages, setMessages] = useState([]);
-  const messagesContainerRef = useRef();
   const [data, setData] = useState({
     type: "FeatureCollection", 
     _chatmapId: Date.now().toString(),
     features: []
   });
   const [dataFiles, setDataFiles] = useState({});
-
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  };
-
-  // Effect to scroll when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages])
 
   const locationClickHandler = async () => {
     if (!navigator.geolocation) {
@@ -47,8 +35,8 @@ export default function Mapper() {
     }
     const position = await new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
-        () => { setLocationShared(true); },
-        (e) => { console.log(e) },
+        resolve,
+        reject, (e) => { console.log(e) },
         {
           enableHighAccuracy: true,
           timeout: 5000,
@@ -89,6 +77,7 @@ export default function Mapper() {
           }
         ]
     });
+    setLocationShared(true);
   }
 
   const cameraClickHandler = async () => {
@@ -172,7 +161,7 @@ export default function Mapper() {
           />
         </Header>
         <div className="mapper_container">
-          <div className="mapper_messages" ref={messagesContainerRef}>
+          <div className="mapper_messages">
             {
               messages.map((message) => (
                 message.type === "LOCATION" ?
