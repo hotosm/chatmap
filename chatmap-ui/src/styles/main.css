@@ -646,6 +646,10 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 /* Mobile */
 @media (max-width: 790px) {
 
+    .header__title-text {
+        /* display: none; */
+    }
+
     .header hotosm-tool-menu {
         display: none;
     }

@@ -19,7 +19,8 @@ export default function Header({
   title,
   pageTitle,
   children,
-  onTitleClick
+  onTitleClick,
+  noAuth
 }) {
   const { config } = useConfigContext();
   const { lang, setLang } = useLanguage();
@@ -55,7 +56,7 @@ export default function Header({
 
         <div className="header__rest">
           { children }
-          { config.ENABLE_AUTH &&
+          { config.ENABLE_AUTH && !noAuth &&
           <div className="header__login-button">
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}

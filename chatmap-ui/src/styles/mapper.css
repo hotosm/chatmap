@@ -1,0 +1,94 @@
+
+body {
+    overflow-x: hidden;
+    position: absolute;
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--hot-color-neutral-50) 50%, var(--hot-color-neutral-0) 100%),
+        color-mix(in srgb, var(--hot-color-neutral-50) 50%, var(--hot-color-neutral-0) 100%) 100%
+    );
+}
+
+.mapper {
+    width: 100%;
+}
+
+.mapper_messageInputWrapper {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  width: calc(100% - 20px);
+  overflow: hidden;
+  z-index: 9999;
+  bottom: 0;
+  align-items: center;
+  gap: var(--hot-spacing-small);
+  font-size: 2rem;
+  background: white;
+  padding: 10px 10px;
+}
+
+.mapper_messageInput {
+    width: 100%;
+}
+
+.mapper_container {
+    height: 100vh;
+}
+
+.mapper_messages {
+    padding: 70px 20px 0;
+    width: calc(100vw - 40px);
+    position: absolute;
+    height: 100vh;
+}
+
+.mapper_message {
+    display: block;
+    width: 200px;
+    margin-bottom: 10px;
+    background-color: white;
+    border-radius: var(--hot-border-radius-small);
+    padding-right: var(--hot-spacing-2x-small);
+    padding-top: var(--hot-spacing-2x-small);
+    box-shadow: 1px 1px 0px rgba(0,0,0,.05);
+}
+
+.mapper_message img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--hot-border-radius-small);
+}
+
+.mapper_messageLocationIconWrapper {
+    width: 200px;
+    height: 200px;
+    position: absolute;
+}
+.mapper_messageLocationIcon {
+    position: absolute;
+    top: calc(50% - 20px);
+    left: calc(50% - 12px);
+    background-color: var(--hot-color-red-500);
+    height: 20px;
+    width: 20px;
+    border-radius: 100%;
+    box-shadow: 1px 1px 0px rgba(0,0,0,.1);
+}
+
+.mapper_messageLocationIcon::before {
+    content: " ";
+    background-color: var(--hot-color-red-500);
+    height: 10px;
+    display: block;
+    width: 2px;
+    margin-left: 9px;
+    margin-top: 20px;
+    box-shadow: 1px 1px 0px rgba(0,0,0,.1);
+}
+
+.mapper_exportButton::part(base) {
+    color: black;
+}

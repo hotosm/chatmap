@@ -5,6 +5,7 @@ import Linked from './pages/linked';
 import LoginPage from './pages/login';
 import MapView from './pages/mapView';
 import MapList from './pages/mapList';
+import Mapper from './pages/mapper'
 import { useConfigContext } from './context/ConfigContext.jsx';
 import '@hotosm/hanko-auth';
 
@@ -59,6 +60,7 @@ const AppRoutes = () => {
       }
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/mapper" element={<Mapper />} />
 
         { config.ENABLE_AUTH && <>
           <Route path="/app" element={<LoginPage />} />

@@ -50,7 +50,7 @@ function createAndDownloadZip(data, dataFiles) {
   });
 }
 
-function DownloadButton({ data, dataFiles, url, className, disabled, format, label}) {
+function DownloadButton({ data, dataFiles, url, className, disabled, format, label, variant}) {
 
   const handleClick = () => {
     if (url) {
@@ -64,7 +64,7 @@ function DownloadButton({ data, dataFiles, url, className, disabled, format, lab
     <sl-button
       disabled={disabled}
       className={className}
-      variant="default"
+      variant={variant || "default"}
       outline
       size="small"
       onClick={handleClick}
