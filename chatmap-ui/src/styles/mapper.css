@@ -1,5 +1,5 @@
 
-body {
+.mapper {
     overflow-x: hidden;
     position: absolute;
     height: 100vh;
@@ -9,9 +9,6 @@ body {
         color-mix(in srgb, var(--hot-color-neutral-50) 50%, var(--hot-color-neutral-0) 100%),
         color-mix(in srgb, var(--hot-color-neutral-50) 50%, var(--hot-color-neutral-0) 100%) 100%
     );
-}
-
-.mapper {
     width: 100%;
 }
 

@@ -42,6 +42,21 @@ const getTileURL = (lon, lat) => {
  return `https://tile.openstreetmap.org/${zoom}/${lonTile}/${latTile}.png`;
 }
 
+const MessageMedia = ({ name }) => {
+  const [src, setSrc] = useState(null);
+  useEffect(() => {
+    const loadImage = async () => {
+      const image = await loadFromIndexedDB(name);
+      setSrc(image);
+    }
+    loadImage();
+  }, [name]);
+  if (src) {
+    return <img src={URL.createObjectURL(src)} />;
+  }
+  return null;
+}
+
 export default function Mapper() {
   const { isAuthenticated } = useAuth();
   const [locationShared, setLocationShared] = useState(false);
@@ -51,9 +66,10 @@ export default function Mapper() {
     _chatmapId: Date.now().toString(),
     features: []
   });
-  const [dataFiles, setDataFiles] = useState({});
+  const [dataFilesIndex, setDataFilesIndex] = useState(0);
 
   const initializedRef = useRef(false);
+  const dbRef = useRef(null)
 
   // Load state from indexDB
   useEffect(() => {
@@ -62,12 +78,12 @@ export default function Mapper() {
         const savedLocationShared = await loadFromIndexedDB('locationShared');
         const savedMessages = await loadFromIndexedDB('messages');
         const savedData = await loadFromIndexedDB('data');
-        const savedDataFiles = await loadFromIndexedDB('dataFiles');
+        const savedDataFilesIndex = await loadFromIndexedDB('dataFilesIndex');
 
-        if (savedLocationShared !== undefined) setLocationShared(savedLocationShared);
-        if (savedMessages) setMessages(savedMessages);
+        if (savedDataFilesIndex) setDataFilesIndex(savedDataFilesIndex);
         if (savedData) setData(savedData);
-        if (savedDataFiles) setDataFiles(savedDataFiles);
+        if (savedMessages) setMessages(savedMessages);
+        if (savedLocationShared !== undefined) setLocationShared(savedLocationShared);
 
         initializedRef.current = true;
       } catch (err) {
@@ -83,17 +99,26 @@ export default function Mapper() {
   useEffect(() => {
     if (!initializedRef.current) return;
     const saveState = async () => {
-    try {
-      await saveToIndexedDB('locationShared', locationShared);
-      await saveToIndexedDB('messages', messages);
-      await saveToIndexedDB('data', data);
-      await saveToIndexedDB('dataFiles', dataFiles);
-    } catch (err) {
-      console.error('Failed to save to IndexedDB', err);
+      try {
+        await saveToIndexedDB('locationShared', locationShared);
+        await saveToIndexedDB('messages', messages);
+        await saveToIndexedDB('data', data);
+        await saveToIndexedDB('dataFilesIndex', dataFilesIndex);
+      } catch (err) {
+        console.error('Failed to save to IndexedDB', err);
+      }
     }
+    saveState();
+  }, [locationShared, messages, data, dataFilesIndex]);
+
+  const getDataFiles = async () => {
+    const dataFiles = {};
+    for (let i = 0; i < dataFilesIndex; i++) {
+      const filename = `${i+1}.jpg`;
+      dataFiles[filename] = await loadFromIndexedDB(filename);
+    }
+    return dataFiles;
   }
-  saveState();
-  }, [locationShared, messages, data, dataFiles]);
 
   const locationClickHandler = async () => {
     if (!navigator.geolocation) {
@@ -185,29 +210,29 @@ export default function Mapper() {
         reader.readAsArrayBuffer(file);
       });
 
-      const dataFilesIndex = Object.keys(dataFiles).length;
       const featureIndex = data.features.length - 1;
 
       setMessages([
         ...messages,
         {
           id: messages.length,
-          dataIndex: dataFilesIndex,
+          dataIndex: dataFilesIndex + 1,
           type: "MEDIA"
         }
       ]);
 
       setData(prevData => {
         const newData = {...prevData};
-        newData.features[featureIndex].properties.file = `${dataFilesIndex}.jpg`;
+        newData.features[featureIndex].properties.file = `${dataFilesIndex + 1}.jpg`;
         newData.features[featureIndex].properties.id = featureIndex;
         return newData;
       });
 
-      setDataFiles(dataFiles => ({
-        ...dataFiles,
-        [`${dataFilesIndex}.jpg`]: blob
-      }));
+      await saveToIndexedDB(`${dataFilesIndex + 1}.jpg`, blob);
+
+      setDataFilesIndex(prevIndex => (
+        dataFilesIndex + 1
+      ));
 
       setLocationShared(false);
 
@@ -224,7 +249,7 @@ export default function Mapper() {
             label="Export"
             variant="text"
             data={data}
-            dataFiles={dataFiles}
+            getDataFiles={getDataFiles}
           />
         </Header>
         <div className="mapper_container">
@@ -246,7 +271,7 @@ export default function Mapper() {
                 :
                 <div key={message.id} className="mapper_message">
                   <div className="mapper_messageMedia">
-                    <img src={URL.createObjectURL(dataFiles[`${message.dataIndex}.jpg`])} />
+                    <MessageMedia name={`${message.dataIndex}.jpg`} />
                   </div>
                 </div>
               ))

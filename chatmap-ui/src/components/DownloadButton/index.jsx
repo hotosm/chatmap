@@ -9,7 +9,7 @@ import { saveAs } from 'file-saver';
  * Create a zip with chat data and files inside. Fire an
  * event for user to download the file
  */
-function createAndDownloadZip(data, dataFiles) {
+const createAndDownloadZip = async (data, dataFiles, getDataFiles) => {
   const zip = new JSZip();
 
   // The name of the file to save
@@ -36,8 +36,10 @@ function createAndDownloadZip(data, dataFiles) {
   zip.file('data.geojson', geoJsonBlob);
 
   // Add each blob file to the zip file
-  if (dataFiles) {
-    for (const [filename, blob] of Object.entries(dataFiles)) {
+  const _dataFiles = dataFiles || await getDataFiles();
+  if (_dataFiles) {
+    for (const [filename, blob] of Object.entries(_dataFiles)) {
+      console.log(filename, blob)
       if (media_files.indexOf(filename) > -1) {
         zip.file(filename, blob);
       }
@@ -50,13 +52,13 @@ function createAndDownloadZip(data, dataFiles) {
   });
 }
 
-function DownloadButton({ data, dataFiles, url, className, disabled, format, label, variant}) {
+function DownloadButton({ data, dataFiles, getDataFiles, url, className, disabled, format, label, variant}) {
 
   const handleClick = () => {
     if (url) {
       window.open(url);
     } else {
-      createAndDownloadZip(data, dataFiles);
+      createAndDownloadZip(data, dataFiles, getDataFiles);
     }
   };
 
