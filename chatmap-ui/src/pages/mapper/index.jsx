@@ -2,7 +2,6 @@ import { openDB, deleteDB } from 'idb';
 import { useState, useRef, useEffect } from "react";
 import { FormattedMessage, FormattedRelativeTime } from "react-intl";
 import Header from "../header.jsx";
-import { useAuth } from '../../context/AuthContext.jsx';
 import SlInput from "@shoelace-style/shoelace/dist/react/input/index.js";
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
@@ -66,7 +65,6 @@ const MessageMedia = ({ name }) => {
 }
 
 export default function Mapper() {
-  const { isAuthenticated } = useAuth();
   const [locationShared, setLocationShared] = useState(false);
   const [messages, setMessages] = useState([]);
   const [data, setData] = useState({
@@ -264,7 +262,7 @@ export default function Mapper() {
 
   return (
     <div className="mapper">
-        <Header pageTitle={isAuthenticated ? "My Maps" : "Maps"} noAuth>
+        <Header noAuth hideTitle>
           <DownloadButton
             className="mapper_exportButton"
             label="Export"
