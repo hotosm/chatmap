@@ -13,6 +13,7 @@
     "@hotosm/ui-design": "^1.4.0",
     "@shoelace-style/shoelace": "^2.20.1",
     "file-saver": "^2.0.5",
+    "idb": "^8.0.3",
     "jszip": "^3.10.1",
     "maplibre-gl": "^5.21.1",
     "moment": "^2.30.1",

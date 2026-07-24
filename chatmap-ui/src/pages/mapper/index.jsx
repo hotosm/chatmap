@@ -1,3 +1,4 @@
+import { openDB } from 'idb';
 import { useState, useRef, useEffect } from "react";
 import { FormattedMessage, FormattedRelativeTime } from "react-intl";
 import Header from "../header.jsx";
@@ -9,6 +10,30 @@ import SlIcon from '@shoelace-style/shoelace/dist/react/icon/index.js';
 import DownloadButton from '../../components/DownloadButton';
 
 import '../../styles/mapper.css';
+
+const dbName = 'ChatMapDB';
+const storeName = 'chatmapData';
+
+async function getDB() {
+  return openDB(dbName, 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName);
+      }
+    },
+  });
+}
+
+async function saveToIndexedDB(key, value) {
+  if (value === undefined || value === null) return;
+  const db = await getDB();
+  await db.put(storeName, value, key);
+}
+
+async function loadFromIndexedDB(key) {
+  const db = await getDB();
+  return db.get(storeName, key);
+}
 
 const getTileURL = (lon, lat) => {
  const zoom = 18;
@@ -27,6 +52,48 @@ export default function Mapper() {
     features: []
   });
   const [dataFiles, setDataFiles] = useState({});
+
+  const initializedRef = useRef(false);
+
+  // Load state from indexDB
+  useEffect(() => {
+    const loadState = async () => {
+      try {
+        const savedLocationShared = await loadFromIndexedDB('locationShared');
+        const savedMessages = await loadFromIndexedDB('messages');
+        const savedData = await loadFromIndexedDB('data');
+        const savedDataFiles = await loadFromIndexedDB('dataFiles');
+
+        if (savedLocationShared !== undefined) setLocationShared(savedLocationShared);
+        if (savedMessages) setMessages(savedMessages);
+        if (savedData) setData(savedData);
+        if (savedDataFiles) setDataFiles(savedDataFiles);
+
+        initializedRef.current = true;
+      } catch (err) {
+        console.error('Failed to load from IndexedDB', err);
+        initializedRef.current = true;
+      }
+    };
+
+    loadState();
+  }, []);
+
+  // Save state to indexDB
+  useEffect(() => {
+    if (!initializedRef.current) return;
+    const saveState = async () => {
+    try {
+      await saveToIndexedDB('locationShared', locationShared);
+      await saveToIndexedDB('messages', messages);
+      await saveToIndexedDB('data', data);
+      await saveToIndexedDB('dataFiles', dataFiles);
+    } catch (err) {
+      console.error('Failed to save to IndexedDB', err);
+    }
+  }
+  saveState();
+  }, [locationShared, messages, data, dataFiles]);
 
   const locationClickHandler = async () => {
     if (!navigator.geolocation) {

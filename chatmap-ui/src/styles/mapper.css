@@ -91,4 +91,5 @@ body {
 
 .mapper_exportButton::part(base) {
     color: black;
+    font-size: var(--hot-font-size-small);
 }
