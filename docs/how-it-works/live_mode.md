@@ -27,7 +27,7 @@ flowchart TD
 | [D-001](#d-001-connector-service-boundary)       | Ingestion and processing are separate services connected only through a Redis stream and a narrow HTTP media-fetch endpoint                             | INVARIANT |
 | [D-002](#d-002-stream-key-contract)              | Stream key format is `messages:<sessionID>`, and must match exactly between the Go connector and the Python API                                         | INVARIANT |
 | [D-003](#d-003-point-id-determinism)             | Postgres `points.id` is deterministic, derived from the source Redis stream entry id, not randomly generated                                            | INVARIANT |
-| [D-004](#d-004-encrypt-content-hash-identifiers) | Free-text content is reversibly encrypted (AES-256-GCM, shared symmetric key); sender/chat/account identifiers are irreversibly hashed (SHA-256)        | INVARIANT |
+| [D-004](#d-004-encrypt-content-hash-identifiers) | Free-text content and a redundant copy of sender/chat identifiers are reversibly encrypted (AES-256-GCM, shared symmetric key); the account identifier and the primary sender/chat fields used for grouping are irreversibly hashed (HMAC-SHA256 for sender/chat, SHA-256 for account) | INVARIANT |
 | [D-005](#d-005-in-process-full-rescan-consumer)  | The Redis consumer runs in-process inside the API, with no consumer group, re-reading the whole remaining stream every poll cycle                       | DEFAULT   |
 | [D-006](#d-006-unified-message-envelope)         | All WhatsApp message types (text, location, media) are written through one Redis entry schema, with type-specific fields left empty                     | DEFAULT   |
 | [D-007](#d-007-media-out-of-band)                | Media bytes are not put on the Redis stream; only a reference is queued, and bytes are fetched on demand by the consumer                                | DEFAULT   |
@@ -98,18 +98,36 @@ break the safety of the current consumer design.
 **Statement.** Free-text content — message bodies and media captions — is
 encrypted with AES-256-GCM using a symmetric key (`CHATMAP_ENC_KEY`) that is
 configured identically on both the Go connector and the Python API, and is
-reversible (`chatmap-api` decrypts it before storing/serving points). Sender
-JID, chat JID, and account JID are instead hashed with SHA-256 before ever
-reaching Redis — a one-way transform, never reversed.
+reversible (`chatmap-api` decrypts it before storing/serving points).
+
+The account JID (WhatsApp account behind a session) is hashed with plain
+SHA-256 — a one-way transform, never reversed.
+
+Sender JID and chat JID are written twice, in two different forms, for two
+different consumers:
+- `from` / `chat` (stream fields): keyed HMAC-SHA256, using a symmetric key
+  (`CHATMAP_HASH_KEY`, distinct from `CHATMAP_ENC_KEY`) shared identically
+  between the connector and the API. Deterministic (same JID → same hash,
+  every time) but not reversible and not brute-forceable without the key —
+  this is what grouping/pairing ([D-009](#d-009-pairing-match-criteria)) and
+  the conversation engine's Conversation key match on.
+- `fromenc` / `chatenc` (stream fields): AES-256-GCM with `CHATMAP_ENC_KEY`,
+  same as message content — reversible, but non-deterministic (random nonce
+  per call, so encrypting the same JID twice yields different ciphertext).
+  Used only when the API needs to address a reply back to the sender (queued
+  on the `to_send` stream, decrypted connector-side).
 
 **Type.** INVARIANT.
 
-**Rationale.** This is the system's current privacy boundary: message
-content is recoverable (needed to display it on the map), while WhatsApp
-identifiers are not (they're only used internally for grouping/pairing, per
-[D-009](#d-009-pairing-match-criteria), never displayed or reversed).
-Location coordinates are treated as neither — sent in the clear, since they
-are the map payload itself.
+**Rationale.** This is the system's privacy boundary: message content and
+the reply-address copy of sender/chat are recoverable (needed to display
+content on the map, and to route a reply), while the grouping copy of
+sender/chat and the account JID are not (used only for internal
+matching/attribution, never displayed or reversed). A single AES-GCM value
+can't serve both purposes at once — its random nonce makes it unsuitable as
+a stable grouping key — which is why sender/chat are carried in two parallel
+fields instead of one. Location coordinates are treated as neither — sent in
+the clear, since they are the map payload itself.
 
 ---
 
@@ -138,9 +156,11 @@ repeated reprocessing idempotent.
 
 **Statement.** Every WhatsApp message — text, native location share, or
 media — is written through one `XAdd` call with one fixed field set (`id`,
-`user`, `from`, `chat`, `text`, `date`, `location`, `photo`, `video`,
-`audio`, `file`). Fields that don't apply to a given message type are left
-empty/nil rather than routed to a type-specific stream or schema.
+`user`, `from`, `chat`, `fromenc`, `chatenc`, `text`, `date`, `location`,
+`photo`, `video`, `audio`, `file`). Fields that don't apply to a given
+message type are left empty/nil rather than routed to a type-specific stream
+or schema. `fromenc`/`chatenc` carry the reversible copy of sender/chat, see
+[D-004](#d-004-encrypt-content-hash-identifiers).
 
 **Type.** DEFAULT.
 

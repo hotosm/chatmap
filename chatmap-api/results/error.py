@@ -1,0 +1,6 @@
+class StoreUnavailable(Exception):
+    ...
+
+
+class UnknownConversation(Exception):
+    ...
