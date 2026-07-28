@@ -1,13 +1,15 @@
-from events.message_event import MessageEvent
 from conversation_engine.event import Event, EventName
+from store.received_messages_store import ReceivedMessage
 
 
-def _message(**overrides) -> MessageEvent:
+def _message(**overrides) -> ReceivedMessage:
     fields = {
         "id": "1",
         "receiver": "receiver",
         "sender": "sender",
         "chat": "chat",
+        "sender_enc": "sender_enc",
+        "chat_enc": "chat_enc",
         "text": "",
         "date": "2026-07-14T12:00:00Z",
         "location": "",
@@ -17,7 +19,7 @@ def _message(**overrides) -> MessageEvent:
         "file": "",
     }
     fields.update(overrides)
-    return MessageEvent(**fields)
+    return ReceivedMessage(**fields)
 
 
 def test_photo_received_state():

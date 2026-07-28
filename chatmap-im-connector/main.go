@@ -421,12 +421,14 @@ func initClient(sessionID string) {
             }
     })
 
-    // Start outbound message consumer
-    outboundCtx, cancel := context.WithCancel(context.Background())
-    outboundCancelMu.Lock()
-    outboundCancel[sessionID] = cancel
-    outboundCancelMu.Unlock()
-    go consumeOutbound(outboundCtx, sessionID, client, enc_key)
+    // Start outbound message consumer (feature-flagged, off by default)
+    if outboundEnabled, _ := strconv.ParseBool(os.Getenv("CHATMAP_ENABLE_OUTBOUND")); outboundEnabled {
+        outboundCtx, cancel := context.WithCancel(context.Background())
+        outboundCancelMu.Lock()
+        outboundCancel[sessionID] = cancel
+        outboundCancelMu.Unlock()
+        go consumeOutbound(outboundCtx, sessionID, client, enc_key)
+    }
 
     // Try to connect client
     go func() {
@@ -897,8 +899,10 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             Values: map[string]interface{}{
                 "id":      streamID,
                 "user":    userId,
-                "from":    encrypt([]byte(message.From), []byte(enc_key)),
+                "from":    hash(message.From),
                 "chat":    hash(message.Chat),
+                "fromenc": encrypt([]byte(message.From), []byte(enc_key)),
+                "chatenc": encrypt([]byte(message.Chat), []byte(enc_key)),
                 "text":    message.Text,
                 "date":    message.Date,
                 "location": message.Location,

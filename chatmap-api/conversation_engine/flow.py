@@ -1,21 +1,29 @@
 from abc import ABC
 
-from conversation_engine.tool import BotTool, LogTool, logger
+from conversation_engine.tool import BotTool, logger
 from conversation_engine.conversation import Conversation
 from conversation_engine.event import Event, EventName
 from datetime import timedelta
 from typing import ClassVar, Callable, Awaitable, Optional
 
-from events.message_event import MessageEvent
+from redis.client import Redis as RedisClient
 
-Tool = Callable[[Event, MessageEvent, str], Awaitable[None]]
+from store.bot_state_store import BotStateStore
+
+from store.message_to_send_store import MessageToSendStore
+from store.received_messages_store import ReceivedMessagesStore, ReceivedMessage
+
+Tool = Callable[[Event, ReceivedMessage, str, Conversation], Awaitable[None]]
 
 
 class Flow(ABC):
     name: str
     window_time: ClassVar[timedelta]
 
-    def __init__(self, tools_by_events: Optional[dict[EventName, Tool]] = None):
+    def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore,
+                 tools_by_events: Optional[dict[EventName, Tool]] = None):
+        self.bot_state_store = bot_state_store
+        self.message_to_send_store = message_to_send_store
         self.tools_by_events = tools_by_events if tools_by_events is not None else self.default_tools_by_events()
 
     def expected_events(self) -> set[EventName]:
@@ -25,55 +33,44 @@ class Flow(ABC):
     def default_tools_by_events(cls) -> dict[EventName, Tool]:
         raise NotImplementedError
 
-    async def check_tool_for_event(self, event: Event, message: MessageEvent, device: str) -> None:
+    async def check_tool_for_event(
+            self,
+            event: Event,
+            message: ReceivedMessage,
+            device: str,
+            conversation: Conversation
+    ) -> None:
         tool = self.tools_by_events.get(event.name)
         if tool:
-            await tool(event, message, device)
+            await tool(event, message, device, conversation)
         else:
             logger.error("No tool configured for event: %s", event.name)
-
-    async def check_end_flow(self, conversation: Conversation) -> None:
-        if self.expected_events() <= conversation.events_viewed:
-            await LogTool()(data={"log_message": "all events in the %s flow occurred", "log_arg": self.name})
-
-
-class LinkConversationFlow(Flow):
-    name = "link_conversation"
-    window_time = timedelta(minutes=2)
-
-    @classmethod
-    def default_tools_by_events(cls) -> dict[EventName, Tool]:
-        bot_tool = BotTool()
-        return {
-            EventName.USER_UPLOAD_PHOTO: bot_tool,
-            EventName.USER_SEND_COORDINATES: bot_tool,
-        }
 
 
 class HelpFlow(Flow):
     name = "help"
     window_time = timedelta(minutes=2)
 
-    @classmethod
-    def default_tools_by_events(cls) -> dict[EventName, Tool]:
-        bot_tool = BotTool()
+    def default_tools_by_events(self) -> dict[EventName, Tool]:
+        bot_tool = BotTool(bot_state_store=self.bot_state_store, message_to_send_store=self.message_to_send_store)
+
         return {
             EventName.USER_SEND_TEXT: bot_tool,
+            EventName.USER_UPLOAD_PHOTO: bot_tool,
+            EventName.USER_SEND_COORDINATES: bot_tool,
         }
 
 
 class Flows:
-    @classmethod
-    def registered_flows(cls) -> list[Flow]:
-        return [LinkConversationFlow(), HelpFlow()]
+    def __init__(self, client: RedisClient):
+        self.bot_state_store = BotStateStore(client)
+        self.message_to_send_store = MessageToSendStore(client=client)
+        self.received_messages_store = ReceivedMessagesStore(client=client)
 
-    @classmethod
-    async def call_tools_for(cls, event: Event, message: MessageEvent, device: str):
-        for flow in cls.registered_flows():
+    def registered_flows(self) -> list[Flow]:
+        return [HelpFlow(bot_state_store=self.bot_state_store, message_to_send_store=self.message_to_send_store)]
+
+    async def call_tools_for(self, event: Event, message: ReceivedMessage, device: str, conversation: Conversation):
+        for flow in self.registered_flows():
             if event.name in flow.expected_events():
-                await flow.check_tool_for_event(event=event, message=message, device=device)
-
-    @classmethod
-    async def call_tools_in_end_flow(cls, conversation: Conversation):
-        for flow in cls.registered_flows():
-            await flow.check_end_flow(conversation=conversation)
+                await flow.check_tool_for_event(event=event, message=message, device=device, conversation=conversation)
