@@ -960,6 +960,18 @@ func main() {
         Addr: redis_host + ":" + redis_port,
     })
 
+    // WhatsApp rejects connections using an outdated hardcoded client
+    // version ("err-client-outdated"). Fetch the version currently
+    // required by web.whatsapp.com and use it instead, so pairing keeps
+    // working without needing a whatsmeow dependency bump every time
+    // WhatsApp raises the minimum version.
+    if latestVer, err := whatsmeow.GetLatestVersion(context.Background(), nil); err != nil {
+        log.Printf("WARNING: failed to fetch latest WhatsApp version, using built-in default: %v", err)
+    } else {
+        store.SetWAVersion(*latestVer)
+        log.Printf("Using WhatsApp Web version %s", latestVer.String())
+    }
+
     // Re-init sessions
     cleanEmptySessions()
     reInitSessions()
