@@ -12,9 +12,8 @@ import { useConfigContext } from "../../context/ConfigContext";
 
 import { hashUsername } from "../ChatMap/hash";
 
-export const processChatData = async (chatmapId, data) => {
+export const processChatData = async (data) => {
   let newData = {
-    _chatmapId: chatmapId,
     ...data,
     features: await Promise.all(
       data.features
