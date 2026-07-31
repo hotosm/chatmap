@@ -1,6 +1,25 @@
 import { FormattedMessage } from 'react-intl';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { hashUsername } from "../ChatMap/hash";
+
+export const processChatData = async (chatmapId, data) => {
+  let newData = {
+    _chatmapId: chatmapId,
+    ...data,
+    features: await Promise.all(
+      data.features
+        .filter(feature => !feature.properties.removed)
+        .map(async (feature) => {
+          feature.properties.username = await hashUsername(feature.properties.username);
+          delete feature.properties.timeString;
+          return feature;
+        })
+    )
+  };
+
+  return newData;
+};
 
 /**
  *
@@ -9,29 +28,18 @@ import { saveAs } from 'file-saver';
  * Create a zip with chat data and files inside. Fire an
  * event for user to download the file
  */
-function createAndDownloadZip(data, dataFiles) {
+async function createAndDownloadZip(data, dataFiles) {
   const zip = new JSZip();
 
   // The name of the file to save
   const chatmapId = data._chatmapId;
 
   // Add GeoJSON data to the zip file
-  let newData = {
-    _chatmapId: chatmapId,
-    ...data,
-    features: data.features.filter(feature => !feature.properties.removed),
-  }
+  let newData = await processChatData(chatmapId, data);
 
   // Get a list of media files from GeoJSON data
   const media_files = newData.features.map(x => x.properties.file);
 
-  newData.features.forEach(feature => {
-    // Delete username for enhanced privacy and security
-    // delete feature.properties.username;
-
-    // Delete unused properties
-    delete feature.properties.timeString;
-  })
   const geoJsonBlob = new Blob([JSON.stringify(newData)], { type: 'application/json' });
   zip.file('data.geojson', geoJsonBlob);
 
@@ -50,7 +58,7 @@ function createAndDownloadZip(data, dataFiles) {
   });
 }
 
-function DownloadButton({ data, dataFiles, url, className, disabled, format, label}) {
+function DownloadButton({ data, dataFiles, url, className, disabled, format, label, variant}) {
 
   const handleClick = () => {
     if (url) {
@@ -64,7 +72,7 @@ function DownloadButton({ data, dataFiles, url, className, disabled, format, lab
     <sl-button
       disabled={disabled}
       className={className}
-      variant="default"
+      variant={variant || "default"}
       outline
       size="small"
       onClick={handleClick}
