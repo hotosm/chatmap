@@ -467,11 +467,12 @@ func cleanEmptySessions() {
 // Redis.
 func mediaImageReference(msg *waProto.ImageMessage) string {
     ref := MediaReference{
-        MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
-        DirectPath: msg.GetDirectPath(),
-        FileSHA256: base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
-        FileLength: msg.GetFileLength(),
-        Mimetype:   msg.GetMimetype(),
+        MediaKey:      base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
+        DirectPath:    msg.GetDirectPath(),
+        FileSHA256:    base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
+        FileEncSHA256: base64.StdEncoding.EncodeToString(msg.GetFileEncSHA256()),
+        FileLength:    msg.GetFileLength(),
+        Mimetype:      msg.GetMimetype(),
     }
     data, _ := json.Marshal(ref)
     return string(data)
@@ -481,11 +482,12 @@ func mediaImageReference(msg *waProto.ImageMessage) string {
 // Redis.
 func mediaVideoReference(msg *waProto.VideoMessage) string {
     ref := MediaReference{
-        MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
-        DirectPath: msg.GetDirectPath(),
-        FileSHA256: base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
-        FileLength: msg.GetFileLength(),
-        Mimetype:   msg.GetMimetype(),
+        MediaKey:      base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
+        DirectPath:    msg.GetDirectPath(),
+        FileSHA256:    base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
+        FileEncSHA256: base64.StdEncoding.EncodeToString(msg.GetFileEncSHA256()),
+        FileLength:    msg.GetFileLength(),
+        Mimetype:      msg.GetMimetype(),
     }
     data, _ := json.Marshal(ref)
     return string(data)
@@ -495,11 +497,12 @@ func mediaVideoReference(msg *waProto.VideoMessage) string {
 // Redis.
 func mediaAudioReference(msg *waProto.AudioMessage) string {
     ref := MediaReference{
-        MediaKey:   base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
-        DirectPath: msg.GetDirectPath(),
-        FileSHA256: base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
-        FileLength: msg.GetFileLength(),
-        Mimetype:   msg.GetMimetype(),
+        MediaKey:      base64.StdEncoding.EncodeToString(msg.GetMediaKey()),
+        DirectPath:    msg.GetDirectPath(),
+        FileSHA256:    base64.StdEncoding.EncodeToString(msg.GetFileSHA256()),
+        FileEncSHA256: base64.StdEncoding.EncodeToString(msg.GetFileEncSHA256()),
+        FileLength:    msg.GetFileLength(),
+        Mimetype:      msg.GetMimetype(),
     }
     data, _ := json.Marshal(ref)
     return string(data)
