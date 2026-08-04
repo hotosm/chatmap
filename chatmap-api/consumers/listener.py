@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 
 from conversation_engine.flow import Flows
-from results.error import UnknownConversation, StoreUnavailable
+from results.error import UnknownConversation, StoreUnavailable, BotStateWithoutPointId
 from store.conversation_store import ConversationStore
 from redis import asyncio as async_redis
 
@@ -72,6 +72,9 @@ class ConversationsStateListener:
                 logger.warning(f"The request failed due to connectivity issues; it will automatically retry")
             except UnknownConversation:
                 logger.warning(f"Conversation not found; it will automatically retry")
+            except BotStateWithoutPointId as error:
+                logger.warning(f"Message: '{error.message_id}' with incorrect state removing from PEL")
+                await flows.received_messages_store.mark_message_as_processed(message_id=error.message_id, device=device)
 
     async def start(self):
         semaphore = asyncio.Semaphore(10)

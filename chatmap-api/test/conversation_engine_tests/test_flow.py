@@ -41,7 +41,7 @@ class _FakeFlow:
 async def test_check_tool_for_event_invokes_the_registered_tool():
     tool = AsyncMock()
     flow = Flow(
-        bot_state_store=Mock(), message_to_send_store=Mock(),
+        bot_state_store=Mock(), message_to_send_store=Mock(), survey_responses_store=Mock(),
         tools_by_events={EventName.USER_SEND_TEXT: tool},
     )
     event = _event(EventName.USER_SEND_TEXT)
@@ -56,7 +56,7 @@ async def test_check_tool_for_event_invokes_the_registered_tool():
 async def test_check_tool_for_event_does_nothing_when_no_tool_registered():
     tool = AsyncMock()
     flow = Flow(
-        bot_state_store=Mock(), message_to_send_store=Mock(),
+        bot_state_store=Mock(), message_to_send_store=Mock(), survey_responses_store=Mock(),
         tools_by_events={EventName.USER_UPLOAD_PHOTO: tool},
     )
     event = _event(EventName.USER_SEND_TEXT)
@@ -70,7 +70,7 @@ async def test_check_tool_for_event_does_nothing_when_no_tool_registered():
 
 def test_expected_events_returns_the_tools_by_events_keys():
     flow = Flow(
-        bot_state_store=Mock(), message_to_send_store=Mock(),
+        bot_state_store=Mock(), message_to_send_store=Mock(), survey_responses_store=Mock(),
         tools_by_events={EventName.USER_SEND_TEXT: AsyncMock(), EventName.USER_SEND_COORDINATES: AsyncMock()},
     )
 
@@ -80,7 +80,7 @@ def test_expected_events_returns_the_tools_by_events_keys():
 # ---- HelpFlow ----
 
 def test_help_flow_shares_a_single_bot_tool_across_its_events():
-    help_flow = HelpFlow(bot_state_store=Mock(), message_to_send_store=Mock())
+    help_flow = HelpFlow(bot_state_store=Mock(), message_to_send_store=Mock(), survey_responses_store=Mock())
 
     tools = help_flow.tools_by_events
 

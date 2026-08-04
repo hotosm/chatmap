@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
+from store.survey_responses_store import SurveyResponsesStore
 from typing import Callable, Awaitable
 
 import logging
@@ -19,7 +20,7 @@ class Language(Enum):
 
     @classmethod
     def default(cls):
-        return Language.ES
+        return Language.EN
 
 
 @dataclass
@@ -28,6 +29,12 @@ class BotFlowContext:
     recipient: str
     sender: str
     answer: str
+    message_id: str
+    point_id: str | None
+    bot_state_store: BotStateStore
+
+    async def fetch_field(self, field: str) -> str | None:
+        return await self.bot_state_store.fetch_field(bot_state_key=self.state_key, field=field)
 
 
 class BotFlow(ABC):
@@ -35,12 +42,14 @@ class BotFlow(ABC):
                  state: Enum,
                  language: Language,
                  bot_state_store: BotStateStore,
-                 message_to_send_store: MessageToSendStore
+                 message_to_send_store: MessageToSendStore,
+                 survey_responses_store: SurveyResponsesStore
                  ):
         self.state = state
         self.language = language
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
+        self.survey_responses_store = survey_responses_store
 
     @classmethod
     @abstractmethod
@@ -48,7 +57,8 @@ class BotFlow(ABC):
             cls,
             bot_state_key: str,
             bot_state_store: BotStateStore,
-            message_to_send_store: MessageToSendStore
+            message_to_send_store: MessageToSendStore,
+            survey_responses_store: SurveyResponsesStore
     ):
         ...
 

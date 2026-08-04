@@ -4,8 +4,10 @@ import typer
 import asyncio
 from datetime import datetime, timezone
 from redis import asyncio as async_redis
+from sqlalchemy import delete, select
 
 from consumers.listener import ConversationsStateListener
+from db import SurveyResponse, get_db_session
 from store.message_to_send_store import MessageToSendStore
 
 logging.basicConfig(
@@ -17,9 +19,11 @@ logging.basicConfig(
 app = typer.Typer()
 received_message_app = typer.Typer(help="Manage entries on the messages stream (inbound webhook events)")
 message_to_send_app = typer.Typer(help="Manage entries on the to_send stream (chatmap-im-connector delivery queue)")
+survey_response_app = typer.Typer(help="Inspect entries in the survey_responses table")
 
 app.add_typer(received_message_app, name="received-message")
 app.add_typer(message_to_send_app, name="message-to-send")
+app.add_typer(survey_response_app, name="survey-response")
 
 redis_host = "localhost"
 redis_port = 6380
@@ -154,6 +158,33 @@ def message_to_send_list(device: str = typer.Option(..., help="Session id whose 
         await client.aclose()
 
     asyncio.run(run())
+
+
+@survey_response_app.command("list")
+def survey_response_list(
+        point_id: str = typer.Option(None, help="Only list the row for this point id"),
+):
+    """List every row currently in the survey_responses table."""
+    db = get_db_session()
+    stmt = select(SurveyResponse)
+    if point_id:
+        stmt = stmt.where(SurveyResponse.point_id == point_id)
+    for row in db.execute(stmt).scalars():
+        typer.echo({"point_id": row.point_id, "answers": row.answers})
+
+
+@survey_response_app.command("delete")
+def survey_response_delete(
+        point_id: str = typer.Option(None, help="Only delete the row for this point id; omit to delete all rows"),
+):
+    """Delete rows from the survey_responses table."""
+    db = get_db_session()
+    stmt = delete(SurveyResponse)
+    if point_id:
+        stmt = stmt.where(SurveyResponse.point_id == point_id)
+    result = db.execute(stmt)
+    db.commit()
+    typer.echo(f"deleted {result.rowcount} row(s) from survey_responses")
 
 
 @app.command("conversations-listener")

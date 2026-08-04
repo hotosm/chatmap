@@ -5,10 +5,11 @@ from Crypto.Cipher import AES
 
 from bot.flow import BotFlowContext
 from conversation_engine.conversation import Conversation
-from conversation_engine.event import Event
+from conversation_engine.event import Event, EventName
 from bot.flows.first_time_mapping.flow import FirstTimeMappingFlow
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
+from store.survey_responses_store import SurveyResponsesStore
 from settings import CHATMAP_ENC_KEY
 from store.received_messages_store import ReceivedMessage
 
@@ -31,22 +32,32 @@ def _decrypt_text(encoded_data: str) -> str:
 
 
 class BotTool:
-    def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore):
+    def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore,
+                 survey_responses_store: SurveyResponsesStore):
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
+        self.survey_responses_store = survey_responses_store
 
     async def __call__(self, event: Event, message: ReceivedMessage, device: str, conversation: Conversation):
         bot_state_key = f"bot_state:{FirstTimeMappingFlow.name}:{message.sender}{message.chat}"
 
         flow = await FirstTimeMappingFlow.create(
             bot_state_key=bot_state_key,
-            bot_state_store=self.bot_state_store, message_to_send_store=self.message_to_send_store
+            bot_state_store=self.bot_state_store,
+            message_to_send_store=self.message_to_send_store,
+            survey_responses_store=self.survey_responses_store
         )
+
+        point_id = message.id if event.name == EventName.USER_SEND_COORDINATES else None
+
         context = BotFlowContext(
             state_key=bot_state_key,
             recipient=message.sender_enc,
             sender=device,
-            answer=_decrypt_text(message.text)
+            answer=_decrypt_text(message.text),
+            message_id=message.id,
+            point_id=point_id,
+            bot_state_store=self.bot_state_store
         )
 
         await flow.call(current_event=event.name, context=context)

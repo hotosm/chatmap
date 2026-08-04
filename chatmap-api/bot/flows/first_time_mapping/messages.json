@@ -1,30 +1,50 @@
 {
   "ES": {
-    "ask_for_lang": "¡Hola!  👋 Soy el bot de ChatMap\n\n¿Cual es tu idioma?\n\n1️⃣ Español\n2️⃣ Ingles\n3️⃣ Portugués\n4️⃣ Francés",
-    "ask_for_photo": "Comenzá mandando el contenido:\n1\uFE0F⃣ Tocá el clip (\uD83D\uDCCE).\n2\uFE0F⃣ Elegí el contenido que querés mapear.",
+    "ask_for_lang_question": "¡Hola!  👋 Soy el bot de ChatMap\n\n¿Cual es tu idioma?",
+    "ask_for_photo": "Comenzá mandando el contenido:\n1️⃣ Tocá el clip (📎).\n2️⃣ Elegí el contenido que querés mapear.",
     "ask_for_coordinate": "Ahora compartí la *ubicación*:\n1️⃣ Tocá el clip (📎).\n2️⃣ Elegí *Ubicación*.",
+    "damage_level_question": "¿Cuál es el nivel de daño?",
+    "damage_level_options": {"1": "Alto", "2": "Medio", "3": "Bajo"},
     "end_flow": "¡Listo! Con esos dos pasos tu archivo queda en el mapa. 🗺️",
-    "fallback": "Respuesta incorrecta!"
+    "fallback": "Respuesta incorrecta!",
+    "recovery_question": "No estamos logrando avanzar. ¿Querés cancelar el mapeo o reiniciarlo desde el principio?",
+    "recovery_options": {"1": "Cancelar", "2": "Reiniciar"},
+    "flow_cancelled": "Mapeo cancelado. Cuando quieras, escribime para empezar de nuevo. 👋"
   },
   "EN": {
-    "ask_for_lang": "Hi! 👋 I'm the ChatMap bot\n\nWhat is your language?\n\n1️⃣ Spanish\n2️⃣ English\n3️⃣ Portuguese\n4️⃣ French",
+    "ask_for_lang_question": "Hi! 👋 I'm the ChatMap bot\n\nWhat is your language?",
     "ask_for_photo": "Start by sending the content:\n1️⃣ Tap the clip (📎).\n2️⃣ Choose the content you want to map.",
     "ask_for_coordinate": "Now share the *location*:\n1️⃣ Tap the clip (📎).\n2️⃣ Choose *Location*.",
+    "damage_level_question": "What is the damage level?",
+    "damage_level_options": {"1": "High", "2": "Medium", "3": "Low"},
     "end_flow": "Done! With those two steps your file is now on the map. 🗺️",
-    "fallback": "Incorrect answer!"
+    "fallback": "Incorrect answer!",
+    "recovery_question": "We're not making progress. Do you want to cancel the mapping or restart it from the beginning?",
+    "recovery_options": {"1": "Cancel", "2": "Restart"},
+    "flow_cancelled": "Mapping cancelled. Whenever you're ready, send me a message to start again. 👋"
   },
   "PT": {
-    "ask_for_lang": "Olá! 👋 Eu sou o bot do ChatMap\n\nQual é o seu idioma?\n\n1️⃣ Espanhol\n2️⃣ Inglês\n3️⃣ Português\n4️⃣ Francês",
+    "ask_for_lang_question": "Olá! 👋 Eu sou o bot do ChatMap\n\nQual é o seu idioma?",
     "ask_for_photo": "Comece enviando o conteúdo:\n1️⃣ Toque no clipe (📎).\n2️⃣ Escolha o conteúdo que deseja mapear.",
     "ask_for_coordinate": "Agora compartilhe a *localização*:\n1️⃣ Toque no clipe (📎).\n2️⃣ Escolha *Localização*.",
+    "damage_level_question": "Qual é o nível de dano?",
+    "damage_level_options": {"1": "Alto", "2": "Médio", "3": "Baixo"},
     "end_flow": "Pronto! Com esses dois passos seu arquivo já está no mapa. 🗺️",
-    "fallback": "Resposta incorreta!"
+    "fallback": "Resposta incorreta!",
+    "recovery_question": "Não estamos conseguindo avançar. Você quer cancelar o mapeamento ou reiniciá-lo desde o início?",
+    "recovery_options": {"1": "Cancelar", "2": "Reiniciar"},
+    "flow_cancelled": "Mapeamento cancelado. Quando quiser, me mande uma mensagem para começar de novo. 👋"
   },
   "FR": {
-    "ask_for_lang": "Bonjour ! 👋 Je suis le bot de ChatMap\n\nQuelle est votre langue ?\n\n1️⃣ Espagnol\n2️⃣ Anglais\n3️⃣ Portugais\n4️⃣ Français",
+    "ask_for_lang_question": "Bonjour ! 👋 Je suis le bot de ChatMap\n\nQuelle est votre langue ?",
     "ask_for_photo": "Commence par envoyer le contenu :\n1️⃣ Appuie sur le trombone (📎).\n2️⃣ Choisis le contenu que tu veux cartographier.",
     "ask_for_coordinate": "Maintenant, partage l'*emplacement* :\n1️⃣ Appuie sur le trombone (📎).\n2️⃣ Choisis *Position*.",
+    "damage_level_question": "Quel est le niveau de dommage ?",
+    "damage_level_options": {"1": "Élevé", "2": "Moyen", "3": "Faible"},
     "end_flow": "Voilà ! Avec ces deux étapes, ton fichier est maintenant sur la carte. 🗺️",
-    "fallback": "Réponse incorrecte !"
+    "fallback": "Réponse incorrecte !",
+    "recovery_question": "On n'avance pas. Tu veux annuler le mapping ou le recommencer depuis le début ?",
+    "recovery_options": {"1": "Annuler", "2": "Recommencer"},
+    "flow_cancelled": "Mapping annulé. Quand tu veux, envoie-moi un message pour recommencer. 👋"
   }
 }
