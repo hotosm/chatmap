@@ -24,6 +24,14 @@ class BotStateStore:
             logger.error(f"Fetch bot state failed with: '{error}'")
             raise StoreUnavailable
 
+    async def fetch_field(self, bot_state_key: str, field: str) -> str | None:
+        try:
+            return await self.client.hget(bot_state_key, field)
+
+        except RedisError as error:
+            logger.error(f"Fetch bot state field failed with: '{error}'")
+            raise StoreUnavailable
+
     async def save_state(
             self,
             bot_state_key: str,

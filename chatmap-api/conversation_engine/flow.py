@@ -13,6 +13,7 @@ from store.bot_state_store import BotStateStore
 
 from store.message_to_send_store import MessageToSendStore
 from store.received_messages_store import ReceivedMessagesStore, ReceivedMessage
+from store.survey_responses_store import SurveyResponsesStore
 
 Tool = Callable[[Event, ReceivedMessage, str, Conversation], Awaitable[None]]
 
@@ -21,12 +22,18 @@ class Flow(ABC):
     name: str
     window_time: ClassVar[timedelta]
 
-    def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore,
-                 bot_consumed_messages_store: BotConsumedMessagesStore,
-                 tools_by_events: Optional[dict[EventName, Tool]] = None):
+    def __init__(
+            self,
+            bot_state_store: BotStateStore,
+            message_to_send_store: MessageToSendStore,
+            bot_consumed_messages_store: BotConsumedMessagesStore,
+            survey_responses_store: SurveyResponsesStore,
+            tools_by_events: Optional[dict[EventName, Tool]] = None
+    ):
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
         self.bot_consumed_messages_store = bot_consumed_messages_store
+        self.survey_responses_store = survey_responses_store
         self.tools_by_events = tools_by_events if tools_by_events is not None else self.default_tools_by_events()
 
     def expected_events(self) -> set[EventName]:
@@ -58,7 +65,8 @@ class HelpFlow(Flow):
         bot_tool = BotTool(
             bot_state_store=self.bot_state_store,
             message_to_send_store=self.message_to_send_store,
-            bot_consumed_messages_store=self.bot_consumed_messages_store
+            bot_consumed_messages_store=self.bot_consumed_messages_store,
+            survey_responses_store=self.survey_responses_store
         )
 
         return {
@@ -74,13 +82,15 @@ class Flows:
         self.message_to_send_store = MessageToSendStore(client=client)
         self.received_messages_store = ReceivedMessagesStore(client=client)
         self.bot_consumed_messages_store = BotConsumedMessagesStore(client=client)
+        self.survey_responses_store = SurveyResponsesStore()
 
     def registered_flows(self) -> list[Flow]:
         return [
             HelpFlow(
                 bot_state_store=self.bot_state_store,
                 message_to_send_store=self.message_to_send_store,
-                bot_consumed_messages_store=self.bot_consumed_messages_store
+                bot_consumed_messages_store=self.bot_consumed_messages_store,
+                survey_responses_store=self.survey_responses_store
             )
         ]
 
