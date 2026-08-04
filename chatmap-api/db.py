@@ -15,7 +15,7 @@ from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
     Enum as SqlEnum, Boolean,
 )
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import insert, JSONB
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from geoalchemy2 import Geometry
@@ -146,6 +146,39 @@ def add_points(db: Session, points, user_id):
     stmt = stmt.on_conflict_do_update(
         index_elements=["id"],
         set_=update_dict
+    )
+    db.execute(stmt)
+    db.commit()
+
+
+# Model representing the accumulated survey answers for a Point
+class SurveyResponse(Base):
+    __tablename__ = "survey_responses"
+    point_id = Column(String, primary_key=True)
+    answers = Column(JSONB, nullable=False, default=list)
+
+
+# Append a question/answer pair to a point's survey responses
+def add_survey_response(db: Session, point_id: str, question: str, answer: str):
+    """
+    Appends a single {question, answer} pair to the survey_responses row for
+    a point. Creates the row on first answer; subsequent answers for the
+    same point_id are appended to the existing JSON array rather than
+    overwriting it.
+
+    Args:
+        db (Session): SQLAlchemy database session
+        point_id (str): id shared with the eventual Point row (no FK - the
+            Point may not exist yet, or ever, when this is called)
+        question (str): localized question text
+        answer (str): localized answer label
+    """
+    stmt = insert(SurveyResponse).values(
+        point_id=point_id, answers=[{"question": question, "answer": answer}]
+    )
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["point_id"],
+        set_={"answers": SurveyResponse.answers.op("||")(stmt.excluded.answers)},
     )
     db.execute(stmt)
     db.commit()

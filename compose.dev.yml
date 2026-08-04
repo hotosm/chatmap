@@ -52,6 +52,7 @@ services:
     volumes:
       - ./chatmap-api:/app
       - ./media:/app/media:rw
+      - /app/.venv
     networks:
       - chatmap_net
 
@@ -77,6 +78,8 @@ services:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_HASH_KEY=${CHATMAP_HASH_KEY:-FEDCBA9876543210FEDCBA9876543210}
+      - CHATMAP_ENABLE_OUTBOUND=true
     ports:
       - "8001:8001"
     volumes:
