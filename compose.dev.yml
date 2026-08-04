@@ -49,6 +49,7 @@ services:
       - HANKO_API_URL=http://chatmap-hanko:8002
       - JWT_ISSUER=http://localhost:8002
       - COOKIE_SECRET=dev-secret-key-min-32-bytes-long!
+      - CHATMAP_ENABLE_OUTBOUND=${CHATMAP_ENABLE_OUTBOUND:-true}
     volumes:
       - ./chatmap-api:/app
       - ./media:/app/media:rw

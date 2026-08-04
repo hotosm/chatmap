@@ -48,6 +48,7 @@ services:
       - CHATMAP_S3_BUCKET_NAME=${CHATMAP_S3_BUCKET_NAME:-}
       - CHATMAP_S3_ACCESS_KEY=${CHATMAP_S3_ACCESS_KEY:-}
       - CHATMAP_S3_SECRET_KEY=${CHATMAP_S3_SECRET_KEY:-}
+      - CHATMAP_ENABLE_OUTBOUND=${CHATMAP_ENABLE_OUTBOUND:-true}
 
     volumes:
       - ./media:/app/media:rw
