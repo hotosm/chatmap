@@ -67,7 +67,6 @@ class ConversationsStateListener:
                         await flows.received_messages_store.mark_message_as_processed(message_id=message.id,
                                                                                       device=device)
 
-                logger.info("no messages to process")
             except StoreUnavailable:
                 logger.warning(f"The request failed due to connectivity issues; it will automatically retry")
             except UnknownConversation:
@@ -82,9 +81,12 @@ class ConversationsStateListener:
         while True:
             devices = await Devices.get_active_devices(self.client)
 
-            async with asyncio.TaskGroup() as task_group:
-                for device in devices:
-                    task_group.create_task(
-                        self.process_conversation_for(device=device, flows=flows, semaphore=semaphore)
-                    )
+            try:
+                async with asyncio.TaskGroup() as task_group:
+                    for device in devices:
+                        task_group.create_task(
+                            self.process_conversation_for(device=device, flows=flows, semaphore=semaphore)
+                        )
+            except* Exception as eg:
+                logger.exception("Process failed for one or more devices: %s", eg.exceptions)
             await asyncio.sleep(2)

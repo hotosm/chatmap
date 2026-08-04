@@ -84,8 +84,6 @@ class ReceivedMessagesStore:
             if not result:
                 return messages
 
-            logger.debug(f"{len(messages)} messages for device: '{device}' founded")
-
             for stream_name, entries in result:
                 for entry_id, fields in entries:
                     if not fields:
