@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from conversation_engine.event import EventName
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 from typing import Callable, Awaitable
@@ -28,6 +30,8 @@ class BotFlowContext:
     recipient: str
     sender: str
     answer: str
+    message_id: str
+    occurred_at: datetime
 
 
 class BotFlow(ABC):
@@ -35,12 +39,14 @@ class BotFlow(ABC):
                  state: Enum,
                  language: Language,
                  bot_state_store: BotStateStore,
-                 message_to_send_store: MessageToSendStore
+                 message_to_send_store: MessageToSendStore,
+                 bot_consumed_messages_store: BotConsumedMessagesStore
                  ):
         self.state = state
         self.language = language
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
+        self.bot_consumed_messages_store = bot_consumed_messages_store
 
     @classmethod
     @abstractmethod
@@ -48,7 +54,8 @@ class BotFlow(ABC):
             cls,
             bot_state_key: str,
             bot_state_store: BotStateStore,
-            message_to_send_store: MessageToSendStore
+            message_to_send_store: MessageToSendStore,
+            bot_consumed_messages_store: BotConsumedMessagesStore
     ):
         ...
 

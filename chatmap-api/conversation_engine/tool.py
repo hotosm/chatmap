@@ -7,6 +7,7 @@ from bot.flow import BotFlowContext
 from conversation_engine.conversation import Conversation
 from conversation_engine.event import Event
 from bot.flows.first_time_mapping.flow import FirstTimeMappingFlow
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 from settings import CHATMAP_ENC_KEY
@@ -31,22 +32,31 @@ def _decrypt_text(encoded_data: str) -> str:
 
 
 class BotTool:
-    def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore):
+    def __init__(
+            self, bot_state_store: BotStateStore,
+            message_to_send_store: MessageToSendStore,
+            bot_consumed_messages_store: BotConsumedMessagesStore
+    ):
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
+        self.bot_consumed_messages_store = bot_consumed_messages_store
 
     async def __call__(self, event: Event, message: ReceivedMessage, device: str, conversation: Conversation):
         bot_state_key = f"bot_state:{FirstTimeMappingFlow.name}:{message.sender}{message.chat}"
 
         flow = await FirstTimeMappingFlow.create(
             bot_state_key=bot_state_key,
-            bot_state_store=self.bot_state_store, message_to_send_store=self.message_to_send_store
+            bot_state_store=self.bot_state_store,
+            message_to_send_store=self.message_to_send_store,
+            bot_consumed_messages_store=self.bot_consumed_messages_store
         )
         context = BotFlowContext(
             state_key=bot_state_key,
             recipient=message.sender_enc,
             sender=device,
-            answer=_decrypt_text(message.text)
+            answer=_decrypt_text(message.text),
+            message_id=message.id,
+            occurred_at=event.occurred_at
         )
 
         await flow.call(current_event=event.name, context=context)

@@ -8,6 +8,7 @@ from typing import ClassVar, Callable, Awaitable, Optional
 
 from redis.client import Redis as RedisClient
 
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 
 from store.message_to_send_store import MessageToSendStore
@@ -21,9 +22,11 @@ class Flow(ABC):
     window_time: ClassVar[timedelta]
 
     def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore,
+                 bot_consumed_messages_store: BotConsumedMessagesStore,
                  tools_by_events: Optional[dict[EventName, Tool]] = None):
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
+        self.bot_consumed_messages_store = bot_consumed_messages_store
         self.tools_by_events = tools_by_events if tools_by_events is not None else self.default_tools_by_events()
 
     def expected_events(self) -> set[EventName]:
@@ -52,7 +55,11 @@ class HelpFlow(Flow):
     window_time = timedelta(minutes=2)
 
     def default_tools_by_events(self) -> dict[EventName, Tool]:
-        bot_tool = BotTool(bot_state_store=self.bot_state_store, message_to_send_store=self.message_to_send_store)
+        bot_tool = BotTool(
+            bot_state_store=self.bot_state_store,
+            message_to_send_store=self.message_to_send_store,
+            bot_consumed_messages_store=self.bot_consumed_messages_store
+        )
 
         return {
             EventName.USER_SEND_TEXT: bot_tool,
@@ -66,9 +73,16 @@ class Flows:
         self.bot_state_store = BotStateStore(client)
         self.message_to_send_store = MessageToSendStore(client=client)
         self.received_messages_store = ReceivedMessagesStore(client=client)
+        self.bot_consumed_messages_store = BotConsumedMessagesStore(client=client)
 
     def registered_flows(self) -> list[Flow]:
-        return [HelpFlow(bot_state_store=self.bot_state_store, message_to_send_store=self.message_to_send_store)]
+        return [
+            HelpFlow(
+                bot_state_store=self.bot_state_store,
+                message_to_send_store=self.message_to_send_store,
+                bot_consumed_messages_store=self.bot_consumed_messages_store
+            )
+        ]
 
     async def call_tools_for(self, event: Event, message: ReceivedMessage, device: str, conversation: Conversation):
         for flow in self.registered_flows():

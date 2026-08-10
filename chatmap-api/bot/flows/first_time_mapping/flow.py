@@ -1,6 +1,7 @@
 from bot.flow import BotFlow, BotTransitions, BotFlowContext, not_handler_created, Language
 from conversation_engine.event import EventName
 from enum import Enum, auto
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 
@@ -33,7 +34,8 @@ class FirstTimeMappingFlow(BotFlow):
             cls,
             bot_state_key: str,
             bot_state_store: BotStateStore,
-            message_to_send_store: MessageToSendStore
+            message_to_send_store: MessageToSendStore,
+            bot_consumed_messages_store: BotConsumedMessagesStore
     ):
         result = await bot_state_store.fetch_state(bot_state_key=bot_state_key)
 
@@ -48,8 +50,13 @@ class FirstTimeMappingFlow(BotFlow):
             state = FirstTimeMappingState.IDLE
             language = Language.default()
 
-        return cls(state=state, language=language, bot_state_store=bot_state_store,
-                   message_to_send_store=message_to_send_store)
+        return cls(
+            state=state,
+            language=language,
+            bot_state_store=bot_state_store,
+            message_to_send_store=message_to_send_store,
+            bot_consumed_messages_store=bot_consumed_messages_store
+        )
 
     async def call(self, current_event: EventName, context: BotFlowContext) -> None:
         logger.info(f"Calling bot flow: '{self.name}' with state: '{self.state}' for event: '{current_event}'")
@@ -66,6 +73,16 @@ class FirstTimeMappingFlow(BotFlow):
             ctx: BotFlowContext,
     ) -> None:
         logger.info("Handling: on_ask_for_help")
+
+        # The text was consumed to open the conversation -- the user got a
+        # language menu, not a mapped point -- so it must not reach the map.
+        # Guarded on text because on_fallback reuses this handler for photos
+        # and locations, and those are content.
+        if ctx.answer:
+            await self.bot_consumed_messages_store.mark_consumed(
+                device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
+            )
+
         logger.info("sending message...")
 
         await self.message_to_send_store.send_message(
@@ -84,6 +101,12 @@ class FirstTimeMappingFlow(BotFlow):
             ctx: BotFlowContext,
     ) -> None:
         logger.info("Handling: on_ask_for_lang")
+
+        # Answering the bot, not mapping. Marked before validating, so an
+        # invalid answer is kept out of the map too.
+        await self.bot_consumed_messages_store.mark_consumed(
+            device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
+        )
 
         selected_language = ctx.answer
         displayed_options = {str(i): lang.name for i, lang in enumerate(Language, start=1)}
