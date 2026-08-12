@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, call, patch
 
 import pytest
@@ -10,21 +11,30 @@ from bot.flows.first_time_mapping.flow import (
     translations,
 )
 from conversation_engine.event import EventName
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 
 
-def _make_flow(state, language=Language.ES, bot_state_store=None, message_to_send_store=None):
+OCCURRED_AT = datetime(2026, 8, 9, 21, 7, 41, tzinfo=timezone.utc)
+
+
+def _make_flow(state, language=Language.ES, bot_state_store=None, message_to_send_store=None,
+               bot_consumed_messages_store=None):
     return FirstTimeMappingFlow(
         state=state,
         language=language,
         bot_state_store=bot_state_store or AsyncMock(spec=BotStateStore),
         message_to_send_store=message_to_send_store or AsyncMock(spec=MessageToSendStore),
+        bot_consumed_messages_store=bot_consumed_messages_store or AsyncMock(spec=BotConsumedMessagesStore),
     )
 
 
 def _ctx(**overrides):
-    fields = dict(state_key="key-1", recipient="user-enc-1", sender="device-1", answer="")
+    fields = dict(
+        state_key="key-1", recipient="user-enc-1", sender="device-1", answer="",
+        message_id="msg-1", occurred_at=OCCURRED_AT,
+    )
     fields.update(overrides)
     return BotFlowContext(**fields)
 
@@ -39,6 +49,7 @@ async def test_create_defaults_to_idle_and_default_language_when_no_state_stored
         bot_state_key="key-1",
         bot_state_store=bot_state_store,
         message_to_send_store=AsyncMock(spec=MessageToSendStore),
+        bot_consumed_messages_store=AsyncMock(spec=BotConsumedMessagesStore),
     )
 
     assert flow.state == FirstTimeMappingState.IDLE
@@ -61,6 +72,7 @@ async def test_create_restores_previously_stored_state_and_language(
         bot_state_key="key-1",
         bot_state_store=bot_state_store,
         message_to_send_store=AsyncMock(spec=MessageToSendStore),
+        bot_consumed_messages_store=AsyncMock(spec=BotConsumedMessagesStore),
     )
 
     assert flow.state == expected_state
@@ -75,6 +87,7 @@ async def test_create_falls_back_to_idle_for_an_unrecognized_state():
         bot_state_key="key-1",
         bot_state_store=bot_state_store,
         message_to_send_store=AsyncMock(spec=MessageToSendStore),
+        bot_consumed_messages_store=AsyncMock(spec=BotConsumedMessagesStore),
     )
 
     assert flow.state == FirstTimeMappingState.IDLE
@@ -89,6 +102,7 @@ async def test_create_falls_back_to_default_language_for_an_unrecognized_languag
         bot_state_key="key-1",
         bot_state_store=bot_state_store,
         message_to_send_store=AsyncMock(spec=MessageToSendStore),
+        bot_consumed_messages_store=AsyncMock(spec=BotConsumedMessagesStore),
     )
 
     assert flow.state == FirstTimeMappingState.WAITING_PHOTO
@@ -328,3 +342,86 @@ async def test_on_fallback_from_mapping_completed_only_sends_the_fallback_messag
         sender=ctx.sender, to=ctx.recipient, message=translations[language.name]["fallback"],
     )
     bot_state_store.save_state.assert_not_awaited()
+
+
+# ---- messages the bot consumes as answers ----
+
+async def test_answering_the_language_question_keeps_the_message_out_of_the_map():
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_LANG,
+        bot_consumed_messages_store=bot_consumed_messages_store,
+    )
+    ctx = _ctx(answer="1", message_id="1786309661000-0")
+
+    await flow.on_ask_for_lang(ctx)
+
+    bot_consumed_messages_store.mark_consumed.assert_awaited_once_with(
+        device=ctx.sender, message_id="1786309661000-0", occurred_at=OCCURRED_AT,
+    )
+
+
+async def test_an_invalid_language_answer_is_still_kept_out_of_the_map():
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_LANG,
+        bot_consumed_messages_store=bot_consumed_messages_store,
+    )
+
+    await flow.on_ask_for_lang(_ctx(answer="no soy una opcion"))
+
+    bot_consumed_messages_store.mark_consumed.assert_awaited_once()
+
+
+async def test_the_text_that_opens_the_conversation_is_kept_out_of_the_map():
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(
+        FirstTimeMappingState.IDLE,
+        bot_consumed_messages_store=bot_consumed_messages_store,
+    )
+    ctx = _ctx(answer="hola", message_id="1786309600000-0")
+
+    await flow.on_ask_for_help(ctx)
+
+    bot_consumed_messages_store.mark_consumed.assert_awaited_once_with(
+        device=ctx.sender, message_id="1786309600000-0", occurred_at=OCCURRED_AT,
+    )
+
+
+@pytest.mark.parametrize("state", [FirstTimeMappingState.IDLE, FirstTimeMappingState.WAITING_LANG])
+async def test_a_photo_or_location_routed_through_on_ask_for_help_stays_available_to_the_map(state):
+    # on_fallback delegates to on_ask_for_help in these states, and what
+    # arrives there is content: it carries no text
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(state, bot_consumed_messages_store=bot_consumed_messages_store)
+
+    await flow.on_fallback(_ctx(answer=""))
+
+    bot_consumed_messages_store.mark_consumed.assert_not_awaited()
+
+
+@pytest.mark.parametrize("state, handler_name", [
+    (FirstTimeMappingState.WAITING_PHOTO, "on_photo_uploaded"),
+    (FirstTimeMappingState.WAITING_COORDINATES, "on_coordinates_sent"),
+])
+async def test_content_stays_available_to_the_map(state, handler_name):
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(state, bot_consumed_messages_store=bot_consumed_messages_store)
+
+    await getattr(flow, handler_name)(_ctx())
+
+    bot_consumed_messages_store.mark_consumed.assert_not_awaited()
+
+
+@pytest.mark.parametrize("state", [
+    FirstTimeMappingState.WAITING_PHOTO,
+    FirstTimeMappingState.WAITING_COORDINATES,
+    FirstTimeMappingState.MAPPING_COMPLETED,
+])
+async def test_a_message_that_only_hits_the_fallback_stays_available_to_the_map(state):
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(state, bot_consumed_messages_store=bot_consumed_messages_store)
+
+    await flow.on_fallback(_ctx(answer="cualquier cosa"))
+
+    bot_consumed_messages_store.mark_consumed.assert_not_awaited()

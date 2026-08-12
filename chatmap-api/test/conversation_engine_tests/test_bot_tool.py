@@ -12,6 +12,7 @@ from conversation_engine.conversation import Conversation, ConversationKey
 from conversation_engine.event import Event, EventName
 from conversation_engine.tool import BotTool
 from settings import CHATMAP_ENC_KEY
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 from store.received_messages_store import ReceivedMessage
@@ -40,20 +41,28 @@ def _conversation() -> Conversation:
     return Conversation(key=ConversationKey(sender="sender-1", chat="chat-1"))
 
 
-def _make_bot_tool(bot_state_store=None, message_to_send_store=None) -> BotTool:
+def _make_bot_tool(
+        bot_state_store=None,
+        message_to_send_store=None,
+        bot_consumed_messages_store=None
+) -> BotTool:
     return BotTool(
         bot_state_store=bot_state_store or AsyncMock(spec=BotStateStore),
         message_to_send_store=message_to_send_store or AsyncMock(spec=MessageToSendStore),
+        bot_consumed_messages_store=bot_consumed_messages_store or AsyncMock(spec=BotConsumedMessagesStore),
     )
 
 
 async def test_call_decrypts_text_and_delegates_to_the_flow():
     plaintext = "hola bot"
-    message = _message(text=_encrypt(plaintext), sender="sender-1", chat="chat-1", sender_enc="recipient-enc-1")
+    message = _message(
+        id="msg-1", text=_encrypt(plaintext), sender="sender-1", chat="chat-1", sender_enc="recipient-enc-1"
+    )
     event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))
     bot_state_store = AsyncMock(spec=BotStateStore)
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
-    bot_tool = _make_bot_tool(bot_state_store, message_to_send_store)
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    bot_tool = _make_bot_tool(bot_state_store, message_to_send_store, bot_consumed_messages_store)
     fake_flow = AsyncMock()
 
     with patch.object(FirstTimeMappingFlow, "create", AsyncMock(return_value=fake_flow)) as mock_create:
@@ -64,11 +73,13 @@ async def test_call_decrypts_text_and_delegates_to_the_flow():
         bot_state_key=expected_key,
         bot_state_store=bot_state_store,
         message_to_send_store=message_to_send_store,
+        bot_consumed_messages_store=bot_consumed_messages_store,
     )
     fake_flow.call.assert_awaited_once_with(
         current_event=EventName.USER_SEND_TEXT,
         context=BotFlowContext(
             state_key=expected_key, recipient="recipient-enc-1", sender="device-1", answer=plaintext,
+            message_id="msg-1", occurred_at=event.occurred_at,
         ),
     )
 
