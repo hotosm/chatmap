@@ -13,7 +13,7 @@ export default function Message({
 
   const onCoordsClick = () => {
     const coords = getShortCoords();
-    navigator.clipboard.writeText(`${coords[1]},${coords[0]}`)
+    navigator.clipboard.writeText(`${coords[0]},${coords[1]}`)
   }
 
   const getShortCoords = () => {
