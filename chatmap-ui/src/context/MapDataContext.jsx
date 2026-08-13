@@ -61,7 +61,10 @@ export const MapDataProvider = (props) => {
           currentValue.properties.tags.split(",").forEach(tag => {
               accumulator[tag] = (accumulator[tag] || 0) + 1;
           });
+      } else {
+        accumulator["__undefined"] = (accumulator["__undefined"] || 0) + 1;
       }
+      accumulator["__all"] = (accumulator["__all"] || 0) + 1;
       return accumulator;
   }, {});
 
