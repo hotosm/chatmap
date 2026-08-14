@@ -12,10 +12,10 @@ import logging
 import asyncio
 import zipfile
 import json
+import boto3
 from pathlib import Path
 from uuid import uuid4
 from collections import defaultdict
-from aiobotocore.session import get_session
 from typing import Annotated
 from fastapi import (
     FastAPI, HTTPException, Depends, Request, APIRouter, File, UploadFile,
@@ -216,8 +216,6 @@ async def save_media(
     user: CurrentUser,
     file: Annotated[UploadFile, File()],
 ) -> SaveMediaResponse:
-    session = get_session()
-
     s3_client_kwargs = {
         'endpoint_url': S3_ENDPOINT_URL,
     }
@@ -226,18 +224,18 @@ async def save_media(
     if S3_SECRET_KEY:
         s3_client_kwargs['aws_secret_access_key'] = S3_SECRET_KEY
 
-    async with session.create_client(
-        's3', **s3_client_kwargs) as client:
-        ext = Path(file.filename).suffix
-        filename = str(uuid4()) + ext
-        resp = await client.put_object(
-            Bucket=S3_BUCKET_NAME,
-            Key=filename,
-            Body=await file.read(),
-        )
+    s3_client = boto3.client('s3', **s3_client_kwargs)
+
+    ext = Path(file.filename).suffix
+    filename = str(uuid4()) + ext
+    resp = s3_client.put_object(
+        Bucket=S3_BUCKET_NAME,
+        Key=filename,
+        Body=await file.read(),
+        ContentType=file.content_type,
+    )
 
     return SaveMediaResponse(uri=f"{API_URL}/v1/media/{filename}")
-
 
 @api_router.post("/map")
 async def create_map(
@@ -321,8 +319,6 @@ async def delete_map(
         )
 
     # Delete media associated with the map
-    session = get_session()
-
     s3_client_kwargs = {
         'endpoint_url': S3_ENDPOINT_URL,
     }
@@ -331,18 +327,18 @@ async def delete_map(
     if S3_SECRET_KEY:
         s3_client_kwargs['aws_secret_access_key'] = S3_SECRET_KEY
 
-    async with session.create_client(
-        's3', **s3_client_kwargs) as client:
-        for point in map.points:
-            if not point.file:
-                continue
+    s3_client = boto3.client('s3', **s3_client_kwargs)
 
-            filename = point.file.rsplit("/", 1)
+    for point in map.points:
+        if not point.file:
+            continue
 
-            resp = await client.delete_object(
-                Bucket=S3_BUCKET_NAME,
-                Key=filename[-1],
-            )
+        filename = point.file.rsplit("/", 1)
+
+        resp = s3_client.delete_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=filename[-1],
+        )
 
     db.delete(map)
     db.commit()
@@ -706,8 +702,6 @@ async def get_media(
                 detail="Media not found",
             )
 
-    session = get_session()
-
     s3_client_kwargs = {
         'endpoint_url': S3_ENDPOINT_URL,
     }
@@ -716,20 +710,26 @@ async def get_media(
     if S3_SECRET_KEY:
         s3_client_kwargs['aws_secret_access_key'] = S3_SECRET_KEY
 
-    async with session.create_client(
-        's3', **s3_client_kwargs) as client:
-        try:
-            resp = await client.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
+    s3_client = boto3.client('s3', **s3_client_kwargs)
 
-            ext = Path(filename).suffix
+    try:
+        resp = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=filename)
 
-            async with resp['Body'] as stream:
-                return StreamingResponse(BytesIO(await stream.read()), media_type=MEDIA_TYPE[ext])
-        except client.exceptions.NoSuchKey:
-            raise HTTPException(
-                status_code=404,
-                detail="Media not found",
-            )
+        ext = Path(filename).suffix
+
+        return StreamingResponse(
+            resp['Body'],
+            media_type=MEDIA_TYPE[ext],
+            headers={
+                'Accept-Ranges': 'bytes',
+                'Content-Length': str(resp['ContentLength']),
+            }
+        )
+    except s3_client.exceptions.NoSuchKey:
+        raise HTTPException(
+            status_code=404,
+            detail="Media not found",
+        )
 
 # Media File Endpoint
 @api_router.get("/media")
