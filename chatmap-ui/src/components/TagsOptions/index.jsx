@@ -19,15 +19,30 @@ export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
                         <FormattedMessage
                             id = "app.all"
                             defaultMessage="All"
-                        />
-                    </strong> :
-                        <FormattedMessage
+                        /> ({tags["__all"]})
+                    </strong>  :
+                        <><FormattedMessage
                             id = "app.all"
                             defaultMessage="All"
-                        />
+                        /> ({tags["__all"]})</>
+                    }
+                </sl-menu-item>
+                <sl-menu-item key="notag" onClick={() => onSelectTag(undefined)}>
+                    {selectedTag === undefined ?
+                    <strong>
+                        <FormattedMessage
+                            id = "app.notag"
+                            defaultMessage="No tag"
+                        /> ({tags["__undefined"]})
+                    </strong> :
+                        <><FormattedMessage
+                            id = "app.notag"
+                            defaultMessage="No tag"
+                        /> ({tags["__undefined"]})</>
                     }
                 </sl-menu-item>
                 {Object.keys(tags).map(key =>
+                    key !== "__all" && key !== "__undefined" &&
                     <sl-menu-item key={key} onClick={() => onSelectTag(key)}>
                         {selectedTag && selectedTag == key ?
                             <strong>{key} ({tags[key]})</strong>

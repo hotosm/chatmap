@@ -48,7 +48,7 @@ Then open http://localhost:5173 and create an account using any e-mail.
 
 Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) and [Live feature docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md).
 
-## Roadmap
+## Roadmap 2026
 
 ✅ Done
 ⚙️ In progress
@@ -56,24 +56,20 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 <!-- prettier-ignore-start -->
 | Status | Feature |
 |:--:| :-- |
-|✅| [Support audio](https://github.com/hotosm/chatmap/issues/5) - Thanks [Oscar](https://github.com/oxcar)!
-|✅| Link a device and get a stream of locations + content (live community reporting)
-|✅| Backend with user authentication and saved maps
-|✅| [Live Stream of Data](https://github.com/hotosm/chatmap/issues/54)
 |✅| [Serve data from ChatMap](https://github.com/hotosm/chatmap/issues/29)
 |✅| [Website re-design](https://github.com/hotosm/chatmap/issues/52)
 |✅| [Map options](https://github.com/hotosm/chatmap/issues/56)
 |✅| [User profile](https://github.com/hotosm/chatmap/issues/58)
 |✅| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64) - Thanks [Abraham](https://github.com/categulario)!
 |✅| [Update a saved map with new data](https://github.com/hotosm/chatmap/issues/60) - Thanks [Abraham](https://github.com/categulario)!
-|⚙️| ChatBot for creating automated surveys
-|⚙️| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
+|✅| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
+|⚙️| [ChatBot for creating automated surveys](https://github.com/hotosm/chatmap/issues/186)
+|⚙️| Mapper app
 |⚙️| [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 |⚙️| User content licensing options |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
 | | Content filtering options |
 | | Tagger view |
-| | [Integration for OSM editing](https://github.com/hotosm/chatmap/milestone/3)
 
 ## Licensing
 

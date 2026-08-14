@@ -1,6 +1,37 @@
 import { FormattedMessage } from 'react-intl';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { hashUsernames } from "../ChatMap/hash";
+
+const isValidDate = d => (
+  d instanceof Date && !isNaN(d)
+)
+
+export const processChatData = async (chatmapId, data) => {
+  
+  const usernames = data.features.reduce((accumulator, feature) => {
+    accumulator[feature.properties.username] = ""
+    return accumulator;
+  }, {});
+
+ 
+  const usernames_hashes = await hashUsernames(usernames);
+
+  let newData = {
+    _chatmapId: chatmapId,
+    ...data,
+    features:
+      data.features
+        .filter(feature => !feature.properties.removed)
+        .map(feature => {
+          feature.properties.username = usernames_hashes[feature.properties.username];
+          delete feature.properties.timeString;
+          return feature;
+        })
+  };
+
+  return newData;
+};
 
 /**
  *
@@ -16,22 +47,11 @@ const createAndDownloadZip = async (data, dataFiles, getDataFiles) => {
   const chatmapId = data._chatmapId;
 
   // Add GeoJSON data to the zip file
-  let newData = {
-    _chatmapId: chatmapId,
-    ...data,
-    features: data.features.filter(feature => !feature.properties.removed),
-  }
+  let newData = await processChatData(chatmapId, data);
 
   // Get a list of media files from GeoJSON data
   const media_files = newData.features.map(x => x.properties.file);
 
-  newData.features.forEach(feature => {
-    // Delete username for enhanced privacy and security
-    // delete feature.properties.username;
-
-    // Delete unused properties
-    delete feature.properties.timeString;
-  })
   const geoJsonBlob = new Blob([JSON.stringify(newData)], { type: 'application/json' });
   zip.file('data.geojson', geoJsonBlob);
 

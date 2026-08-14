@@ -62,6 +62,7 @@ export default function Tagger({
                     { allTags && allTags.length > 0 ? 
                     <sl-menu>
                         {allTags.map(tag =>
+                            tag !== "__undefined" && tag !== "__all" &&
                             <sl-menu-item
                                 value={tag}
                                 key={tag}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useNavigate } from "react-router";
-
 import SlDialog from "@shoelace-style/shoelace/dist/react/dialog/index.js";
 import SlInput from "@shoelace-style/shoelace/dist/react/input/index.js";
 import SlTextarea from "@shoelace-style/shoelace/dist/react/textarea/index.js";
@@ -10,6 +9,35 @@ import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
 
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import { useConfigContext } from "../../context/ConfigContext";
+
+import { hashUsernames } from "../ChatMap/hash";
+
+const isValidDate = d => (
+  d instanceof Date && !isNaN(d)
+)
+
+export const processChatData = async (data) => {
+
+  const usernames = data.features.reduce((accumulator, feature) => {
+    accumulator[feature.properties.username] = ""
+    return accumulator;
+  }, {});
+
+  const usernames_hashes = await hashUsernames(usernames);
+
+  let newData = {
+    ...data,
+    features:
+      data.features
+        .filter(feature => !feature.properties.removed && isValidDate(feature.properties.time))
+        .map(feature => {
+          feature.properties.username = usernames_hashes[feature.properties.username];
+          return feature;
+        })
+    };
+
+  return newData;
+};
 
 export default function SaveDialog({
   open, setOpen, data, dataFiles,
@@ -67,8 +95,7 @@ export default function SaveDialog({
         setSentFiles((value) => value + 1);
       }
 
-      // Make sure that no invalid data is sent to the API
-      const data_clean = {...data, features: data.features.filter(x => x.properties.time !== null)};
+      let data_clean = await processChatData(data);
 
       const response = await fetch(`${config.API_URL}/map`, {
         method: "POST",
