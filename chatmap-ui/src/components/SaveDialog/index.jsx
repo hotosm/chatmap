@@ -10,21 +10,31 @@ import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import { useConfigContext } from "../../context/ConfigContext";
 
-import { hashUsername } from "../ChatMap/hash";
+import { hashUsernames } from "../ChatMap/hash";
+
+const isValidDate = d => (
+  d instanceof Date && !isNaN(d)
+)
 
 export const processChatData = async (data) => {
+
+  const usernames = data.features.reduce((accumulator, feature) => {
+    accumulator[feature.properties.username] = ""
+    return accumulator;
+  }, {});
+
+  const usernames_hashes = await hashUsernames(usernames);
+
   let newData = {
     ...data,
-    features: await Promise.all(
+    features:
       data.features
-        .filter(feature => !feature.properties.removed && feature.properties.time !== null)
-        .map(async (feature) => {
-          feature.properties.username = await hashUsername(feature.properties.username);
-          delete feature.properties.timeString;
+        .filter(feature => !feature.properties.removed && isValidDate(feature.properties.time))
+        .map(feature => {
+          feature.properties.username = usernames_hashes[feature.properties.username];
           return feature;
         })
-    )
-  };
+    };
 
   return newData;
 };
