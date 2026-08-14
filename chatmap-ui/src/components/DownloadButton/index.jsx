@@ -1,21 +1,33 @@
 import { FormattedMessage } from 'react-intl';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { hashUsername } from "../ChatMap/hash";
+import { hashUsernames } from "../ChatMap/hash";
+
+const isValidDate = d => (
+  d instanceof Date && !isNaN(d)
+)
 
 export const processChatData = async (chatmapId, data) => {
+  
+  const usernames = data.features.reduce((accumulator, feature) => {
+    accumulator[feature.properties.username] = ""
+    return accumulator;
+  }, {});
+
+ 
+  const usernames_hashes = await hashUsernames(usernames);
+
   let newData = {
     _chatmapId: chatmapId,
     ...data,
-    features: await Promise.all(
+    features:
       data.features
         .filter(feature => !feature.properties.removed)
-        .map(async (feature) => {
-          feature.properties.username = await hashUsername(feature.properties.username);
+        .map(feature => {
+          feature.properties.username = usernames_hashes[feature.properties.username];
           delete feature.properties.timeString;
           return feature;
         })
-    )
   };
 
   return newData;
