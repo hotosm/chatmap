@@ -14,5 +14,14 @@ const ignore = [
     "<Multimedia omitido>",
 ]
 
-export default ignore;
+// Check if message is in list of ignored strings
+export const isInTheIgnoreList = msg => {
+    for (let i = 0; i < ignore.length; i++) {
+        if (msg.indexOf(ignore[i]) > -1) {
+            return true;
+        }
+    };
+    return false;
+}
+
 
