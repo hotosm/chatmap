@@ -1135,8 +1135,10 @@ func main() {
         redis_port = DefaultRedisPort
     }
     log.Printf("Connecting to Redis %s:%s \n", redis_host, redis_port)
+	redis_password := os.Getenv("REDIS_PASSWORD")
     redisClient = redis.NewClient(&redis.Options{
-        Addr: redis_host + ":" + redis_port,
+		Addr:     redis_host + ":" + redis_port,
+		Password: redis_password,
     })
 
     // WhatsApp rejects connections using an outdated hardcoded client
