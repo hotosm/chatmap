@@ -42,14 +42,13 @@ export const detectSystem = (line) => {
 }
 
 // Look for jpg, mp4, or audio media files
-export const lookForMediaFile = (msgObject) => {
-    const msg = msgObject.message.toLowerCase();
+export const lookForMediaFile = (line) => {
     // Supported media extensions
     const extensions = [".jpg", ".mp4", ".ogg", ".opus", ".mp3", ".m4a", ".wav"];
     let mediaFileIndex = -1;
     let foundExt = "";
     for (let ext of extensions) {
-        let idx = msg.indexOf(ext);
+        let idx = line.indexOf(ext);
         if (idx > 0) {
             mediaFileIndex = idx;
             foundExt = ext;
@@ -58,7 +57,7 @@ export const lookForMediaFile = (msgObject) => {
     }
 
     if (mediaFileIndex > 0) {
-        let path = msgObject.message.substring(msg.lastIndexOf(":") + 1, mediaFileIndex + foundExt.length);
+        let path = line.substring(line.lastIndexOf(":") + 1, mediaFileIndex + foundExt.length);
 
         if (path.substring(0, 1) == " ") {
             path = path.substring(1);
@@ -84,6 +83,9 @@ export const searchLocation = msgObject => {
 // Parse time, username and message
 const parseMessage = (line, system, getTime) => {
     const match = line.match(MSG_PATTERN[system]);
+    const msgObject = {
+        message: "",
+    };
 
     if (match && !isInTheIgnoreList(match[3])) {
         let username = match[2];
@@ -94,26 +96,22 @@ const parseMessage = (line, system, getTime) => {
             username = username.substring(0, usernameIndexOf);
         }
 
-        let msgObject = {
-            time: getTime(line),
-            username:  username,
-            message: match[3],
-        }
+        msgObject.time = getTime(line);
+        msgObject.username = username;
+        msgObject.message = match[3];
 
-        // Look for media
-        const mediaFile = lookForMediaFile(msgObject);
-
-        if (mediaFile !== null) {
-          msgObject.file = mediaFile.path;
-          msgObject.file_type = mediaFile.type;
-        }
-
-        if (msgObject.file) {
-            msgObject.message = "";
-        }
-
-        return msgObject;
     }
+
+    // Look for media
+    const mediaFile = lookForMediaFile(line);
+
+    if (mediaFile !== null) {
+        msgObject.file = mediaFile.path;
+        msgObject.file_type = mediaFile.type;
+    }
+
+    return msgObject;
+
 }
 
 // Parse messages from lines and create an index
@@ -128,7 +126,7 @@ export const parseAndIndex = (lines, system) => {
 
         const msg = parseMessage(line, system, getDate);
 
-        if (msg && !isInTheIgnoreList(msg.message)) {
+        if (msg.time && !isInTheIgnoreList(msg.message)) {
             result.push(msg);
         } else {
             // If message is just text without datestring,
@@ -142,7 +140,12 @@ export const parseAndIndex = (lines, system) => {
                 (system == "IOS" &&
                 line.indexOf("[") == -1))
             {
-                result[result.length - 1].message += " " + line.replaceAll("\r", "");
+                if (!msg.file) {
+                    result[result.length - 1].message += " " + line.replaceAll("\r", "");
+                } else {
+                    result[result.length - 1].file = msg.file;
+                    result[result.length - 1].file_type = msg.file_type;
+                }
             }
         }
     })
