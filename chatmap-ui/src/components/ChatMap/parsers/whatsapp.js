@@ -140,9 +140,8 @@ export const parseAndIndex = (lines, system) => {
                 (system == "IOS" &&
                 line.indexOf("[") == -1))
             {
-                if (!msg.file) {
-                    result[result.length - 1].message += " " + line.replaceAll("\r", "");
-                } else {
+                result[result.length - 1].message += " " + line.replaceAll("\r", "");
+                if (msg.file) {
                     result[result.length - 1].file = msg.file;
                     result[result.length - 1].file_type = msg.file_type;
                 }
