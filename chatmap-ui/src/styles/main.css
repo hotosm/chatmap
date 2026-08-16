@@ -472,6 +472,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     text-align: left;
     padding-left: var(--hot-spacing-small);
     padding-right: var(--hot-spacing-small);
+    font-size: var(--hot-font-size-small);
 }
 
 .message .media {

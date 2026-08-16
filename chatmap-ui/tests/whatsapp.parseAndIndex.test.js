@@ -1,6 +1,7 @@
 import { expect, test as it} from 'vitest'
 
-import { howManyChanged, parseAndIndex } from '../src/components/ChatMap/parsers/whatsapp';
+import { parseAndIndex } from '../src/components/ChatMap/parsers/whatsapp';
+import { howManyChanged } from '../src/components/ChatMap/parsers/whatsapp-datetime';
 
 it('should count properly how many parts of two array differ', () => {
   var indexes = howManyChanged([1, 2, 3], [1, 2, 3]);
