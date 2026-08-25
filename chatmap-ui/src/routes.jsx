@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router';
 import { useAuth } from './context/AuthContext';
 import Home from './pages/home';
+import BotSetup from './pages/botSetup';
 import Linked from './pages/linked';
 import LoginPage from './pages/login';
 import MapView from './pages/mapView';
@@ -64,6 +65,7 @@ const AppRoutes = () => {
 
         { config.ENABLE_AUTH && <>
           <Route path="/app" element={<LoginPage />} />
+          <Route path="/bot-setup/:id" element={<PrivateRoute><BotSetup /></PrivateRoute>} />
           <Route path="/maps" element={<MapList />} />
           <Route path="/map/:id" element={<MapView />} />
           { config.ENABLE_LIVE && <Route

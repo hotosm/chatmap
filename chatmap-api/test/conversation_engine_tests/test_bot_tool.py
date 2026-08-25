@@ -6,13 +6,16 @@ import pytest
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
-from bot.flow import BotFlowContext
+from bot.flows.flow import BotFlowContext
 from bot.flows.first_time_mapping.flow import FirstTimeMappingFlow
 from conversation_engine.conversation import Conversation, ConversationKey
 from conversation_engine.event import Event, EventName
 from conversation_engine.tool import BotTool
+from results.error import BotMessagesNotConfigured
 from settings import CHATMAP_ENC_KEY
 from store.bot_consumed_messages_store import BotConsumedMessagesStore
+from bot.configured_messages import BotConfiguredMessages, BotMaxAttemptsMessages, BotMessage, BotStep
+from store.bot_configured_messages_store import BotConfiguredMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 from store.received_messages_store import ReceivedMessage
@@ -42,17 +45,36 @@ def _conversation() -> Conversation:
     return Conversation(key=ConversationKey(sender="sender-1", chat="chat-1"))
 
 
+def _bot_conversation() -> BotConfiguredMessages:
+    return BotConfiguredMessages(
+        max_attempts_messages=BotMaxAttemptsMessages(
+            max_attempts_quantity=3, notify_message="", to_restart="", to_cancel="",
+        ),
+        messages=[BotMessage(id="start-1", bot_step=BotStep.START, prompt="Hi", error_message="")],
+    )
+
+
 def _make_bot_tool(
         bot_state_store=None,
         message_to_send_store=None,
         bot_consumed_messages_store=None,
-        survey_responses_store=None
+        survey_responses_store=None,
+        bot_configured_messages_store=None
 ) -> BotTool:
+    if bot_configured_messages_store is None:
+        bot_configured_messages_store = AsyncMock(spec=BotConfiguredMessagesStore)
+        bot_configured_messages_store.get_configured_messages_for.return_value = _bot_conversation()
+
+    if bot_state_store is None:
+        bot_state_store = AsyncMock(spec=BotStateStore)
+        bot_state_store.fetch_field.return_value = None
+
     return BotTool(
-        bot_state_store=bot_state_store or AsyncMock(spec=BotStateStore),
+        bot_state_store=bot_state_store,
         message_to_send_store=message_to_send_store or AsyncMock(spec=MessageToSendStore),
         bot_consumed_messages_store=bot_consumed_messages_store or AsyncMock(spec=BotConsumedMessagesStore),
         survey_responses_store=survey_responses_store or AsyncMock(spec=SurveyResponsesStore),
+        bot_configured_messages_store=bot_configured_messages_store,
     )
 
 
@@ -63,11 +85,16 @@ async def test_call_decrypts_text_and_delegates_to_the_flow():
     )
     event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))
     bot_state_store = AsyncMock(spec=BotStateStore)
+    bot_state_store.fetch_field.return_value = None
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
     survey_responses_store = AsyncMock(spec=SurveyResponsesStore)
+    bot_configured_messages_store = AsyncMock(spec=BotConfiguredMessagesStore)
+    bot_conversation = _bot_conversation()
+    bot_configured_messages_store.get_configured_messages_for.return_value = bot_conversation
     bot_tool = _make_bot_tool(
-        bot_state_store, message_to_send_store, bot_consumed_messages_store, survey_responses_store
+        bot_state_store, message_to_send_store, bot_consumed_messages_store, survey_responses_store,
+        bot_configured_messages_store
     )
     fake_flow = AsyncMock()
 
@@ -75,6 +102,7 @@ async def test_call_decrypts_text_and_delegates_to_the_flow():
         await bot_tool(event=event, message=message, device="device-1", conversation=_conversation())
 
     expected_key = f"bot_state:{FirstTimeMappingFlow.name}:sender-1chat-1"
+    bot_configured_messages_store.get_configured_messages_for.assert_awaited_once_with(device="device-1")
     mock_create.assert_awaited_once_with(
         bot_state_key=expected_key,
         bot_state_store=bot_state_store,
@@ -86,7 +114,7 @@ async def test_call_decrypts_text_and_delegates_to_the_flow():
         current_event=EventName.USER_SEND_TEXT,
         context=BotFlowContext(
             state_key=expected_key, recipient="recipient-enc-1", sender="device-1", answer=plaintext,
-            message_id="msg-1", occurred_at=event.occurred_at, point_id=None, bot_state_store=bot_state_store,
+            message_id="msg-1", occurred_at=event.occurred_at, point_id=None, configured_messages=bot_conversation,
         ),
     )
 
@@ -140,3 +168,22 @@ async def test_call_passes_the_triggering_event_name_through_unchanged(event_nam
         await bot_tool(event=event, message=message, device="device-1", conversation=_conversation())
 
     assert fake_flow.call.await_args.kwargs["current_event"] == event_name
+
+
+async def test_call_raises_when_the_device_has_no_configured_messages():
+    bot_configured_messages_store = AsyncMock(spec=BotConfiguredMessagesStore)
+    bot_configured_messages_store.get_configured_messages_for.return_value = BotConfiguredMessages(
+        max_attempts_messages=BotMaxAttemptsMessages(
+            max_attempts_quantity=3, notify_message="", to_restart="", to_cancel="",
+        ),
+        messages=[],
+    )
+    bot_tool = _make_bot_tool(bot_configured_messages_store=bot_configured_messages_store)
+    event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))
+
+    with patch.object(FirstTimeMappingFlow, "create", AsyncMock()) as mock_create:
+        with pytest.raises(BotMessagesNotConfigured):
+            await bot_tool(event=event, message=_message(text=_encrypt("hi")), device="device-1",
+                           conversation=_conversation())
+
+    mock_create.assert_not_awaited()

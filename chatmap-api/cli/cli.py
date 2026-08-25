@@ -7,8 +7,9 @@ from redis import asyncio as async_redis
 from sqlalchemy import delete, select
 
 from consumers.listener import ConversationsStateListener
-from db import SurveyResponse, get_db_session
+from db import get_db_session
 from store.message_to_send_store import MessageToSendStore
+from store.survey_responses_store import SurveyResponse
 
 logging.basicConfig(
     format='[CLI] %(levelname)s: %(message)s',
@@ -126,7 +127,7 @@ def message_to_send_add(
     async def run():
         client = _build_client()
         store = MessageToSendStore(client=client)
-        await store.send_message(sender=device, to=to, message=message)
+        await store.send_message(sender=device, to=to, messages=message)
         typer.echo(f"queued message for device '{device}' -> {to}")
         await client.aclose()
 
@@ -166,10 +167,10 @@ def survey_response_list(
 ):
     """List every row currently in the survey_responses table."""
     db = get_db_session()
-    stmt = select(SurveyResponse)
+    query = select(SurveyResponse)
     if point_id:
-        stmt = stmt.where(SurveyResponse.point_id == point_id)
-    for row in db.execute(stmt).scalars():
+        stmt = query.filter_by(point_id=point_id)
+    for row in db.execute(query).scalars():
         typer.echo({"point_id": row.point_id, "answers": row.answers})
 
 
@@ -179,10 +180,10 @@ def survey_response_delete(
 ):
     """Delete rows from the survey_responses table."""
     db = get_db_session()
-    stmt = delete(SurveyResponse)
+    query = delete(SurveyResponse)
     if point_id:
-        stmt = stmt.where(SurveyResponse.point_id == point_id)
-    result = db.execute(stmt)
+        query = query.filter_by(point_id=point_id)
+    result = db.execute(query)
     db.commit()
     typer.echo(f"deleted {result.rowcount} row(s) from survey_responses")
 

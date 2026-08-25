@@ -10,6 +10,8 @@ class EventName(StrEnum):
     USER_SEND_TEXT = auto()
     USER_UPLOAD_PHOTO = auto()
     USER_UPLOAD_PHOTO_WITH_TEXT = auto()
+    USER_UPLOAD_VIDEO = auto()
+    USER_UPLOAD_AUDIO = auto()
     USER_SEND_COORDINATES = auto()
 
 
@@ -30,6 +32,10 @@ class Event:
                 return cls(name=EventName.USER_UPLOAD_PHOTO, occurred_at=occurred_at)
             case ReceivedMessage(location=location) if location:
                 return cls(name=EventName.USER_SEND_COORDINATES, occurred_at=occurred_at)
+            case ReceivedMessage(video=video) if video:
+                return cls(name=EventName.USER_UPLOAD_VIDEO, occurred_at=occurred_at)
+            case ReceivedMessage(audio=audio) if audio:
+                return cls(name=EventName.USER_UPLOAD_AUDIO, occurred_at=occurred_at)
             case _:
                 return None
 

@@ -5,6 +5,7 @@ from conversation_engine.conversation import Conversation, ConversationKey
 from conversation_engine.event import Event, EventName
 from conversation_engine.flow import Flow, Flows, HelpFlow
 from conversation_engine.tool import BotTool
+from store.bot_configured_messages_store import BotConfiguredMessagesStore
 from store.received_messages_store import ReceivedMessage
 
 
@@ -42,7 +43,7 @@ async def test_check_tool_for_event_invokes_the_registered_tool():
     tool = AsyncMock()
     flow = Flow(
         bot_state_store=Mock(), message_to_send_store=Mock(),
-        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(),
+        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(), bot_configured_messages_store=Mock(),
         tools_by_events={EventName.USER_SEND_TEXT: tool},
     )
     event = _event(EventName.USER_SEND_TEXT)
@@ -58,7 +59,7 @@ async def test_check_tool_for_event_does_nothing_when_no_tool_registered():
     tool = AsyncMock()
     flow = Flow(
         bot_state_store=Mock(), message_to_send_store=Mock(),
-        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(),
+        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(), bot_configured_messages_store=Mock(),
         tools_by_events={EventName.USER_UPLOAD_PHOTO: tool},
     )
     event = _event(EventName.USER_SEND_TEXT)
@@ -73,7 +74,7 @@ async def test_check_tool_for_event_does_nothing_when_no_tool_registered():
 def test_expected_events_returns_the_tools_by_events_keys():
     flow = Flow(
         bot_state_store=Mock(), message_to_send_store=Mock(),
-        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(),
+        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(), bot_configured_messages_store=Mock(),
         tools_by_events={EventName.USER_SEND_TEXT: AsyncMock(), EventName.USER_SEND_COORDINATES: AsyncMock()},
     )
 
@@ -85,7 +86,7 @@ def test_expected_events_returns_the_tools_by_events_keys():
 def test_help_flow_shares_a_single_bot_tool_across_its_events():
     help_flow = HelpFlow(
         bot_state_store=Mock(), message_to_send_store=Mock(),
-        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(),
+        bot_consumed_messages_store=Mock(), survey_responses_store=Mock(), bot_configured_messages_store=Mock(),
     )
 
     tools = help_flow.tools_by_events
@@ -113,6 +114,13 @@ def test_registered_flows_returns_a_help_flow_with_its_own_stores():
     assert help_flow.message_to_send_store is flows.message_to_send_store
     assert help_flow.bot_consumed_messages_store is flows.bot_consumed_messages_store
     assert help_flow.survey_responses_store is flows.survey_responses_store
+    assert help_flow.bot_configured_messages_store is flows.bot_configured_messages_store
+
+
+def test_flows_owns_the_store_the_listener_filters_devices_with():
+    flows = Flows(client=Mock())
+
+    assert isinstance(flows.bot_configured_messages_store, BotConfiguredMessagesStore)
 
 
 async def test_call_tools_for_dispatches_to_the_matching_flow():

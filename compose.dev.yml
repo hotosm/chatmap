@@ -70,6 +70,9 @@ services:
       - CHATMAP_DB=chatmap
       - CHATMAP_DB_USER=admin
       - CHATMAP_DB_PASSWORD=0123456789ABCDEF0123456789ABCDEF
+    volumes:
+      - ./chatmap-api:/app
+      - /app/.venv
 
   chatmap-go:
     image: golang:1.25.3

@@ -22,6 +22,10 @@ sl-button[variant=primary]::part(base) {
   color: var(--sl-color-neutral-0);
 }
 
+sl-button.dashed::part(base) {
+  border-style: dashed;
+}
+
 sl-icon-button::part(base) {
     color: var(--hot-color-gray-950);
 }

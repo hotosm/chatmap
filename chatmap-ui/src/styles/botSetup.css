@@ -1,0 +1,206 @@
+.botSetup {
+  margin-top: 5rem;
+}
+
+.botSetup__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.botSetup__header-left {
+  padding-left: var(--hot-spacing-medium);
+}
+
+.botSetup__header-left h1,
+.botSetup__header-left h2 {
+  margin: 0;
+}
+
+.botSetup__header-left h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-small);
+}
+
+.botSetup__header-left h2 {
+  font-weight: normal;
+}
+
+.botSetup__header-right {
+  padding-right: var(--hot-spacing-medium);
+  display: flex;
+  gap: var(--hot-spacing-medium);
+}
+
+.botSetup__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--hot-spacing-medium);
+  padding: 0 var(--hot-spacing-medium);
+  margin-top: var(--hot-spacing-x-large);
+}
+
+.botSetup__divider {
+  border-top: 1px solid var(--hot-color-gray-200);
+  margin: var(--hot-spacing-large) var(--hot-spacing-medium);
+}
+
+.botSetup__form_buttons {
+  display: flex;
+  gap: var(--hot-spacing-medium);
+  padding: 0 var(--hot-spacing-medium);
+}
+
+/* The conversation, one row per step */
+
+.botSetup__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hot-spacing-x-small);
+  width: 100%;
+}
+
+.botSetup__row {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-x-small);
+}
+
+.botSetup__item {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-small);
+  box-sizing: border-box;
+  width: 20rem;
+  max-width: 100%;
+  padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+  border: 1px solid var(--hot-color-gray-900, #000);
+  border-radius: var(--hot-border-radius-large, 0.5rem);
+  background: var(--hot-color-neutral-0, #fff);
+  font-weight: bold;
+  text-align: left;
+}
+
+/* The "Incorrect answer" companion sits alongside its step, quieter */
+.botSetup__item--error {
+  font-weight: normal;
+  border-color: var(--hot-color-gray-400, #999);
+}
+
+/* The add-a-question row: dashed until it becomes a real question */
+.botSetup__item--add {
+  border-style: dashed;
+  border-color: var(--hot-color-gray-400, #999);
+  font: inherit;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.botSetup__item--invalid {
+  border-color: var(--hot-color-danger-600, #c0392b);
+}
+
+.botSetup__item-empty {
+  color: var(--hot-color-gray-500, #777);
+  font-weight: normal;
+}
+
+.botSetup__item span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.botSetup__item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-x-small);
+}
+
+.botSetup__icon-button {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Edit dialog */
+
+.botSetup__dialog-kind {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-small);
+  font-weight: bold;
+  margin-bottom: var(--hot-spacing-medium);
+}
+
+.botSetup__dialog-text {
+  margin-bottom: var(--hot-spacing-medium);
+}
+
+.botSetup__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hot-spacing-x-small);
+}
+
+.botSetup__option {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-x-small);
+}
+
+.botSetup__option sl-input {
+  flex: 1;
+}
+
+/* Dashed like the add-a-question row, so both reads as "not filled in yet" */
+.botSetup__add::part(base) {
+  width: 100%;
+  border-style: dashed;
+  justify-content: center;
+}
+
+.botSetup__dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--hot-spacing-medium);
+}
+
+/* Max attempts dialog */
+
+.botSetup__dialog-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hot-spacing-medium);
+  margin-bottom: var(--hot-spacing-medium);
+}
+
+.botSetup__preview {
+  margin-bottom: var(--hot-spacing-medium);
+  padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+  border: 1px dashed var(--hot-color-gray-400, #999);
+  border-radius: var(--hot-border-radius-large, 0.5rem);
+}
+
+.botSetup__preview-label {
+  display: block;
+  font-weight: bold;
+  color: var(--hot-color-gray-500, #777);
+  margin-bottom: var(--hot-spacing-x-small);
+}
+
+.botSetup__preview-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.botSetup__preview-text + .botSetup__preview-text {
+  margin-top: var(--hot-spacing-x-small);
+}
