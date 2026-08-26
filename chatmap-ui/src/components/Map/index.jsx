@@ -158,12 +158,14 @@ export default function Map({ dataFiles, center, zoom, className, onInteract, sh
       if (map.current.getSource("locations")) {
 
         // Add geojson data source
-        if (data.filterTag) {
+        if (data.filterTag !== null) {
           {
             map.current.getSource('locations').setData({
               ...data,
               features: data.features.filter(feature =>
+                data.filterTag !== undefined ?
                 feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
+                : !feature.properties.tags
               )
             });
           }

@@ -362,6 +362,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 60%;
+    font-size: var(--hot-font-size-2x-small);
 }
 
 .maplibregl-popup-close-button {
@@ -508,8 +509,13 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     margin-right: 10px;
 }
 
-.removeIcon::part(base) {
+.removeIcon::part(base),
+.copyIcon::part(base) {
     height: 20px;
+}
+
+.copyIcon {
+    margin-left: 10px;
 }
 
 .message .removedLabel {

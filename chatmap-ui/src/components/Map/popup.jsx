@@ -97,6 +97,7 @@ export default function Popup ({
       <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
         <div className="activePopupFeatureContent">
           <Message
+            coordinates={feature.geometry.coordinates}
             message={feature.properties}
             dataFiles={dataFiles}
             msgType={msgType}

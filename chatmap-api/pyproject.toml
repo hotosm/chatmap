@@ -5,7 +5,7 @@ description = "ChatMap API"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "aiobotocore>=3.2.1",
+    "boto3>=1.43.71",
     "alembic>=1.18.4",
     "altgraph==0.17.4",
     "annotated-types==0.7.0",
