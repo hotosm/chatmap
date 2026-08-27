@@ -47,9 +47,13 @@ class BotStateStore:
             self,
             bot_state_key: str,
             state: Enum,
-            bot_info: dict | None = None
+            bot_info: dict | None = None,
+            reset_fallback_count: bool = True
     ) -> None:
         fields = {"state": state.name}
+
+        if reset_fallback_count:
+            fields["fallback_count"] = "0"
 
         if bot_info:
             fields.update(bot_info)

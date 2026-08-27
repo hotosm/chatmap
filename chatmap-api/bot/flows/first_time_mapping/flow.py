@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class FirstTimeMappingState(Enum):
     IDLE = auto()
-    WAITING_PHOTO = auto()
+    WAITING_FOR_DATA_MAPPING = auto()
     WAITING_COORDINATES = auto()
     WAITING_SURVEY_ANSWER = auto()
     WAITING_RECOVERY_CHOICE = auto()
@@ -86,11 +86,11 @@ class FirstTimeMappingFlow(BotFlow):
 
         await self.bot_state_store.save_state(
             bot_state_key=ctx.state_key,
-            state=FirstTimeMappingState.WAITING_PHOTO,
+            state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
         )
 
-    async def on_photo_uploaded(self, ctx: BotFlowContext) -> None:
-        logger.info("Handling: on_photo_uploaded")
+    async def on_data_uploaded(self, ctx: BotFlowContext) -> None:
+        logger.info("Handling: on_data_uploaded")
 
         await self.message_to_send_store.send_message(
             sender=ctx.sender,
@@ -268,6 +268,7 @@ class FirstTimeMappingFlow(BotFlow):
             await self.bot_state_store.save_state(
                 bot_state_key=ctx.state_key,
                 state=FirstTimeMappingState.WAITING_RECOVERY_CHOICE,
+                reset_fallback_count=False,
             )
             return
 
@@ -281,7 +282,7 @@ class FirstTimeMappingFlow(BotFlow):
                         ctx.configured_messages.text_of(BotStep.MEDIA),
                     ]
                 )
-            case FirstTimeMappingState.WAITING_PHOTO:
+            case FirstTimeMappingState.WAITING_FOR_DATA_MAPPING:
                 await self.message_to_send_store.send_message(
                     sender=ctx.sender,
                     to=ctx.recipient,
@@ -326,11 +327,11 @@ class FirstTimeMappingFlow(BotFlow):
         await self.bot_state_store.increment_fallback_count(bot_state_key=ctx.state_key)
         return
 
-    ## HELPERS
-
     transitions: BotTransitions = {
         (FirstTimeMappingState.IDLE, EventName.USER_SEND_TEXT): on_start,
-        (FirstTimeMappingState.WAITING_PHOTO, EventName.USER_UPLOAD_PHOTO): on_photo_uploaded,
+        (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, EventName.USER_UPLOAD_PHOTO): on_data_uploaded,
+        (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, EventName.USER_UPLOAD_VIDEO): on_data_uploaded,
+        (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, EventName.USER_UPLOAD_AUDIO): on_data_uploaded,
         (FirstTimeMappingState.WAITING_COORDINATES, EventName.USER_SEND_COORDINATES): on_coordinates_sent,
         (FirstTimeMappingState.WAITING_SURVEY_ANSWER, EventName.USER_SEND_TEXT): on_survey_answered,
         (FirstTimeMappingState.WAITING_RECOVERY_CHOICE, EventName.USER_SEND_TEXT): on_recovery_choice_answered,

@@ -142,7 +142,7 @@ async def test_create_defaults_to_idle_when_no_state_stored():
 
 
 @pytest.mark.parametrize("stored_state, expected", [
-    ("WAITING_PHOTO", FirstTimeMappingState.WAITING_PHOTO),
+    ("WAITING_FOR_DATA_MAPPING", FirstTimeMappingState.WAITING_FOR_DATA_MAPPING),
     ("WAITING_COORDINATES", FirstTimeMappingState.WAITING_COORDINATES),
     ("WAITING_SURVEY_ANSWER", FirstTimeMappingState.WAITING_SURVEY_ANSWER),
     ("WAITING_RECOVERY_CHOICE", FirstTimeMappingState.WAITING_RECOVERY_CHOICE),
@@ -174,7 +174,7 @@ async def test_start_greets_and_asks_for_the_media_in_one_turn():
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx())
 
     assert _sent(message_to_send_store) == [START, MEDIA]
-    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_PHOTO
+    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_FOR_DATA_MAPPING
 
 
 async def test_an_unexpected_first_event_starts_the_conversation_too():
@@ -191,7 +191,7 @@ async def test_an_unexpected_first_event_starts_the_conversation_too():
 async def test_a_photo_moves_on_to_the_location_question():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
-    flow = _make_flow(FirstTimeMappingState.WAITING_PHOTO, bot_state_store=bot_state_store,
+    flow = _make_flow(FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
     await flow.call(current_event=EventName.USER_UPLOAD_PHOTO, context=_ctx())
@@ -331,7 +331,7 @@ async def test_a_survey_answer_without_a_point_id_is_rejected():
 # ---- fallback ----
 
 @pytest.mark.parametrize("state, expected_error, expected_prompt", [
-    (FirstTimeMappingState.WAITING_PHOTO, MEDIA_ERROR, MEDIA),
+    (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, MEDIA_ERROR, MEDIA),
     (FirstTimeMappingState.WAITING_COORDINATES, LOCATION_ERROR, LOCATION),
 ])
 async def test_a_wrong_reply_sends_that_step_error_and_asks_again(state, expected_error, expected_prompt):
@@ -360,7 +360,7 @@ async def test_a_wrong_reply_during_the_survey_re_asks_the_current_question():
 async def test_the_fallback_count_keeps_growing():
     bot_state_store = AsyncMock(spec=BotStateStore)
     bot_state_store.fetch_fallback_count.return_value = 2
-    flow = _make_flow(FirstTimeMappingState.WAITING_PHOTO, bot_state_store=bot_state_store)
+    flow = _make_flow(FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, bot_state_store=bot_state_store)
 
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx())
 
@@ -371,13 +371,15 @@ async def test_crossing_the_fallback_limit_offers_cancel_or_restart():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
     bot_state_store.fetch_fallback_count.return_value = MAX_ATTEMPTS + 1
-    flow = _make_flow(FirstTimeMappingState.WAITING_PHOTO, bot_state_store=bot_state_store,
+    flow = _make_flow(FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx())
 
     assert _sent(message_to_send_store) == [f"{NOTIFY} {TO_CANCEL}, {TO_RESTART}"]
-    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_RECOVERY_CHOICE
+    saved = _saved_state(bot_state_store)
+    assert saved["state"] == FirstTimeMappingState.WAITING_RECOVERY_CHOICE
+    assert saved["reset_fallback_count"] is False
     bot_state_store.increment_fallback_count.assert_not_awaited()
 
 
@@ -405,7 +407,7 @@ async def test_choosing_restart_greets_again():
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=TO_RESTART))
 
     assert _sent(message_to_send_store) == [START, MEDIA]
-    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_PHOTO
+    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_FOR_DATA_MAPPING
 
 
 async def test_an_invalid_recovery_answer_re_asks_without_saving():
@@ -501,11 +503,11 @@ async def test_answering_the_recovery_question_keeps_the_message_out_of_the_map(
 async def test_the_photo_stays_available_to_the_map():
     bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
     flow = _make_flow(
-        FirstTimeMappingState.WAITING_PHOTO,
+        FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
         bot_consumed_messages_store=bot_consumed_messages_store,
     )
 
-    await flow.on_photo_uploaded(_ctx())
+    await flow.on_data_uploaded(_ctx())
 
     bot_consumed_messages_store.mark_consumed.assert_not_awaited()
 
@@ -523,7 +525,7 @@ async def test_the_location_stays_available_to_the_map():
 
 
 @pytest.mark.parametrize("state", [
-    FirstTimeMappingState.WAITING_PHOTO,
+    FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
     FirstTimeMappingState.WAITING_COORDINATES,
     FirstTimeMappingState.MAPPING_COMPLETED,
 ])

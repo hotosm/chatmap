@@ -92,11 +92,14 @@ def test_help_flow_shares_a_single_bot_tool_across_its_events():
     tools = help_flow.tools_by_events
 
     assert set(tools.keys()) == {
-        EventName.USER_SEND_TEXT, EventName.USER_UPLOAD_PHOTO, EventName.USER_SEND_COORDINATES
+        EventName.USER_SEND_TEXT, EventName.USER_UPLOAD_PHOTO, EventName.USER_UPLOAD_VIDEO,
+        EventName.USER_UPLOAD_AUDIO, EventName.USER_SEND_COORDINATES
     }
     shared_tool = tools[EventName.USER_SEND_TEXT]
     assert isinstance(shared_tool, BotTool)
     assert tools[EventName.USER_UPLOAD_PHOTO] is shared_tool
+    assert tools[EventName.USER_UPLOAD_VIDEO] is shared_tool
+    assert tools[EventName.USER_UPLOAD_AUDIO] is shared_tool
     assert tools[EventName.USER_SEND_COORDINATES] is shared_tool
 
 

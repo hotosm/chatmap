@@ -72,6 +72,8 @@ class HelpFlow(Flow):
         return {
             EventName.USER_SEND_TEXT: bot_tool,
             EventName.USER_UPLOAD_PHOTO: bot_tool,
+            EventName.USER_UPLOAD_VIDEO: bot_tool,
+            EventName.USER_UPLOAD_AUDIO: bot_tool,
             EventName.USER_SEND_COORDINATES: bot_tool,
         }
 
