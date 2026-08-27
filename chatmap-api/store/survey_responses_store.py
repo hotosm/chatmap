@@ -48,3 +48,25 @@ class SurveyResponsesStore:
         except SQLAlchemyError as error:
             logger.error(f"Fetch survey responses for point '{point_id}' failed with: '{error}'")
             raise StoreUnavailable
+
+    @classmethod
+    async def responses_for_points(cls, point_ids: list[str]) -> dict[str, list[dict]]:
+        if not point_ids:
+            return {}
+
+        db = get_db_session()
+        try:
+            query = select(SurveyResponse.point_id, SurveyResponse.answers).where(
+                SurveyResponse.point_id.in_(point_ids)
+            )
+            rows = db.execute(query).all()
+            return {
+                point_id: [
+                    {"question": answer["question"], "answer": answer["answer"]}
+                    for answer in (answers or [])
+                ]
+                for point_id, answers in rows
+            }
+        except SQLAlchemyError as error:
+            logger.error(f"Fetch survey responses for {len(point_ids)} point(s) failed with: '{error}'")
+            raise StoreUnavailable

@@ -165,20 +165,15 @@ class FirstTimeMappingFlow(BotFlow):
             logger.error(f"Survey answer for state: '{ctx.state_key}' arrived without a pending question")
             raise BotStateWithoutQuestion(message_id=ctx.message_id)
 
-        answer = BotConfiguredMessages.selected_option(ctx.answer, current_question.options)
+        if current_question.bot_step == BotStep.FREE_TEXT:
+            answer = ctx.answer
+        else:
+            answer = BotConfiguredMessages.selected_option(ctx.answer, current_question.options)
 
-        if answer is None:
-            logger.info(f"Invalid survey option received: '{ctx.answer}', re-asking...")
-
-            await self.message_to_send_store.send_message(
-                sender=ctx.sender,
-                to=ctx.recipient,
-                messages=[
-                    current_question.error_message,
-                    BotConfiguredMessages.build_options_message(current_question.prompt, current_question.options)
-                ]
-            )
-            return
+            if answer is None:
+                logger.info(f"Invalid survey option received: '{ctx.answer}', re-asking...")
+                await self.on_fallback(ctx)
+                return
 
         logger.info("storing survey response...")
         await self.survey_responses_store.add_response(
@@ -229,10 +224,11 @@ class FirstTimeMappingFlow(BotFlow):
             device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
         )
 
-        if ctx.answer not in [
-            ctx.configured_messages.max_attempts_messages.to_cancel,
-            ctx.configured_messages.max_attempts_messages.to_restart
-        ]:
+        answer = (ctx.answer or "").strip().lower()
+        to_cancel = ctx.configured_messages.max_attempts_messages.to_cancel.strip().lower()
+        to_restart = ctx.configured_messages.max_attempts_messages.to_restart.strip().lower()
+
+        if answer not in (to_cancel, to_restart):
             logger.info(f"Invalid recovery option received: '{ctx.answer}', re-asking...")
 
             notify_message = ctx.configured_messages.max_attempts_messages.full_message()
@@ -244,7 +240,7 @@ class FirstTimeMappingFlow(BotFlow):
             )
             return
 
-        if ctx.answer == ctx.configured_messages.max_attempts_messages.to_cancel:
+        if answer == to_cancel:
             await self.bot_state_store.delete_state(bot_state_key=ctx.state_key)
             return
 
@@ -254,7 +250,7 @@ class FirstTimeMappingFlow(BotFlow):
     async def on_fallback(self, ctx: BotFlowContext) -> None:
         fallback_count = await self.bot_state_store.fetch_fallback_count(bot_state_key=ctx.state_key)
 
-        if fallback_count > ctx.configured_messages.max_attempts_messages.max_attempts_quantity:
+        if fallback_count >= ctx.configured_messages.max_attempts_messages.max_attempts_quantity:
             logger.info("fallback limit reached, offering cancel/restart...")
 
             notify_message = ctx.configured_messages.max_attempts_messages.full_message()

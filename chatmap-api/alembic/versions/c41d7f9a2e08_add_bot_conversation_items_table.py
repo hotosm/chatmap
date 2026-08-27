@@ -18,7 +18,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 bot_step = postgresql.ENUM(
-    'start', 'media', 'location', 'single_choice', 'end', 'max_attempts',
+    'start', 'media', 'location', 'single_choice', 'free_text', 'end', 'max_attempts',
     name='bot_step',
     create_type=False,
 )

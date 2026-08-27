@@ -345,3 +345,54 @@ def test_several_questions_are_allowed():
     setup = BotSetup(bot_active=True, messages=messages, max_attempts_messages=_complete_max_attempts())
 
     assert len([message for message in setup.messages if message.bot_step == BotStep.SINGLE_CHOICE]) == 2
+
+
+# ---- free text questions ----
+
+def _free_text_question(prompt="Describe the damage", error_message="Please send a text message", options=None):
+    return BotConfiguredMessage(
+        bot_step=BotStep.FREE_TEXT, position=0, prompt=prompt,
+        error_message=error_message, options=options or [],
+    )
+
+
+def test_a_free_text_question_is_accepted_with_a_prompt_and_an_error_message():
+    setup = BotSetup(
+        bot_active=False, messages=[_free_text_question()], max_attempts_messages=BotMaxAttemptsMessages(),
+    )
+
+    assert [m.bot_step for m in setup.messages if m.bot_step == BotStep.FREE_TEXT] == [BotStep.FREE_TEXT]
+
+
+def test_a_free_text_question_without_text_is_rejected():
+    with pytest.raises(ValidationError, match="needs its question text"):
+        BotSetup(
+            bot_active=False, messages=[_free_text_question(prompt="  ")],
+            max_attempts_messages=BotMaxAttemptsMessages(),
+        )
+
+
+def test_a_free_text_question_without_an_incorrect_answer_is_rejected():
+    with pytest.raises(ValidationError, match="needs an incorrect answer message"):
+        BotSetup(
+            bot_active=False, messages=[_free_text_question(error_message="")],
+            max_attempts_messages=BotMaxAttemptsMessages(),
+        )
+
+
+def test_a_free_text_question_cannot_carry_options():
+    with pytest.raises(ValidationError, match="free text question takes no options"):
+        BotSetup(
+            bot_active=False, messages=[_free_text_question(options=["Yes", "No"])],
+            max_attempts_messages=BotMaxAttemptsMessages(),
+        )
+
+
+def test_free_text_and_single_choice_questions_can_be_mixed_and_enable_the_bot():
+    messages = _complete_messages() + [_question(prompt="Material?"), _free_text_question(prompt="Anything else?")]
+
+    setup = BotSetup(bot_active=True, messages=messages, max_attempts_messages=_complete_max_attempts())
+
+    assert [m.bot_step for m in setup.messages if m.bot_step in (BotStep.SINGLE_CHOICE, BotStep.FREE_TEXT)] == [
+        BotStep.SINGLE_CHOICE, BotStep.FREE_TEXT
+    ]

@@ -10,6 +10,14 @@ export const FIXED_STEPS = [
 export const END_STEP = {bot_step: "end", icon: "chat-square-text", answers: false};
 
 export const QUESTION_ICON = "list-ul";
+export const FREE_TEXT_ICON = "chat-square-dots";
+
+// The kinds the owner can add any number of, asked in order while mapping.
+export const QUESTION_STEPS = ["single_choice", "free_text"];
+
+export function isQuestion(botStep) {
+    return QUESTION_STEPS.includes(botStep);
+}
 
 const REQUIRED_STEPS = ["start", "media", "location", "end"];
 const STEPS_NEEDING_AN_ERROR = ["media", "location"];
@@ -29,14 +37,14 @@ export function emptyMessage(botStep) {
     };
 }
 
-export function emptyQuestion(position) {
+export function emptyQuestion(position, botStep = "single_choice") {
     return {
         id: null,
-        bot_step: "single_choice",
+        bot_step: botStep,
         position,
         prompt: "",
         error_message: "",
-        options: ["", ""],
+        options: botStep === "single_choice" ? ["", ""] : [],
     };
 }
 
@@ -49,7 +57,7 @@ export function messageOf(messages, botStep) {
 }
 
 export function questionsOf(messages) {
-    return messages.filter((message) => message.bot_step === "single_choice");
+    return messages.filter((message) => isQuestion(message.bot_step));
 }
 
 export function problemsIn(messages, botActive) {
@@ -57,10 +65,13 @@ export function problemsIn(messages, botActive) {
 
     questionsOf(messages).forEach((question, index) => {
         const key = question.id || `new-question-${index}`;
-        const options = (question.options || []).filter(filled);
-        if (!filled(question.prompt) || !filled(question.error_message)
-            || options.length < MIN_OPTIONS || options.length > MAX_OPTIONS) {
+        if (!filled(question.prompt) || !filled(question.error_message)) {
             problems.add(key);
+            return;
+        }
+        if (question.bot_step === "single_choice") {
+            const options = (question.options || []).filter(filled);
+            if (options.length < MIN_OPTIONS || options.length > MAX_OPTIONS) problems.add(key);
         }
     });
 
@@ -114,6 +125,6 @@ export function messagesToSave(messages) {
             || (message.options || []).some(filled))
         .map((message) => ({
             ...message,
-            position: message.bot_step === "single_choice" ? questionPosition++ : null,
+            position: isQuestion(message.bot_step) ? questionPosition++ : null,
         }));
 }

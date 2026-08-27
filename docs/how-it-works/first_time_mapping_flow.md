@@ -4,8 +4,9 @@
 
 `FirstTimeMappingFlow` (`bot/flows/first_time_mapping/flow.py`) is the bot's
 internal state machine for onboarding a new mapper: send a photo, video, or
-audio, send its coordinates, then answer whatever single-choice survey
-questions the map owner configured (if any). It's a `Tool` bound inside the
+audio, send its coordinates, then answer whatever survey questions the map
+owner configured (if any) — single choice or free text, see
+[bot_setup.md](bot_setup.md). It's a `Tool` bound inside the
 conversation engine (see
 [conversation_engine.md](conversation_engine.md#two-layers-of-flow)), but its
 own state machine — `FirstTimeMappingState`, the `transitions` table, and

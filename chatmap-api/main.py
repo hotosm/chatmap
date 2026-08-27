@@ -30,6 +30,7 @@ from bot.configured_messages import BotStep
 from store.bot_configured_messages_store import (
     BotMessage, get_configured_messages, update_configured_messages,
 )
+from store.survey_responses_store import SurveyResponsesStore
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
     SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
@@ -43,7 +44,7 @@ from settings import (
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
     ENABLE_OUTBOUND,
 )
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from geoalchemy2.shape import to_shape
 from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
 import csv
@@ -194,9 +195,10 @@ def list_maps_result(
     else:
         map_filter = Map.sharing == SharePermission.PUBLIC
     maps = db.execute(
-        select(Map, subq.c.count)
-        .join_from(Map, subq)
+        select(Map, func.coalesce(subq.c.count, 0))
+        .outerjoin(subq, Map.id == subq.c.map_id)
         .where(map_filter)
+        .where(or_(Map.is_live, subq.c.count.isnot(None)))
         .order_by(Map.created_at.desc())
     )
 
@@ -215,6 +217,7 @@ def list_maps_result(
             "updated_at": map_obj.updated_at,
             "sharing": map_obj.sharing,
             "is_live": map_obj.is_live,
+            "bot_active": map_obj.bot_active,
             "count": count,
             "centroid": centroid_coords
         })
@@ -427,7 +430,7 @@ def html_for_embedded_media(file):
         return "Location only"
 
 
-def map_response(db, map_obj, owner):
+async def map_response(db, map_obj, owner):
     # Filter points by map id
     base_filter = Point.map_id == map_obj.id
 
@@ -451,6 +454,8 @@ def map_response(db, map_obj, owner):
         .all()
     )
 
+    survey_by_point = await SurveyResponsesStore.responses_for_points([point.id for point in points])
+
     return {
         "id": map_obj.id,
         "sharing": map_obj.sharing.value,
@@ -470,7 +475,7 @@ def map_response(db, map_obj, owner):
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
-                    "tags": point.tags or ""
+                    "survey": survey_by_point.get(point.id, []),
                 },
                 "geometry": {
                     "type": "Point",
@@ -502,7 +507,7 @@ async def get_map(
     map_id = get_or_create_live_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
 
-    return map_response(db, map_obj, True)
+    return await map_response(db, map_obj, True)
 
 
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
@@ -527,7 +532,7 @@ async def get_public_map(
 
     owner = (user and map_obj.owner_id == user.id) or False
     if map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner):
-        return map_response(db, map_obj, owner)
+        return await map_response(db, map_obj, owner)
     else:
         # Map is not public – reject the request
         raise HTTPException(

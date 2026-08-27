@@ -23,11 +23,15 @@ class BotStep(str, Enum):
     MEDIA = "media"
     LOCATION = "location"
     SINGLE_CHOICE = "single_choice"
+    FREE_TEXT = "free_text"
     MAX_ATTEMPTS = "max_attempts"
     END = "end"
 
     def __repr__(self) -> str:
         return f"<{self.value!r}>"
+
+
+SURVEY_STEPS = (BotStep.SINGLE_CHOICE, BotStep.FREE_TEXT)
 
 
 @dataclass
@@ -48,14 +52,12 @@ class BotConfiguredMessages:
         return next((message for message in self.messages if message.bot_step == step), None)
 
     def survey_questions(self) -> list[BotMessage]:
-        """The owner's own single choice questions, in their configured order."""
-        return [message for message in self.messages if message.bot_step == BotStep.SINGLE_CHOICE]
+        return [message for message in self.messages if message.bot_step in SURVEY_STEPS]
 
     def has_survey_questions(self) -> bool:
         return len(self.survey_questions()) > 0
 
     def next_question_to_answer(self, answered_ids: set[str]) -> BotMessage | None:
-        """The first configured question still missing an answer, or None when the survey is done."""
         return next((question for question in self.survey_questions() if question.id not in answered_ids), None)
 
     def text_of(self, step: BotStep) -> str:
@@ -68,6 +70,9 @@ class BotConfiguredMessages:
 
     @classmethod
     def build_options_message(cls, question: str, options: list[str]) -> str:
+        if not options:
+            return question
+
         options_text = "\n".join(
             f"{_OPTION_NUMBER[index] if index < len(_OPTION_NUMBER) else f'{index + 1}.'} {label}"
             for index, label in enumerate(options)

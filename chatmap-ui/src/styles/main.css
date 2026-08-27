@@ -17,13 +17,13 @@ html {
 }
 
 sl-button[variant=primary]::part(base) {
-  background-color: var(--hot-color-primary-950);
-  border-color: var(--hot-color-primary-950);
-  color: var(--sl-color-neutral-0);
+    background-color: var(--hot-color-primary-950);
+    border-color: var(--hot-color-primary-950);
+    color: var(--sl-color-neutral-0);
 }
 
 sl-button.dashed::part(base) {
-  border-style: dashed;
+    border-style: dashed;
 }
 
 sl-icon-button::part(base) {
@@ -84,7 +84,7 @@ a {
 
 .header a {
     text-decoration: none;
-    color:var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-950);
 }
 
 .header__logo-link {
@@ -122,7 +122,7 @@ ul.header__nav {
     border-left: 1px solid var(--hot-color-neutral-300);
     height: var(--hot-spacing-medium);
     margin: var(--hot-spacing-x-small) 0;
-    padding-left: calc(var(--hot-spacing-large)/2);
+    padding-left: calc(var(--hot-spacing-large) / 2);
 }
 
 ul.header__nav li {
@@ -158,9 +158,9 @@ ul.header__nav li {
     box-sizing: border-box;
     border-top: 1px solid color-mix(in srgb, var(--hot-color-yellow-50) 100%, var(--hot-color-neutral-0) 100%);
     background: linear-gradient(
-        to bottom,
-        color-mix(in srgb, var(--hot-color-yellow-50) 20%, var(--hot-color-neutral-0) 100%),
-        color-mix(in srgb, var(--hot-color-yellow-50) 15%, var(--hot-color-neutral-0) 100%) 100%
+            to bottom,
+            color-mix(in srgb, var(--hot-color-yellow-50) 20%, var(--hot-color-neutral-0) 100%),
+            color-mix(in srgb, var(--hot-color-yellow-50) 15%, var(--hot-color-neutral-0) 100%) 100%
     );
     padding: var(--hot-spacing-x-large);
     font-family: var(--hot-font-sans-variant);
@@ -282,7 +282,7 @@ ul.header__nav li {
 /* File upload */
 /* Fix a bug with react-drag-drop-files styling
 https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
-.fileUploadMain  {
+.fileUploadMain {
     outline: none !important;
     height: 100%;
     display: block;
@@ -310,7 +310,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding: 0;
 }
 
-.maplibregl-ctrl-top-right  {
+.maplibregl-ctrl-top-right {
     margin-top: 52px;
     padding-top: var(--hot-spacing-medium);
     margin-right: var(--hot-spacing-x-small);
@@ -334,6 +334,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 .map-background-ctrl-sat {
     background-image: url("/assets/map-sat.png");
 }
+
 .map-background-ctrl-osm {
     background-image: url("/assets/map-osm.png");
 }
@@ -376,27 +377,29 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     border-radius: 20px;
 
 }
+
 .popup img,
 .popup video {
     max-height: 60vh;
     object-fit: cover;
 }
+
 .popup .maplibregl-popup-content {
-    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    box-shadow: 0 0 10px rgba(0, 0, 0, .3);
     border-radius: 20px;
 }
 
 .map__options {
     background-color: var(--hot-color-neutral-0);
     padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
-    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    box-shadow: 0 0 10px rgba(0, 0, 0, .3);
     border-radius: var(--hot-border-radius-medium);
     margin-right: var(--hot-spacing-small);
 }
 
 .map__options_live {
     border-top: 1px solid var(--hot-color-gray-200);
-    padding-bottom:  var(--hot-spacing-small);
+    padding-bottom: var(--hot-spacing-small);
 }
 
 .map__options p {
@@ -427,7 +430,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding: var(--hot-spacing-x-small);
     border: 1px solid var(--hot-color-primary);
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
 
 .errorMessage .buttons {
@@ -496,7 +499,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .dropdownSelection sl-dropdown,
 .dropdownSelection sl-button,
-.dropdownSelection sl-dropdown::part(panel)  {
+.dropdownSelection sl-dropdown::part(panel) {
     width: 100%;
 }
 
@@ -527,6 +530,29 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     font-style: italic;
 }
 
+/* Survey answers */
+
+.surveyAnswers {
+    text-align: left;
+    margin: 0;
+    padding: 0 var(--hot-spacing-small) var(--hot-spacing-x-small);
+    max-height: 40vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.surveyAnswer {
+    margin-top: var(--hot-spacing-small);
+}
+
+.surveyAnswer dt {
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.surveyAnswer dd {
+    margin: 0;
+}
+
 /* Connect form */
 
 .connectForm {
@@ -542,6 +568,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     box-shadow: var(--hot-shadow-small);
     width: 790px;
 }
+
 .connectForm h2 {
     margin-top: 0;
 }
@@ -677,12 +704,15 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     .footer__top-right h3 {
         font-size: var(--hot-font-size-x-large);
     }
+
     .footer__copy {
         font-size: var(--hot-font-size-2x-small);
     }
+
     .footer__top-right a span {
         font-size: var(--hot-font-size-large);
     }
+
     .footer__top-right a span::after {
         bottom: 3px
     }
@@ -698,10 +728,12 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     .connectFormWrapper {
         text-align: center;
     }
+
     .connectFormWrapper ol {
         font-size: var(--hot-font-size-medium);
         list-style-position: inside;
     }
+
     .connectForm {
         width: 100%;
         padding: var(--hot-spacing-medium);

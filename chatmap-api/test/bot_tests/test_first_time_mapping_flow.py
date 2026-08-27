@@ -51,6 +51,12 @@ def _question(item_id="q-1", prompt="Main material?", options=None, error_messag
     )
 
 
+def _free_text_question(item_id="ft-1", prompt="Describe the damage", error_message="Please send a text message"):
+    return BotMessage(
+        id=item_id, bot_step=BotStep.FREE_TEXT, prompt=prompt, error_message=error_message, options=[],
+    )
+
+
 def _conversation(questions=(), max_attempts_quantity=MAX_ATTEMPTS):
     return BotConfiguredMessages(
         max_attempts_messages=BotMaxAttemptsMessages(
@@ -113,6 +119,10 @@ def test_the_tenth_option_still_gets_a_keycap():
     message = BotConfiguredMessages.build_options_message("Pick", [f"Option {i}" for i in range(1, 11)])
 
     assert message.endswith("🔟 Option 10")
+
+
+def test_a_question_with_no_options_is_just_the_prompt():
+    assert BotConfiguredMessages.build_options_message("How did it happen?", []) == "How did it happen?"
 
 
 @pytest.mark.parametrize("answer, expected", [
@@ -296,6 +306,7 @@ async def test_an_already_answered_question_is_not_asked_again():
 async def test_an_invalid_answer_re_asks_without_recording_anything():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
+    bot_state_store.fetch_fallback_count.return_value = 0
     survey = _FakeSurveyStore()
     conversation = _conversation([_question("q-1")])
     flow = _make_flow(
@@ -309,6 +320,27 @@ async def test_an_invalid_answer_re_asks_without_recording_anything():
     assert survey.added == []
     assert _sent(message_to_send_store) == ["Pick one of the options", "Main material?\n\n1️⃣ Bricks\n2️⃣ Wood"]
     bot_state_store.save_state.assert_not_awaited()
+    bot_state_store.increment_fallback_count.assert_awaited_once_with(bot_state_key="key-1")
+
+
+async def test_repeated_wrong_survey_answers_reach_the_recovery_choice():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    bot_state_store.fetch_fallback_count.return_value = MAX_ATTEMPTS
+    conversation = _conversation([_question("q-1")])
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_SURVEY_ANSWER,
+        bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT,
+                    context=_ctx(configured_messages=conversation, point_id="point-1", answer="9"))
+
+    assert _sent(message_to_send_store) == [f"{NOTIFY} {TO_CANCEL}, {TO_RESTART}"]
+    saved = _saved_state(bot_state_store)
+    assert saved["state"] == FirstTimeMappingState.WAITING_RECOVERY_CHOICE
+    assert saved["reset_fallback_count"] is False
+    bot_state_store.increment_fallback_count.assert_not_awaited()
 
 
 async def test_deleting_every_question_mid_survey_raises():
@@ -326,6 +358,87 @@ async def test_a_survey_answer_without_a_point_id_is_rejected():
     with pytest.raises(BotStateWithoutPointId):
         await flow.call(current_event=EventName.USER_SEND_TEXT,
                         context=_ctx(configured_messages=conversation, answer="1"))
+
+
+# ---- free text questions ----
+
+async def test_coordinates_ask_a_free_text_question_with_just_the_prompt():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    conversation = _conversation([_free_text_question("ft-1", prompt="Describe the damage")])
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_COORDINATES,
+        bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_COORDINATES,
+                    context=_ctx(configured_messages=conversation, point_id="point-1"))
+
+    assert _sent(message_to_send_store) == ["Describe the damage"]
+    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_SURVEY_ANSWER
+
+
+async def test_a_free_text_answer_is_recorded_verbatim_and_ends_the_flow():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    survey = _FakeSurveyStore()
+    conversation = _conversation([_free_text_question("ft-1", prompt="Describe the damage")])
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_SURVEY_ANSWER,
+        message_to_send_store=message_to_send_store, survey_responses_store=survey,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT,
+                    context=_ctx(configured_messages=conversation, point_id="point-1",
+                                 answer="The east wall collapsed"))
+
+    assert survey.added == [
+        {"point_id": "point-1", "question_id": "ft-1", "question": "Describe the damage",
+         "answer": "The east wall collapsed"}
+    ]
+    assert _sent(message_to_send_store) == [END]
+
+
+async def test_a_number_answering_a_free_text_question_is_stored_as_typed():
+    survey = _FakeSurveyStore()
+    conversation = _conversation([_free_text_question("ft-1")])
+    flow = _make_flow(FirstTimeMappingState.WAITING_SURVEY_ANSWER, survey_responses_store=survey)
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT,
+                    context=_ctx(configured_messages=conversation, point_id="point-1", answer="3"))
+
+    assert survey.added[0]["answer"] == "3"
+
+
+async def test_a_free_text_question_is_followed_by_the_next_question():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    survey = _FakeSurveyStore()
+    conversation = _conversation([
+        _free_text_question("ft-1", prompt="Describe the damage"),
+        _question("q-2", prompt="Second?", options=["Yes", "No"]),
+    ])
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_SURVEY_ANSWER,
+        message_to_send_store=message_to_send_store, survey_responses_store=survey,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT,
+                    context=_ctx(configured_messages=conversation, point_id="point-1", answer="anything"))
+
+    assert survey.added[0] == {"point_id": "point-1", "question_id": "ft-1",
+                               "question": "Describe the damage", "answer": "anything"}
+    assert _sent(message_to_send_store) == ["Second?\n\n1️⃣ Yes\n2️⃣ No"]
+
+
+async def test_a_wrong_type_reply_during_a_free_text_question_re_asks_with_the_error():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    conversation = _conversation([_free_text_question("ft-1", prompt="Describe the damage",
+                                                     error_message="Please send a text message")])
+    flow = _make_flow(FirstTimeMappingState.WAITING_SURVEY_ANSWER, message_to_send_store=message_to_send_store)
+
+    await flow.call(current_event=EventName.USER_UPLOAD_PHOTO,
+                    context=_ctx(configured_messages=conversation, point_id="point-1"))
+
+    assert _sent(message_to_send_store) == ["Please send a text message", "Describe the damage"]
 
 
 # ---- fallback ----
@@ -421,6 +534,16 @@ async def test_an_invalid_recovery_answer_re_asks_without_saving():
     assert _sent(message_to_send_store) == [f"{NOTIFY} {TO_CANCEL}, {TO_RESTART}"]
     bot_state_store.save_state.assert_not_awaited()
     bot_state_store.delete_state.assert_not_awaited()
+
+
+@pytest.mark.parametrize("answer", ["Cancel", "CANCEL", "  cancel  "])
+async def test_the_recovery_answer_ignores_case_and_surrounding_spaces(answer):
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    flow = _make_flow(FirstTimeMappingState.WAITING_RECOVERY_CHOICE, bot_state_store=bot_state_store)
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=answer))
+
+    bot_state_store.delete_state.assert_awaited_once_with(bot_state_key="key-1")
 
 
 # ---- messages the bot consumes as answers ----

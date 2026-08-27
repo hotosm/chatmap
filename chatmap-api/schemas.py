@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, model_validator
 
-from bot.configured_messages import BotStep
+from bot.configured_messages import BotStep, SURVEY_STEPS
 
 
 class FeatureGeometry(BaseModel):
@@ -12,6 +12,15 @@ class FeatureGeometry(BaseModel):
     """
     type: Literal["Point"]
     coordinates: Tuple[float, float]  # GeoJSON is [lon, lat]
+
+
+class SurveyAnswer(BaseModel):
+    """
+    One question the map's bot asked while mapping this point, with the
+    answer the mapper chose.
+    """
+    question: str
+    answer: str
 
 
 class FeatureProperties(BaseModel):
@@ -26,6 +35,7 @@ class FeatureProperties(BaseModel):
     file_embedded: str | None
     removed: bool = False
     tags: str = ""
+    survey: List[SurveyAnswer] = []
 
 
 class Feature(BaseModel):
@@ -144,11 +154,11 @@ class BotSetup(BotSetupResult):
 
     @model_validator(mode="after")
     def check_messages(self):
-        singles = [message for message in self.messages if message.bot_step == BotStep.SINGLE_CHOICE]
+        questions = [message for message in self.messages if message.bot_step in SURVEY_STEPS]
         fixed = {}
 
         for message in self.messages:
-            if message.bot_step == BotStep.SINGLE_CHOICE:
+            if message.bot_step in SURVEY_STEPS:
                 continue
             if message.bot_step == BotStep.MAX_ATTEMPTS:
                 raise ValueError(
@@ -160,15 +170,18 @@ class BotSetup(BotSetupResult):
 
         # A half-written question is not something the bot can ask, so this
         # holds whether or not the bot is enabled
-        for question in singles:
+        for question in questions:
             if not _filled(question.prompt):
-                raise ValueError("every single choice question needs its question text")
+                raise ValueError("every survey question needs its question text")
             if not _filled(question.error_message):
-                raise ValueError("every single choice question needs an incorrect answer message")
-            if not MIN_OPTIONS <= len([o for o in question.options if _filled(o)]) <= MAX_OPTIONS:
-                raise ValueError(
-                    f"a single choice question needs between {MIN_OPTIONS} and {MAX_OPTIONS} options"
-                )
+                raise ValueError("every survey question needs an incorrect answer message")
+            if question.bot_step == BotStep.SINGLE_CHOICE:
+                if not MIN_OPTIONS <= len([o for o in question.options if _filled(o)]) <= MAX_OPTIONS:
+                    raise ValueError(
+                        f"a single choice question needs between {MIN_OPTIONS} and {MAX_OPTIONS} options"
+                    )
+            elif any(_filled(option) for option in question.options):
+                raise ValueError("a free text question takes no options")
 
         if not self.bot_active:
             return self

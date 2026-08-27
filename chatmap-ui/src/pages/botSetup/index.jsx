@@ -12,8 +12,8 @@ import useAPI from '../../components/ChatMap/useApi.js';
 import EditBotItemDialog from '../../components/EditBotItemDialog/index.jsx';
 import MaxAttemptsDialog from '../../components/MaxAttemptsDialog/index.jsx';
 import {
-  END_STEP, FIXED_STEPS, QUESTION_ICON,
-  emptyQuestion, maxAttemptsFromSetup, maxAttemptsHasProblems,
+  END_STEP, FIXED_STEPS, FREE_TEXT_ICON, QUESTION_ICON,
+  emptyQuestion, isQuestion, maxAttemptsFromSetup, maxAttemptsHasProblems,
   messagesFromSetup, messagesToSave, problemsIn, questionsOf,
 } from '../../utils/botSetup.js';
 import '../../styles/botSetup.css';
@@ -51,6 +51,7 @@ export default function BotSetup() {
     location: intl.formatMessage({ id: "app.botSetup.location", defaultMessage: "Location" }),
     end: intl.formatMessage({ id: "app.botSetup.endMessage", defaultMessage: "End message" }),
     single_choice: intl.formatMessage({ id: "app.botSetup.singleChoice", defaultMessage: "Single choice" }),
+    free_text: intl.formatMessage({ id: "app.botSetup.freeText", defaultMessage: "Free text" }),
   }), [intl]);
 
   // Marked rows are the ones that block the save; recomputed as the user edits
@@ -62,6 +63,11 @@ export default function BotSetup() {
 
   const questions = questionsOf(messages);
   const questionKey = (question) => question.id || `new-question-${questions.indexOf(question)}`;
+  const questionDefinition = (botStep) => ({
+    bot_step: botStep,
+    icon: botStep === "free_text" ? FREE_TEXT_ICON : QUESTION_ICON,
+    answers: true,
+  });
 
   const updateMessage = useCallback((target, changes) => {
     setMessages((current) => current.map((message) => (message === target ? { ...message, ...changes } : message)));
@@ -71,8 +77,8 @@ export default function BotSetup() {
     setEditing({ message, editingError, label, icon });
   }
 
-  function addQuestion() {
-    setMessages([...messages, emptyQuestion(questions.length)]);
+  function addQuestion(botStep) {
+    setMessages([...messages, emptyQuestion(questions.length, botStep)]);
   }
 
   function removeQuestion(question) {
@@ -100,17 +106,18 @@ export default function BotSetup() {
   }
 
   function renderRow(message, definition, label) {
-    const marked = invalid && problems.has(message.bot_step === "single_choice" ? questionKey(message) : message.bot_step);
+    const rowKey = isQuestion(message.bot_step) ? questionKey(message) : message.bot_step;
+    const marked = invalid && problems.has(rowKey);
 
     return (
-      <div className="botSetup__row" key={message.bot_step === "single_choice" ? questionKey(message) : message.bot_step}>
+      <div className="botSetup__row" key={rowKey}>
         <div className={`botSetup__item ${marked ? "botSetup__item--invalid" : ""}`}>
           <SlIcon name={definition.icon} />
           <span className={message.prompt ? "" : "botSetup__item-empty"}>
             {message.prompt || label}
           </span>
           <div className="botSetup__item-actions">
-            { message.bot_step === "single_choice" &&
+            { isQuestion(message.bot_step) &&
             <button
               type="button"
               className="botSetup__icon-button"
@@ -208,12 +215,28 @@ export default function BotSetup() {
               { FIXED_STEPS.map(rowFor) }
 
               { questions.map((question) => renderRow(
-                question, { bot_step: "single_choice", icon: QUESTION_ICON, answers: true }, labels.single_choice
+                question, questionDefinition(question.bot_step), labels[question.bot_step]
               )) }
 
-              <button type="button" className="botSetup__item botSetup__item--add" onClick={addQuestion}>
+              <button
+                type="button"
+                className="botSetup__item botSetup__item--add"
+                onClick={() => addQuestion("single_choice")}
+              >
                 <SlIcon name={QUESTION_ICON} />
                 <span className="botSetup__item-empty">{labels.single_choice}</span>
+                <div className="botSetup__item-actions">
+                  <SlIcon name="plus-circle" />
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="botSetup__item botSetup__item--add"
+                onClick={() => addQuestion("free_text")}
+              >
+                <SlIcon name={FREE_TEXT_ICON} />
+                <span className="botSetup__item-empty">{labels.free_text}</span>
                 <div className="botSetup__item-actions">
                   <SlIcon name="plus-circle" />
                 </div>
