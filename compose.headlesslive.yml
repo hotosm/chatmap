@@ -8,10 +8,14 @@
 #
 # Setup
 #
-# 1. Create the local directories and a private .env file:
+# 1. Create the local directories:
 #      mkdir -p sessions media && chmod 700 sessions
+#
+#    Every variable has a default, so the stack starts as-is. For anything
+#    other than a local trial, put your own secrets in a private .env file:
 #      CHATMAP_ENC_KEY=$(openssl rand -hex 16)
 #      POSTGRES_PASSWORD=$(openssl rand -hex 24)
+#      COOKIE_SECRET=$(openssl rand -hex 32)
 #
 # 2. Start the stack and check that migrations finish at "head":
 #      docker compose -f compose.headlesslive.yml up -d
@@ -26,6 +30,13 @@
 #
 #    Check the connection:
 #      curl -s "http://127.0.0.1:8001/status?session=fieldteam1"
+#    Verify a shared location was stored:
+#      docker compose -f compose.headlesslive.yml exec chatmap-db \
+#        psql -U admin -d chatmap -c "SELECT * FROM points ORDER BY time DESC LIMIT 5;"
+#
+#    For QGIS or DBeaver, open a database tunnel:
+#      ssh -N -L 5432:127.0.0.1:5432 user@server
+#    Connect to localhost:5432 using the .env credentials and database "chatmap".
 #    To unlink it:
 #      curl -s "http://127.0.0.1:8001/logout?session=fieldteam1"
 #
@@ -33,7 +44,8 @@
 #
 # Security and operations
 #
-# - No auth, so run via localhost only.
+# - No auth, so run via localhost only. The auth variables exist only to
+#   satisfy the shared API image; no login is used or needed here.
 # - Files in ./sessions are WhatsApp credentials. Keep them private.
 # - One linked account collects locations from every chat it can see. Use a
 #   **dedicated account** for this deployment.
@@ -50,12 +62,11 @@ services:
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
-      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:?set a 32-byte key in .env}
-    # Keep this on localhost; the routes are unauthenticated.
+      # Encrypts messages - default ok for local, but update on prod!
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
     ports:
       - "127.0.0.1:8001:8001"
     volumes:
-      # Device credentials. Keep this directory private and backed up.
       - ./sessions:/app/sessions
     depends_on:
       - chatmap-redis
@@ -74,18 +85,19 @@ services:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - SERVER_URL=http://chatmap-go:8001
-      # This must match chatmap-go.
-      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:?}
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
       - CHATMAP_DB_HOST=chatmap-db
       - CHATMAP_DB=${POSTGRES_DB:-chatmap}
       - CHATMAP_DB_USER=${POSTGRES_USER:-admin}
-      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:?}
-      # Message pairing has a hardcoded 30-minute limit.
+      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
       - CHATMAP_EXPIRING_MIN=${CHATMAP_EXPIRING_MIN:-30}
       - CHATMAP_DISABLE_STREAM_CLEANUP=false
       - CHATMAP_API_DEBUG=${CHATMAP_API_DEBUG:-false}
-      # Stored media URLs use this value.
       - CHATMAP_API_URL=http://chatmap-api:8000
+      # Needed for API to start, but login not used
+      - HANKO_API_URL=${HANKO_API_URL:-https://login.hotosm.org}
+      - JWT_ISSUER=${JWT_ISSUER:-https://login.hotosm.org}
+      - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
     volumes:
       - ./media:/app/media:rw
     networks: [chatmap_net]
@@ -102,7 +114,7 @@ services:
       - CHATMAP_DB_HOST=chatmap-db
       - CHATMAP_DB=${POSTGRES_DB:-chatmap}
       - CHATMAP_DB_USER=${POSTGRES_USER:-admin}
-      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:?}
+      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
     networks: [chatmap_net]
 
   # Internal message stream; it is not published to the host.
@@ -114,12 +126,13 @@ services:
   chatmap-db:
     image: postgis/postgis:18-3.6-alpine
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-chatmap}
       - POSTGRES_USER=${POSTGRES_USER:-admin}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
     volumes:
-      # Postgres 18+ requires this path rather than /var/lib/postgresql/data.
       - data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-chatmap}"]
