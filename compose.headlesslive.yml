@@ -1,0 +1,135 @@
+# Headless ChatMap ingestion: WhatsApp locations -> Postgres/PostGIS.
+# This stack has no UI, login, TLS or S3. The connector is available only on
+# localhost. Use compose.yml if you need the full web application.
+#
+# A linked WhatsApp device sends messages through Redis. The API pairs each
+# location with a nearby message from the same sender and stores the result.
+# People sharing locations do not need ChatMap accounts.
+#
+# Setup
+#
+# 1. Create the local directories and a private .env file:
+#      mkdir -p sessions media && chmod 700 sessions
+#      CHATMAP_ENC_KEY=$(openssl rand -hex 16)
+#      POSTGRES_PASSWORD=$(openssl rand -hex 24)
+#
+# 2. Start the stack and check that migrations finish at "head":
+#      docker compose -f compose.headlesslive.yml up -d
+#      docker compose -f compose.headlesslive.yml logs chatmap-api-migrate
+#
+# 3. Link a WhatsApp device. Forward the connector port over SSH:
+#      ssh -N -L 8001:127.0.0.1:8001 user@server
+#    Then open:
+#      http://127.0.0.1:8001/start-qr?session=fieldteam1
+#    In WhatsApp, choose Linked devices -> Link a device and scan the QR code.
+#    Do not repeatedly call /start-qr; each call restarts pairing.
+#
+#    Check the connection:
+#      curl -s "http://127.0.0.1:8001/status?session=fieldteam1"
+#    To unlink it:
+#      curl -s "http://127.0.0.1:8001/logout?session=fieldteam1"
+#
+# See export_flights.py for exporting recent flight events to S3.
+#
+# Security and operations
+#
+# - No auth, so run via localhost only.
+# - Files in ./sessions are WhatsApp credentials. Keep them private.
+# - One linked account collects locations from every chat it can see. Use a
+#   **dedicated account** for this deployment.
+#
+# View logs with:
+#   docker compose -f compose.headlesslive.yml logs -f chatmap-go chatmap-api
+# Device links are retained on restart.
+
+services:
+  # WhatsApp bridge. Each session id represents one linked device.
+  chatmap-go:
+    image: ghcr.io/hotosm/chatmap-im-connector:latest
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=chatmap-redis
+      - REDIS_PORT=6379
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:?set a 32-byte key in .env}
+    # Keep this on localhost; the routes are unauthenticated.
+    ports:
+      - "127.0.0.1:8001:8001"
+    volumes:
+      # Device credentials. Keep this directory private and backed up.
+      - ./sessions:/app/sessions
+    depends_on:
+      - chatmap-redis
+    networks: [chatmap_net]
+
+  # Decrypts messages, pairs them with locations, and stores the points.
+  chatmap-api:
+    image: ghcr.io/hotosm/chatmap-api:latest
+    restart: unless-stopped
+    depends_on:
+      chatmap-redis:
+        condition: service_started
+      chatmap-db:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=chatmap-redis
+      - REDIS_PORT=6379
+      - SERVER_URL=http://chatmap-go:8001
+      # This must match chatmap-go.
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:?}
+      - CHATMAP_DB_HOST=chatmap-db
+      - CHATMAP_DB=${POSTGRES_DB:-chatmap}
+      - CHATMAP_DB_USER=${POSTGRES_USER:-admin}
+      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:?}
+      # Message pairing has a hardcoded 30-minute limit.
+      - CHATMAP_EXPIRING_MIN=${CHATMAP_EXPIRING_MIN:-30}
+      - CHATMAP_DISABLE_STREAM_CLEANUP=false
+      - CHATMAP_API_DEBUG=${CHATMAP_API_DEBUG:-false}
+      # Stored media URLs use this value.
+      - CHATMAP_API_URL=http://chatmap-api:8000
+    volumes:
+      - ./media:/app/media:rw
+    networks: [chatmap_net]
+
+  # Runs database migrations once.
+  chatmap-api-migrate:
+    image: ghcr.io/hotosm/chatmap-api:latest
+    command: uv run alembic upgrade head
+    restart: "no"
+    depends_on:
+      chatmap-db:
+        condition: service_healthy
+    environment:
+      - CHATMAP_DB_HOST=chatmap-db
+      - CHATMAP_DB=${POSTGRES_DB:-chatmap}
+      - CHATMAP_DB_USER=${POSTGRES_USER:-admin}
+      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:?}
+    networks: [chatmap_net]
+
+  # Internal message stream; it is not published to the host.
+  chatmap-redis:
+    image: redis:latest
+    restart: unless-stopped
+    networks: [chatmap_net]
+
+  chatmap-db:
+    image: postgis/postgis:18-3.6-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-chatmap}
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?}
+    volumes:
+      # Postgres 18+ requires this path rather than /var/lib/postgresql/data.
+      - data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-chatmap}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [chatmap_net]
+
+networks:
+  chatmap_net:
+
+volumes:
+  data:
