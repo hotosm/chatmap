@@ -128,7 +128,7 @@ class FirstTimeMappingFlow(BotFlow):
                     bot_info={"point_id": ctx.point_id}
                 )
 
-            return
+                return
 
         await self.message_to_send_store.send_message(
             sender=ctx.sender,

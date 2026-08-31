@@ -243,6 +243,25 @@ async def test_coordinates_end_the_flow_when_no_question_is_configured():
     bot_state_store.delete_state.assert_awaited_once_with(bot_state_key="key-1")
 
 
+async def test_coordinates_end_the_flow_when_every_configured_question_is_already_answered():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    survey = _FakeSurveyStore(answered={"q-1"})
+    conversation = _conversation([_question("q-1")])
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_COORDINATES,
+        bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
+        survey_responses_store=survey,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_COORDINATES,
+                    context=_ctx(configured_messages=conversation, point_id="point-1"))
+
+    assert _sent(message_to_send_store) == [END]
+    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.MAPPING_COMPLETED
+    bot_state_store.delete_state.assert_awaited_once_with(bot_state_key="key-1")
+
+
 async def test_coordinates_without_a_point_id_are_rejected():
     flow = _make_flow(FirstTimeMappingState.WAITING_COORDINATES)
 
