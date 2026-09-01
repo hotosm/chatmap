@@ -454,7 +454,9 @@ async def map_response(db, map_obj, owner):
         .all()
     )
 
-    survey_by_point = await SurveyResponsesStore.responses_for_points([point.id for point in points])
+    survey_by_point = await SurveyResponsesStore.responses_for_points(
+        map_id=map_obj.id, point_ids=[point.id for point in points]
+    )
 
     return {
         "id": map_obj.id,
@@ -579,13 +581,18 @@ async def status(
 
 # Unlink a live map
 @api_router.put("/map/{map_id}/unlink/")
-async def status(
+async def unlink_map(
         map_id: str,
         user: CurrentUser,
         db: Session = Depends(get_db_session),
 ) -> Dict[str, bool]:
     """
-    Toggle is_live property for the map to stop receiving data from a linked device
+    Stop the map from receiving data from a linked device.
+
+    Clears bot_active alongside is_live: an unlinked map keeps its points as a
+    static archive, and the owner starts a fresh live map (bot off by default)
+    for the next campaign. Leaving bot_active set would strand it on a map that
+    no longer receives anything.
 
     Args:
         map_id (str): Unique identifier of the map.
@@ -598,6 +605,7 @@ async def status(
     map_obj: Map = db.get(Map, map_id)
     if map_obj and user and map_obj.owner_id == user.id:
         map_obj.is_live = False
+        map_obj.bot_active = False
         db.commit()
         await clean_user_stream(user.id)
         return {"is_live": map_obj.is_live}

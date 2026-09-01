@@ -7,6 +7,7 @@ from bot.flows.flow import BotFlowContext
 from conversation_engine.conversation import Conversation
 from conversation_engine.event import Event, EventName
 from bot.flows.first_time_mapping.flow import FirstTimeMappingFlow
+from db import get_live_map_id, session_scope
 from results.error import BotMessagesNotConfigured
 from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_configured_messages_store import BotConfiguredMessagesStore
@@ -51,8 +52,8 @@ class BotTool:
     async def __call__(self, event: Event, message: ReceivedMessage, device: str, conversation: Conversation):
         configured_messages = await self.bot_configured_messages_store.get_configured_messages_for(device=device)
 
-        if not configured_messages.messages:
-            logger.info(f"Device: '{device}' has no bot messages configured")
+        if not configured_messages.messages or configured_messages.max_attempts_messages is None:
+            logger.info(f"Device: '{device}' has an incomplete bot configuration")
             raise BotMessagesNotConfigured(message_id=message.id)
 
         bot_state_key = f"bot_state:{FirstTimeMappingFlow.name}:{message.sender}{message.chat}"
@@ -68,9 +69,10 @@ class BotTool:
         if event.name == EventName.USER_SEND_COORDINATES:
             point_id = message.id
         else:
-            # Coordinates were sent on an earlier message; the point id saved
-            # then is what later steps (survey answers, fallbacks) need.
             point_id = await self.bot_state_store.fetch_field(bot_state_key=bot_state_key, field="point_id")
+
+        with session_scope() as db:
+            map_id = get_live_map_id(db, device)
 
         context = BotFlowContext(
             state_key=bot_state_key,
@@ -80,6 +82,7 @@ class BotTool:
             message_id=message.id,
             occurred_at=event.occurred_at,
             point_id=point_id,
+            map_id=map_id,
             configured_messages=configured_messages,
         )
 

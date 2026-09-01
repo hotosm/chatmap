@@ -23,9 +23,11 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         'survey_responses',
+        sa.Column('map_id', sa.String(), nullable=False),
         sa.Column('point_id', sa.String(), nullable=False),
         sa.Column('answers', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.PrimaryKeyConstraint('point_id'),
+        sa.PrimaryKeyConstraint('map_id', 'point_id'),
+        sa.ForeignKeyConstraint(['map_id'], ['maps.id'], ondelete='CASCADE'),
     )
 
 

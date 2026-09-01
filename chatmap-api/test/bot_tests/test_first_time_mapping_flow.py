@@ -36,11 +36,14 @@ class _FakeSurveyStore:
         self.answered = set(answered or [])
         self.added = []
 
-    async def answered_question_ids(self, point_id: str) -> set[str]:
+    async def answered_question_ids(self, map_id: str, point_id: str) -> set[str]:
         return set(self.answered)
 
-    async def add_response(self, point_id: str, question_id: str, question: str, answer: str) -> None:
-        self.added.append({"point_id": point_id, "question_id": question_id, "question": question, "answer": answer})
+    async def add_response(self, map_id: str, point_id: str, question_id: str, question: str, answer: str) -> None:
+        self.added.append({
+            "map_id": map_id, "point_id": point_id,
+            "question_id": question_id, "question": question, "answer": answer,
+        })
         self.answered.add(question_id)
 
 
@@ -78,11 +81,15 @@ def _make_flow(state, bot_state_store=None, message_to_send_store=None,
         bot_state_store = AsyncMock(spec=BotStateStore)
         bot_state_store.fetch_fallback_count.return_value = 0
 
+    if bot_consumed_messages_store is None:
+        bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+        bot_consumed_messages_store.is_consumed.return_value = False
+
     return FirstTimeMappingFlow(
         state=state,
         bot_state_store=bot_state_store,
         message_to_send_store=message_to_send_store or AsyncMock(spec=MessageToSendStore),
-        bot_consumed_messages_store=bot_consumed_messages_store or AsyncMock(spec=BotConsumedMessagesStore),
+        bot_consumed_messages_store=bot_consumed_messages_store,
         survey_responses_store=survey_responses_store or _FakeSurveyStore(),
     )
 
@@ -90,7 +97,8 @@ def _make_flow(state, bot_state_store=None, message_to_send_store=None,
 def _ctx(configured_messages=None, **overrides):
     fields = dict(
         state_key="key-1", recipient="user-enc-1", sender="device-1", answer="", message_id="msg-1",
-        occurred_at=OCCURRED_AT, point_id=None, configured_messages=configured_messages or _conversation(),
+        occurred_at=OCCURRED_AT, point_id=None, map_id="map-1",
+        configured_messages=configured_messages or _conversation(),
     )
     fields.update(overrides)
     return BotFlowContext(**fields)
@@ -282,7 +290,8 @@ async def test_a_valid_answer_is_recorded_and_the_next_question_asked():
                     context=_ctx(configured_messages=conversation, point_id="point-1", answer="2"))
 
     assert survey.added == [
-        {"point_id": "point-1", "question_id": "q-1", "question": "Main material?", "answer": "Wood"}
+        {"map_id": "map-1", "point_id": "point-1", "question_id": "q-1",
+         "question": "Main material?", "answer": "Wood"}
     ]
     assert _sent(message_to_send_store) == ["Second?\n\n1️⃣ Yes\n2️⃣ No"]
 
@@ -379,6 +388,28 @@ async def test_a_survey_answer_without_a_point_id_is_rejected():
                         context=_ctx(configured_messages=conversation, answer="1"))
 
 
+async def test_a_redelivered_survey_answer_already_handled_is_skipped():
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    consumed = AsyncMock(spec=BotConsumedMessagesStore)
+    consumed.is_consumed.return_value = True
+    survey = _FakeSurveyStore()
+    conversation = _conversation([_question("q-1"), _question("q-2", prompt="Second?")])
+    flow = _make_flow(
+        FirstTimeMappingState.WAITING_SURVEY_ANSWER,
+        bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
+        survey_responses_store=survey, bot_consumed_messages_store=consumed,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT,
+                    context=_ctx(configured_messages=conversation, point_id="point-1", answer="1"))
+
+    assert survey.added == []
+    assert _sent(message_to_send_store) == []
+    bot_state_store.save_state.assert_not_awaited()
+    consumed.mark_consumed.assert_not_awaited()
+
+
 # ---- free text questions ----
 
 async def test_coordinates_ask_a_free_text_question_with_just_the_prompt():
@@ -411,8 +442,8 @@ async def test_a_free_text_answer_is_recorded_verbatim_and_ends_the_flow():
                                  answer="The east wall collapsed"))
 
     assert survey.added == [
-        {"point_id": "point-1", "question_id": "ft-1", "question": "Describe the damage",
-         "answer": "The east wall collapsed"}
+        {"map_id": "map-1", "point_id": "point-1", "question_id": "ft-1",
+         "question": "Describe the damage", "answer": "The east wall collapsed"}
     ]
     assert _sent(message_to_send_store) == [END]
 
@@ -443,7 +474,7 @@ async def test_a_free_text_question_is_followed_by_the_next_question():
     await flow.call(current_event=EventName.USER_SEND_TEXT,
                     context=_ctx(configured_messages=conversation, point_id="point-1", answer="anything"))
 
-    assert survey.added[0] == {"point_id": "point-1", "question_id": "ft-1",
+    assert survey.added[0] == {"map_id": "map-1", "point_id": "point-1", "question_id": "ft-1",
                                "question": "Describe the damage", "answer": "anything"}
     assert _sent(message_to_send_store) == ["Second?\n\n1️⃣ Yes\n2️⃣ No"]
 
@@ -597,6 +628,7 @@ async def test_a_message_without_text_reaching_on_start_stays_available_to_the_m
 
 async def test_answering_the_survey_keeps_the_message_out_of_the_map():
     bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    bot_consumed_messages_store.is_consumed.return_value = False
     conversation = _conversation([_question()])
     flow = _make_flow(
         FirstTimeMappingState.WAITING_SURVEY_ANSWER,
@@ -613,6 +645,7 @@ async def test_answering_the_survey_keeps_the_message_out_of_the_map():
 
 async def test_an_invalid_survey_answer_is_still_kept_out_of_the_map():
     bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    bot_consumed_messages_store.is_consumed.return_value = False
     conversation = _conversation([_question()])
     flow = _make_flow(
         FirstTimeMappingState.WAITING_SURVEY_ANSWER,
@@ -629,6 +662,7 @@ async def test_an_invalid_survey_answer_is_still_kept_out_of_the_map():
 @pytest.mark.parametrize("answer", ["1", "2", "no soy una opcion"])
 async def test_answering_the_recovery_question_keeps_the_message_out_of_the_map(answer):
     bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    bot_consumed_messages_store.is_consumed.return_value = False
     flow = _make_flow(
         FirstTimeMappingState.WAITING_RECOVERY_CHOICE,
         bot_consumed_messages_store=bot_consumed_messages_store,

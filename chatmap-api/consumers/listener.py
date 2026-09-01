@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 
 from conversation_engine.flow import Flows
-from db import get_db_session
+from db import session_scope
 from results.error import UnknownConversation, StoreUnavailable, BotStateWithoutPointId, BotStateWithoutQuestion, \
     BotMessagesNotConfigured
 from store.conversation_store import ConversationStore
@@ -98,10 +98,11 @@ class ConversationsStateListener:
         logger.debug("Conversations flows is setup!")
 
         while True:
-            devices = await Devices.devices_to_process(
-                redis_client=self.client,
-                db_session=get_db_session()
-            )
+            with session_scope() as db:
+                devices = await Devices.devices_to_process(
+                    redis_client=self.client,
+                    db_session=db
+                )
 
             try:
                 async with asyncio.TaskGroup() as task_group:

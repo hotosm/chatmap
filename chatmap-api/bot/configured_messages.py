@@ -45,7 +45,7 @@ class BotMessage:
 
 @dataclass
 class BotConfiguredMessages:
-    max_attempts_messages: BotMaxAttemptsMessages
+    max_attempts_messages: BotMaxAttemptsMessages | None
     messages: list[BotMessage] = field(default_factory=list)
 
     def message_for(self, step: BotStep) -> BotMessage | None:

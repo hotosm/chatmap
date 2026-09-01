@@ -43,7 +43,7 @@ async def test_each_feature_carries_its_own_survey_answers():
     with patch("main.SurveyResponsesStore.responses_for_points", AsyncMock(return_value=answers)) as fetch:
         result = await map_response(db, _map(), owner=True)
 
-    fetch.assert_awaited_once_with(["p-1", "p-2"])
+    fetch.assert_awaited_once_with(map_id="map-1", point_ids=["p-1", "p-2"])
     by_id = {feature["properties"]["id"]: feature["properties"]["survey"] for feature in result["features"]}
     assert by_id["p-1"] == answers["p-1"]
 
@@ -63,5 +63,5 @@ async def test_a_map_without_points_asks_for_no_survey_responses():
     with patch("main.SurveyResponsesStore.responses_for_points", AsyncMock(return_value={})) as fetch:
         result = await map_response(db, _map(), owner=True)
 
-    fetch.assert_awaited_once_with([])
+    fetch.assert_awaited_once_with(map_id="map-1", point_ids=[])
     assert result["features"] == []

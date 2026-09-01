@@ -2,7 +2,7 @@ import logging
 import uuid
 
 from sqlalchemy.exc import SQLAlchemyError
-from db import get_db_session, Base, Map
+from db import session_scope, Base, Map
 from results.error import StoreUnavailable
 from sqlalchemy.dialects.postgresql import JSONB
 from bot.configured_messages import (
@@ -42,85 +42,85 @@ class BotMessage(Base):
 class BotConfiguredMessagesStore:
     @classmethod
     async def get_configured_messages_for(cls, device: str) -> BotConfiguredMessages:
-        db = get_db_session()
-        try:
-            query = (
-                select(BotMessage)
-                .join(Map, Map.id == BotMessage.map_id)
-                .where(Map.owner_id == device)
-                .order_by(BotMessage.position.asc().nullsfirst())
-            )
-            rows = list(db.execute(query).scalars())
+        with session_scope() as db:
+            try:
+                query = (
+                    select(BotMessage)
+                    .join(Map, Map.id == BotMessage.map_id)
+                    .where(Map.owner_id == device)
+                    .order_by(BotMessage.position.asc().nullsfirst())
+                )
+                rows = list(db.execute(query).scalars())
 
-            attempts_row = next((row for row in rows if row.bot_step == BotStep.MAX_ATTEMPTS))
-            if attempts_row:
+                attempts_row = next((row for row in rows if row.bot_step == BotStep.MAX_ATTEMPTS), None)
                 max_attempts_messages = BotMaxAttemptsMessages(
                     max_attempts_quantity=attempts_row.max_attempts_quantity,
                     notify_message=attempts_row.content,
                     to_restart=attempts_row.to_restart,
                     to_cancel=attempts_row.to_cancel,
-                )
-            else:
-                max_attempts_messages = BotMaxAttemptsMessages(
-                    max_attempts_quantity=0, notify_message="", to_restart="", to_cancel="",
-                )
+                ) if attempts_row else None
 
-            return BotConfiguredMessages(
-                max_attempts_messages=max_attempts_messages,
-                messages=[
-                    DomainBotMessage(
-                        id=row.id,
-                        bot_step=row.bot_step,
-                        prompt=row.content,
-                        error_message=row.error_message or "",
-                        options=row.options or [],
-                    )
-                    for row in rows
-                    if row.bot_step != BotStep.MAX_ATTEMPTS
-                ],
-            )
-        except SQLAlchemyError as error:
-            logger.error(f"Fetch configured bot messages for device '{device}' failed with: '{error}'")
-            raise StoreUnavailable
+                return BotConfiguredMessages(
+                    max_attempts_messages=max_attempts_messages,
+                    messages=[
+                        DomainBotMessage(
+                            id=row.id,
+                            bot_step=row.bot_step,
+                            prompt=row.content,
+                            error_message=row.error_message or "",
+                            options=row.options or [],
+                        )
+                        for row in rows
+                        if row.bot_step != BotStep.MAX_ATTEMPTS
+                    ],
+                )
+            except SQLAlchemyError as error:
+                logger.error(f"Fetch configured bot messages for device '{device}' failed with: '{error}'")
+                raise StoreUnavailable
 
 
 def get_configured_messages(map_id: str) -> list[BotMessage]:
-    db = get_db_session()
-    query = (
-        select(BotMessage)
-        .where(BotMessage.map_id == map_id)
-        .order_by(BotMessage.position.asc().nullsfirst())
-    )
-    return list(db.execute(query).scalars())
+    with session_scope() as db:
+        query = (
+            select(BotMessage)
+            .where(BotMessage.map_id == map_id)
+            .order_by(BotMessage.position.asc().nullsfirst())
+        )
+        return list(db.execute(query).scalars())
 
 
 def update_configured_messages(map_id: str, messages: list[dict]) -> list[BotMessage]:
-    db = get_db_session()
-    existing = {row.id: row for row in get_configured_messages(map_id)}
-    kept = set()
+    with session_scope() as db:
+        # Loaded from the same session that commits, so edits to kept rows persist.
+        existing = {
+            row.id: row
+            for row in db.execute(select(BotMessage).where(BotMessage.map_id == map_id)).scalars()
+        }
+        kept = set()
 
-    for message in messages:
-        message_id = message.get("id")
-        row = existing.get(message_id) if message_id is not None else None
+        for message in messages:
+            message_id = message.get("id")
+            row = existing.get(message_id) if message_id is not None else None
 
-        if row is None:
-            row = BotMessage(map_id=map_id)
-            db.add(row)
-        else:
-            kept.add(row.id)
+            if row is None:
+                row = BotMessage(map_id=map_id)
+                db.add(row)
+            else:
+                kept.add(row.id)
 
-        row.bot_step = BotStep(message["bot_step"])
-        row.position = message.get("position")
-        row.content = message.get("prompt") or ""
-        row.error_message = message.get("error_message")
-        row.options = message.get("options") or []
-        row.max_attempts_quantity = message.get("max_attempts_quantity")
-        row.to_restart = message.get("to_restart")
-        row.to_cancel = message.get("to_cancel")
+            row.bot_step = BotStep(message["bot_step"])
+            row.position = message.get("position")
+            row.content = message.get("prompt") or ""
+            row.error_message = message.get("error_message")
+            row.options = message.get("options") or []
+            row.max_attempts_quantity = message.get("max_attempts_quantity")
+            row.to_restart = message.get("to_restart")
+            row.to_cancel = message.get("to_cancel")
 
-    stale = [row_id for row_id in existing if row_id not in kept]
-    if stale:
-        db.execute(delete(BotMessage).where(BotMessage.id.in_(stale)))
+        stale = [row_id for row_id in existing if row_id not in kept]
+        if stale:
+            db.execute(delete(BotMessage).where(BotMessage.id.in_(stale)))
 
-    db.commit()
+        db.commit()
+
     return get_configured_messages(map_id)

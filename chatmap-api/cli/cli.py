@@ -12,7 +12,7 @@ from sqlalchemy import delete, select
 
 from bot.flows.first_time_mapping.flow import FirstTimeMappingFlow
 from consumers.listener import ConversationsStateListener
-from db import get_db_session
+from db import session_scope
 from settings import CHATMAP_ENC_KEY
 from store.message_to_send_store import MessageToSendStore
 from store.survey_responses_store import SurveyResponse
@@ -260,12 +260,12 @@ def survey_response_list(
         point_id: str = typer.Option(None, help="Only list the row for this point id"),
 ):
     """List every row currently in the survey_responses table."""
-    db = get_db_session()
-    query = select(SurveyResponse)
-    if point_id:
-        stmt = query.filter_by(point_id=point_id)
-    for row in db.execute(query).scalars():
-        typer.echo({"point_id": row.point_id, "answers": row.answers})
+    with session_scope() as db:
+        query = select(SurveyResponse)
+        if point_id:
+            stmt = query.filter_by(point_id=point_id)
+        for row in db.execute(query).scalars():
+            typer.echo({"point_id": row.point_id, "answers": row.answers})
 
 
 @survey_response_app.command("delete")
@@ -273,13 +273,13 @@ def survey_response_delete(
         point_id: str = typer.Option(None, help="Only delete the row for this point id; omit to delete all rows"),
 ):
     """Delete rows from the survey_responses table."""
-    db = get_db_session()
-    query = delete(SurveyResponse)
-    if point_id:
-        query = query.filter_by(point_id=point_id)
-    result = db.execute(query)
-    db.commit()
-    typer.echo(f"deleted {result.rowcount} row(s) from survey_responses")
+    with session_scope() as db:
+        query = delete(SurveyResponse)
+        if point_id:
+            query = query.filter_by(point_id=point_id)
+        result = db.execute(query)
+        db.commit()
+        typer.echo(f"deleted {result.rowcount} row(s) from survey_responses")
 
 
 @bot_state_app.command("show")

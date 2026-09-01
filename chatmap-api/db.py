@@ -10,6 +10,7 @@ and utility functions for handling map and point data. It supports:
 
 import uuid
 import logging
+from contextlib import contextmanager
 from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
@@ -109,6 +110,19 @@ def get_or_create_live_map(db, user_id: str) -> str:
         return new_map.id
 
 
+def get_live_map_id(db, user_id: str) -> str:
+    """
+    Returns the id of the user's live map.
+
+    Read-only sibling of get_or_create_live_map: the survey flow needs the same
+    map id the point pipeline writes its points to, and by the time it runs that
+    map is already there. Raises if there is no live map, or more than one.
+    """
+    return db.execute(
+        select(Map.id).where(Map.owner_id == user_id, Map.is_live)
+    ).scalar_one()
+
+
 # Model representing a geographic point in a map
 class Point(Base):
     __tablename__ = "points"
@@ -166,5 +180,20 @@ def get_db_session():
     db = SessionLocal()
     try:
         return db
+    finally:
+        db.close()
+
+
+@contextmanager
+def session_scope():
+    """
+    Context-managed database session for code outside FastAPI's dependency
+    system (stores, the conversation listener, the CLI). Unlike get_db_session,
+    the session is closed when the `with` block exits -- after the work is done,
+    not before it starts.
+    """
+    db = SessionLocal()
+    try:
+        yield db
     finally:
         db.close()

@@ -25,6 +25,7 @@ class BotFlowContext:
     message_id: str
     occurred_at: datetime
     point_id: str | None
+    map_id: str
     configured_messages: BotConfiguredMessages
 
 

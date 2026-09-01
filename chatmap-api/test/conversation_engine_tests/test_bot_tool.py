@@ -30,6 +30,14 @@ def _encrypt(plaintext: str) -> str:
     return base64.b64encode(nonce + ciphertext + tag).decode("utf-8")
 
 
+@pytest.fixture(autouse=True)
+def _stub_live_map_id():
+    # The tool resolves the survey scope from the live map; these tests never
+    # touch a database, so stand the lookup in.
+    with patch("conversation_engine.tool.get_live_map_id", return_value="map-1"):
+        yield
+
+
 def _message(**overrides) -> ReceivedMessage:
     fields = dict(
         id="1", receiver="receiver", sender="sender-1", chat="chat-1",
@@ -114,7 +122,8 @@ async def test_call_decrypts_text_and_delegates_to_the_flow():
         current_event=EventName.USER_SEND_TEXT,
         context=BotFlowContext(
             state_key=expected_key, recipient="recipient-enc-1", sender="device-1", answer=plaintext,
-            message_id="msg-1", occurred_at=event.occurred_at, point_id=None, configured_messages=bot_conversation,
+            message_id="msg-1", occurred_at=event.occurred_at, point_id=None, map_id="map-1",
+            configured_messages=bot_conversation,
         ),
     )
 
@@ -177,6 +186,23 @@ async def test_call_raises_when_the_device_has_no_configured_messages():
             max_attempts_quantity=3, notify_message="", to_restart="", to_cancel="",
         ),
         messages=[],
+    )
+    bot_tool = _make_bot_tool(bot_configured_messages_store=bot_configured_messages_store)
+    event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))
+
+    with patch.object(FirstTimeMappingFlow, "create", AsyncMock()) as mock_create:
+        with pytest.raises(BotMessagesNotConfigured):
+            await bot_tool(event=event, message=_message(text=_encrypt("hi")), device="device-1",
+                           conversation=_conversation())
+
+    mock_create.assert_not_awaited()
+
+
+async def test_call_raises_when_max_attempts_is_not_configured():
+    bot_configured_messages_store = AsyncMock(spec=BotConfiguredMessagesStore)
+    bot_configured_messages_store.get_configured_messages_for.return_value = BotConfiguredMessages(
+        max_attempts_messages=None,
+        messages=[BotMessage(id="start-1", bot_step=BotStep.START, prompt="Hi", error_message="")],
     )
     bot_tool = _make_bot_tool(bot_configured_messages_store=bot_configured_messages_store)
     event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))

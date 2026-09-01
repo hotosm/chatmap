@@ -111,7 +111,7 @@ class FirstTimeMappingFlow(BotFlow):
             raise BotStateWithoutPointId(message_id=ctx.message_id)
 
         if ctx.configured_messages.has_survey_questions():
-            answered = await self.survey_responses_store.answered_question_ids(point_id=ctx.point_id)
+            answered = await self.survey_responses_store.answered_question_ids(map_id=ctx.map_id, point_id=ctx.point_id)
             question = ctx.configured_messages.next_question_to_answer(answered)
 
             if question:
@@ -148,8 +148,10 @@ class FirstTimeMappingFlow(BotFlow):
     async def on_survey_answered(self, ctx: BotFlowContext) -> None:
         logger.info("Handling: on_survey_answered")
 
-        # Answering the survey, not mapping. Marked before validating, so an
-        # invalid answer is kept out of the map too.
+        if await self.bot_consumed_messages_store.is_consumed(device=ctx.sender, message_id=ctx.message_id):
+            logger.info(f"Message '{ctx.message_id}' already handled by the bot, skipping")
+            return
+
         await self.bot_consumed_messages_store.mark_consumed(
             device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
         )
@@ -158,7 +160,7 @@ class FirstTimeMappingFlow(BotFlow):
             logger.error(f"Coordinates for state: '{ctx.state_key}' arrived without a point id")
             raise BotStateWithoutPointId(message_id=ctx.message_id)
 
-        answered = await self.survey_responses_store.answered_question_ids(point_id=ctx.point_id)
+        answered = await self.survey_responses_store.answered_question_ids(map_id=ctx.map_id, point_id=ctx.point_id)
         current_question = ctx.configured_messages.next_question_to_answer(answered)
 
         if not current_question:
@@ -177,13 +179,14 @@ class FirstTimeMappingFlow(BotFlow):
 
         logger.info("storing survey response...")
         await self.survey_responses_store.add_response(
+            map_id=ctx.map_id,
             point_id=ctx.point_id,
             question_id=current_question.id,
             question=current_question.prompt,
             answer=answer
         )
 
-        answered = await self.survey_responses_store.answered_question_ids(point_id=ctx.point_id)
+        answered = await self.survey_responses_store.answered_question_ids(map_id=ctx.map_id, point_id=ctx.point_id)
         next_question = ctx.configured_messages.next_question_to_answer(answered)
 
         if next_question:
@@ -220,6 +223,10 @@ class FirstTimeMappingFlow(BotFlow):
     async def on_recovery_choice_answered(self, ctx: BotFlowContext) -> None:
         logger.info("Handling: on_recovery_choice_answered")
 
+        if await self.bot_consumed_messages_store.is_consumed(device=ctx.sender, message_id=ctx.message_id):
+            logger.info(f"Message '{ctx.message_id}' already handled by the bot, skipping")
+            return
+
         await self.bot_consumed_messages_store.mark_consumed(
             device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
         )
@@ -241,6 +248,8 @@ class FirstTimeMappingFlow(BotFlow):
             return
 
         if answer == to_cancel:
+            if ctx.point_id:
+                await self.survey_responses_store.delete_responses(map_id=ctx.map_id, point_id=ctx.point_id)
             await self.bot_state_store.delete_state(bot_state_key=ctx.state_key)
             return
 
@@ -304,7 +313,8 @@ class FirstTimeMappingFlow(BotFlow):
                     logger.error(f"Coordinates for state: '{ctx.state_key}' arrived without a point id")
                     raise BotStateWithoutPointId(message_id=ctx.message_id)
 
-                answered = await self.survey_responses_store.answered_question_ids(point_id=ctx.point_id)
+                answered = await self.survey_responses_store.answered_question_ids(map_id=ctx.map_id,
+                                                                                   point_id=ctx.point_id)
                 question = ctx.configured_messages.next_question_to_answer(answered)
 
                 if not question:
