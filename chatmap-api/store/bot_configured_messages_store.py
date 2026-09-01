@@ -44,10 +44,13 @@ class BotConfiguredMessagesStore:
     async def get_configured_messages_for(cls, device: str) -> BotConfiguredMessages:
         with session_scope() as db:
             try:
+                # Scoped to the live map: it is the one receiving the device's
+                # messages and the one points and survey answers are tied to.
+                # An owner can keep older, non-live maps with their own config.
                 query = (
                     select(BotMessage)
                     .join(Map, Map.id == BotMessage.map_id)
-                    .where(Map.owner_id == device)
+                    .where(Map.owner_id == device, Map.is_live)
                     .order_by(BotMessage.position.asc().nullsfirst())
                 )
                 rows = list(db.execute(query).scalars())
