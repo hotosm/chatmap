@@ -287,6 +287,11 @@ class FirstTimeMappingFlow(BotFlow):
                         ctx.configured_messages.text_of(BotStep.MEDIA),
                     ]
                 )
+
+                await self.bot_state_store.save_state(
+                    bot_state_key=ctx.state_key,
+                    state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
+                )
             case FirstTimeMappingState.WAITING_FOR_DATA_MAPPING:
                 await self.message_to_send_store.send_message(
                     sender=ctx.sender,
