@@ -213,16 +213,6 @@ rather than deliberate simplifications:
   copy still sitting (unused) in `messages.json`. The user's last visible
   message is the recovery prompt itself; nothing tells them the cancellation
   went through.
-- **Video/audio uploads may never reach this flow at all.** `HelpFlow`
-  (`conversation_engine/flow.py`), the only registered `Flow`, binds
-  `bot_tool` to `USER_SEND_TEXT`, `USER_UPLOAD_PHOTO`, and
-  `USER_SEND_COORDINATES` only — not `USER_UPLOAD_VIDEO` or
-  `USER_UPLOAD_AUDIO`. Even though `Event.from_message` detects those events
-  and `FirstTimeMappingFlow.transitions` has handlers for them in
-  `WAITING_FOR_DATA_MAPPING`, `Flows.call_tools_for` never dispatches them to
-  `bot_tool`, so those transitions are currently unreachable in production.
-  This directly affects the media-broadening this doc describes and is
-  worth fixing in `conversation_engine/flow.py`, not just documenting.
 
 ## Open questions
 

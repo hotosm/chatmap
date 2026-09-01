@@ -263,7 +263,7 @@ def survey_response_list(
     with session_scope() as db:
         query = select(SurveyResponse)
         if point_id:
-            stmt = query.filter_by(point_id=point_id)
+            query = query.filter_by(point_id=point_id)
         for row in db.execute(query).scalars():
             typer.echo({"point_id": row.point_id, "answers": row.answers})
 

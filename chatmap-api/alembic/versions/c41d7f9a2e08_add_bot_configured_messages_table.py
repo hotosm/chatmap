@@ -41,7 +41,7 @@ def upgrade() -> None:
         sa.Column('max_attempts_quantity', sa.Integer(), nullable=True),
         sa.Column('to_restart', sa.String(), nullable=True),
         sa.Column('to_cancel', sa.String(), nullable=True),
-        sa.ForeignKeyConstraint(['map_id'], ['maps.id'], ),
+        sa.ForeignKeyConstraint(['map_id'], ['maps.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_index(op.f('ix_bot_configured_messages_id'), 'bot_configured_messages', ['id'])

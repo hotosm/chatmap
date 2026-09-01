@@ -254,7 +254,7 @@ matter for this feature:
 | Mapper answers with a number for a free-text question           | same, mapper sends `"3"`                                                                       | `"3"` is stored as the answer — free text does not interpret numbers. Cursor advances.                                                             |
 | Mapper sends only whitespace                                    | same, text is `"   "`                                                                          | Stored as `"   "`. No validation strips or rejects it — accepted edge, deliberately not handled (see [Decisions](#decisions) #2).                  |
 | Mapper sends a photo/audio/location for a free-text question    | `WAITING_SURVEY_ANSWER`, pending question is `free_text`, event is not `USER_SEND_TEXT`        | No transition → `on_fallback`: sends `error_message` then the question (prompt only). `fallback_count` increments; enough of them → cancel/restart prompt, per [first_time_mapping_flow.md](first_time_mapping_flow.md). |
-| Mapper sends a photo **with a caption** for a free-text question | event resolves to `USER_UPLOAD_PHOTO_WITH_TEXT`                                                | Invisible to the bot — `HelpFlow` does not bind that event. Neither answered nor a fallback. Pre-existing gap, see [Open questions](#open-questions). |
+| Mapper sends a photo **with a caption** for a free-text question | `Event.from_message` matches the photo before the text → `USER_UPLOAD_PHOTO`                   | The caption is ignored; handled exactly like a photo with no caption (row above) — no transition → `on_fallback` sends `error_message` then the question, `fallback_count` increments. |
 | Owner edits a question's text, keeps its `id`                   | `PUT` with the same `id`                                                                       | Row updated in place; answers already recorded against that `id` still line up with the cursor.                                                    |
 | Owner removes a question mid-survey for some mapper             | `PUT` without that `id`; a mapper is currently `WAITING_SURVEY_ANSWER` on it                   | Row deleted. That mapper's next text: cursor finds no pending question → `BotStateWithoutQuestion` is raised for that message (per the flow spec). |
 | Owner turns the bot on with a half-written question             | `PUT` `bot_active=true`, some survey question missing `prompt`/`error_message`/options         | `422` — the always-enforced tier fails before the "when active" tier is even checked.                                                              |
@@ -377,15 +377,6 @@ semantics):
 
 ## Open questions
 
-- **`USER_UPLOAD_PHOTO_WITH_TEXT` during a survey question is invisible to
-  the bot.** `HelpFlow` binds `USER_SEND_TEXT`, `USER_UPLOAD_PHOTO`,
-  `USER_UPLOAD_VIDEO`, `USER_UPLOAD_AUDIO`, `USER_SEND_COORDINATES` — not
-  the photo-with-caption event. A mapper who answers a free-text question
-  by captioning a photo is neither recorded nor re-asked; the message
-  falls through to the old pairing pipeline. Pre-existing (same gap noted
-  in [first_time_mapping_flow.md](first_time_mapping_flow.md#known-gaps-vs-this-spec)),
-  not introduced here, but more likely to be hit now that a question
-  invites free text.
 - **Questions cannot be reordered in the UI.** `position` follows
   insertion order; there is no drag/reorder control. Removing and
   re-adding is the only way to change order, which also changes the

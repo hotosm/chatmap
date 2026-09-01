@@ -19,8 +19,10 @@ without modifying it.
 - A deterministic **Event detection** function, `Event.from_message`: a
   pure, pattern-matched mapping from a `ReceivedMessage`'s fields to one of a
   fixed set of `EventName`s (`USER_SEND_TEXT`, `USER_UPLOAD_PHOTO`,
-  `USER_UPLOAD_PHOTO_WITH_TEXT`, `USER_UPLOAD_VIDEO`, `USER_UPLOAD_AUDIO`,
-  `USER_SEND_COORDINATES`), or `None`.
+  `USER_UPLOAD_VIDEO`, `USER_UPLOAD_AUDIO`, `USER_SEND_COORDINATES`), or
+  `None`. Photo, video and audio are matched before text, so a media
+  message that also carries a caption resolves to the upload event, not
+  `USER_SEND_TEXT`.
 - **Conversation** persistence: an append-only per-`(sender, chat)` log of
   Events, read back as a time-windowed slice around each incoming message.
 - New Redis-consumer-group-based infrastructure (`RedisConsumer` base class)
@@ -182,8 +184,9 @@ flowchart TD
 
 - Produced by `Event.from_message(message)` — a single pure pattern-match
   function, not a per-Event pluggable registry
-- Returns `None` when no case matches (e.g. video/audio/file-only messages
-  currently produce no Event and are invisible to the engine)
+- Returns `None` when no case matches (e.g. a file-only message, with no
+  text, photo, video, audio or location, produces no Event and is invisible
+  to the engine)
 - Pure function of the message envelope alone; no Conversation context
 
 **Conversation**

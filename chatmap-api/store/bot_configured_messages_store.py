@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class BotMessage(Base):
     __tablename__ = "bot_configured_messages"
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
-    map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
+    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), index=True, nullable=False)
     bot_step = Column(
         SqlEnum(
             BotStep, name="bot_step",
