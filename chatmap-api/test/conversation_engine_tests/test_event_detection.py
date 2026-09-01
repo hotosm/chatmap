@@ -29,11 +29,25 @@ def test_photo_received_state():
     assert event and event.name == EventName.USER_UPLOAD_PHOTO
 
 
-def test_photo_with_text_received_state():
+def test_photo_with_a_caption_is_still_a_photo_upload():
     message = _message(photo="photo.jpg", text="hello")
     event = Event.from_message(message)
 
-    assert event and event.name == EventName.USER_UPLOAD_PHOTO_WITH_TEXT
+    assert event and event.name == EventName.USER_UPLOAD_PHOTO
+
+
+def test_video_with_a_caption_is_still_a_video_upload():
+    message = _message(video="clip.mp4", text="hello")
+    event = Event.from_message(message)
+
+    assert event and event.name == EventName.USER_UPLOAD_VIDEO
+
+
+def test_audio_with_a_caption_is_still_an_audio_upload():
+    message = _message(audio="voice.opus", text="hello")
+    event = Event.from_message(message)
+
+    assert event and event.name == EventName.USER_UPLOAD_AUDIO
 
 
 def test_coordinates_received_state():

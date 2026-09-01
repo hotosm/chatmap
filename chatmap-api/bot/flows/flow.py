@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from bot.configured_messages import BotConfiguredMessages
 from conversation_engine.event import EventName
 from dataclasses import dataclass
 from datetime import datetime
@@ -6,22 +8,12 @@ from enum import Enum
 from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
+from store.survey_responses_store import SurveyResponsesStore
 from typing import Callable, Awaitable
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class Language(Enum):
-    ES = "Español"
-    EN = "English"
-    PT = "Portugués"
-    FR = "Francais"
-
-    @classmethod
-    def default(cls):
-        return Language.ES
 
 
 @dataclass
@@ -32,21 +24,24 @@ class BotFlowContext:
     answer: str
     message_id: str
     occurred_at: datetime
+    point_id: str | None
+    map_id: str
+    configured_messages: BotConfiguredMessages
 
 
 class BotFlow(ABC):
     def __init__(self,
                  state: Enum,
-                 language: Language,
                  bot_state_store: BotStateStore,
                  message_to_send_store: MessageToSendStore,
-                 bot_consumed_messages_store: BotConsumedMessagesStore
+                 bot_consumed_messages_store: BotConsumedMessagesStore,
+                 survey_responses_store: SurveyResponsesStore
                  ):
         self.state = state
-        self.language = language
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
         self.bot_consumed_messages_store = bot_consumed_messages_store
+        self.survey_responses_store = survey_responses_store
 
     @classmethod
     @abstractmethod
@@ -55,7 +50,8 @@ class BotFlow(ABC):
             bot_state_key: str,
             bot_state_store: BotStateStore,
             message_to_send_store: MessageToSendStore,
-            bot_consumed_messages_store: BotConsumedMessagesStore
+            bot_consumed_messages_store: BotConsumedMessagesStore,
+            survey_responses_store: SurveyResponsesStore
     ):
         ...
 

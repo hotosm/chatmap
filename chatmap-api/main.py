@@ -6,12 +6,9 @@ and related content.
 """
 
 import os
-import io
 import httpx
 import logging
 import asyncio
-import zipfile
-import json
 import boto3
 from pathlib import Path
 from uuid import uuid4
@@ -21,15 +18,23 @@ from fastapi import (
     FastAPI, HTTPException, Depends, Request, APIRouter, File, UploadFile,
 )
 from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
-from typing import Dict
+from typing import Dict, List
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
+from db import (
+    Point, get_db_session, get_or_create_live_map, SharePermission, Map,
+)
+from bot.configured_messages import BotStep
+from store.bot_configured_messages_store import (
+    BotMessage, get_configured_messages, update_configured_messages,
+)
+from store.survey_responses_store import SurveyResponsesStore
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
     SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
+    BotSetup, BotSetupResult, BotConfiguredMessage, BotMaxAttemptsMessages,
 )
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import Session
@@ -39,7 +44,7 @@ from settings import (
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
     ENABLE_OUTBOUND,
 )
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from geoalchemy2.shape import to_shape
 from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
 import csv
@@ -190,9 +195,10 @@ def list_maps_result(
     else:
         map_filter = Map.sharing == SharePermission.PUBLIC
     maps = db.execute(
-        select(Map, subq.c.count)
-        .join_from(Map, subq)
+        select(Map, func.coalesce(subq.c.count, 0))
+        .outerjoin(subq, Map.id == subq.c.map_id)
         .where(map_filter)
+        .where(or_(Map.is_live, subq.c.count.isnot(None)))
         .order_by(Map.created_at.desc())
     )
 
@@ -211,6 +217,7 @@ def list_maps_result(
             "updated_at": map_obj.updated_at,
             "sharing": map_obj.sharing,
             "is_live": map_obj.is_live,
+            "bot_active": map_obj.bot_active,
             "count": count,
             "centroid": centroid_coords
         })
@@ -242,6 +249,7 @@ async def save_media(
     )
 
     return SaveMediaResponse(uri=f"{API_URL}/v1/media/{filename}")
+
 
 @api_router.post("/map")
 async def create_map(
@@ -422,7 +430,7 @@ def html_for_embedded_media(file):
         return "Location only"
 
 
-def map_response(db, map_obj, owner):
+async def map_response(db, map_obj, owner):
     # Filter points by map id
     base_filter = Point.map_id == map_obj.id
 
@@ -446,6 +454,10 @@ def map_response(db, map_obj, owner):
         .all()
     )
 
+    survey_by_point = await SurveyResponsesStore.responses_for_points(
+        map_id=map_obj.id, point_ids=[point.id for point in points]
+    )
+
     return {
         "id": map_obj.id,
         "sharing": map_obj.sharing.value,
@@ -465,7 +477,7 @@ def map_response(db, map_obj, owner):
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
-                    "tags": point.tags or ""
+                    "survey": survey_by_point.get(point.id, []),
                 },
                 "geometry": {
                     "type": "Point",
@@ -497,7 +509,7 @@ async def get_map(
     map_id = get_or_create_live_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
 
-    return map_response(db, map_obj, True)
+    return await map_response(db, map_obj, True)
 
 
 @api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
@@ -522,7 +534,7 @@ async def get_public_map(
 
     owner = (user and map_obj.owner_id == user.id) or False
     if map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner):
-        return map_response(db, map_obj, owner)
+        return await map_response(db, map_obj, owner)
     else:
         # Map is not public – reject the request
         raise HTTPException(
@@ -569,13 +581,18 @@ async def status(
 
 # Unlink a live map
 @api_router.put("/map/{map_id}/unlink/")
-async def status(
+async def unlink_map(
         map_id: str,
         user: CurrentUser,
         db: Session = Depends(get_db_session),
 ) -> Dict[str, bool]:
     """
-    Toggle is_live property for the map to stop receiving data from a linked device
+    Stop the map from receiving data from a linked device.
+
+    Clears bot_active alongside is_live: an unlinked map keeps its points as a
+    static archive, and the owner starts a fresh live map (bot off by default)
+    for the next campaign. Leaving bot_active set would strand it on a map that
+    no longer receives anything.
 
     Args:
         map_id (str): Unique identifier of the map.
@@ -588,9 +605,97 @@ async def status(
     map_obj: Map = db.get(Map, map_id)
     if map_obj and user and map_obj.owner_id == user.id:
         map_obj.is_live = False
+        map_obj.bot_active = False
         db.commit()
         await clean_user_stream(user.id)
         return {"is_live": map_obj.is_live}
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+
+def _max_attempts_message(attempts: BotMaxAttemptsMessages) -> dict:
+    return {
+        "id": attempts.id,
+        "bot_step": BotStep.MAX_ATTEMPTS,
+        "position": None,
+        "prompt": attempts.notify_message,
+        "error_message": None,
+        "options": [],
+        "max_attempts_quantity": attempts.max_attempts_quantity,
+        "to_restart": attempts.to_restart,
+        "to_cancel": attempts.to_cancel,
+    }
+
+
+def bot_setup_result(map_obj: Map, rows: List[BotMessage]) -> BotSetupResult:
+    attempts_row = next((row for row in rows if row.bot_step == BotStep.MAX_ATTEMPTS), None)
+
+    max_attempts_messages = BotMaxAttemptsMessages(
+        id=attempts_row.id,
+        max_attempts_quantity=attempts_row.max_attempts_quantity,
+        notify_message=attempts_row.content,
+        to_restart=attempts_row.to_restart,
+        to_cancel=attempts_row.to_cancel,
+    ) if attempts_row else BotMaxAttemptsMessages()
+
+    return BotSetupResult(
+        bot_active=map_obj.bot_active,
+        messages=[
+            BotConfiguredMessage(
+                id=row.id,
+                bot_step=row.bot_step,
+                position=row.position,
+                prompt=row.content,
+                error_message=row.error_message,
+                options=row.options or [],
+            )
+            for row in rows
+            if row.bot_step != BotStep.MAX_ATTEMPTS
+        ],
+        max_attempts_messages=max_attempts_messages,
+    )
+
+
+# Get the bot configuration of a map
+@api_router.get("/map/{map_id}/bot/")
+async def get_bot_setup(
+        map_id: str,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
+) -> BotSetupResult:
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and user and map_obj.owner_id == user.id:
+        return bot_setup_result(map_obj, get_configured_messages(map_id))
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+
+# Save the bot configuration of a map
+@api_router.put("/map/{map_id}/bot/")
+async def set_bot_setup(
+        map_id: str,
+        bot_data: BotSetup,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
+) -> BotSetupResult:
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and user and map_obj.owner_id == user.id:
+        rows = update_configured_messages(
+            map_id=map_id,
+            messages=[message.model_dump() for message in bot_data.messages]
+                     + [_max_attempts_message(bot_data.max_attempts_messages)],
+        )
+        map_obj.bot_active = bot_data.bot_active
+        db.commit()
+        return bot_setup_result(map_obj, rows)
     else:
         # User is not owner of the map
         raise HTTPException(

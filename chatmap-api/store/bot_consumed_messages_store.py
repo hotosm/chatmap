@@ -80,6 +80,19 @@ class BotConsumedMessagesStore:
             logger.error(f"Marking message '{message_id}' as consumed by the bot failed with: '{error}'")
             raise StoreUnavailable
 
+    async def is_consumed(self, device: str, message_id: str) -> bool:
+        """
+        Whether the bot already handled this message. Handlers that mark a
+        message consumed use this to no-op on redelivery instead of acting on
+        a stale message again.
+        """
+        try:
+            return await self.client.zscore(self._key(device), message_id) is not None
+
+        except RedisError as error:
+            logger.error(f"Checking if message '{message_id}' was consumed by the bot failed with: '{error}'")
+            raise StoreUnavailable
+
     async def discard_bot_messages(self, device: str, entries: Sequence) -> list:
         """
         Given a batch of stream entries, returns only the ones the bot did not

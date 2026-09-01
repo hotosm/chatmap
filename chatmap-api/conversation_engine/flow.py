@@ -1,18 +1,16 @@
 from abc import ABC
-
 from conversation_engine.tool import BotTool, logger
 from conversation_engine.conversation import Conversation
 from conversation_engine.event import Event, EventName
 from datetime import timedelta
 from typing import ClassVar, Callable, Awaitable, Optional
-
 from redis.client import Redis as RedisClient
-
 from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
-
 from store.message_to_send_store import MessageToSendStore
 from store.received_messages_store import ReceivedMessagesStore, ReceivedMessage
+from store.survey_responses_store import SurveyResponsesStore
+from store.bot_configured_messages_store import BotConfiguredMessagesStore
 
 Tool = Callable[[Event, ReceivedMessage, str, Conversation], Awaitable[None]]
 
@@ -21,12 +19,20 @@ class Flow(ABC):
     name: str
     window_time: ClassVar[timedelta]
 
-    def __init__(self, bot_state_store: BotStateStore, message_to_send_store: MessageToSendStore,
-                 bot_consumed_messages_store: BotConsumedMessagesStore,
-                 tools_by_events: Optional[dict[EventName, Tool]] = None):
+    def __init__(
+            self,
+            bot_state_store: BotStateStore,
+            message_to_send_store: MessageToSendStore,
+            bot_consumed_messages_store: BotConsumedMessagesStore,
+            survey_responses_store: SurveyResponsesStore,
+            bot_configured_messages_store: BotConfiguredMessagesStore,
+            tools_by_events: Optional[dict[EventName, Tool]] = None
+    ):
         self.bot_state_store = bot_state_store
         self.message_to_send_store = message_to_send_store
         self.bot_consumed_messages_store = bot_consumed_messages_store
+        self.survey_responses_store = survey_responses_store
+        self.bot_configured_messages_store = bot_configured_messages_store
         self.tools_by_events = tools_by_events if tools_by_events is not None else self.default_tools_by_events()
 
     def expected_events(self) -> set[EventName]:
@@ -58,12 +64,16 @@ class HelpFlow(Flow):
         bot_tool = BotTool(
             bot_state_store=self.bot_state_store,
             message_to_send_store=self.message_to_send_store,
-            bot_consumed_messages_store=self.bot_consumed_messages_store
+            bot_consumed_messages_store=self.bot_consumed_messages_store,
+            survey_responses_store=self.survey_responses_store,
+            bot_configured_messages_store=self.bot_configured_messages_store
         )
 
         return {
             EventName.USER_SEND_TEXT: bot_tool,
             EventName.USER_UPLOAD_PHOTO: bot_tool,
+            EventName.USER_UPLOAD_VIDEO: bot_tool,
+            EventName.USER_UPLOAD_AUDIO: bot_tool,
             EventName.USER_SEND_COORDINATES: bot_tool,
         }
 
@@ -74,13 +84,17 @@ class Flows:
         self.message_to_send_store = MessageToSendStore(client=client)
         self.received_messages_store = ReceivedMessagesStore(client=client)
         self.bot_consumed_messages_store = BotConsumedMessagesStore(client=client)
+        self.survey_responses_store = SurveyResponsesStore()
+        self.bot_configured_messages_store = BotConfiguredMessagesStore()
 
     def registered_flows(self) -> list[Flow]:
         return [
             HelpFlow(
                 bot_state_store=self.bot_state_store,
                 message_to_send_store=self.message_to_send_store,
-                bot_consumed_messages_store=self.bot_consumed_messages_store
+                bot_consumed_messages_store=self.bot_consumed_messages_store,
+                survey_responses_store=self.survey_responses_store,
+                bot_configured_messages_store=self.bot_configured_messages_store
             )
         ]
 

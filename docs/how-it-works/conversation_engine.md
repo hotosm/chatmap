@@ -19,7 +19,10 @@ without modifying it.
 - A deterministic **Event detection** function, `Event.from_message`: a
   pure, pattern-matched mapping from a `ReceivedMessage`'s fields to one of a
   fixed set of `EventName`s (`USER_SEND_TEXT`, `USER_UPLOAD_PHOTO`,
-  `USER_UPLOAD_PHOTO_WITH_TEXT`, `USER_SEND_COORDINATES`), or `None`.
+  `USER_UPLOAD_VIDEO`, `USER_UPLOAD_AUDIO`, `USER_SEND_COORDINATES`), or
+  `None`. Photo, video and audio are matched before text, so a media
+  message that also carries a caption resolves to the upload event, not
+  `USER_SEND_TEXT`.
 - **Conversation** persistence: an append-only per-`(sender, chat)` log of
   Events, read back as a time-windowed slice around each incoming message.
 - New Redis-consumer-group-based infrastructure (`RedisConsumer` base class)
@@ -82,15 +85,16 @@ layers:
   It has no notion of state, sequence, or prerequisites.
 - **`bot.flow.BotFlow`** (e.g. `FirstTimeMappingFlow`) is a Flow in the bot's
   own, separate sense: an explicit state machine
-  (`(state, EventName) → handler` transitions over an `Enum` like
-  `IDLE`/`WAITING_LANG`/`WAITING_PHOTO`/`WAITING_COORDINATES`/
-  `MAPPING_COMPLETED`), persisted independently via `BotStateStore` — a
-  Redis **hash** keyed `bot_state:<flow name>:<sender><chat>` (not the
-  Conversation log). Keying by flow name, not just sender/chat, lets
-  different bot flows hold independent, concurrent state for the same user —
-  previously a user could only be "inside" one bot flow at a time. The hash
-  also carries extra fields alongside `state` (currently `lang`, the user's
-  chosen `Language`), read back as a full hash on `create()` rather than a
+  (`(state, EventName) → handler` transitions over an `Enum` —
+  `IDLE`/`WAITING_FOR_DATA_MAPPING`/`WAITING_COORDINATES`/
+  `WAITING_SURVEY_ANSWER`/`WAITING_RECOVERY_CHOICE`/`MAPPING_COMPLETED`),
+  persisted independently via `BotStateStore` — a Redis **hash** keyed
+  `bot_state:<flow name>:<sender><chat>` (not the Conversation log). Keying
+  by flow name, not just sender/chat, lets different bot flows hold
+  independent, concurrent state for the same user — previously a user could
+  only be "inside" one bot flow at a time. The hash also carries extra
+  fields alongside `state` (currently `point_id`, once a point exists, and
+  `fallback_count`), read back as a full hash on `create()` rather than a
   single field.
 
 This matches the spirit of the original design: engine Flows route Events to
@@ -156,7 +160,7 @@ flowchart TD
 | Continuing conversation                       | Message matches an Event not yet seen in the current window                                                               | Event appended to the log; the bound Tool fires                                                                                                                                                                                                                                                                   |
 | Repeated fact                                 | Message matches an Event already present in the current window                                                            | Event appended again (not overwritten, not discarded) as a separate log entry; the same bound Tool fires again — there's no separate on_first/on_repeat hook                                                                                                                                                      |
 | Conversation window                           | Every incoming message                                                                                                    | The log isn't a lifecycle-managed "active conversation" instance — there's no creation step and no staleness boundary. Each message just re-queries the same ever-growing per-key log for entries within `± window_time` of that message's own timestamp                                                          |
-| Unrelated message                             | Message doesn't match any `EventName` (e.g. video/audio/file-only messages currently produce no Event)                    | Ignored by this engine entirely; existing pipeline (`chatmap-py` pairing, Postgres writes) proceeds exactly as today, untouched                                                                                                                                                                                   |
+| Unrelated message                             | Message doesn't match any `EventName` (e.g. file-only messages currently produce no Event)                                 | Ignored by this engine entirely; existing pipeline (`chatmap-py` pairing, Postgres writes) proceeds exactly as today, untouched                                                                                                                                                                                   |
 | All Events satisfied                          | Every Event a Flow cares about becomes true for a given key                                                               | No special handling at the engine level — no flag, no hook. (The bot's own internal flow does track its own completion via `BotStateStore`, but that's Tool-level, not engine-provided.)                                                                                                                          |
 | Tool call fails                               | A dispatched Tool raises/returns an error                                                                                 | Caught and logged at the dispatch site; does not affect Conversation state or consume dispatch capacity permanently                                                                                                                                                                                               |
 | Concurrency limit reached                     | More Tool calls triggered than the bounded concurrency limit                                                              | Excess dispatches wait in-process for a free slot; state consumer's stream reads/acks are not blocked                                                                                                                                                                                                             |
@@ -180,8 +184,9 @@ flowchart TD
 
 - Produced by `Event.from_message(message)` — a single pure pattern-match
   function, not a per-Event pluggable registry
-- Returns `None` when no case matches (e.g. video/audio/file-only messages
-  currently produce no Event and are invisible to the engine)
+- Returns `None` when no case matches (e.g. a file-only message, with no
+  text, photo, video, audio or location, produces no Event and is invisible
+  to the engine)
 - Pure function of the message envelope alone; no Conversation context
 
 **Conversation**
@@ -235,8 +240,8 @@ flowchart TD
 5. **No generic ordering/prerequisite primitive in the engine.** The original plan called for an optional
    `prerequisite_state_ids` list per State; this was never built. Sequencing, where a Flow's Tool needs it, is
    implemented by that Tool itself instead — e.g. the bot's own internal flow encodes
-   `IDLE → WAITING_LANG → WAITING_PHOTO → WAITING_COORDINATES → MAPPING_COMPLETED` as an explicit state machine,
-   persisted separately via `BotStateStore`, entirely outside the conversation engine (see
+   `IDLE → WAITING_FOR_DATA_MAPPING → WAITING_COORDINATES → (WAITING_SURVEY_ANSWER)* → MAPPING_COMPLETED` as an explicit
+   state machine, persisted separately via `BotStateStore`, entirely outside the conversation engine (see
    [Two layers of "Flow"](#two-layers-of-flow)).
 6. **Event detection stays a pure function of the message alone** (`Event.from_message`) — no Conversation-history
    awareness, no Flow awareness. Keeps detection simple and swappable independent of engine/Flow mechanics.
@@ -286,8 +291,8 @@ flowchart TD
     is `bot_state:<flow name>:<sender><chat>`. With just `(sender, chat)`, a user could only be mid-progress in one
     bot flow at a time — starting a second bot flow would silently stomp the first's state. Keying by flow name too
     lets multiple bot flows track independent, concurrent progress for the same user. The hash also stores arbitrary
-    fields beyond `state` (currently `lang`), so a bot flow can persist its own small pieces of context — like the
-    user's chosen language — alongside its state, fetched back as a full hash rather than a single field.
+    fields beyond `state` (currently `point_id` and `fallback_count`), so a bot flow can persist its own small pieces
+    of context alongside its state, fetched back as a full hash rather than a single field.
 
 ## Open questions
 

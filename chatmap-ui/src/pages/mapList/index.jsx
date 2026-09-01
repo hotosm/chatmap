@@ -151,6 +151,11 @@ export default function MapList() {
                     <SlButton outline loading={!!map.loading} onClick={() => handleDeleteRequest(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
+                    { map.is_live &&
+                    <SlButton outline className={map.bot_active ? "" : "dashed"} onClick={() => navigate("/bot-setup/" + map.id)}>
+                      <SlIcon name="robot" slot="prefix" />
+                    </SlButton>
+                    }
                     { map.sharing === 'public' &&
                     <SlButton
                       outline
