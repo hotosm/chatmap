@@ -67,11 +67,12 @@ def _conversation(questions=(), max_attempts_quantity=MAX_ATTEMPTS):
             notify_message=NOTIFY, to_restart=TO_RESTART, to_cancel=TO_CANCEL,
         ),
         messages=[
-            BotMessage(id="start-1", bot_step=BotStep.START, prompt=START, error_message=""),
-            BotMessage(id="media-1", bot_step=BotStep.MEDIA, prompt=MEDIA, error_message=MEDIA_ERROR),
-            BotMessage(id="location-1", bot_step=BotStep.LOCATION, prompt=LOCATION, error_message=LOCATION_ERROR),
-            BotMessage(id="end-1", bot_step=BotStep.END, prompt=END, error_message=""),
-        ] + list(questions),
+                     BotMessage(id="start-1", bot_step=BotStep.START, prompt=START, error_message=""),
+                     BotMessage(id="media-1", bot_step=BotStep.MEDIA, prompt=MEDIA, error_message=MEDIA_ERROR),
+                     BotMessage(id="location-1", bot_step=BotStep.LOCATION, prompt=LOCATION,
+                                error_message=LOCATION_ERROR),
+                     BotMessage(id="end-1", bot_step=BotStep.END, prompt=END, error_message=""),
+                 ] + list(questions),
     )
 
 
@@ -482,7 +483,7 @@ async def test_a_free_text_question_is_followed_by_the_next_question():
 async def test_a_wrong_type_reply_during_a_free_text_question_re_asks_with_the_error():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     conversation = _conversation([_free_text_question("ft-1", prompt="Describe the damage",
-                                                     error_message="Please send a text message")])
+                                                      error_message="Please send a text message")])
     flow = _make_flow(FirstTimeMappingState.WAITING_SURVEY_ANSWER, message_to_send_store=message_to_send_store)
 
     await flow.call(current_event=EventName.USER_UPLOAD_PHOTO,
@@ -656,7 +657,7 @@ async def test_an_invalid_survey_answer_is_still_kept_out_of_the_map():
         _ctx(configured_messages=conversation, point_id="point-99", answer="no soy una opcion")
     )
 
-    bot_consumed_messages_store.mark_consumed.assert_awaited_once()
+    bot_consumed_messages_store.mark_consumed.assert_awaited()
 
 
 @pytest.mark.parametrize("answer", ["1", "2", "no soy una opcion"])
@@ -705,10 +706,13 @@ async def test_the_location_stays_available_to_the_map():
     FirstTimeMappingState.WAITING_COORDINATES,
     FirstTimeMappingState.MAPPING_COMPLETED,
 ])
-async def test_a_message_that_only_hits_the_fallback_stays_available_to_the_map(state):
+async def test_a_message_that_only_hits_the_fallback_is_kept_out_of_the_map(state):
     bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
     flow = _make_flow(state, bot_consumed_messages_store=bot_consumed_messages_store)
+    ctx = _ctx(answer="incorrect ask", message_id="1786309900000-0")
 
-    await flow.on_fallback(_ctx(answer="cualquier cosa"))
+    await flow.on_fallback(ctx)
 
-    bot_consumed_messages_store.mark_consumed.assert_not_awaited()
+    bot_consumed_messages_store.mark_consumed.assert_awaited_once_with(
+        device=ctx.sender, message_id="1786309900000-0", occurred_at=OCCURRED_AT,
+    )

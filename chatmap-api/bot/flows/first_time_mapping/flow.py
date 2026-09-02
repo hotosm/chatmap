@@ -66,10 +66,6 @@ class FirstTimeMappingFlow(BotFlow):
     async def on_start(self, ctx: BotFlowContext) -> None:
         logger.info("Handling: on_start")
 
-        # The text was consumed to open the conversation -- the user got a
-        # greeting, not a mapped point -- so it must not reach the map.
-        # Guarded on text so that anything reaching this handler without text
-        # is treated as content and stays available to the map.
         if ctx.answer:
             await self.bot_consumed_messages_store.mark_consumed(
                 device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
@@ -252,11 +248,28 @@ class FirstTimeMappingFlow(BotFlow):
                 await self.survey_responses_store.delete_responses(map_id=ctx.map_id, point_id=ctx.point_id)
             await self.bot_state_store.delete_state(bot_state_key=ctx.state_key)
             return
+        else:
+            logger.info("user chose to restart the flow...")
+            await self.message_to_send_store.send_message(
+                sender=ctx.sender,
+                to=ctx.recipient,
+                messages=[
+                    ctx.configured_messages.text_of(BotStep.START),
+                    ctx.configured_messages.text_of(BotStep.MEDIA),
+                ]
+            )
 
-        logger.info("user chose to restart the flow...")
-        await self.on_start(ctx)
+            await self.bot_state_store.save_state(
+                bot_state_key=ctx.state_key,
+                state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
+            )
+            return
 
     async def on_fallback(self, ctx: BotFlowContext) -> None:
+        await self.bot_consumed_messages_store.mark_consumed(
+            device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
+        )
+
         fallback_count = await self.bot_state_store.fetch_fallback_count(bot_state_key=ctx.state_key)
 
         if fallback_count >= ctx.configured_messages.max_attempts_messages.max_attempts_quantity:
