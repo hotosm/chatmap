@@ -58,7 +58,7 @@ services:
 
   # Chatmap migrations
   chatmap-api-migrate:
-    build: ./chatmap-api/
+    image: ghcr.io/hotosm/chatmap-api:latest
     command: uv run alembic upgrade head
     depends_on:
       - chatmap-db
