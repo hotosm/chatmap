@@ -155,6 +155,10 @@ jobs:
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull
+            # ONE-TIME: dev DB has maps.description added out-of-band while alembic_version is at
+            # 74a24da4d758. Realign the version pointer so the pending migrations can apply.
+            # REMOVE this line after the deploy that fixes it.
+            docker compose -f compose.yml run --rm -T chatmap-api-migrate uv run alembic stamp b7b2a3b424b8
             # Run migrations in the foreground so alembic output/errors land in the CI log
             docker compose -f compose.yml run --rm -T chatmap-api-migrate
             docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-nginx chatmap-api-migrate chatmap-go --force-recreate
