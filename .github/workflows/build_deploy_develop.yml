@@ -155,6 +155,8 @@ jobs:
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull
+            # Run migrations in the foreground so alembic output/errors land in the CI log
+            docker compose -f compose.yml run --rm -T chatmap-api-migrate
             docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-nginx chatmap-api-migrate chatmap-go --force-recreate
             # Cleanup
             docker image prune -af
