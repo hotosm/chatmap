@@ -133,12 +133,14 @@ class FirstTimeMappingFlow(BotFlow):
         )
 
         logger.info("storing new bot event...")
+
         await self.bot_state_store.save_state(
             bot_state_key=ctx.state_key,
             state=FirstTimeMappingState.MAPPING_COMPLETED,
         )
 
         logger.info("bot flow end, deleting state...")
+        
         await self.bot_state_store.delete_state(bot_state_key=ctx.state_key)
 
     async def on_survey_answered(self, ctx: BotFlowContext) -> None:
