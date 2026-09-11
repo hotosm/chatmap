@@ -17,7 +17,9 @@ from typing import Annotated
 from fastapi import (
     FastAPI, HTTPException, Depends, Request, APIRouter, File, UploadFile,
 )
-from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
+from fastapi.responses import (
+    StreamingResponse, FileResponse, HTMLResponse, JSONResponse,
+)
 from typing import Dict, List
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
@@ -515,7 +517,14 @@ async def get_map(
     return await map_response(db, map_obj, True)
 
 
-@api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
+class UTF8JSONResponse(JSONResponse):
+    media_type = "application/json; charset=utf-8"
+
+
+@api_router.get(
+    "/map/{map_id}", response_model=FeatureCollection, status_code=200,
+    response_class=UTF8JSONResponse,
+)
 async def get_public_map(
         map_id: str,
         request: Request,
