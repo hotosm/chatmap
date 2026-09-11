@@ -3,8 +3,8 @@ export const MAX_OPTIONS = 10;
 
 export const FIXED_STEPS = [
     {bot_step: "start", icon: "chat-square-text", answers: false},
-    {bot_step: "media", icon: "camera", answers: true},
     {bot_step: "location", icon: "pin-map", answers: true},
+    {bot_step: "media", icon: "camera", answers: true},
 ];
 
 export const END_STEP = {bot_step: "end", icon: "chat-square-text", answers: false};
@@ -19,8 +19,8 @@ export function isQuestion(botStep) {
     return QUESTION_STEPS.includes(botStep);
 }
 
-const REQUIRED_STEPS = ["start", "media", "location", "end"];
-const STEPS_NEEDING_AN_ERROR = ["media", "location"];
+const REQUIRED_STEPS = ["start", "location", "media", "end"];
+const STEPS_NEEDING_AN_ERROR = ["location", "media"];
 
 function filled(text) {
     return Boolean((text || "").trim());

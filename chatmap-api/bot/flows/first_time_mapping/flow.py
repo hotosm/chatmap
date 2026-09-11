@@ -76,22 +76,8 @@ class FirstTimeMappingFlow(BotFlow):
             to=ctx.recipient,
             messages=[
                 ctx.configured_messages.text_of(BotStep.START),
-                ctx.configured_messages.text_of(BotStep.MEDIA),
+                ctx.configured_messages.text_of(BotStep.LOCATION),
             ]
-        )
-
-        await self.bot_state_store.save_state(
-            bot_state_key=ctx.state_key,
-            state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
-        )
-
-    async def on_data_uploaded(self, ctx: BotFlowContext) -> None:
-        logger.info("Handling: on_data_uploaded")
-
-        await self.message_to_send_store.send_message(
-            sender=ctx.sender,
-            to=ctx.recipient,
-            messages=[ctx.configured_messages.text_of(BotStep.LOCATION)]
         )
 
         await self.bot_state_store.save_state(
@@ -104,6 +90,25 @@ class FirstTimeMappingFlow(BotFlow):
 
         if not ctx.point_id:
             logger.error(f"Coordinates for state: '{ctx.state_key}' arrived without a point id")
+            raise BotStateWithoutPointId(message_id=ctx.message_id)
+
+        await self.message_to_send_store.send_message(
+            sender=ctx.sender,
+            to=ctx.recipient,
+            messages=[ctx.configured_messages.text_of(BotStep.MEDIA)]
+        )
+
+        await self.bot_state_store.save_state(
+            bot_state_key=ctx.state_key,
+            state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
+            bot_info={"point_id": ctx.point_id},
+        )
+
+    async def on_data_uploaded(self, ctx: BotFlowContext) -> None:
+        logger.info("Handling: on_data_uploaded")
+
+        if not ctx.point_id:
+            logger.error(f"Media for state: '{ctx.state_key}' arrived without a point id")
             raise BotStateWithoutPointId(message_id=ctx.message_id)
 
         if ctx.configured_messages.has_survey_questions():
@@ -257,13 +262,13 @@ class FirstTimeMappingFlow(BotFlow):
                 to=ctx.recipient,
                 messages=[
                     ctx.configured_messages.text_of(BotStep.START),
-                    ctx.configured_messages.text_of(BotStep.MEDIA),
+                    ctx.configured_messages.text_of(BotStep.LOCATION),
                 ]
             )
 
             await self.bot_state_store.save_state(
                 bot_state_key=ctx.state_key,
-                state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
+                state=FirstTimeMappingState.WAITING_COORDINATES,
             )
             return
 
@@ -299,13 +304,13 @@ class FirstTimeMappingFlow(BotFlow):
                     to=ctx.recipient,
                     messages=[
                         ctx.configured_messages.text_of(BotStep.START),
-                        ctx.configured_messages.text_of(BotStep.MEDIA),
+                        ctx.configured_messages.text_of(BotStep.LOCATION),
                     ]
                 )
 
                 await self.bot_state_store.save_state(
                     bot_state_key=ctx.state_key,
-                    state=FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
+                    state=FirstTimeMappingState.WAITING_COORDINATES,
                 )
             case FirstTimeMappingState.WAITING_FOR_DATA_MAPPING:
                 await self.message_to_send_store.send_message(
@@ -355,10 +360,10 @@ class FirstTimeMappingFlow(BotFlow):
 
     transitions: BotTransitions = {
         (FirstTimeMappingState.IDLE, EventName.USER_SEND_TEXT): on_start,
+        (FirstTimeMappingState.WAITING_COORDINATES, EventName.USER_SEND_COORDINATES): on_coordinates_sent,
         (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, EventName.USER_UPLOAD_PHOTO): on_data_uploaded,
         (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, EventName.USER_UPLOAD_VIDEO): on_data_uploaded,
         (FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, EventName.USER_UPLOAD_AUDIO): on_data_uploaded,
-        (FirstTimeMappingState.WAITING_COORDINATES, EventName.USER_SEND_COORDINATES): on_coordinates_sent,
         (FirstTimeMappingState.WAITING_SURVEY_ANSWER, EventName.USER_SEND_TEXT): on_survey_answered,
         (FirstTimeMappingState.WAITING_RECOVERY_CHOICE, EventName.USER_SEND_TEXT): on_recovery_choice_answered,
     }

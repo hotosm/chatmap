@@ -184,7 +184,7 @@ async def test_create_restores_the_stored_state(stored_state, expected):
 
 # ---- start ----
 
-async def test_start_greets_and_asks_for_the_media_in_one_turn():
+async def test_start_greets_and_asks_for_the_location_in_one_turn():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
     flow = _make_flow(FirstTimeMappingState.IDLE, bot_state_store=bot_state_store,
@@ -192,8 +192,8 @@ async def test_start_greets_and_asks_for_the_media_in_one_turn():
 
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx())
 
-    assert _sent(message_to_send_store) == [START, MEDIA]
-    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_FOR_DATA_MAPPING
+    assert _sent(message_to_send_store) == [START, LOCATION]
+    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_COORDINATES
 
 
 async def test_an_unexpected_first_event_starts_the_conversation_too():
@@ -202,35 +202,44 @@ async def test_an_unexpected_first_event_starts_the_conversation_too():
 
     await flow.call(current_event=EventName.USER_UPLOAD_PHOTO, context=_ctx())
 
-    assert _sent(message_to_send_store) == [START, MEDIA]
+    assert _sent(message_to_send_store) == [START, LOCATION]
 
 
-# ---- media and location ----
+# ---- location and media ----
 
-async def test_a_photo_moves_on_to_the_location_question():
+async def test_the_location_moves_on_to_the_media_question():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
-    flow = _make_flow(FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, bot_state_store=bot_state_store,
+    flow = _make_flow(FirstTimeMappingState.WAITING_COORDINATES, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
-    await flow.call(current_event=EventName.USER_UPLOAD_PHOTO, context=_ctx())
+    await flow.call(current_event=EventName.USER_SEND_COORDINATES, context=_ctx(point_id="point-1"))
 
-    assert _sent(message_to_send_store) == [LOCATION]
-    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_COORDINATES
+    assert _sent(message_to_send_store) == [MEDIA]
+    saved = _saved_state(bot_state_store)
+    assert saved["state"] == FirstTimeMappingState.WAITING_FOR_DATA_MAPPING
+    assert saved["bot_info"]["point_id"] == "point-1"
+
+
+async def test_the_location_without_a_point_id_is_rejected():
+    flow = _make_flow(FirstTimeMappingState.WAITING_COORDINATES)
+
+    with pytest.raises(BotStateWithoutPointId):
+        await flow.call(current_event=EventName.USER_SEND_COORDINATES, context=_ctx(point_id=None))
 
 
 # ---- the survey ----
 
-async def test_coordinates_ask_the_first_configured_question():
+async def test_the_photo_asks_the_first_configured_question():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
     conversation = _conversation([_question("q-1"), _question("q-2", prompt="Second?")])
     flow = _make_flow(
-        FirstTimeMappingState.WAITING_COORDINATES,
+        FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
         bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
     )
 
-    await flow.call(current_event=EventName.USER_SEND_COORDINATES,
+    await flow.call(current_event=EventName.USER_UPLOAD_PHOTO,
                     context=_ctx(configured_messages=conversation, point_id="point-1"))
 
     assert _sent(message_to_send_store) == ["Main material?\n\n1️⃣ Bricks\n2️⃣ Wood"]
@@ -239,31 +248,31 @@ async def test_coordinates_ask_the_first_configured_question():
     assert saved["bot_info"]["point_id"] == "point-1"
 
 
-async def test_coordinates_end_the_flow_when_no_question_is_configured():
+async def test_the_photo_ends_the_flow_when_no_question_is_configured():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
-    flow = _make_flow(FirstTimeMappingState.WAITING_COORDINATES, bot_state_store=bot_state_store,
+    flow = _make_flow(FirstTimeMappingState.WAITING_FOR_DATA_MAPPING, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
-    await flow.call(current_event=EventName.USER_SEND_COORDINATES, context=_ctx(point_id="point-1"))
+    await flow.call(current_event=EventName.USER_UPLOAD_PHOTO, context=_ctx(point_id="point-1"))
 
     assert _sent(message_to_send_store) == [END]
     assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.MAPPING_COMPLETED
     bot_state_store.delete_state.assert_awaited_once_with(bot_state_key="key-1")
 
 
-async def test_coordinates_end_the_flow_when_every_configured_question_is_already_answered():
+async def test_the_photo_ends_the_flow_when_every_configured_question_is_already_answered():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
     survey = _FakeSurveyStore(answered={"q-1"})
     conversation = _conversation([_question("q-1")])
     flow = _make_flow(
-        FirstTimeMappingState.WAITING_COORDINATES,
+        FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
         bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
         survey_responses_store=survey,
     )
 
-    await flow.call(current_event=EventName.USER_SEND_COORDINATES,
+    await flow.call(current_event=EventName.USER_UPLOAD_PHOTO,
                     context=_ctx(configured_messages=conversation, point_id="point-1"))
 
     assert _sent(message_to_send_store) == [END]
@@ -271,11 +280,11 @@ async def test_coordinates_end_the_flow_when_every_configured_question_is_alread
     bot_state_store.delete_state.assert_awaited_once_with(bot_state_key="key-1")
 
 
-async def test_coordinates_without_a_point_id_are_rejected():
-    flow = _make_flow(FirstTimeMappingState.WAITING_COORDINATES)
+async def test_the_photo_without_a_point_id_is_rejected():
+    flow = _make_flow(FirstTimeMappingState.WAITING_FOR_DATA_MAPPING)
 
     with pytest.raises(BotStateWithoutPointId):
-        await flow.call(current_event=EventName.USER_SEND_COORDINATES, context=_ctx(point_id=None))
+        await flow.call(current_event=EventName.USER_UPLOAD_PHOTO, context=_ctx(point_id=None))
 
 
 async def test_a_valid_answer_is_recorded_and_the_next_question_asked():
@@ -413,16 +422,16 @@ async def test_a_redelivered_survey_answer_already_handled_is_skipped():
 
 # ---- free text questions ----
 
-async def test_coordinates_ask_a_free_text_question_with_just_the_prompt():
+async def test_the_photo_asks_a_free_text_question_with_just_the_prompt():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
     bot_state_store = AsyncMock(spec=BotStateStore)
     conversation = _conversation([_free_text_question("ft-1", prompt="Describe the damage")])
     flow = _make_flow(
-        FirstTimeMappingState.WAITING_COORDINATES,
+        FirstTimeMappingState.WAITING_FOR_DATA_MAPPING,
         bot_state_store=bot_state_store, message_to_send_store=message_to_send_store,
     )
 
-    await flow.call(current_event=EventName.USER_SEND_COORDINATES,
+    await flow.call(current_event=EventName.USER_UPLOAD_PHOTO,
                     context=_ctx(configured_messages=conversation, point_id="point-1"))
 
     assert _sent(message_to_send_store) == ["Describe the damage"]
@@ -570,8 +579,8 @@ async def test_choosing_restart_greets_again():
 
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=TO_RESTART))
 
-    assert _sent(message_to_send_store) == [START, MEDIA]
-    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_FOR_DATA_MAPPING
+    assert _sent(message_to_send_store) == [START, LOCATION]
+    assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_COORDINATES
 
 
 async def test_an_invalid_recovery_answer_re_asks_without_saving():
@@ -684,7 +693,7 @@ async def test_the_photo_stays_available_to_the_map():
         bot_consumed_messages_store=bot_consumed_messages_store,
     )
 
-    await flow.on_data_uploaded(_ctx())
+    await flow.on_data_uploaded(_ctx(point_id="point-1"))
 
     bot_consumed_messages_store.mark_consumed.assert_not_awaited()
 
