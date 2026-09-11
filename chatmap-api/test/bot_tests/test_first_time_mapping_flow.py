@@ -374,7 +374,7 @@ async def test_repeated_wrong_survey_answers_reach_the_recovery_choice():
     await flow.call(current_event=EventName.USER_SEND_TEXT,
                     context=_ctx(configured_messages=conversation, point_id="point-1", answer="9"))
 
-    assert _sent(message_to_send_store) == [f"{NOTIFY} {TO_CANCEL}, {TO_RESTART}"]
+    assert _sent(message_to_send_store) == [f"{NOTIFY}\n\n1️⃣ {TO_CANCEL}\n2️⃣ {TO_RESTART}"]
     saved = _saved_state(bot_state_store)
     assert saved["state"] == FirstTimeMappingState.WAITING_RECOVERY_CHOICE
     assert saved["reset_fallback_count"] is False
@@ -549,7 +549,7 @@ async def test_crossing_the_fallback_limit_offers_cancel_or_restart():
 
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx())
 
-    assert _sent(message_to_send_store) == [f"{NOTIFY} {TO_CANCEL}, {TO_RESTART}"]
+    assert _sent(message_to_send_store) == [f"{NOTIFY}\n\n1️⃣ {TO_CANCEL}\n2️⃣ {TO_RESTART}"]
     saved = _saved_state(bot_state_store)
     assert saved["state"] == FirstTimeMappingState.WAITING_RECOVERY_CHOICE
     assert saved["reset_fallback_count"] is False
@@ -564,7 +564,7 @@ async def test_choosing_cancel_drops_the_state_without_a_goodbye():
     flow = _make_flow(FirstTimeMappingState.WAITING_RECOVERY_CHOICE, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
-    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=TO_CANCEL))
+    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer="1"))
 
     message_to_send_store.send_message.assert_not_awaited()
     bot_state_store.delete_state.assert_awaited_once_with(bot_state_key="key-1")
@@ -577,7 +577,7 @@ async def test_choosing_restart_greets_again():
     flow = _make_flow(FirstTimeMappingState.WAITING_RECOVERY_CHOICE, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
-    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=TO_RESTART))
+    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer="2"))
 
     assert _sent(message_to_send_store) == [START, LOCATION]
     assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_COORDINATES
@@ -591,13 +591,13 @@ async def test_an_invalid_recovery_answer_re_asks_without_saving():
 
     await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer="not a valid choice"))
 
-    assert _sent(message_to_send_store) == [f"{NOTIFY} {TO_CANCEL}, {TO_RESTART}"]
+    assert _sent(message_to_send_store) == [f"{NOTIFY}\n\n1️⃣ {TO_CANCEL}\n2️⃣ {TO_RESTART}"]
     bot_state_store.save_state.assert_not_awaited()
     bot_state_store.delete_state.assert_not_awaited()
 
 
-@pytest.mark.parametrize("answer", ["Cancel", "CANCEL", "  cancel  "])
-async def test_the_recovery_answer_ignores_case_and_surrounding_spaces(answer):
+@pytest.mark.parametrize("answer", ["1", " 1 "])
+async def test_the_recovery_answer_ignores_surrounding_spaces(answer):
     bot_state_store = AsyncMock(spec=BotStateStore)
     flow = _make_flow(FirstTimeMappingState.WAITING_RECOVERY_CHOICE, bot_state_store=bot_state_store)
 

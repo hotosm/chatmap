@@ -234,11 +234,11 @@ class FirstTimeMappingFlow(BotFlow):
             device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
         )
 
-        answer = (ctx.answer or "").strip().lower()
-        to_cancel = ctx.configured_messages.max_attempts_messages.to_cancel.strip().lower()
-        to_restart = ctx.configured_messages.max_attempts_messages.to_restart.strip().lower()
+        to_cancel = ctx.configured_messages.max_attempts_messages.to_cancel
+        to_restart = ctx.configured_messages.max_attempts_messages.to_restart
+        choice = BotConfiguredMessages.selected_option(ctx.answer, [to_cancel, to_restart])
 
-        if answer not in (to_cancel, to_restart):
+        if choice is None:
             logger.info(f"Invalid recovery option received: '{ctx.answer}', re-asking...")
 
             notify_message = ctx.configured_messages.max_attempts_messages.full_message()
@@ -250,7 +250,7 @@ class FirstTimeMappingFlow(BotFlow):
             )
             return
 
-        if answer == to_cancel:
+        if choice == to_cancel:
             if ctx.point_id:
                 await self.survey_responses_store.delete_responses(map_id=ctx.map_id, point_id=ctx.point_id)
             await self.bot_state_store.delete_state(bot_state_key=ctx.state_key)

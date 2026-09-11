@@ -7,9 +7,8 @@ import SlTextarea from "@shoelace-style/shoelace/dist/react/textarea/index.js";
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 
 // The message the bot sends once the user has failed too many times in a
-// row, and the two answers offered to cancel or restart. The preview shows
-// the two words in bold instead of the numbers WhatsApp adds to them, so the
-// owner isn't misled into thinking the user has to type "1" or "2".
+// row, and the two answers offered to cancel or restart. The bot numbers
+// them like any other choice, so the preview does too.
 export default function MaxAttemptsDialog({ open, setOpen, maxAttempts, onSave }) {
   const intl = useIntl();
 
@@ -90,9 +89,8 @@ export default function MaxAttemptsDialog({ open, setOpen, maxAttempts, onSave }
           <FormattedMessage id="app.botSetup.preview" defaultMessage="What the user will see" />
         </span>
         <p className="botSetup__preview-text">{notifyMessage}</p>
-        <p className="botSetup__preview-text">
-          <strong>{toCancel}</strong> / <strong>{toRestart}</strong>
-        </p>
+        <p className="botSetup__preview-text">1️⃣ {toCancel}</p>
+        <p className="botSetup__preview-text">2️⃣ {toRestart}</p>
       </div>
 
       <div slot="footer" className="botSetup__dialog-buttons">

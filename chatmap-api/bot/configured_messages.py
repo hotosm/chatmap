@@ -14,8 +14,8 @@ class BotMaxAttemptsMessages:
     to_cancel: str
 
     def full_message(self) -> str:
-        """The warning plus its two answers, as one sentence ready to send."""
-        return f"{self.notify_message} {self.to_cancel}, {self.to_restart}"
+        """The warning plus its two answers, numbered like any other choice."""
+        return BotConfiguredMessages.build_options_message(self.notify_message, [self.to_cancel, self.to_restart])
 
 
 class BotStep(str, Enum):
