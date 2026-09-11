@@ -37,7 +37,9 @@ from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
     SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
     BotSetup, BotSetupResult, BotConfiguredMessage, BotMaxAttemptsMessages,
+    BotTemplateOption,
 )
+from pydantic import ValidationError
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import Session
 from stream import stream_listener, clean_user_stream
@@ -716,6 +718,50 @@ async def set_bot_setup(
         )
 
 
+def _is_complete_bot(result: BotSetupResult) -> bool:
+    try:
+        BotSetup(
+            bot_active=True,
+            messages=result.messages,
+            max_attempts_messages=result.max_attempts_messages,
+        )
+        return True
+    except ValidationError:
+        return False
+
+
+@api_router.get("/bot/templates")
+async def get_bot_templates(
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
+) -> List[BotTemplateOption]:
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+    candidates = list(db.execute(
+        select(Map)
+        .where(Map.owner_id == user.id)
+        .order_by(Map.created_at.desc())
+    ).scalars())
+
+    rows_by_map = defaultdict(list)
+    if candidates:
+        rows = db.execute(
+            select(BotMessage).where(BotMessage.map_id.in_([candidate.id for candidate in candidates]))
+        ).scalars()
+        for row in rows:
+            rows_by_map[row.map_id].append(row)
+
+    return [
+        BotTemplateOption(id=candidate.id, name=candidate.name)
+        for candidate in candidates
+        if _is_complete_bot(bot_setup_result(candidate, rows_by_map[candidate.id]))
+    ]
+
+
 # Update map
 @api_router.put("/map/{map_id}")
 async def status(
@@ -931,10 +977,10 @@ async def export_media(features, zf):
 # Export map as Zip (GeoJSON + media)
 @api_router.get("/export/{map_id}", response_model=None)
 async def export(
-    map_id: str,
-    request: Request,
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        request: Request,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     """
     Export map for download (Zip w/ GeoJSON and media) for a given map ID.
@@ -973,6 +1019,7 @@ async def export(
             status_code=401,
             detail="Unauthorized: the requested map is not publicly shared."
         )
+
 
 def map_to_csv(features):
     """
@@ -1019,13 +1066,14 @@ def map_to_csv(features):
 
     return csv_string
 
+
 # Export map as Zip (CSV + media)
 @api_router.get("/export/csv/{map_id}", response_model=None)
 async def export(
-    map_id: str,
-    request: Request,
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        request: Request,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     """
     Export map for download (Zip w/ CSV and media) for a given map ID.

@@ -42,6 +42,13 @@
   margin-top: var(--hot-spacing-x-large);
 }
 
+/* The "copy from another map" picker */
+.botSetup__template {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-medium);
+}
+
 .botSetup__divider {
   border-top: 1px solid var(--hot-color-gray-200);
   margin: var(--hot-spacing-large) var(--hot-spacing-medium);

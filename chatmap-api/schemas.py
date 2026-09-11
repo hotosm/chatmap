@@ -204,6 +204,11 @@ class BotSetup(BotSetupResult):
         return self
 
 
+class BotTemplateOption(BaseModel):
+    id: str
+    name: str
+
+
 class AddPointsFeatureCollection(BaseModel):
     type: Literal["FeatureCollection"]
     features: List[SaveMapFeature]

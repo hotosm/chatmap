@@ -15,7 +15,7 @@ os.environ.setdefault("COOKIE_SECRET", "dev-secret-key-min-32-bytes-long!")
 
 from bot.configured_messages import BotStep
 from db import Map
-from main import get_bot_setup, set_bot_setup
+from main import get_bot_setup, get_bot_templates, set_bot_setup
 from schemas import BotConfiguredMessage, BotMaxAttemptsMessages, BotSetup
 
 
@@ -396,3 +396,68 @@ def test_free_text_and_single_choice_questions_can_be_mixed_and_enable_the_bot()
     assert [m.bot_step for m in setup.messages if m.bot_step in (BotStep.SINGLE_CHOICE, BotStep.FREE_TEXT)] == [
         BotStep.SINGLE_CHOICE, BotStep.FREE_TEXT
     ]
+
+
+# ---- templates ----
+
+def _candidate_map(map_id, name="Untitled", owner_id="user-1"):
+    return Map(id=map_id, owner_id=owner_id, name=name, bot_active=False)
+
+
+def _complete_rows():
+    """The rows of a map whose bot would pass validation if enabled."""
+    return [
+        _stored_message(BotStep.START, prompt="Hi, I'm the ChatMap bot"),
+        _stored_message(BotStep.MEDIA, prompt="Send the content", error_message="That is not a photo"),
+        _stored_message(BotStep.LOCATION, prompt="Now share the location", error_message="That is not a location"),
+        _stored_message(BotStep.END, prompt="Done, it is on the map"),
+        _stored_attempts(),
+    ]
+
+
+def _tagged(map_id, rows):
+    for row in rows:
+        row.map_id = map_id
+    return rows
+
+
+def _stub_execute(db, candidates, rows):
+    """
+    get_bot_templates makes two db.execute calls: one for the candidate
+    maps, one for all of their bot_configured_messages rows together.
+    """
+    candidates_result = MagicMock()
+    candidates_result.scalars.return_value = candidates
+    rows_result = MagicMock()
+    rows_result.scalars.return_value = rows
+    db.execute.side_effect = [candidates_result, rows_result]
+
+
+async def test_lists_only_maps_whose_bot_would_be_complete_if_enabled():
+    db = _db(None)
+    complete = _candidate_map("map-2", name="Ecuador")
+    incomplete = _candidate_map("map-3", name="Untitled")
+    rows = _tagged("map-2", _complete_rows()) + _tagged("map-3", [_stored_message(BotStep.START)])
+    _stub_execute(db, [complete, incomplete], rows)
+
+    result = await get_bot_templates(user=_user(), db=db)
+
+    assert [(template.id, template.name) for template in result] == [("map-2", "Ecuador")]
+
+
+async def test_a_map_with_no_configuration_is_not_a_template():
+    db = _db(None)
+    _stub_execute(db, [_candidate_map("map-2")], [])
+
+    result = await get_bot_templates(user=_user(), db=db)
+
+    assert result == []
+
+
+async def test_anonymous_user_cannot_list_bot_templates():
+    db = _db(None)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await get_bot_templates(user=None, db=db)
+
+    assert exc_info.value.status_code == 401

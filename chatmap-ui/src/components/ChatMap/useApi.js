@@ -138,6 +138,23 @@ const useApi = (params = {}) => {
       return setup;
     }, []);
 
+    // Fetch the owner's maps whose bot configuration is complete enough to
+    // reuse as a template
+    const fetchBotTemplates = useCallback(async () => {
+      let templates = [];
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/bot/templates`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch the bot templates');
+            }
+            templates = await response.json();
+      });
+      return templates;
+    }, []);
+
     // Save the whole bot configuration in one request. The API rejects
     // enabling the bot while a required message is missing.
     const updateBotSetup = useCallback(async (id, setup) => {
@@ -203,6 +220,7 @@ const useApi = (params = {}) => {
         updatePointTags,
         fetchBotSetup,
         updateBotSetup,
+        fetchBotTemplates,
         mapShare,
     };
 };

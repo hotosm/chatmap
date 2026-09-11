@@ -116,6 +116,14 @@ export function maxAttemptsFromSetup(setup) {
         : emptyMaxAttemptsMessages();
 }
 
+export function messagesFromTemplate(setup) {
+    return messagesFromSetup(setup).map((message) => ({...message, id: null}));
+}
+
+export function maxAttemptsFromTemplate(setup) {
+    return {...maxAttemptsFromSetup(setup), id: null};
+}
+
 export function messagesToSave(messages) {
     let questionPosition = 0;
 
