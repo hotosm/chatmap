@@ -19,6 +19,7 @@ class ReceivedMessage:
     chat: str
     sender_enc: str
     chat_enc: str
+    is_group: str
     text: str
     date: str
     location: str
@@ -37,7 +38,7 @@ class ReceivedMessage:
         return cls(**{key: value for key, value in normalized.items() if key in required_fields})
 
     def is_private_chat(self):
-        return self.sender == self.chat
+        return self.is_group == "0"
 
 
 class ReceivedMessagesStore:

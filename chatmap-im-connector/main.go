@@ -639,6 +639,7 @@ func sendMessage(client *whatsmeow.Client, to string, text string) (whatsmeow.Se
     if err != nil {
         return whatsmeow.SendResponse{}, fmt.Errorf("invalid recipient JID: %w", err)
     }
+    recipient = recipient.ToNonAD()
 
     msg := &waE2E.Message{
         Conversation: proto.String(text),
@@ -649,6 +650,34 @@ func sendMessage(client *whatsmeow.Client, to string, text string) (whatsmeow.Se
         return whatsmeow.SendResponse{}, fmt.Errorf("send error: %w", err)
     }
     return resp, nil
+}
+
+// outboundMaxDeliveryAttempts bounds how many times a stuck outbound entry
+// is retried before it's dropped, mirroring
+// ReceivedMessagesStore.prune_pending_messages_for on the inbound side.
+const outboundMaxDeliveryAttempts = 2
+
+// dropStuckOutboundEntries acks (drops) pending entries that have already
+// failed delivery outboundMaxDeliveryAttempts times or more, so a single
+// permanently-unsendable entry can't stall this stream's consumer forever.
+func dropStuckOutboundEntries(ctx context.Context, sessionID, stream string) {
+    pending, err := redisClient.XPendingExt(ctx, &redis.XPendingExtArgs{
+        Stream: stream,
+        Group:  OutboundGroup,
+        Start:  "-",
+        End:    "+",
+        Count:  50,
+    }).Result()
+    if err != nil && err != redis.Nil {
+        log.Printf("consumeOutbound[%s]: pending scan error: %v", sessionID, err)
+        return
+    }
+    for _, p := range pending {
+        if p.RetryCount >= outboundMaxDeliveryAttempts {
+            log.Printf("consumeOutbound[%s]: dropping entry %s after %d failed delivery attempts", sessionID, p.ID, p.RetryCount)
+            redisClient.XAck(ctx, stream, OutboundGroup, p.ID)
+        }
+    }
 }
 
 // consumeOutbound reads the ``to_send:<sessionID>`` stream via a Redis
@@ -665,7 +694,11 @@ func consumeOutbound(ctx context.Context, sessionID string, client *whatsmeow.Cl
     }
 
     // Recover entries left pending by a previous run before reading new ones.
+    // Entries that keep failing are dropped after outboundMaxDeliveryAttempts
+    // so a single unsendable entry can't loop here forever.
     for {
+        dropStuckOutboundEntries(ctx, sessionID, stream)
+
         res, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
             Group:    OutboundGroup,
             Consumer: OutboundConsumer,
@@ -705,6 +738,9 @@ func consumeOutbound(ctx context.Context, sessionID string, client *whatsmeow.Cl
             }
             log.Printf("consumeOutbound[%s]: read error: %v", sessionID, err)
             time.Sleep(time.Second)
+            continue
+        }
+        if len(res) == 0 {
             continue
         }
         for _, entry := range res[0].Messages {
@@ -830,7 +866,7 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     hasContent := false
 
     message := Message{
-        From: v.Info.Sender.String(),
+        From: v.Info.Sender.ToNonAD().String(),
         Chat: v.Info.Chat.String(),
         Date: date,
     }
@@ -900,10 +936,11 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
             Stream: fmt.Sprintf("messages:%s", sessionID),
             ID:     streamID,
             Values: map[string]interface{}{
-                "id":      streamID,
-                "user":    userId,
-                "from":    hash(message.From),
-                "chat":    hash(message.Chat),
+                "id":       streamID,
+                "user":     userId,
+                "from":     hash(message.From),
+                "chat":     hash(message.Chat),
+                "is_group": v.Info.IsGroup,
                 "fromenc": encrypt([]byte(message.From), []byte(enc_key)),
                 "chatenc": encrypt([]byte(message.Chat), []byte(enc_key)),
                 "text":    message.Text,

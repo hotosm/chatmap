@@ -10,6 +10,7 @@ def _message(**overrides) -> ReceivedMessage:
         "chat": "chat",
         "sender_enc": "sender_enc",
         "chat_enc": "chat_enc",
+        "is_group": "0",
         "text": "",
         "date": "2026-07-14T12:00:00Z",
         "location": "",

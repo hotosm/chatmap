@@ -12,7 +12,7 @@ from store.received_messages_store import ReceivedMessage
 def _message(**overrides) -> ReceivedMessage:
     fields = dict(
         id="1", receiver="receiver", sender="sender-1", chat="chat-1",
-        sender_enc="sender-enc-1", chat_enc="chat-enc-1",
+        sender_enc="sender-enc-1", chat_enc="chat-enc-1", is_group="0",
         text="", date="2026-07-14T12:00:00Z",
         location="", photo="", video="", audio="", file="",
     )
