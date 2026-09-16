@@ -1,10 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router';
 import { useAuth } from './context/AuthContext';
 import Home from './pages/home';
+import BotSetup from './pages/botSetup';
 import Linked from './pages/linked';
 import LoginPage from './pages/login';
 import MapView from './pages/mapView';
 import MapList from './pages/mapList';
+import Mapper from './pages/mapper'
 import { useConfigContext } from './context/ConfigContext.jsx';
 import '@hotosm/hanko-auth';
 
@@ -59,9 +61,11 @@ const AppRoutes = () => {
       }
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/mapper" element={<Mapper />} />
 
         { config.ENABLE_AUTH && <>
           <Route path="/app" element={<LoginPage />} />
+          <Route path="/bot-setup/:id" element={<PrivateRoute><BotSetup /></PrivateRoute>} />
           <Route path="/maps" element={<MapList />} />
           <Route path="/map/:id" element={<MapView />} />
           { config.ENABLE_LIVE && <Route

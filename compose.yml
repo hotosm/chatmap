@@ -25,29 +25,34 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - chatmap-redis
-      - chatmap-db
+      chatmap-redis:
+        condition: service_started
+      chatmap-db:
+        condition: service_started
+      chatmap-api-migrate:
+        condition: service_completed_successfully
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - SERVER_URL=http://chatmap-go:8001
       - CHATMAP_API_DEBUG=${CHATMAP_API_DEBUG:-false}
       - CHATMAP_API_URL=${CHATMAP_API_URL:-http://localhost:8000}
-      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-}
       - CHATMAP_DB_HOST=${CHATMAP_DB_HOST:-chatmap-db}
-      - CHATMAP_DB=${POSTGRES_DB:-chatmap}
-      - CHATMAP_DB_USER=${POSTGRES_USER:-admin}
-      - CHATMAP_DB_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_DB=${CHATMAP_DB:-}
+      - CHATMAP_DB_USER=${CHATMAP_DB_USER:-}
+      - CHATMAP_DB_PASSWORD=${CHATMAP_DB_PASSWORD:-}
       - CHATMAP_EXPIRING_MIN=${CHATMAP_EXPIRING_MIN:-30}
       - CHATMAP_CORS_ORIGINS=${CHATMAP_CORS_ORIGINS:-localhost,127.0.0.1}
       - CHATMAP_DISABLE_STREAM_CLEANUP=${CHATMAP_DISABLE_STREAM_CLEANUP:-false}
       - HANKO_API_URL=${HANKO_API_URL:-https://login.hotosm.org}
       - JWT_ISSUER=${JWT_ISSUER:-https://login.hotosm.org}
-      - COOKIE_SECRET=${COOKIE_SECRET:-dev-secret-key-min-32-bytes-long!}
+      - COOKIE_SECRET=${COOKIE_SECRET:-}
       - CHATMAP_S3_ENDPOINT_URL=${CHATMAP_S3_ENDPOINT_URL:-}
       - CHATMAP_S3_BUCKET_NAME=${CHATMAP_S3_BUCKET_NAME:-}
       - CHATMAP_S3_ACCESS_KEY=${CHATMAP_S3_ACCESS_KEY:-}
       - CHATMAP_S3_SECRET_KEY=${CHATMAP_S3_SECRET_KEY:-}
+      - CHATMAP_ENABLE_OUTBOUND=${CHATMAP_ENABLE_OUTBOUND:-true}
 
     volumes:
       - ./media:/app/media:rw
@@ -57,7 +62,7 @@ services:
 
   # Chatmap migrations
   chatmap-api-migrate:
-    build: ./chatmap-api/
+    image: ghcr.io/hotosm/chatmap-api:latest
     command: uv run alembic upgrade head
     depends_on:
       - chatmap-db
@@ -65,9 +70,9 @@ services:
       - chatmap_net
     environment:
       - CHATMAP_DB_HOST=chatmap-db
-      - CHATMAP_DB=chatmap
-      - CHATMAP_DB_USER=admin
-      - CHATMAP_DB_PASSWORD=0123456789ABCDEF0123456789ABCDEF
+      - CHATMAP_DB=${CHATMAP_DB:-}
+      - CHATMAP_DB_USER=${CHATMAP_DB_USER:-}
+      - CHATMAP_DB_PASSWORD=${CHATMAP_DB_PASSWORD:-}
 
   # Backend (IM connector)
   chatmap-go:
@@ -75,7 +80,9 @@ services:
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
-      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-}
+      - CHATMAP_HASH_KEY=${CHATMAP_HASH_KEY:-}
+      - CHATMAP_ENABLE_OUTBOUND=${CHATMAP_ENABLE_OUTBOUND:-true}
     ports:
       - "8001:8001"
     volumes:
@@ -114,9 +121,9 @@ services:
     image: postgis/postgis:14-3.5-alpine
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-chatmap}
-      - POSTGRES_USER=${POSTGRES_USER:-admin}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-0123456789ABCDEF0123456789ABCDEF}
+      - POSTGRES_DB=${CHATMAP_DB:-}
+      - POSTGRES_USER=${CHATMAP_DB_USER:-}
+      - POSTGRES_PASSWORD=${CHATMAP_DB_PASSWORD:-}
     volumes:
       - data:/var/lib/postgresql/data
     ports:

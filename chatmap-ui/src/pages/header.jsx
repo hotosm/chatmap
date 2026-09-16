@@ -19,7 +19,9 @@ export default function Header({
   title,
   pageTitle,
   children,
-  onTitleClick
+  onTitleClick,
+  noAuth,
+  hideTitle
 }) {
   const { config } = useConfigContext();
   const { lang, setLang } = useLanguage();
@@ -40,9 +42,10 @@ export default function Header({
           <a href={`/`} className="header__logo-link">
             <img src={logo} className="header__logo" alt="hot logo" />
           </a>
+          { !hideTitle &&
           <h1 onClick={() => onTitleClick && onTitleClick()} className="header__title-text">{title || "ChatMap"}
             { !isAuthenticated && title && <sl-icon className="header__infoIcon" name="info-circle"></sl-icon> }
-          </h1>
+          </h1> }
           { isAuthenticated && <ul className="header__nav">
             <li>
               <NavLink
@@ -55,7 +58,7 @@ export default function Header({
 
         <div className="header__rest">
           { children }
-          { config.ENABLE_AUTH &&
+          { config.ENABLE_AUTH && !noAuth &&
           <div className="header__login-button">
             <hotosm-auth
               hanko-url={config.HANKO_API_URL}

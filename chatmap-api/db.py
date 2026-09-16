@@ -10,10 +10,11 @@ and utility functions for handling map and point data. It supports:
 
 import uuid
 import logging
+from contextlib import contextmanager
 from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
-    Enum as SqlEnum, Boolean,
+    Enum as SqlEnum, Boolean
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
@@ -48,13 +49,15 @@ SessionLocal = sessionmaker(
     bind=engine,
 )
 
+
 # Enum for sharing permissions of a map
 class SharePermission(str, Enum):
     PRIVATE = "private"
-    PUBLIC  = "public"
+    PUBLIC = "public"
 
     def __repr__(self) -> str:
         return f"<{self.value!r}>"
+
 
 # Model representing a user's map
 class Map(Base):
@@ -69,6 +72,7 @@ class Map(Base):
     created_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
     updated_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
     is_live = Column(Boolean, default=False, nullable=False)
+    bot_active = Column(Boolean, default=False, nullable=False)
     centroid = Column(Geometry(geometry_type="POINT", srid=4326), nullable=True, default=None)
 
     # Relationship to Point model
@@ -105,11 +109,25 @@ def get_or_create_live_map(db, user_id: str) -> str:
 
         return new_map.id
 
+
+def get_live_map_id(db, user_id: str) -> str:
+    """
+    Returns the id of the user's live map.
+
+    Read-only sibling of get_or_create_live_map: the survey flow needs the same
+    map id the point pipeline writes its points to, and by the time it runs that
+    map is already there. Raises if there is no live map, or more than one.
+    """
+    return db.execute(
+        select(Map.id).where(Map.owner_id == user_id, Map.is_live)
+    ).scalar_one()
+
+
 # Model representing a geographic point in a map
 class Point(Base):
     __tablename__ = "points"
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
-    geom = Column(Geometry(geometry_type="POINT", srid=4326)) # WGS84 coordinate system
+    geom = Column(Geometry(geometry_type="POINT", srid=4326))  # WGS84 coordinate system
     message = Column(String)
     username = Column(String)
     time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
@@ -118,7 +136,7 @@ class Point(Base):
     removed = Column(Boolean, nullable=False, default=False)
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
-    map    = relationship("Map", back_populates="points")
+    map = relationship("Map", back_populates="points")
 
 
 # Insert or update multiple points for a user
@@ -137,7 +155,7 @@ def add_points(db: Session, points, user_id):
         pt.setdefault("map_id", map_id)
     stmt = insert(Point).values(points)
     update_dict = {
-        "geom":    stmt.excluded.geom,
+        "geom": stmt.excluded.geom,
         "message": func.coalesce(stmt.excluded.message, Point.message),
         "username": stmt.excluded.username,
         "file": func.coalesce(stmt.excluded.file, Point.file),
@@ -162,5 +180,20 @@ def get_db_session():
     db = SessionLocal()
     try:
         return db
+    finally:
+        db.close()
+
+
+@contextmanager
+def session_scope():
+    """
+    Context-managed database session for code outside FastAPI's dependency
+    system (stores, the conversation listener, the CLI). Unlike get_db_session,
+    the session is closed when the `with` block exits -- after the work is done,
+    not before it starts.
+    """
+    db = SessionLocal()
+    try:
+        yield db
     finally:
         db.close()

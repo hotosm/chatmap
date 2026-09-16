@@ -16,6 +16,7 @@ import logging
 import asyncio
 from data import process_chat_entries
 from settings import STREAM_KEY, EXPIRING_MIN_MS, STREAM_LISTENER_TIME, DISABLE_STREAM_CLEANUP
+from store.bot_consumed_messages_store import BotConsumedMessagesStore
 
 # Logs
 logger = logging.getLogger(__name__)
@@ -24,6 +25,15 @@ logger = logging.getLogger(__name__)
 redis_host = os.getenv("REDIS_HOST", "localhost")
 redis_port = int(os.getenv("REDIS_PORT", 6379))
 redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
+
+# TRANSITIONAL: this listener predates the bot and pairs locations with content
+# purely by time proximity, so it happily maps a reply the user typed to the
+# bot. We chose to keep this pipeline running rather than rework it, so the bot
+# tells us which messages it consumed and we skip them here. The direction we
+# want is to move mapping into the conversation engine flow, which knows what
+# each message means instead of guessing -- when that lands, this store and the
+# two calls below should go away. See store/bot_consumed_messages_store.py.
+bot_consumed_messages_store = BotConsumedMessagesStore(client=redis_client)
 
 # Cleanup all messages for an user
 async def clean_user_stream(user: str):
@@ -49,6 +59,10 @@ async def cleanup(user: str):
     for entry_id, _ in entries:
         await redis_client.xdel(f"{STREAM_KEY}:{user}", entry_id)
     logger.info(f'cleanup: {len(entries)} messages deleted')
+    # Same cutoff on purpose: a mark is only useful while the message it refers
+    # to is still in the stream, and dropping it any earlier would let that
+    # message be mapped again on the next pass.
+    await bot_consumed_messages_store.cleanup(user, cutoff_time_ms)
 
 # Get all sessions
 async def get_sessions():
@@ -85,6 +99,8 @@ async def stream_listener() -> None:
             sessions = await get_sessions()
             for user in sessions:
                 entries = await redis_client.xrange(f'{STREAM_KEY}:{user}', min='-', max='+')
+                # Drop what the user said to the bot, keep what they meant to map
+                entries = await bot_consumed_messages_store.discard_bot_messages(user, entries)
                 logger.info(f"{len(entries)} entries for user {user}")
                 await process_chat_entries(user, entries)
                 # Cleanup old messages

@@ -121,6 +121,59 @@ const useApi = (params = {}) => {
       });
     }, []);
 
+    // Fetch the bot configuration of a map: whether it is enabled and every
+    // message it is set up to send
+    const fetchBotSetup = useCallback(async (id) => {
+      let setup = null;
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/map/${id}/bot/`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch the bot setup');
+            }
+            setup = await response.json();
+      });
+      return setup;
+    }, []);
+
+    // Fetch the owner's maps whose bot configuration is complete enough to
+    // reuse as a template
+    const fetchBotTemplates = useCallback(async () => {
+      let templates = [];
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/bot/templates`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch the bot templates');
+            }
+            templates = await response.json();
+      });
+      return templates;
+    }, []);
+
+    // Save the whole bot configuration in one request. The API rejects
+    // enabling the bot while a required message is missing.
+    const updateBotSetup = useCallback(async (id, setup) => {
+      let saved = null;
+      await wrapper(async () => {
+            const response = await fetch(`${config.API_URL}/map/${id}/bot/`, {
+                method: 'PUT',
+                body: JSON.stringify(setup),
+                headers: {"Content-Type": "application/json"},
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to save the bot setup');
+            }
+            saved = await response.json();
+      });
+      return saved;
+    }, []);
+
     // Update the removed property of a point
     const removePoint = useCallback(async (id) => {
       await wrapper(async () => {
@@ -165,6 +218,9 @@ const useApi = (params = {}) => {
         updateMapShare,
         removePoint,
         updatePointTags,
+        fetchBotSetup,
+        updateBotSetup,
+        fetchBotTemplates,
         mapShare,
     };
 };

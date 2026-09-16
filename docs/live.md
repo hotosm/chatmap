@@ -20,6 +20,7 @@ It's recommended to use ChatMap Live in one of these ways:
 Just make sure to set encryption keys if you're setting up ChatMap for production:
 
 * `CHATMAP_ENC_KEY` (32 byte long string)
+* `CHATMAP_HASH_KEY` (32 byte long string)
 
 And the flags for enabling both auth + live features:
 

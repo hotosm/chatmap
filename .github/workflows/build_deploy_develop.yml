@@ -82,6 +82,11 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHATMAP_ENC_KEY: ${{ secrets.CHATMAP_ENC_KEY }}
+          CHATMAP_DB: ${{ secrets.CHATMAP_DB }}
+          CHATMAP_DB_USER: ${{ secrets.CHATMAP_DB_USER }}
+          CHATMAP_DB_PASSWORD: ${{ secrets.CHATMAP_DB_PASSWORD }}
+          COOKIE_SECRET: ${{secrets.COOKIE_SECRET}}
+          CHATMAP_HASH_KEY: ${{secrets.CHATMAP_HASH_KEY}}
           CHATMAP_SITE_ADMIN_EMAIL: ${{ vars.CHATMAP_SITE_ADMIN_EMAIL }}
           CHATMAP_SITE_DOMAIN: ${{ vars.CHATMAP_SITE_DOMAIN }}
           CHATMAP_API_URL: ${{ vars.CHATMAP_API_URL }}
@@ -89,6 +94,7 @@ jobs:
           CHATMAP_API_DEBUG: ${{ vars.CHATMAP_API_DEBUG }}
           CHATMAP_CORS_ORIGINS: ${{ vars.CHATMAP_CORS_ORIGINS }}
           CHATMAP_DISABLE_STREAM_CLEANUP: ${{ vars.CHATMAP_DISABLE_STREAM_CLEANUP }}
+          CHATMAP_ENABLE_OUTBOUND: ${{ vars.CHATMAP_ENABLE_OUTBOUND }}
           LOGIN_URL: ${{ vars.LOGIN_URL }}
           ENABLE_LIVE: ${{ vars.ENABLE_LIVE }}
           ENABLE_AUTH: ${{ vars.ENABLE_AUTH }}
@@ -118,6 +124,12 @@ jobs:
             export CHATMAP_S3_ACCESS_KEY=$CHATMAP_S3_ACCESS_KEY
             export CHATMAP_S3_SECRET_KEY=$CHATMAP_S3_SECRET_KEY
             export CHATMAP_ENC_KEY=$CHATMAP_ENC_KEY
+            export CHATMAP_ENABLE_OUTBOUND=$CHATMAP_ENABLE_OUTBOUND
+            export CHATMAP_DB=$CHATMAP_DB
+            export CHATMAP_DB_USER=$CHATMAP_DB_USER
+            export CHATMAP_DB_PASSWORD=$CHATMAP_DB_PASSWORD
+            export COOKIE_SECRET=$COOKIE_SECRET
+            export CHATMAP_HASH_KEY=$CHATMAP_HASH_KEY
             # Initial setup if it doesn't exist
             if [ ! -d "\$APP_DIR" ]; then
               sudo mkdir -p \$APP_DIR

@@ -1,126 +1,137 @@
-import { useEffect, useRef } from "react";
-import { IntlProvider } from "react-intl";
-import { createRoot } from "react-dom/client";
+import {useEffect, useRef} from "react";
+import {IntlProvider} from "react-intl";
+import {createRoot} from "react-dom/client";
 
-import { Popup as PopupGL } from "maplibre-gl";
+import {Popup as PopupGL} from "maplibre-gl";
 import Tagger from '../Tagger';
 import Message from '../Message';
-import { useIntl } from 'react-intl';
-import { useLanguage } from "../../context/LanguageContext";
+import {useIntl} from 'react-intl';
+import {useLanguage} from "../../context/LanguageContext";
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
-  latitude,
-  longitude,
-  children,
-  closeOnMove,
-  closeButton,
-  closeOnClick,
-  popupRef,
-}) => {
+                            latitude,
+                            longitude,
+                            children,
+                            closeOnMove,
+                            closeButton,
+                            closeOnClick,
+                            popupRef,
+                        }) => {
 
-  const containerRef = useRef(document.createElement("div"));
-  const rootRef = useRef(null); // Store the React root instance
+    const containerRef = useRef(document.createElement("div"));
+    const rootRef = useRef(null); // Store the React root instance
 
-  useEffect(() => {
-    if (!popupRef.current) {
-      popupRef.current = new PopupGL({
-        closeOnClick: false,
+    useEffect(() => {
+        if (!popupRef.current) {
+            popupRef.current = new PopupGL({
+                closeOnClick: false,
+                closeOnMove,
+                closeButton,
+                className: "popup",
+                maxWidth: '300px',
+                anchor: 'left',
+            });
+        }
+        popupRef.current.setLngLat([longitude, latitude]);
+        if (!rootRef.current) {
+            rootRef.current = createRoot(containerRef.current);
+        }
+        rootRef.current.render(children);
+        popupRef.current.setDOMContent(containerRef.current);
+    }, [
+        latitude,
+        longitude,
+        children,
+        closeOnClick,
         closeOnMove,
         closeButton,
-        className: "popup",
-        maxWidth: '300px',
-        anchor: 'left',
-      });
-    }
-    popupRef.current.setLngLat([longitude, latitude]);
-    if (!rootRef.current) {
-      rootRef.current = createRoot(containerRef.current);
-    }
-    rootRef.current.render(children);
-    popupRef.current.setDOMContent(containerRef.current);
-  }, [
-    latitude,
-    longitude,
-    children,
-    closeOnClick,
-    closeOnMove,
-    closeButton,
-    popupRef,
-  ]);
+        popupRef,
+    ]);
 
-  return null;
+    return null;
 }
 
-export default function Popup ({
-  feature,
-  popupRef,
-  dataFiles,
-  onAddTag,
-  onRemoveTag,
-  onRemoveMessage,
-  allTags,
-  showMessageOptions,
-}) {
-  const intl = useIntl();
-  const { lang, messages } = useLanguage();
+export default function Popup({
+                                  feature,
+                                  popupRef,
+                                  dataFiles,
+                                  onAddTag,
+                                  onRemoveTag,
+                                  onRemoveMessage,
+                                  allTags,
+                                  showMessageOptions,
+                              }) {
+    const intl = useIntl();
+    const {lang, messages} = useLanguage();
 
-  const getMsgType = (message) => {
-    if (message.file) {
-      if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
-        return "image";
-      } else if (message.file.endsWith("mp4")) {
-        return "video";
-      } else if (
-        message.file.endsWith("ogg") ||
-        message.file.endsWith("opus") ||
-        message.file.endsWith("mp3") ||
-        message.file.endsWith("m4a") ||
-        message.file.endsWith("wav")
-      ) {
-        return "audio";
-      }
-    } else {
-      return "text";
-    }
-  }
-  const msgType = getMsgType(feature.properties);
-
-  return (
-    <PopupGLWrapper
-      longitude={feature.geometry.coordinates[0]}
-      latitude={feature.geometry.coordinates[1]}
-      popupRef={popupRef}
-      closeOnMove={false}
-      closeButton={true}
-    >
-      <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
-        <div className="activePopupFeatureContent">
-          <Message
-            coordinates={feature.geometry.coordinates}
-            message={feature.properties}
-            dataFiles={dataFiles}
-            msgType={msgType}
-            onRemove={tag => onRemoveMessage(feature)}
-            showMessageOptions={showMessageOptions}
-          />
-          { !feature.properties.removed ?
-          <Tagger
-            placeholder={
-              intl.formatMessage({
-                id: "app.yourTagHere",
-                defaultMessage: "Your tag here"
-              })
+    const getMsgType = (message) => {
+        if (message.file) {
+            if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
+                return "image";
+            } else if (message.file.endsWith("mp4")) {
+                return "video";
+            } else if (
+                message.file.endsWith("ogg") ||
+                message.file.endsWith("opus") ||
+                message.file.endsWith("mp3") ||
+                message.file.endsWith("m4a") ||
+                message.file.endsWith("wav")
+            ) {
+                return "audio";
             }
-            msgType={msgType}
-            allTags={allTags}
-            tags={(feature.properties.tags || "").split(",").filter(x => x)}
-            onAddTag={tag => onAddTag(tag, feature)}
-            onRemoveTag={tag => onRemoveTag(tag, feature)}
-            showEditOptions={showMessageOptions}
-          /> : "" }
-        </div>
-      </IntlProvider>
-    </PopupGLWrapper>
-  )
+        } else {
+            return "text";
+        }
+    }
+    const msgType = getMsgType(feature.properties);
+    const survey = feature.properties.survey || [];
+
+    return (
+        <PopupGLWrapper
+            longitude={feature.geometry.coordinates[0]}
+            latitude={feature.geometry.coordinates[1]}
+            popupRef={popupRef}
+            closeOnMove={false}
+            closeButton={true}
+        >
+            <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
+                <div className="activePopupFeatureContent">
+                    <Message
+                        coordinates={feature.geometry.coordinates}
+                        message={feature.properties}
+                        dataFiles={dataFiles}
+                        msgType={msgType}
+                        onRemove={tag => onRemoveMessage(feature)}
+                        showMessageOptions={showMessageOptions}
+                    />
+                    {survey.length > 0 &&
+                        <dl className="surveyAnswers">
+                            {survey.map((entry, index) => (
+                                <div className="surveyAnswer" key={index}>
+                                    <dt>{entry.question}</dt>
+                                    <dd>{entry.answer}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    }
+                    {!feature.properties.removed ?
+                        <Tagger
+                            placeholder={
+                                intl.formatMessage({
+                                    id: "app.yourTagHere",
+                                    defaultMessage: "Your tag here"
+                                })
+                            }
+                            msgType={msgType}
+                            allTags={allTags}
+                            tags={(feature.properties.tags || "").split(",").filter(x => x)}
+                            onAddTag={tag => onAddTag(tag, feature)}
+                            onRemoveTag={tag => onRemoveTag(tag, feature)}
+                            showEditOptions={showMessageOptions}
+                        /> : ""}
+                </div>
+            </IntlProvider>
+        </PopupGLWrapper>
+    )
 };

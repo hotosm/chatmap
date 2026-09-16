@@ -4,7 +4,7 @@
 services:
   # Frontend with Vite hot reload
   chatmap-ui:
-    image: node:22-alpine
+    image: node:24-alpine
     working_dir: /app
     command: sh -c "apk add --no-cache gettext && envsubst < /app/public/config.tpl.json > /app/public/config.json && yarn install --legacy-peer-deps && yarn start -- --host"
     ports:
@@ -49,9 +49,11 @@ services:
       - HANKO_API_URL=http://chatmap-hanko:8002
       - JWT_ISSUER=http://localhost:8002
       - COOKIE_SECRET=dev-secret-key-min-32-bytes-long!
+      - CHATMAP_ENABLE_OUTBOUND=${CHATMAP_ENABLE_OUTBOUND:-true}
     volumes:
       - ./chatmap-api:/app
       - ./media:/app/media:rw
+      - /app/.venv
     networks:
       - chatmap_net
 
@@ -68,6 +70,9 @@ services:
       - CHATMAP_DB=chatmap
       - CHATMAP_DB_USER=admin
       - CHATMAP_DB_PASSWORD=0123456789ABCDEF0123456789ABCDEF
+    volumes:
+      - ./chatmap-api:/app
+      - /app/.venv
 
   chatmap-go:
     image: golang:1.25.3
@@ -77,6 +82,8 @@ services:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
       - CHATMAP_ENC_KEY=${CHATMAP_ENC_KEY:-0123456789ABCDEF0123456789ABCDEF}
+      - CHATMAP_HASH_KEY=${CHATMAP_HASH_KEY:-FEDCBA9876543210FEDCBA9876543210}
+      - CHATMAP_ENABLE_OUTBOUND=${CHATMAP_ENABLE_OUTBOUND:-true}
     ports:
       - "8001:8001"
     volumes:

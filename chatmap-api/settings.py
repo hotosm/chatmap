@@ -6,6 +6,9 @@ MEDIA_FOLDER="media"
 # Debug
 DEBUG = (os.getenv('CHATMAP_API_DEBUG', 'false').lower() == 'true')
 
+# Feature flags
+ENABLE_OUTBOUND = (os.getenv('CHATMAP_ENABLE_OUTBOUND', 'false').lower() == 'true')
+
 # API
 API_URL = os.getenv("CHATMAP_API_URL", "http://localhost:8000")
 API_VERSION = os.getenv("CHATMAP_API_VERSION", "1")

@@ -6,12 +6,9 @@ and related content.
 """
 
 import os
-import io
 import httpx
 import logging
 import asyncio
-import zipfile
-import json
 import boto3
 from pathlib import Path
 from uuid import uuid4
@@ -20,27 +17,44 @@ from typing import Annotated
 from fastapi import (
     FastAPI, HTTPException, Depends, Request, APIRouter, File, UploadFile,
 )
-from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
-from typing import Dict
+from fastapi.responses import (
+    StreamingResponse, FileResponse, HTMLResponse, JSONResponse,
+)
+from typing import Dict, List
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from db import Point, get_db_session, get_or_create_live_map, SharePermission, Map
+
+from db import (
+    Point, get_db_session, get_or_create_live_map, SharePermission, Map,
+)
+from bot.configured_messages import BotStep
+from store.bot_configured_messages_store import (
+    BotMessage, get_configured_messages, update_configured_messages,
+)
+from store.survey_responses_store import SurveyResponsesStore
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
     SaveMediaResponse, PointTags, AddPointsFeatureCollection, AddPointsResult,
+    BotSetup, BotSetupResult, BotConfiguredMessage, BotMaxAttemptsMessages,
+    BotTemplateOption,
 )
+from pydantic import ValidationError
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import Session
 from stream import stream_listener, clean_user_stream
 from settings import (
     DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS,
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
+    ENABLE_OUTBOUND,
 )
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from geoalchemy2.shape import to_shape
 from hotosm_auth_fastapi import setup_auth, CurrentUser, CurrentUserOptional
 import csv
+import io
+import json
+import zipfile
 from datetime import datetime
 
 # Logs
@@ -50,7 +64,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
-
 
 # FastAPI App Initialization
 app = FastAPI(debug=DEBUG)
@@ -79,6 +92,7 @@ MEDIA_TYPE = defaultdict(lambda: "application/octet-stream", {
     ".opus": "audio/opus",
 })
 
+
 # QR Code Endpoint
 @api_router.get("/qr", response_class=StreamingResponse)
 async def qr(user: CurrentUser):
@@ -102,10 +116,11 @@ async def qr(user: CurrentUser):
 
         return StreamingResponse(BytesIO(response.content), media_type="image/png")
 
+
 # Session Status Endpoint
 @api_router.get("/status")
 async def status(
-    user: CurrentUser,
+        user: CurrentUser,
 ) -> Dict[str, str]:
     """
     Get the current session status of the linked device.
@@ -122,6 +137,7 @@ async def status(
             raise HTTPException(status_code=502, detail="Failed to get session")
         status_response = response.json()
         return {'status': status_response['status']}
+
 
 # Logout Endpoint
 @api_router.get("/logout")
@@ -146,23 +162,25 @@ async def logout(user: CurrentUser) -> Dict[str, str]:
 # List user maps endpoint
 @api_router.get("/user/{user_id}/map")
 async def list_user_maps(
-    user_id: str,
-    db: Session = Depends(get_db_session),
+        user_id: str,
+        db: Session = Depends(get_db_session),
 ):
     return list_maps_result(user_id, db)
+
 
 # List maps endpoint
 @api_router.get("/map")
 async def list_maps(
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     return list_maps_result(user.id if user else None, db)
 
+
 # Function for listing maps
 def list_maps_result(
-    userId: str,
-    db: Session,
+        userId: str,
+        db: Session,
 ):
     """
     List maps
@@ -176,18 +194,19 @@ def list_maps_result(
     """
     subq = (
         select(func.count(Point.id).label("count"), Point.map_id)
-            .group_by(Point.map_id)
-            .subquery()
+        .group_by(Point.map_id)
+        .subquery()
     )
     if userId:
         map_filter = Map.owner_id == userId
     else:
         map_filter = Map.sharing == SharePermission.PUBLIC
     maps = db.execute(
-        select(Map, subq.c.count)
-            .join_from(Map, subq)
-            .where(map_filter)
-            .order_by(Map.created_at.desc())
+        select(Map, func.coalesce(subq.c.count, 0))
+        .outerjoin(subq, Map.id == subq.c.map_id)
+        .where(map_filter)
+        .where(or_(Map.is_live, subq.c.count.isnot(None)))
+        .order_by(Map.created_at.desc())
     )
 
     results = []
@@ -205,16 +224,17 @@ def list_maps_result(
             "updated_at": map_obj.updated_at,
             "sharing": map_obj.sharing,
             "is_live": map_obj.is_live,
+            "bot_active": map_obj.bot_active,
             "count": count,
             "centroid": centroid_coords
-    })
+        })
     return results
 
 
 @api_router.post("/map/media")
 async def save_media(
-    user: CurrentUser,
-    file: Annotated[UploadFile, File()],
+        user: CurrentUser,
+        file: Annotated[UploadFile, File()],
 ) -> SaveMediaResponse:
     s3_client_kwargs = {
         'endpoint_url': S3_ENDPOINT_URL,
@@ -237,11 +257,12 @@ async def save_media(
 
     return SaveMediaResponse(uri=f"{API_URL}/v1/media/{filename}")
 
+
 @api_router.post("/map")
 async def create_map(
-    map_data: SaveMapFeatureCollection,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        map_data: SaveMapFeatureCollection,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ) -> SaveMapResult:
     with db.begin():
         new_map = Map(owner_id=user.id, name=map_data.name, description=map_data.description)
@@ -264,10 +285,10 @@ async def create_map(
 
 @api_router.post("/map/{map_id}/points/")
 async def add_points_to_map(
-    map_id: str,
-    map_data: AddPointsFeatureCollection,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        map_data: AddPointsFeatureCollection,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ):
     """
     Add points to an existing map
@@ -306,9 +327,9 @@ async def add_points_to_map(
 
 @api_router.delete("/map/{map_id}")
 async def delete_map(
-    map_id: str,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ):
     map = db.get(Map, map_id)
 
@@ -345,10 +366,11 @@ async def delete_map(
 
     return
 
+
 @api_router.get("/media_player/{media_url}", response_class=HTMLResponse)
 async def get_video_player(
-    media_url: str,
-    request: Request,
+        media_url: str,
+        request: Request,
 ):
     """
     Retrieve HTML for a video player
@@ -375,10 +397,10 @@ async def get_video_player(
         </video>
         """
     elif (media_url.endswith("ogg") or
-        media_url.endswith("opus") or
-        media_url.endswith("mp3") or
-        media_url.endswith("m4a") or
-        media_url.endswith("wav")
+          media_url.endswith("opus") or
+          media_url.endswith("mp3") or
+          media_url.endswith("m4a") or
+          media_url.endswith("wav")
     ):
         file_type = media_url[-4:] if media_url.endswith("opus") else media_url[-3:]
         html_response += f"""
@@ -393,35 +415,36 @@ async def get_video_player(
     </html>
     """
     return html_response
- 
+
+
 # Retrieve HTML for embedded media (image/video/audio)
 def html_for_embedded_media(file):
     if file:
-      filename = file.split("=")[1] if "=" in file else file.split("media/")[1]
-      file_url = f"{API_URL}/v{API_VERSION}/media_player/{filename}"
-      if file.endswith("jpg") or file.endswith("jpeg"):
-        return f"<img src=\"{file}\" />"
-      elif file.endswith("mp4"):
-        return f"<iframe width=\"495\" height=\"365\" src=\"{file_url}\" title=\"Video player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
-      elif (file.endswith("ogg") or
-        file.endswith("opus") or
-        file.endswith("mp3") or
-        file.endswith("m4a") or
-        file.endswith("wav")
-      ):
-        return f"<iframe width=\"495\" height=\"65\" src=\"{file_url}\" title=\"Audio player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
+        filename = file.split("=")[1] if "=" in file else file.split("media/")[1]
+        file_url = f"{API_URL}/v{API_VERSION}/media_player/{filename}"
+        if file.endswith("jpg") or file.endswith("jpeg"):
+            return f"<img src=\"{file}\" />"
+        elif file.endswith("mp4"):
+            return f"<iframe width=\"495\" height=\"365\" src=\"{file_url}\" title=\"Video player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
+        elif (file.endswith("ogg") or
+              file.endswith("opus") or
+              file.endswith("mp3") or
+              file.endswith("m4a") or
+              file.endswith("wav")
+        ):
+            return f"<iframe width=\"495\" height=\"65\" src=\"{file_url}\" title=\"Audio player\" scrolling=\"no\" frameborder=\"0\"></iframe>"
     else:
-      return "Location only"
+        return "Location only"
 
-def map_response(db, map_obj, owner):
 
+async def map_response(db, map_obj, owner):
     # Filter points by map id
     base_filter = Point.map_id == map_obj.id
-    
+
     # If user is not owner of the map, exclude removed points
     if not owner:
         base_filter = base_filter & (Point.removed == False)
-        
+
     points = (
         db.query(
             Point.id,
@@ -438,12 +461,16 @@ def map_response(db, map_obj, owner):
         .all()
     )
 
+    survey_by_point = await SurveyResponsesStore.responses_for_points(
+        map_id=map_obj.id, point_ids=[point.id for point in points]
+    )
+
     return {
         "id": map_obj.id,
         "sharing": map_obj.sharing.value,
         "name": map_obj.name,
         "description": map_obj.description,
-        "owner": owner, 
+        "owner": owner,
         "is_live": map_obj.is_live,
         "type": "FeatureCollection",
         "features": [
@@ -457,7 +484,7 @@ def map_response(db, map_obj, owner):
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
-                    "tags": point.tags or ""
+                    "survey": survey_by_point.get(point.id, []),
                 },
                 "geometry": {
                     "type": "Point",
@@ -468,11 +495,12 @@ def map_response(db, map_obj, owner):
         ]
     }
 
+
 @api_router.get("/map/new", response_model=FeatureCollection)
 async def get_map(
-    request: Request,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        request: Request,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ):
     """
     Retrieve private map data (GeoJSON) for the authenticated user.
@@ -488,15 +516,22 @@ async def get_map(
     map_id = get_or_create_live_map(db, user.id)
     map_obj: Map = db.get(Map, map_id)
 
-    return map_response(db, map_obj, True)
+    return await map_response(db, map_obj, True)
 
 
-@api_router.get("/map/{map_id}", response_model=FeatureCollection, status_code=200)
+class UTF8JSONResponse(JSONResponse):
+    media_type = "application/json; charset=utf-8"
+
+
+@api_router.get(
+    "/map/{map_id}", response_model=FeatureCollection, status_code=200,
+    response_class=UTF8JSONResponse,
+)
 async def get_public_map(
-    map_id: str,
-    request: Request,
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        request: Request,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     """
     Retrieve public map data (GeoJSON) for a given map ID.
@@ -513,7 +548,7 @@ async def get_public_map(
 
     owner = (user and map_obj.owner_id == user.id) or False
     if map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner):
-        return map_response(db, map_obj, owner)
+        return await map_response(db, map_obj, owner)
     else:
         # Map is not public – reject the request
         raise HTTPException(
@@ -525,9 +560,9 @@ async def get_public_map(
 # Toggle Map Sharing Permission
 @api_router.put("/map/{map_id}/share/")
 async def status(
-    map_id: str,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ) -> Dict[str, str]:
     """
     Toggle sharing permission of the user's map between private and public.
@@ -557,15 +592,21 @@ async def status(
             detail="Unauthorized."
         )
 
+
 # Unlink a live map
 @api_router.put("/map/{map_id}/unlink/")
-async def status(
-    map_id: str,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+async def unlink_map(
+        map_id: str,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ) -> Dict[str, bool]:
     """
-    Toggle is_live property for the map to stop receiving data from a linked device
+    Stop the map from receiving data from a linked device.
+
+    Clears bot_active alongside is_live: an unlinked map keeps its points as a
+    static archive, and the owner starts a fresh live map (bot off by default)
+    for the next campaign. Leaving bot_active set would strand it on a map that
+    no longer receives anything.
 
     Args:
         map_id (str): Unique identifier of the map.
@@ -578,6 +619,7 @@ async def status(
     map_obj: Map = db.get(Map, map_id)
     if map_obj and user and map_obj.owner_id == user.id:
         map_obj.is_live = False
+        map_obj.bot_active = False
         db.commit()
         await clean_user_stream(user.id)
         return {"is_live": map_obj.is_live}
@@ -588,13 +630,145 @@ async def status(
             detail="Unauthorized."
         )
 
+
+def _max_attempts_message(attempts: BotMaxAttemptsMessages) -> dict:
+    return {
+        "id": attempts.id,
+        "bot_step": BotStep.MAX_ATTEMPTS,
+        "position": None,
+        "prompt": attempts.notify_message,
+        "error_message": None,
+        "options": [],
+        "max_attempts_quantity": attempts.max_attempts_quantity,
+        "to_restart": attempts.to_restart,
+        "to_cancel": attempts.to_cancel,
+    }
+
+
+def bot_setup_result(map_obj: Map, rows: List[BotMessage]) -> BotSetupResult:
+    attempts_row = next((row for row in rows if row.bot_step == BotStep.MAX_ATTEMPTS), None)
+
+    max_attempts_messages = BotMaxAttemptsMessages(
+        id=attempts_row.id,
+        max_attempts_quantity=attempts_row.max_attempts_quantity,
+        notify_message=attempts_row.content,
+        to_restart=attempts_row.to_restart,
+        to_cancel=attempts_row.to_cancel,
+    ) if attempts_row else BotMaxAttemptsMessages()
+
+    return BotSetupResult(
+        bot_active=map_obj.bot_active,
+        messages=[
+            BotConfiguredMessage(
+                id=row.id,
+                bot_step=row.bot_step,
+                position=row.position,
+                prompt=row.content,
+                error_message=row.error_message,
+                options=row.options or [],
+            )
+            for row in rows
+            if row.bot_step != BotStep.MAX_ATTEMPTS
+        ],
+        max_attempts_messages=max_attempts_messages,
+    )
+
+
+# Get the bot configuration of a map
+@api_router.get("/map/{map_id}/bot/")
+async def get_bot_setup(
+        map_id: str,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
+) -> BotSetupResult:
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and user and map_obj.owner_id == user.id:
+        return bot_setup_result(map_obj, get_configured_messages(map_id))
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+
+# Save the bot configuration of a map
+@api_router.put("/map/{map_id}/bot/")
+async def set_bot_setup(
+        map_id: str,
+        bot_data: BotSetup,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
+) -> BotSetupResult:
+    map_obj: Map = db.get(Map, map_id)
+    if map_obj and user and map_obj.owner_id == user.id:
+        rows = update_configured_messages(
+            map_id=map_id,
+            messages=[message.model_dump() for message in bot_data.messages]
+                     + [_max_attempts_message(bot_data.max_attempts_messages)],
+        )
+        map_obj.bot_active = bot_data.bot_active
+        db.commit()
+        return bot_setup_result(map_obj, rows)
+    else:
+        # User is not owner of the map
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+
+def _is_complete_bot(result: BotSetupResult) -> bool:
+    try:
+        BotSetup(
+            bot_active=True,
+            messages=result.messages,
+            max_attempts_messages=result.max_attempts_messages,
+        )
+        return True
+    except ValidationError:
+        return False
+
+
+@api_router.get("/bot/templates")
+async def get_bot_templates(
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
+) -> List[BotTemplateOption]:
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized."
+        )
+
+    candidates = list(db.execute(
+        select(Map)
+        .where(Map.owner_id == user.id)
+        .order_by(Map.created_at.desc())
+    ).scalars())
+
+    rows_by_map = defaultdict(list)
+    if candidates:
+        rows = db.execute(
+            select(BotMessage).where(BotMessage.map_id.in_([candidate.id for candidate in candidates]))
+        ).scalars()
+        for row in rows:
+            rows_by_map[row.map_id].append(row)
+
+    return [
+        BotTemplateOption(id=candidate.id, name=candidate.name)
+        for candidate in candidates
+        if _is_complete_bot(bot_setup_result(candidate, rows_by_map[candidate.id]))
+    ]
+
+
 # Update map
 @api_router.put("/map/{map_id}")
 async def status(
-    map_id: str,
-    map_data: UpdateMap,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        map_data: UpdateMap,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ) -> Dict[str, str]:
     """
     Edit user's map title, description
@@ -624,9 +798,9 @@ async def status(
 
 @api_router.put("/point/{point_id}/remove/")
 async def remove_point(
-    point_id: str,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        point_id: str,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ):
     point_obj: Point = db.get(Point, point_id)
     if point_obj:
@@ -646,12 +820,13 @@ async def remove_point(
         detail="Point not found",
     )
 
+
 @api_router.put("/point/{point_id}/tags/")
 async def update_point_tags(
-    point_id: str,
-    tags: PointTags,
-    user: CurrentUser,
-    db: Session = Depends(get_db_session),
+        point_id: str,
+        tags: PointTags,
+        user: CurrentUser,
+        db: Session = Depends(get_db_session),
 ):
     point_obj: Point = db.get(Point, point_id)
     if point_obj:
@@ -671,11 +846,12 @@ async def update_point_tags(
         detail="Point not found",
     )
 
+
 @api_router.get("/media/{filename}", response_class=StreamingResponse)
 async def get_media(
-    filename: str,
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        filename: str,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     # first check if file is registered and accesible to the current user
     try:
@@ -731,6 +907,7 @@ async def get_media(
             detail="Media not found",
         )
 
+
 # Media File Endpoint
 @api_router.get("/media")
 async def media(filename: str) -> Dict[str, str]:
@@ -753,6 +930,7 @@ async def media(filename: str) -> Dict[str, str]:
     elif filename[-4:] == "opus":
         return FileResponse(path=file_path, media_type="audio/opus")
     return {"error": "Format unknown"}
+
 
 # Protected User Info Endpoint
 @api_router.get("/me")
@@ -799,10 +977,10 @@ async def export_media(features, zf):
 # Export map as Zip (GeoJSON + media)
 @api_router.get("/export/{map_id}", response_model=None)
 async def export(
-    map_id: str,
-    request: Request,
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        request: Request,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     """
     Export map for download (Zip w/ GeoJSON and media) for a given map ID.
@@ -820,7 +998,7 @@ async def export(
     map_obj: Map = db.get(Map, map_id)
     owner = (user and map_obj.owner_id == user.id) or False
     if map_obj and owner:
-        map = map_response(db, map_obj, owner)
+        map = await map_response(db, map_obj, owner)
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
             # Get map files
@@ -841,6 +1019,7 @@ async def export(
             status_code=401,
             detail="Unauthorized: the requested map is not publicly shared."
         )
+
 
 def map_to_csv(features):
     """
@@ -887,13 +1066,14 @@ def map_to_csv(features):
 
     return csv_string
 
+
 # Export map as Zip (CSV + media)
 @api_router.get("/export/csv/{map_id}", response_model=None)
 async def export(
-    map_id: str,
-    request: Request,
-    user: CurrentUserOptional,
-    db: Session = Depends(get_db_session),
+        map_id: str,
+        request: Request,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
 ):
     """
     Export map for download (Zip w/ CSV and media) for a given map ID.
@@ -911,7 +1091,7 @@ async def export(
     map_obj: Map = db.get(Map, map_id)
     owner = (user and map_obj.owner_id == user.id) or False
     if map_obj and owner:
-        map = map_response(db, map_obj, owner)
+        map = await map_response(db, map_obj, owner)
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
             # Get map files
@@ -933,8 +1113,13 @@ async def export(
             detail="Unauthorized: the requested map is not publicly shared."
         )
 
+
 # Include API Router
 app.include_router(api_router)
+
+from redis import asyncio as async_redis
+from consumers.listener import ConversationsStateListener
+
 
 # On API startup
 @api_router.on_event("startup")
@@ -948,6 +1133,15 @@ async def startup_event():
     if not os.path.exists("media"):
         os.mkdir("media")
     asyncio.create_task(stream_listener())
+
+    if ENABLE_OUTBOUND:
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = int(os.getenv("REDIS_PORT", 6379))
+
+        client = async_redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
+        listener = ConversationsStateListener(client=client)
+        asyncio.create_task(listener.start())
+
 
 # On API shutdown
 @api_router.on_event("shutdown")
