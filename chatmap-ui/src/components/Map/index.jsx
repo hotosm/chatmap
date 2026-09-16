@@ -72,12 +72,6 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
               type: "geojson"
             });
 
-            // Add geojson data source
-            map.current.addSource('locations', {
-                data: data,
-                type: "geojson"
-            });
-
             // Fit map bounds on data extent
             const bbox = extent(data);
             map.current.fitBounds(bbox, {
