@@ -1,4 +1,5 @@
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
+import SlBadge from "@shoelace-style/shoelace/dist/react/badge/index.js";
 import { FormattedMessage } from 'react-intl';
 
 function QRCode({ img }) {
@@ -11,6 +12,7 @@ function QRCode({ img }) {
                             id = "app.linked.linkYourDevice"
                             defaultMessage="Link your device"
                         />
+                        <SlBadge pill variant="danger">Beta</SlBadge>
                     </h2>
                     <h3>
                         <FormattedMessage

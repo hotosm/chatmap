@@ -9,6 +9,7 @@ import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import SlSelect from "@shoelace-style/shoelace/dist/react/select/index.js";
 import SlOption from "@shoelace-style/shoelace/dist/react/option/index.js";
+import SlBadge from "@shoelace-style/shoelace/dist/react/badge/index.js";
 
 import useAPI from '../../components/ChatMap/useApi.js';
 import EditBotItemDialog from '../../components/EditBotItemDialog/index.jsx';
@@ -193,7 +194,7 @@ export default function BotSetup() {
         <>
             <div className="app">
                 <Header pageTitle={"Bot Setup"}/>
-
+                <SlBadge pill variant="danger">Beta</SlBadge>
                 <div className="botSetup">
                     <div className="botSetup__header">
                         <div className="botSetup__header-left">
