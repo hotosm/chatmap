@@ -1,6 +1,6 @@
 import { expect, test as it} from 'vitest'
 
-import { parseTimeString } from '../src/components/ChatMap/parsers/whatsapp';
+import { parseTimeString } from '../src/components/ChatMap/parsers/whatsapp-datetime';
 
 // parseTimeString
 it('should parse a datetime', () => {

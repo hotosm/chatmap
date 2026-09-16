@@ -62,3 +62,44 @@ export class BackgroundControl {
         this._map = undefined;
     }
 }
+
+const locationHandler = async () => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        const watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            navigator.geolocation.clearWatch(watchId);
+            clearTimeout(timeoutId);
+            resolve(pos);
+          },
+          (err) => {
+            navigator.geolocation.clearWatch(watchId);
+            clearTimeout(timeoutId);
+            reject(err);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+        );
+
+        const timeoutId = setTimeout(() => {
+          navigator.geolocation.clearWatch(watchId);
+          reject(new Error("Location timeout: Could not get GPS fix within 15s"));
+        }, 15000);
+      });
+
+      return position.coords;
+
+    } catch (error) {
+      console.error("Failed to get location:", error.message || error);
+      return false;
+    }
+};
+
