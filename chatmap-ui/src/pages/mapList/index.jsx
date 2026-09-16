@@ -4,6 +4,7 @@ import { useNavigate, NavLink } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
+import SlBadge from "@shoelace-style/shoelace/dist/react/badge/index.js";
 
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
 import Header from "../header.jsx";
@@ -87,6 +88,7 @@ export default function MapList() {
 
               { config.ENABLE_LIVE && <>
                 <SlButton className="header__live-button" href="#linked" variant="default" outline>
+                  <SlBadge pill variant="danger">Beta</SlBadge>
                   <FormattedMessage id="app.navigation.live" defaultMessage="Live" />
                 </SlButton>
               </>}
@@ -154,6 +156,7 @@ export default function MapList() {
                     { map.is_live &&
                     <SlButton outline className={map.bot_active ? "" : "dashed"} onClick={() => navigate("/bot-setup/" + map.id)}>
                       <SlIcon name="robot" slot="prefix" />
+                      <SlBadge pill variant="danger">Beta</SlBadge>
                     </SlButton>
                     }
                     { map.sharing === 'public' &&
