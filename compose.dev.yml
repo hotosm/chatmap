@@ -30,9 +30,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - chatmap-redis
-      - chatmap-db
-      - chatmap-hanko
+      chatmap-redis:
+        condition: service_started
+      chatmap-db:
+        condition: service_started
+      chatmap-api-migrate:
+        condition: service_completed_successfully
     environment:
       - REDIS_HOST=chatmap-redis
       - REDIS_PORT=6379
