@@ -1,5 +1,5 @@
-import React, {useRef, useEffect, useState} from 'react';
-import {Map as MapGL} from 'maplibre-gl';
+import React, { useRef, useEffect, useState } from 'react';
+import { Map as MapGL, GeolocateControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {osm} from './source';
 import Popup from './popup';
@@ -50,11 +50,27 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
 
         map.current.on("load", async () => {
 
-            // Center the map on the first feature
-            map.current.setCenter(data.features[0].geometry.coordinates)
+           // Center the map on the first feature
+           map.current.setCenter(data.features[0].geometry.coordinates)
 
-            // Add background control
-            map.current.addControl(new BackgroundControl());
+           // Add background control
+           map.current.addControl(new BackgroundControl());
+
+           // Add location control
+           let geolocate = new GeolocateControl({
+              positionOptions: {
+                  enableHighAccuracy: true
+              },
+              trackUserLocation: true
+            });
+            // Add the control to the map.
+            map.current.addControl(geolocate);
+
+            // Add geojson data source
+            map.current.addSource('locations', {
+              data: data,
+              type: "geojson"
+            });
 
             // Add geojson data source
             map.current.addSource('locations', {
