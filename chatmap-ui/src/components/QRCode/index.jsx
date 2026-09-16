@@ -12,6 +12,7 @@ function QRCode({ img }) {
                             id = "app.linked.linkYourDevice"
                             defaultMessage="Link your device"
                         />
+                        &nbsp;
                         <SlBadge pill variant="danger">Beta</SlBadge>
                     </h2>
                     <h3>

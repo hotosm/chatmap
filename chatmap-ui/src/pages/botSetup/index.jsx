@@ -194,13 +194,14 @@ export default function BotSetup() {
         <>
             <div className="app">
                 <Header pageTitle={"Bot Setup"}/>
-                <SlBadge pill variant="danger">Beta</SlBadge>
                 <div className="botSetup">
                     <div className="botSetup__header">
                         <div className="botSetup__header-left">
                             <h1>
                                 <SlIcon name="robot"/>
                                 <FormattedMessage id="app.botSetup.title" defaultMessage="Bot setup"/>
+                                &nbsp;
+                                <SlBadge pill variant="danger">Beta</SlBadge>
                             </h1>
                         </div>
                     </div>
