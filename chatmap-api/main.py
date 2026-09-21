@@ -1025,8 +1025,11 @@ def map_to_csv(features):
     """
     Convert a map dictionary to a CSV.
 
-    Columns: file, lon, lat, capture_time (RFC 3339)
+    Columns: file, lon, lat, capture_time (RFC 3339), plus one column per
+    survey question, with the answer as its value.
     """
+    base_fields = ["file", "lon", "lat", "capture_time"]
+    survey_fields = []
     rows = []
     for feature in features:
         props = feature.get("properties", {})
@@ -1048,16 +1051,22 @@ def map_to_csv(features):
                 capture_time = None
 
         if file_name and lon and lat and capture_time:
-            rows.append({
+            row = {
                 "file": file_name,
                 "lon": lon,
                 "lat": lat,
                 "capture_time": capture_time
-            })
+            }
+            for answer in props.get("survey", []):
+                question = answer["question"]
+                if question not in survey_fields:
+                    survey_fields.append(question)
+                row[question] = answer["answer"]
+            rows.append(row)
 
     # Write output
     output_buffer = io.StringIO()
-    fieldnames = ["file", "lon", "lat", "capture_time"]
+    fieldnames = base_fields + survey_fields
     writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(rows)
@@ -1112,6 +1121,49 @@ async def export(
             status_code=401,
             detail="Unauthorized: the requested map is not publicly shared."
         )
+
+
+# Export map for UMap (survey answers flattened onto feature properties)
+@api_router.get(
+    "/export/umap/{map_id}", response_model=None,
+    response_class=UTF8JSONResponse,
+)
+async def export_umap(
+        map_id: str,
+        request: Request,
+        user: CurrentUserOptional,
+        db: Session = Depends(get_db_session),
+):
+    """
+    Export map data (GeoJSON) shaped for UMap.
+
+    Each survey question becomes a property key on its feature, with the
+    answer as its value, instead of a nested "survey" list.
+
+    Args:
+        map_id (str): Unique identifier of the map.
+        request (Request): FastAPI request object.
+        db (Session): Database session.
+
+    Returns:
+        dict: GeoJSON FeatureCollection with flattened survey properties.
+    """
+    map_obj: Map = db.get(Map, map_id)
+
+    owner = (user and map_obj.owner_id == user.id) or False
+    if not (map_obj and (map_obj.sharing == SharePermission.PUBLIC or owner)):
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: the requested map is not publicly shared."
+        )
+
+    map = await map_response(db, map_obj, owner)
+    for feature in map['features']:
+        survey = feature['properties'].pop('survey', [])
+        for answer in survey:
+            feature['properties'][answer['question']] = answer['answer']
+
+    return map
 
 
 # Include API Router
