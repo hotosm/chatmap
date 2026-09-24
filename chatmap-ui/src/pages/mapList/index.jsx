@@ -156,14 +156,14 @@ export default function MapList() {
                     { map.is_live &&
                     <SlButton outline className={map.bot_active ? "" : "dashed"} onClick={() => navigate("/bot-setup/" + map.id)}>
                       <SlIcon name="robot" slot="prefix" />
-                      <SlBadge pill variant="danger">Beta</SlBadge>
+                      <SlBadge slot="prefix" pill variant="danger">Beta</SlBadge>
                     </SlButton>
                     }
                     { map.sharing === 'public' &&
                     <SlButton
                       outline
                       target="_blank"
-                      href={`https://umap.hotosm.org/en/map/?templateUrl=https://umap.hotosm.org/map/2685/download&dataUrl=${config.API_URL}/map/${map.id}`}
+                      href={`https://umap.hotosm.org/en/map/?templateUrl=https://umap.hotosm.org/map/2685/download&dataUrl=${config.API_URL}/export/umap/${map.id}`}
                     >
                       <SlIcon name="umap" slot="prefix" />
                     </SlButton>
