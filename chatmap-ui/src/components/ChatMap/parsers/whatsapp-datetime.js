@@ -49,6 +49,9 @@ function getTimeParts(match) {
 
   if ((matches[3] && matches[3].startsWith(' ')) || matches[4]) {
     hour += 12;
+    if (hour === 24) {
+      hour = 0;
+    }
   } else if (matches[3] && matches[3].match(/\d+/)) {
     second = Number(matches[3].slice(1));
   }
@@ -133,8 +136,9 @@ function makeCase1Function(oldDate, dayIndex, system) {
     const [year, month, day, hour, minute, second] = normalizeParts(
       dateParts, yearIndex, monthIndex, dayIndex, match
     );
-
-    return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+    const strDate = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+    const date = new Date(strDate);
+    return date;
   };
 }
 
@@ -228,7 +232,6 @@ function makeCase3Function(changes, maxObserved, hasDecreased, fourDigits, syste
     const [year, month, day, hour, minute, second] = normalizeParts(
       dateParts, yearIndex, monthIndex, dayIndex, match
     );
-
     return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
   };
 }
