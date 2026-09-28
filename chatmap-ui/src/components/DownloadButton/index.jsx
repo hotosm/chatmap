@@ -59,7 +59,6 @@ const createAndDownloadZip = async (data, dataFiles, getDataFiles) => {
   const _dataFiles = dataFiles || await getDataFiles();
   if (_dataFiles) {
     for (const [filename, blob] of Object.entries(_dataFiles)) {
-      console.log(filename, blob)
       if (media_files.indexOf(filename) > -1) {
         zip.file(filename, blob);
       }
