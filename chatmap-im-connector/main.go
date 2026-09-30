@@ -862,6 +862,12 @@ func handleMessage(sessionID string, v *events.Message, enc_key string) {
     }
     ctx := context.Background()
     msg := v.Message
+    // Phone replies to unavailable-message requests can arrive without content
+    if msg == nil {
+        log.Printf("Ignoring message without content: id=%s resend_request=%s stub=%v from_me=%v",
+            v.Info.ID, v.UnavailableRequestID, v.SourceWebMsg.GetMessageStubType(), v.Info.IsFromMe)
+        return
+    }
     date := ConvertToJSDateFormat(v.Info.Timestamp.String())
     hasContent := false
 
