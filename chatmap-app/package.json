@@ -3,10 +3,14 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo/metro-runtime": "~57.0.16",
+    "@hotosm/hanko-auth": "^0.5.5",
     "expo": "~57.0.24",
     "expo-camera": "~57.0.5",
     "expo-constants": "~57.0.19",
+    "expo-dev-client": "~57.0.19",
     "expo-font": "~57.0.4",
+    "expo-image": "~57.0.5",
     "expo-linking": "~57.0.10",
     "expo-location": "~57.0.19",
     "expo-router": "~57.0.22",
@@ -20,7 +24,8 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
-    "react-native-web": "~0.21.0",
+    "react-native-web": "^0.21.2",
+    "react-native-webview": "13.16.1",
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
@@ -32,8 +37,8 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },
