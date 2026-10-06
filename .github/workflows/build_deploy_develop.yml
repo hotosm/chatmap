@@ -1,4 +1,4 @@
-name: Deploy develop to dev.chatmap.hotosm.org
+name: Deploy to development environment - ex. dev.chatmap.hotosm.org
 
 on:
   push:
@@ -155,7 +155,7 @@ jobs:
             # Pull and deploy
             docker compose -f compose.yml pull
             docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-api-migrate chatmap-nginx chatmap-go --force-recreate
-            # Renew the SSL certificate
+            # Generate SSL certificate if needed (initial deployment)
             source deploy/ssl/cert_new.sh
             # Cleanup
             docker image prune -af
