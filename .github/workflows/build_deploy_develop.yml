@@ -1,4 +1,4 @@
-name: Deploy develop to dev.chatmap.hotosm.org
+name: Deploy to development environment - ex. dev.chatmap.hotosm.org
 
 on:
   push:
@@ -146,18 +146,17 @@ jobs:
             envsubst < deploy/frontend/config.tpl.json > chatmap-ui/public/config.json
             echo "✅ Created frontend config file"
             envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
-            envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default-init.tpl.conf > deploy/nginx/default-init.conf
+            # Generate dummy ssl certificate if needed (initial deployment)
+            source deploy/ssl/cert_dummy.sh
             echo "✅ Created Nginx config files"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
-            # Pull and deploy init (certbot)
-            # docker compose -f compose-init.yml pull
-            # docker compose -f compose-init.yml up --abort-on-container-exit
-            # docker compose -f compose-init.yml down
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull
-            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-nginx chatmap-api-migrate chatmap-go --force-recreate
+            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-api-migrate chatmap-nginx chatmap-go --force-recreate
+            # Generate SSL certificate if needed (initial deployment)
+            source deploy/ssl/cert_new.sh
             # Cleanup
             docker image prune -af
             echo "✅ Deployment complete"

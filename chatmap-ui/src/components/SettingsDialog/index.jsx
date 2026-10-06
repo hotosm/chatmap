@@ -69,7 +69,7 @@ export default function SettingsDialog({
           </span>
         </SlSwitch>
       </div>
-      <div className="dialog__switchcontainer">
+      {/* <div className="dialog__switchcontainer">
         <SlSwitch size="small" checked={withText && "checked"} onSlChange={handleWithTextChange}>
           <span className="dialog__switchtext">
             <FormattedMessage
@@ -78,7 +78,7 @@ export default function SettingsDialog({
             />
           </span>
         </SlSwitch>
-      </div>
+      </div> */}
 
       { onCancel && <sl-button slot="footer" variant="default" onClick={onCancel}>
         <FormattedMessage
