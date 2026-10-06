@@ -9,7 +9,7 @@ if [ -f "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/dummy" ]; then
   docker compose run --rm chatmap-certbot certonly --webroot \
     --webroot-path=/var/www/certbot -d $CHATMAP_SITE_DOMAIN --non-interactive --agree-tos \
     -m $CHATMAP_SITE_ADMIN_EMAIL --no-eff-email --force-renewal
-  docker exec chatmap-chatmap-nginx-1 nginx -s reload
+  docker compose -f compose.yml up -d chatmap-nginx --force-recreate
 else
   echo "No dummy cert found."
 fi

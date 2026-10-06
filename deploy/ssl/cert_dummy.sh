@@ -12,5 +12,5 @@ if [ ! -f "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/fullchain.pem" ]; then
   touch deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/dummy
   echo "Dummy certificates generated successfully."
 else
-  echo "File exists: deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/privkey.pem"
+  echo "File exists: deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/fullchain.pem"
 fi
