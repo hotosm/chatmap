@@ -98,23 +98,30 @@ def received_message_add(
         device: str = typer.Option(..., help="Session id whose stream will receive the entries"),
         entry_type: EntryType = typer.Option(..., help="Kind of message content to simulate"),
         count: int = typer.Option(5, help="How many entries to add"),
+        group: bool = typer.Option(False, "--group", help="Shape entries as group messages (one shared chat per group, distinct senders)"),
+        groups: int = typer.Option(1, min=1, help="How many groups to spread the entries across (with --group)"),
 ):
     """Add `count` test entries of a given type to the received messages stream."""
+    if groups > 1 and not group:
+        raise typer.BadParameter("--groups needs --group")
 
     async def run():
         client = _build_client()
         for i in range(count):
             date = datetime.now(timezone.utc)
+            group_index = i % groups
             # Sequence part uses `i` so entries within the same millisecond don't collide
             stream_id = f"{int(date.timestamp() * 1000)}-{i}"
             entry = {
+                "id": stream_id,
                 "user": f"user-{i}",
                 "from": f"from-{i}",
-                "chat": f"chat-{i}",
+                "chat": f"chat-group-{group_index}" if group else f"chat-{i}",
+                "is_group": "1" if group else "0",
                 "fromenc": f"fromenc-{i}",
-                "chatenc": f"chatenc-{i}",
+                "chatenc": f"chatenc-group-{group_index}" if group else f"chatenc-{i}",
                 "text": "",
-                "date": date.isoformat(),
+                "date": date.replace(microsecond=0).isoformat(),
                 "location": "",
                 "photo": "",
                 "video": "",
@@ -137,16 +144,24 @@ def received_message_send(
         peer: str = typer.Option("sim-peer", help="The other party; fills 'from'/'chat'/'user' consistently so it reads as a private chat"),
         text: str = typer.Option(None, help="Message body (kind=text); encrypted before it hits the stream"),
         coords: str = typer.Option(None, help="'lat,lng' (kind=location), e.g. '-34.6037,-58.3816'"),
+        group: bool = typer.Option(False, "--group", help="Simulate a group message: 'chat' is the group, 'from' is the sender"),
+        chat: str = typer.Option(None, help="Chat id to write (with --group; default 'sim-group')"),
+        sender: str = typer.Option(None, help="Sender id to write (with --group; default: --peer)"),
 ):
     """
     Add ONE conversation-valid entry to messages:<device>, shaped like what
     chatmap-im-connector writes: stable identity, encrypted text, real
     coordinates. Use this to hand-drive the bot flow; `add` is for dummy load.
+    With --group, the entry reads as a group message (is_group=1, shared chat).
     """
     if kind == SendKind.text and not text:
         raise typer.BadParameter("kind=text needs --text")
     if kind == SendKind.location and not coords:
         raise typer.BadParameter("kind=location needs --coords 'lat,lng'")
+
+    sender_id = sender or peer
+    chat_id = chat or ("sim-group" if group else peer)
+    is_group = "1" if group else "0"
 
     async def run():
         client = _build_client()
@@ -156,10 +171,11 @@ def received_message_send(
         entry = {
             "id": stream_id,
             "user": device,
-            "from": peer,
-            "chat": peer,
-            "fromenc": _encrypt_text(peer),
-            "chatenc": _encrypt_text(peer),
+            "from": sender_id,
+            "chat": chat_id,
+            "is_group": is_group,
+            "fromenc": _encrypt_text(sender_id),
+            "chatenc": _encrypt_text(chat_id),
             "text": _encrypt_text(text) if kind == SendKind.text else "",
             "date": date.isoformat(),
             "location": coords if kind == SendKind.location else "",
@@ -174,7 +190,7 @@ def received_message_send(
         }
 
         entry_id = await client.xadd(_received_message_stream(device), entry, id=stream_id)
-        typer.echo(f"sent {kind.value} entry {entry_id} to device '{device}' (peer '{peer}')")
+        typer.echo(f"sent {kind.value} entry {entry_id} to device '{device}' (from '{sender_id}', chat '{chat_id}')")
         if kind == SendKind.location:
             typer.echo(f"  point_id for the survey will be: {entry_id}")
         await client.aclose()
