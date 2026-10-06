@@ -2,9 +2,9 @@
 # Remove dummy cert
 if [ -f "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/dummy" ]; then
   echo "Removing existing certificates"
-  rm -rf /etc/letsencrypt/live/*
-  rm -rf /etc/letsencrypt/archive/*
-  rm -rf /etc/letsencrypt/renewal/*
+  rm -rf deploy/certbot/conf/live/*
+  rm -rf deploy/certbot/conf/archive/*
+  rm -rf deploy/certbot/conf/renewal/*
   # Request cert for first time
   docker compose run --rm chatmap-certbot certonly --webroot \
     --webroot-path=/var/www/certbot -d $CHATMAP_SITE_DOMAIN --non-interactive --agree-tos \
