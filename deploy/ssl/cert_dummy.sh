@@ -1,6 +1,6 @@
 # This script generates dummy self-signed SSL certificates so Nginx can run for the first time
 
-mkdir -p "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN"
+sudo mkdir -p "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN"
 
 if [ ! -f "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/fullchain.pem" ]; then
   echo "Certificates not found. Generating dummy certificates..."
