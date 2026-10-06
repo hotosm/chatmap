@@ -7,4 +7,4 @@ docker run -it --rm --name certbot \
   certbot/certbot renew --webroot -w /var/www/certbot
 
 # Reload Nginx to pick up the new certificates
-docker exec chatmap-nginx nginx -s reload
+docker exec chatmap-chatmap-nginx-1 nginx -s reload

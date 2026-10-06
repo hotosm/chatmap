@@ -147,7 +147,7 @@ jobs:
             echo "✅ Created frontend config file"
             envsubst '\$CHATMAP_SITE_DOMAIN' < deploy/nginx/default.tpl.conf > deploy/nginx/default.conf
             # Generate dummy ssl certificate if needed (initial deployment)
-            sh deploy/ssl/cert_dummy.sh
+            source deploy/ssl/cert_dummy.sh
             echo "✅ Created Nginx config files"
             # Login to GHCR
             echo "${GH_TOKEN}" | docker login ghcr.io -u ${GH_ACTOR} --password-stdin
@@ -156,7 +156,7 @@ jobs:
             docker compose -f compose.yml pull
             docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-api-migrate chatmap-nginx chatmap-go --force-recreate
             # Renew the SSL certificate
-            # sh deploy/ssl/cert_renew.sh
+            source deploy/ssl/cert_new.sh
             # Cleanup
             docker image prune -af
             echo "✅ Deployment complete"

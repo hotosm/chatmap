@@ -116,6 +116,15 @@ services:
     networks:
       - chatmap_net
 
+  # Certbot service
+  chatmap-certbot:
+    image: certbot/certbot
+    volumes:
+      - ./deploy/certbot/conf:/etc/letsencrypt
+      - ./deploy/certbot/www:/var/www/certbot
+    networks:
+      - chatmap_net
+
   # Postgres+PostGIS database
   chatmap-db:
     image: postgis/postgis:14-3.5-alpine
