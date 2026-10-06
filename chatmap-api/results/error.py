@@ -33,3 +33,8 @@ class UnsupportedMediaType(Exception):
 class PointAlreadyHasMedia(Exception):
     def __init__(self, point_id):
         self.point_id = point_id
+
+
+class UnknownStatus(Exception):
+    def __init__(self, status_id):
+        self.status_id = status_id

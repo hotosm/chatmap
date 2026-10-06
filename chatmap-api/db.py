@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
-    Enum as SqlEnum, Boolean
+    Enum as SqlEnum, Boolean, Integer
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
@@ -123,6 +123,18 @@ def get_live_map_id(db, user_id: str) -> str:
     ).scalar_one()
 
 
+# Model representing a status the points of a map can have.
+# Defined here and not in its store because Point refers to it.
+class MapStatus(Base):
+    __tablename__ = "map_statuses"
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), index=True, nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False, default="")
+    color = Column(String, nullable=False)
+    position = Column(Integer, nullable=False)
+
+
 # Model representing a geographic point in a map
 class Point(Base):
     __tablename__ = "points"
@@ -134,6 +146,8 @@ class Point(Base):
     file = Column(String)
     tags = Column(String)
     removed = Column(Boolean, nullable=False, default=False)
+    status_id = Column(String, ForeignKey("map_statuses.id", ondelete="SET NULL"), index=True, nullable=True)
+    status_updated_at = Column(DateTime(timezone=True), nullable=True)
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map = relationship("Map", back_populates="points")
