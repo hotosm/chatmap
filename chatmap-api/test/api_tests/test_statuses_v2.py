@@ -159,8 +159,12 @@ def test_a_status_description_has_a_maximum_length():
         MapStatusItem(name="Open", description="x" * 201, color=GREEN)
 
 
-@pytest.mark.parametrize("color", ["red", "#FFFFFF", "#3E9E47; background: url(x)"])
-def test_a_status_color_must_come_from_the_palette(color):
+def test_a_status_takes_any_hex_color():
+    assert MapStatusItem(name="Open", color="#1a2b3c").color == "#1A2B3C"
+
+
+@pytest.mark.parametrize("color", ["red", "#FFF", "3E9E47", "#GGGGGG", "#3E9E47; background: url(x)", "#3E9E47\n"])
+def test_a_status_color_must_be_a_hex_color(color):
     with pytest.raises(ValidationError):
         MapStatusItem(name="Open", color=color)
 

@@ -1,10 +1,11 @@
+import re
 from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel, field_validator, model_validator
 
-# Colors a map status can be shown with
-STATUS_COLORS = ("#3E9E47", "#D73F3F", "#E9A23B", "#2E4873", "#7A4FB5", "#9A969B")
+# A status color is a hex color like #D73F3F
+STATUS_COLOR = re.compile(r"#[0-9A-Fa-f]{6}")
 MAX_STATUSES = 10
 MAX_STATUS_NAME_LENGTH = 40
 MAX_STATUS_DESCRIPTION_LENGTH = 200
@@ -40,9 +41,9 @@ class MapStatusItem(BaseModel):
     @field_validator("color")
     @classmethod
     def check_color(cls, color: str) -> str:
-        if color not in STATUS_COLORS:
-            raise ValueError(f"a status color must be one of {', '.join(STATUS_COLORS)}")
-        return color
+        if not STATUS_COLOR.fullmatch(color):
+            raise ValueError("a status color must be a hex color like #D73F3F")
+        return color.upper()
 
 
 class MapStatuses(BaseModel):
