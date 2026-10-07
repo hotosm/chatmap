@@ -296,10 +296,10 @@
   resolved "https://registry.yarnpkg.com/@hotosm/ui-design/-/ui-design-1.4.0.tgz#4b470c7a1302cc9016d274231e563602d0c3a1b7"
   integrity sha512-fwkQECcswCP7wT71zEuyZAuT9+5du9AcSq7ReuqTS1SVDKULU7Gwu5YVhCtrv8hzq1Cpist/QPH343Wk/Lhm0w==
 
-"@hotosm/ui@0.2.7":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@hotosm/ui/-/ui-3.0.0.tgz#c907a4c479de983b5c4c98792f080aac190067b2"
-  integrity sha512-bxxfnkdSdNht+bIzCvBSo2e6B3+q5rCpYfw27L41/SM26/rmiSXis0D2wEU93rPJUUISpEeNW9wriagCLjx9pA==
+"@hotosm/ui@^1.0.0":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@hotosm/ui/-/ui-1.0.1.tgz#f0966deea231ec9e2d8b998c23b16d7ac462ece5"
+  integrity sha512-IWyVscZ0PsEb057Eijs592ILYOS+SYUCSolhz1eVirCN+2TpoJELcOKLNyODUvVV5zoNDkLIaITjUUE3h07nog==
 
 "@jridgewell/gen-mapping@^0.3.12", "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.13"
