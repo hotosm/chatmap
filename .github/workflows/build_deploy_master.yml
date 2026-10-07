@@ -1,4 +1,4 @@
-name: Deploy to production environment - ex. dev.chatmap.hotosm.org
+name: Deploy to production environment - ex. chatmap.hotosm.org
 
 on:
   push:
