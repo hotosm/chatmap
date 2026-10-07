@@ -11,7 +11,7 @@ if [ -f "deploy/certbot/conf/live/$CHATMAP_SITE_DOMAIN/dummy" ]; then
     -m $CHATMAP_SITE_ADMIN_EMAIL --no-eff-email --force-renewal
   docker compose -f compose.yml up -d chatmap-nginx --force-recreate
   # Add renew cronjob
-  (crontab -l ; echo "0 0 * * * CHATMAP_SITE_DOMAIN=$CHATMAP_SITE_DOMAIN CHATMAP_SITE_ADMIN_EMAIL=$CHATMAP_SITE_ADMIN_EMAIL $PWD/deploy/ssl/cert_renew.sh") | crontab -
+  (crontab -l ; echo "0 0 * * * CHATMAP_SITE_DOMAIN=$CHATMAP_SITE_DOMAIN CHATMAP_SITE_ADMIN_EMAIL=$CHATMAP_SITE_ADMIN_EMAIL $HOME/deploy/ssl/cert_renew.sh") | crontab -
 else
   echo "No dummy cert found."
 fi
