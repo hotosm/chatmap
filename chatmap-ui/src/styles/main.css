@@ -10,6 +10,25 @@
 @import url('@hotosm/ui-design/dist/hot-sl.css');
 @import url('@hotosm/ui-design/dist/hot-font-face.css');
 
+
+/* Theme layer - semantic color mappings (must be in wa-theme layer, not wa-color-palette) */
+@layer wa-theme {
+  :where(:root),
+  .wa-theme-default,
+  .wa-light,
+  .wa-dark .wa-invert,
+  .wa-light .wa-theme-default,
+  .wa-dark .wa-theme-default.wa-invert,
+  .wa-dark .wa-theme-default .wa-invert {
+    --wa-border-style: solid;
+    --wa-border-width-s: 1px;
+    --wa-color-surface-raised: var(--hot-color-neutral-0);
+    --wa-color-surface-border: var(--hot-color-neutral-50);
+    --wa-border-radius-m: var(--hot-border-radius-medium);
+    --wa-shadow-m: 0 -5px 5px color-mix(in srgb, var(--hot-color-neutral-1000) 2%, transparent);
+  }
+}
+
 html {
     ::-webkit-scrollbar {
         display: none;
