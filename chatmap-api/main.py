@@ -43,6 +43,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import Session
 from stream import stream_listener, clean_user_stream
+from api.v2 import router as v2_router
 from settings import (
     DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS,
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
@@ -1168,6 +1169,7 @@ async def export_umap(
 
 # Include API Router
 app.include_router(api_router)
+app.include_router(v2_router)
 
 from redis import asyncio as async_redis
 from consumers.listener import ConversationsStateListener

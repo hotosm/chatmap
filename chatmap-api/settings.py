@@ -45,5 +45,6 @@ CORS_ORIGINS = os.getenv("CHATMAP_CORS_ORIGINS", "localhost,127.0.0.1,http://loc
 
 S3_ENDPOINT_URL = os.getenv("CHATMAP_S3_ENDPOINT_URL", "http://chatmap-minio:9000")
 S3_BUCKET_NAME = os.getenv("CHATMAP_S3_BUCKET_NAME", "chatmapmedia")
+S3_V2_BUCKET_NAME = os.getenv("CHATMAP_S3_V2_BUCKET_NAME", "chatmapmedia-v2")
 S3_ACCESS_KEY = os.getenv("CHATMAP_S3_ACCESS_KEY", "minioadmin")
 S3_SECRET_KEY = os.getenv("CHATMAP_S3_SECRET_KEY", "minioadmin")
