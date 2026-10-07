@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 import { NavLink } from 'react-router';
 
 import '@hotosm/hanko-auth';
-import "@hotosm/tool-menu";
+import "@hotosm/ui";
 
 import SlDropdown from '@shoelace-style/shoelace/dist/react/dropdown/index.js';
 import SlIconButton from '@shoelace-style/shoelace/dist/react/icon-button/index.js';
