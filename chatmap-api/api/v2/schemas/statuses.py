@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-from typing import List
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -15,12 +14,16 @@ class MapStatusItem(BaseModel):
     """
     One status the points of a map can have. A status without an id is a new
     one; the id of an existing status is preserved across edits because
-    points refer to it.
+    points refer to it. An archived status cannot be given to a point, but
+    the points having it keep it; when it was archived is only told, never
+    taken.
     """
     id: str | None = None
     name: str
     description: str = ""
     color: str
+    archived: bool = False
+    archived_at: datetime | None = None
 
     @field_validator("name")
     @classmethod
@@ -48,14 +51,15 @@ class MapStatusItem(BaseModel):
 
 class MapStatuses(BaseModel):
     """
-    The whole list of statuses of a map, in the order they are shown.
+    The whole list of statuses of a map, in the order they are shown. A
+    status left out is removed, which is only possible when no point has it.
     """
-    statuses: List[MapStatusItem] = []
+    statuses: list[MapStatusItem] = []
 
     @model_validator(mode="after")
     def check_statuses(self):
-        if len(self.statuses) > MAX_STATUSES:
-            raise ValueError(f"a map takes up to {MAX_STATUSES} statuses")
+        if len([status for status in self.statuses if not status.archived]) > MAX_STATUSES:
+            raise ValueError(f"a map takes up to {MAX_STATUSES} statuses, not counting the archived ones")
         names = [status.name.lower() for status in self.statuses]
         if len(names) != len(set(names)):
             raise ValueError("every status needs a different name")
@@ -82,5 +86,5 @@ class MapStatusesResponse(BaseModel):
     The statuses of a map and the status each of its points has. Points
     without a status are left out.
     """
-    statuses: List[MapStatusItem] = []
-    points: List[PointStatusItem] = []
+    statuses: list[MapStatusItem] = []
+    points: list[PointStatusItem] = []

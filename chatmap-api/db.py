@@ -133,6 +133,8 @@ class MapStatus(Base):
     description = Column(String, nullable=False, default="")
     color = Column(String, nullable=False)
     position = Column(Integer, nullable=False)
+    # An archived status cannot be given to a point; the points having it keep it
+    archived_at = Column(DateTime(timezone=True), nullable=True)
 
 
 # Model representing a geographic point in a map

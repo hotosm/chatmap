@@ -2,16 +2,34 @@ from fastapi import APIRouter, HTTPException
 from hotosm_auth_fastapi import CurrentUser, CurrentUserOptional
 
 from api.v2.schemas.statuses import (
-    MapStatusItem, MapStatuses, MapStatusesResponse, PointStatus, PointStatusItem, PointStatusResponse,
+    MapStatuses,
+    MapStatusesResponse,
+    MapStatusItem,
+    PointStatus,
+    PointStatusItem,
+    PointStatusResponse,
 )
-from results.error import NotAuthorized, StoreUnavailable, UnknownStatus
+from results.error import (
+    ArchivedStatus,
+    NotAuthorized,
+    StatusInUse,
+    StoreUnavailable,
+    UnknownStatus,
+)
 from store.map_statuses_store import MapStatusesStore
 
 router = APIRouter()
 
 
 def _status_item(row) -> MapStatusItem:
-    return MapStatusItem(id=row.id, name=row.name, description=row.description or "", color=row.color)
+    return MapStatusItem(
+        id=row.id,
+        name=row.name,
+        description=row.description or "",
+        color=row.color,
+        archived=row.archived_at is not None,
+        archived_at=row.archived_at,
+    )
 
 
 @router.get("/maps/{map_id}/statuses")
@@ -45,10 +63,12 @@ async def set_statuses(
 ) -> MapStatuses:
     try:
         rows = await MapStatusesStore.set_statuses(
-            map_id, user.id, [status.model_dump() for status in statuses.statuses],
+            map_id, user.id, [status.model_dump(exclude={"archived_at"}) for status in statuses.statuses],
         )
     except NotAuthorized:
         raise HTTPException(status_code=403, detail="Not authorized.")
+    except StatusInUse:
+        raise HTTPException(status_code=409, detail="A status some points have cannot be removed, only archived.")
     except StoreUnavailable:
         raise HTTPException(status_code=503, detail="Statuses storage unavailable.")
 
@@ -67,6 +87,8 @@ async def set_point_status(
         raise HTTPException(status_code=403, detail="Not authorized.")
     except UnknownStatus:
         raise HTTPException(status_code=404, detail="Status not found.")
+    except ArchivedStatus:
+        raise HTTPException(status_code=409, detail="Status is archived.")
     except StoreUnavailable:
         raise HTTPException(status_code=503, detail="Statuses storage unavailable.")
 

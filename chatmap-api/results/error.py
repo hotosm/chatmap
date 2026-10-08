@@ -38,3 +38,13 @@ class PointAlreadyHasMedia(Exception):
 class UnknownStatus(Exception):
     def __init__(self, status_id):
         self.status_id = status_id
+
+
+class ArchivedStatus(Exception):
+    def __init__(self, status_id):
+        self.status_id = status_id
+
+
+class StatusInUse(Exception):
+    def __init__(self, status_ids):
+        self.status_ids = status_ids

@@ -1,11 +1,17 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from db import session_scope, Map, MapStatus, Point, SharePermission
-from results.error import NotAuthorized, StoreUnavailable, UnknownStatus
+from db import Map, MapStatus, Point, SharePermission, session_scope
+from results.error import (
+    ArchivedStatus,
+    NotAuthorized,
+    StatusInUse,
+    StoreUnavailable,
+    UnknownStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,11 +90,22 @@ class MapStatusesStore:
                     row.name = status["name"]
                     row.description = status.get("description") or ""
                     row.color = status["color"]
+                    # The date of a status already archived is kept
+                    if not status.get("archived"):
+                        row.archived_at = None
+                    elif row.archived_at is None:
+                        row.archived_at = datetime.now(UTC)
                     row.position = position
 
-                # Points having a removed status are left without one (ON DELETE SET NULL)
+                # A status some points have is not removed, so they do not lose it by mistake
                 stale = [row_id for row_id in existing if row_id not in kept]
                 if stale:
+                    in_use = list(db.execute(
+                        select(Point.status_id).where(Point.status_id.in_(stale)).distinct()
+                    ).scalars())
+                    if in_use:
+                        db.rollback()
+                        raise StatusInUse(in_use)
                     db.execute(delete(MapStatus).where(MapStatus.id.in_(stale)))
 
                 db.commit()
@@ -123,8 +140,10 @@ class MapStatusesStore:
                     # A point only takes a status of its own map
                     if status is None or status.map_id != point.map_id:
                         raise UnknownStatus(status_id)
+                    if status.archived_at is not None:
+                        raise ArchivedStatus(status_id)
 
-                updated_at = datetime.now(timezone.utc) if status_id else None
+                updated_at = datetime.now(UTC) if status_id else None
                 point.status_id = status_id
                 point.status_updated_at = updated_at
                 db.commit()

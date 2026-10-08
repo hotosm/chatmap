@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column('description', sa.String(), nullable=False, server_default=''),
         sa.Column('color', sa.String(), nullable=False),
         sa.Column('position', sa.Integer(), nullable=False),
+        sa.Column('archived_at', sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(['map_id'], ['maps.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
     )

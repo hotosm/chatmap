@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -5,7 +6,13 @@ import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
 from db import Map, MapStatus, Point, SharePermission
-from results.error import NotAuthorized, StoreUnavailable, UnknownStatus
+from results.error import (
+    ArchivedStatus,
+    NotAuthorized,
+    StatusInUse,
+    StoreUnavailable,
+    UnknownStatus,
+)
 from store.map_statuses_store import MapStatusesStore
 
 GREEN = "#3E9E47"
@@ -19,8 +26,11 @@ def _patch_scope(*dbs):
     return patch("store.map_statuses_store.session_scope", scope)
 
 
-def _status(status_id="s-1", map_id="map-1", name="Open", color=GREEN, position=0):
-    return MapStatus(id=status_id, map_id=map_id, name=name, description="", color=color, position=position)
+def _status(status_id="s-1", map_id="map-1", name="Open", color=GREEN, position=0, archived_at=None):
+    return MapStatus(
+        id=status_id, map_id=map_id, name=name, description="", color=color, position=position,
+        archived_at=archived_at,
+    )
 
 
 def _db_statuses(*statuses):
@@ -29,9 +39,17 @@ def _db_statuses(*statuses):
     return db
 
 
-def _db_map(map_obj, existing=()):
-    db = _db_statuses(*existing)
+def _scalars(*rows):
+    result = MagicMock()
+    result.scalars.return_value = list(rows)
+    return result
+
+
+def _db_map(map_obj, existing=(), in_use=()):
+    db = MagicMock()
     db.get.return_value = map_obj
+    # The statuses of the map, the ones some point has among those left out, and their removal
+    db.execute.side_effect = [_scalars(*existing), _scalars(*in_use), MagicMock()]
     return db
 
 
@@ -71,9 +89,8 @@ async def test_statuses_for_returns_the_statuses_of_the_map():
 
 
 async def test_statuses_for_reports_the_store_as_unavailable():
-    with _patch_scope(_failing_db()):
-        with pytest.raises(StoreUnavailable):
-            await MapStatusesStore.statuses_for("map-1")
+    with _patch_scope(_failing_db()), pytest.raises(StoreUnavailable):
+        await MapStatusesStore.statuses_for("map-1")
 
 
 # ---- read_statuses ----
@@ -142,9 +159,8 @@ async def test_read_does_not_find_a_map_the_user_cannot_see(map_obj):
 
 
 async def test_read_reports_the_store_as_unavailable():
-    with _patch_scope(_failing_db()):
-        with pytest.raises(StoreUnavailable):
-            await MapStatusesStore.read_statuses("map-1", "user-1")
+    with _patch_scope(_failing_db()), pytest.raises(StoreUnavailable):
+        await MapStatusesStore.read_statuses("map-1", "user-1")
 
 
 # ---- set_statuses ----
@@ -193,6 +209,57 @@ async def test_set_removes_a_status_left_out():
     removal = db.execute.call_args_list[-1].args[0]
     assert removal.is_delete
     assert removal.compile().params == {"id_1": ["s-2"]}
+    db.commit.assert_called_once()
+
+
+async def test_set_does_not_remove_a_status_some_points_have():
+    kept = _status("s-1")
+    stale = _status("s-2", name="Closed", color=RED, position=1)
+    db = _db_map(_map(), existing=[kept, stale], in_use=["s-2"])
+
+    with _patch_scope(db), pytest.raises(StatusInUse) as raised:
+        await MapStatusesStore.set_statuses("map-1", "user-1", [
+            {"id": "s-1", "name": "Open", "description": "", "color": GREEN},
+        ])
+
+    assert raised.value.status_ids == ["s-2"]
+    assert not any(call.args[0].is_delete for call in db.execute.call_args_list)
+    db.rollback.assert_called_once()
+    db.commit.assert_not_called()
+
+
+async def test_set_archives_and_restores_a_status():
+    existing = _status("s-1")
+    db = _db_map(_map(), existing=[existing])
+
+    with _patch_scope(db, _db_statuses(existing)):
+        await MapStatusesStore.set_statuses("map-1", "user-1", [
+            {"id": "s-1", "name": "Open", "description": "", "color": GREEN, "archived": True},
+        ])
+
+    assert existing.archived_at.tzinfo is not None
+
+    db = _db_map(_map(), existing=[existing])
+
+    with _patch_scope(db, _db_statuses(existing)):
+        await MapStatusesStore.set_statuses("map-1", "user-1", [
+            {"id": "s-1", "name": "Open", "description": "", "color": GREEN},
+        ])
+
+    assert existing.archived_at is None
+
+
+async def test_set_keeps_the_date_of_a_status_already_archived():
+    archived_at = datetime(2026, 10, 1, 12, 0, tzinfo=UTC)
+    existing = _status("s-1", archived_at=archived_at)
+    db = _db_map(_map(), existing=[existing])
+
+    with _patch_scope(db, _db_statuses(existing)):
+        await MapStatusesStore.set_statuses("map-1", "user-1", [
+            {"id": "s-1", "name": "Abierto", "description": "", "color": GREEN, "archived": True},
+        ])
+
+    assert (existing.name, existing.archived_at) == ("Abierto", archived_at)
 
 
 async def test_set_takes_an_id_from_another_map_as_a_new_status():
@@ -212,9 +279,8 @@ async def test_set_takes_an_id_from_another_map_as_a_new_status():
 async def test_set_rejects_a_map_the_user_does_not_own(map_obj):
     db = _db_map(map_obj)
 
-    with _patch_scope(db):
-        with pytest.raises(NotAuthorized):
-            await MapStatusesStore.set_statuses("map-1", "user-1", [])
+    with _patch_scope(db), pytest.raises(NotAuthorized):
+        await MapStatusesStore.set_statuses("map-1", "user-1", [])
 
     db.commit.assert_not_called()
 
@@ -222,9 +288,8 @@ async def test_set_rejects_a_map_the_user_does_not_own(map_obj):
 async def test_set_reports_the_store_as_unavailable():
     db = _failing_db()
 
-    with _patch_scope(db):
-        with pytest.raises(StoreUnavailable):
-            await MapStatusesStore.set_statuses("map-1", "user-1", [])
+    with _patch_scope(db), pytest.raises(StoreUnavailable):
+        await MapStatusesStore.set_statuses("map-1", "user-1", [])
 
     db.rollback.assert_called_once()
 
@@ -261,27 +326,35 @@ async def test_set_point_status_rejects_a_status_that_is_not_of_the_map(status):
     point = _point()
     db = _db_point(point, status=status)
 
-    with _patch_scope(db):
-        with pytest.raises(UnknownStatus):
-            await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
+    with _patch_scope(db), pytest.raises(UnknownStatus):
+        await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
+
+    assert point.status_id is None
+    db.commit.assert_not_called()
+
+
+async def test_set_point_status_rejects_an_archived_status():
+    point = _point()
+    db = _db_point(point, status=_status("s-1", archived_at=datetime(2026, 10, 1, tzinfo=UTC)))
+
+    with _patch_scope(db), pytest.raises(ArchivedStatus):
+        await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
 
     assert point.status_id is None
     db.commit.assert_not_called()
 
 
 async def test_set_point_status_rejects_a_point_that_does_not_exist():
-    with _patch_scope(_db_point(None)):
-        with pytest.raises(NotAuthorized):
-            await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
+    with _patch_scope(_db_point(None)), pytest.raises(NotAuthorized):
+        await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
 
 
 async def test_set_point_status_rejects_a_user_who_does_not_own_the_map():
     point = _point()
     db = _db_point(point, owner_id="someone-else", status=_status("s-1"))
 
-    with _patch_scope(db):
-        with pytest.raises(NotAuthorized):
-            await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
+    with _patch_scope(db), pytest.raises(NotAuthorized):
+        await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
 
     assert point.status_id is None
     db.commit.assert_not_called()
@@ -290,8 +363,7 @@ async def test_set_point_status_rejects_a_user_who_does_not_own_the_map():
 async def test_set_point_status_reports_the_store_as_unavailable():
     db = _failing_db()
 
-    with _patch_scope(db):
-        with pytest.raises(StoreUnavailable):
-            await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
+    with _patch_scope(db), pytest.raises(StoreUnavailable):
+        await MapStatusesStore.set_point_status("p-1", "user-1", "s-1")
 
     db.rollback.assert_called_once()
