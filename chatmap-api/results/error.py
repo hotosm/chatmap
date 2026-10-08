@@ -48,3 +48,12 @@ class ArchivedStatus(Exception):
 class StatusInUse(Exception):
     def __init__(self, status_ids):
         self.status_ids = status_ids
+
+
+class MapNotFound(Exception):
+    ...
+
+
+class PointIdAlreadyTaken(Exception):
+    def __init__(self, point_id):
+        self.point_id = point_id
