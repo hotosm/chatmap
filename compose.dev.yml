@@ -65,7 +65,8 @@ services:
     build: ./chatmap-api/
     command: uv run alembic upgrade head
     depends_on:
-      - chatmap-db
+      chatmap-db:
+        condition: service_healthy
     networks:
       - chatmap_net
     environment:
@@ -115,6 +116,11 @@ services:
       - chatmap_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U admin -d chatmap"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - chatmap_net
 
