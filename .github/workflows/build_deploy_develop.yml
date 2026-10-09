@@ -154,7 +154,10 @@ jobs:
             echo "✅ Init deploy"
             # Pull and deploy
             docker compose -f compose.yml pull
-            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-api-migrate chatmap-nginx chatmap-go --force-recreate
+            docker compose -f compose.yml up -d chatmap-ui chatmap-api chatmap-api-migrate chatmap-nginx chatmap-go --force-recreate || {
+              docker compose -f compose.yml logs chatmap-api-migrate
+              exit 1
+            }
             # Generate SSL certificate if needed (initial deployment)
             source deploy/ssl/cert_new.sh
             # Cleanup
