@@ -67,8 +67,8 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 |✅| Show my location on the map
 |⚙️| Mapper app for iOS and Android
 |⚙️| Live Dashboard for creating and updating map points with chat data
-|⚙️| Field-checking AI and damage data, and creating AI training data
-| | ChatBot on Telegram and Signal (alternatives to WhatsApp)
+| | Connector support for Telegram
+| | Connector support for Signal
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 | | User content licensing options |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
