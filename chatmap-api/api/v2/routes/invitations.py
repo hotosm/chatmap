@@ -3,7 +3,7 @@ from hotosm_auth_fastapi import CurrentUser
 
 from api.v2.schemas.invitation import InvitationResponse
 from results.error import MapNotFound, StoreUnavailable
-from store.invitation_store import InvitationStore
+from store.invitations.store import InvitationStore
 
 INVITATION_URL_SCHEME = "hot-chatmap"
 

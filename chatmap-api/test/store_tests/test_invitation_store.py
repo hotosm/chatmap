@@ -7,7 +7,9 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import SQLAlchemyError
 
 from results.error import MapNotFound, StoreUnavailable
-from store.invitation_store import Invitation, InvitationStore
+from store.invitations.model import Invitation
+from store.invitations.repository import find_current_invitation
+from store.invitations.store import InvitationStore
 
 
 def _result(value):
@@ -26,7 +28,7 @@ def _patch_scope(db):
     scope = MagicMock()
     scope.return_value.__enter__.return_value = db
     scope.return_value.__exit__.return_value = False
-    return patch("store.invitation_store.session_scope", scope)
+    return patch("store.invitations.store.session_scope", scope)
 
 
 async def _generate(map_id="map-1", user_id="user-1"):
@@ -143,3 +145,18 @@ async def test_generate_rolls_back_when_the_write_fails():
 
     db.rollback.assert_called_once()
     db.commit.assert_not_called()
+
+
+def test_find_current_invitation_matches_the_hash_of_the_token_among_the_current_ones():
+    db = MagicMock()
+    db.execute.return_value = _result("invitation")
+
+    found = find_current_invitation(db, "token-1")
+
+    query = db.execute.call_args.args[0]
+    query_params = query.compile(dialect=postgresql.dialect()).params
+
+    assert found == "invitation"
+    assert "revoked_at IS NULL" in _sql(query)
+    assert hashlib.sha256(b"token-1").hexdigest() in query_params.values()
+    assert "token-1" not in query_params.values()

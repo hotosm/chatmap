@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from api.v2.routes.invitations import generate_invitation
 from results.error import MapNotFound, StoreUnavailable
-from store.invitation_store import Invitation
+from store.invitations.model import Invitation
 
 _CREATED_AT = datetime(2026, 10, 15, 10, 0, tzinfo=timezone.utc)
 
