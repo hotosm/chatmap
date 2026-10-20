@@ -1,67 +1,85 @@
 import logging
-from datetime import UTC, datetime
+from datetime import datetime
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from db import Map, MapStatus, Point, SharePermission, session_scope
+from db import Map, MapKey, MapKeyValue, Point, PointTag, session_scope
 from results.error import (
     ArchivedStatus,
+    ArchivedValue,
     NotAuthorized,
     StatusInUse,
     StoreUnavailable,
     UnknownStatus,
+    UnknownValue,
+    ValueInUse,
 )
+from store.map_keys_store import STATUS_KEY, give_tag, readable, save_values, values_of
+from store.point_tags_store import REMOVE, SET, lock_point
 
 logger = logging.getLogger(__name__)
+
+
+def status_key(db, map_id: str, create: bool = False) -> MapKey | None:
+    """The status key of a map; created the first time it is needed when asked to."""
+    key = db.execute(
+        select(MapKey).where(MapKey.map_id == map_id, MapKey.key == STATUS_KEY)
+    ).scalar_one_or_none()
+    if key is None and create:
+        # The status colors the map unless another key already does
+        colored = db.execute(
+            select(MapKey.id).where(MapKey.map_id == map_id, MapKey.colors_map.is_(True))
+        ).first()
+        key = MapKey(
+            map_id=map_id, key=STATUS_KEY, single=True, closed=True, builtin=True, colors_map=colored is None,
+            position=0,
+        )
+        db.add(key)
+        db.flush()
+    return key
 
 
 class MapStatusesStore:
 
     @classmethod
-    async def statuses_for(cls, map_id: str) -> list[MapStatus]:
+    async def statuses_for(cls, map_id: str) -> list[MapKeyValue]:
         with session_scope() as db:
             try:
-                query = select(MapStatus).where(MapStatus.map_id == map_id).order_by(MapStatus.position)
-                return list(db.execute(query).scalars())
+                return values_of(db, status_key(db, map_id))
             except SQLAlchemyError as error:
                 logger.error(f"Fetch statuses of map '{map_id}' failed with: '{error}'")
                 raise StoreUnavailable
 
     @classmethod
-    async def read_statuses(cls, map_id: str, user_id: str | None) -> tuple[list[MapStatus], list] | None:
+    async def read_statuses(cls, map_id: str, user_id: str | None) -> tuple[list[MapKeyValue], list] | None:
         with session_scope() as db:
             try:
-                map_obj = db.get(Map, map_id)
-
+                map_obj, owner = readable(db, map_id, user_id)
                 if map_obj is None:
                     return None
 
-                owner = map_obj.owner_id == user_id
+                key = status_key(db, map_id)
+                if key is None:
+                    return [], []
 
-                if map_obj.sharing != SharePermission.PUBLIC and not owner:
-                    return None
-
-                statuses = list(db.execute(
-                    select(MapStatus).where(MapStatus.map_id == map_id).order_by(MapStatus.position)
-                ).scalars())
-
-                # A point only shows a status that belongs to its own map
-                query = select(Point.id, Point.status_id, Point.status_updated_at).where(
-                    Point.map_id == map_id,
-                    Point.status_id.in_([status.id for status in statuses]),
+                # A point only shows a status of its own map: the key is of this map
+                query = (
+                    select(PointTag.point_id, PointTag.value_id, PointTag.since, PointTag.confirmed_at)
+                    .join(Point, Point.id == PointTag.point_id)
+                    .where(PointTag.key_id == key.id, Point.map_id == map_id)
                 )
                 # Removed points are only shown to the owner of the map
                 if not owner:
-                    query = query.where(Point.removed == False)
+                    query = query.where(Point.removed.is_(False))
 
-                return statuses, db.execute(query).all()
+                return values_of(db, key), db.execute(query).all()
             except SQLAlchemyError as error:
                 logger.error(f"Fetch statuses of map '{map_id}' failed with: '{error}'")
                 raise StoreUnavailable
 
     @classmethod
-    async def set_statuses(cls, map_id: str, user_id: str, statuses: list[dict]) -> list[MapStatus]:
+    async def set_statuses(cls, map_id: str, user_id: str, statuses: list[dict]) -> list[MapKeyValue]:
         with session_scope() as db:
             try:
                 map_obj = db.get(Map, map_id)
@@ -69,44 +87,12 @@ class MapStatusesStore:
                 if map_obj is None or map_obj.owner_id != user_id:
                     raise NotAuthorized
 
-                # Loaded from the same session that commits, so edits to kept rows persist.
-                existing = {
-                    row.id: row
-                    for row in db.execute(select(MapStatus).where(MapStatus.map_id == map_id)).scalars()
-                }
-                kept = set()
-
-                for position, status in enumerate(statuses):
-                    status_id = status.get("id")
-                    # An id that is not of this map is taken as a new status
-                    row = existing.get(status_id) if status_id is not None else None
-
-                    if row is None:
-                        row = MapStatus(map_id=map_id)
-                        db.add(row)
-                    else:
-                        kept.add(row.id)
-
-                    row.name = status["name"]
-                    row.description = status.get("description") or ""
-                    row.color = status["color"]
-                    # The date of a status already archived is kept
-                    if not status.get("archived"):
-                        row.archived_at = None
-                    elif row.archived_at is None:
-                        row.archived_at = datetime.now(UTC)
-                    row.position = position
-
                 # A status some points have is not removed, so they do not lose it by mistake
-                stale = [row_id for row_id in existing if row_id not in kept]
-                if stale:
-                    in_use = list(db.execute(
-                        select(Point.status_id).where(Point.status_id.in_(stale)).distinct()
-                    ).scalars())
-                    if in_use:
-                        db.rollback()
-                        raise StatusInUse(in_use)
-                    db.execute(delete(MapStatus).where(MapStatus.id.in_(stale)))
+                try:
+                    save_values(db, status_key(db, map_id, create=True), statuses)
+                except ValueInUse as in_use:
+                    db.rollback()
+                    raise StatusInUse(in_use.value_ids)
 
                 db.commit()
                 logger.debug(f"Statuses saved for map '{map_id}'")
@@ -119,36 +105,39 @@ class MapStatusesStore:
 
     @classmethod
     async def set_point_status(
-            cls, point_id: str, user_id: str, status_id: str | None,
-    ) -> tuple[str | None, datetime | None]:
+            cls, point_id: str, user_id: str, status_id: str | None, happened_at: datetime | None = None,
+    ) -> PointTag | None:
+        """
+        Give a status to a point, confirm the one it has (the same again) or
+        take it out (None), by hand. Returns the status the point has after
+        it, which is not the one given when it happened before the last one.
+        """
         with session_scope() as db:
             try:
-                query = (
-                    select(Point, Map.owner_id)
-                    .join(Map, Map.id == Point.map_id)
-                    .where(Point.id == point_id)
-                )
-                row = db.execute(query).one_or_none()
+                row = lock_point(db, point_id)
 
                 if row is None or row.owner_id != user_id:
                     raise NotAuthorized
 
-                point = row.Point
+                key = status_key(db, row.Point.map_id, create=status_id is not None)
+                if key is None:
+                    return None
 
-                if status_id is not None:
-                    status = db.get(MapStatus, status_id)
+                try:
+                    current = give_tag(
+                        db, point_id, key, SET if status_id else REMOVE, status_id, None, happened_at, user_id,
+                    )
+                except UnknownValue:
                     # A point only takes a status of its own map
-                    if status is None or status.map_id != point.map_id:
-                        raise UnknownStatus(status_id)
-                    if status.archived_at is not None:
-                        raise ArchivedStatus(status_id)
+                    raise UnknownStatus(status_id)
+                except ArchivedValue:
+                    raise ArchivedStatus(status_id)
 
-                updated_at = datetime.now(UTC) if status_id else None
-                point.status_id = status_id
-                point.status_updated_at = updated_at
                 db.commit()
+                for tag in current:
+                    db.refresh(tag)
                 logger.debug(f"Status '{status_id}' saved for point '{point_id}'")
-                return status_id, updated_at
+                return current[0] if current else None
             except SQLAlchemyError as error:
                 db.rollback()
                 logger.error(f"Save status of point '{point_id}' failed with: '{error}'")

@@ -24,11 +24,20 @@ router = APIRouter()
 def _status_item(row) -> MapStatusItem:
     return MapStatusItem(
         id=row.id,
-        name=row.name,
+        name=row.value,
         description=row.description or "",
         color=row.color,
+        expires_after=int(row.expires_after.total_seconds() // 3600) if row.expires_after else None,
         archived=row.archived_at is not None,
         archived_at=row.archived_at,
+    )
+
+
+def _point_status(tag) -> PointStatusResponse:
+    if tag is None:
+        return PointStatusResponse(status=None, status_updated_at=None)
+    return PointStatusResponse(
+        status=tag.value_id, since=tag.since, confirmed_at=tag.confirmed_at, status_updated_at=tag.confirmed_at,
     )
 
 
@@ -49,7 +58,13 @@ async def read_statuses(
     return MapStatusesResponse(
         statuses=[_status_item(status) for status in statuses],
         points=[
-            PointStatusItem(id=point.id, status=point.status_id, status_updated_at=point.status_updated_at)
+            PointStatusItem(
+                id=point.point_id,
+                status=point.value_id,
+                since=point.since,
+                confirmed_at=point.confirmed_at,
+                status_updated_at=point.confirmed_at,
+            )
             for point in points
         ],
     )
@@ -82,7 +97,9 @@ async def set_point_status(
         user: CurrentUser,
 ) -> PointStatusResponse:
     try:
-        status_id, updated_at = await MapStatusesStore.set_point_status(point_id, user.id, point_status.status)
+        tag = await MapStatusesStore.set_point_status(
+            point_id, user.id, point_status.status, point_status.happened_at,
+        )
     except NotAuthorized:
         raise HTTPException(status_code=403, detail="Not authorized.")
     except UnknownStatus:
@@ -92,4 +109,4 @@ async def set_point_status(
     except StoreUnavailable:
         raise HTTPException(status_code=503, detail="Statuses storage unavailable.")
 
-    return PointStatusResponse(status=status_id, status_updated_at=updated_at)
+    return _point_status(tag)

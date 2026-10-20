@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -29,8 +29,15 @@ def _user(user_id="user-1"):
     return SimpleNamespace(id=user_id)
 
 
-def _row(status_id="s-1", name="Open", color=GREEN, description="", archived_at=None):
-    return SimpleNamespace(id=status_id, name=name, color=color, description=description, archived_at=archived_at)
+def _row(status_id="s-1", name="Open", color=GREEN, description="", archived_at=None, expires_after=None):
+    return SimpleNamespace(
+        id=status_id, value=name, color=color, description=description, archived_at=archived_at,
+        expires_after=expires_after,
+    )
+
+
+def _tag(status_id="s-1", since=None, confirmed_at=None):
+    return SimpleNamespace(value_id=status_id, since=since, confirmed_at=confirmed_at)
 
 
 def _statuses(*items):
@@ -44,9 +51,10 @@ def _patch_store(method, **kwargs):
 # ---- GET /v2/maps/{map_id}/statuses ----
 
 async def test_read_returns_the_statuses_and_the_status_of_each_point():
-    updated_at = datetime(2026, 10, 6, 12, 0, tzinfo=UTC)
+    since = datetime(2026, 10, 6, 9, 0, tzinfo=UTC)
+    confirmed_at = datetime(2026, 10, 6, 12, 0, tzinfo=UTC)
     statuses = [_row("s-1", "Open"), _row("s-2", "Closed", RED, "Nobody can pass")]
-    points = [SimpleNamespace(id="p-1", status_id="s-2", status_updated_at=updated_at)]
+    points = [SimpleNamespace(point_id="p-1", value_id="s-2", since=since, confirmed_at=confirmed_at)]
 
     with _patch_store("read_statuses", return_value=(statuses, points)) as store:
         result = await read_statuses(map_id="map-1", user=_user())
@@ -55,9 +63,19 @@ async def test_read_returns_the_statuses_and_the_status_of_each_point():
     assert [(status.id, status.name, status.description) for status in result.statuses] == [
         ("s-1", "Open", ""), ("s-2", "Closed", "Nobody can pass"),
     ]
-    assert [(point.id, point.status, point.status_updated_at) for point in result.points] == [
-        ("p-1", "s-2", updated_at),
-    ]
+    assert [
+        (point.id, point.status, point.since, point.confirmed_at, point.status_updated_at)
+        for point in result.points
+    ] == [("p-1", "s-2", since, confirmed_at, confirmed_at)]
+
+
+async def test_read_tells_in_hours_how_long_each_status_lasts():
+    statuses = [_row("s-1", "Open", expires_after=timedelta(hours=4)), _row("s-2", "Closed", RED)]
+
+    with _patch_store("read_statuses", return_value=(statuses, [])):
+        result = await read_statuses(map_id="map-1", user=_user())
+
+    assert [(status.id, status.expires_after) for status in result.statuses] == [("s-1", 4), ("s-2", None)]
 
 
 async def test_read_tells_the_archived_statuses_apart():
@@ -103,13 +121,15 @@ async def test_set_returns_the_statuses_as_they_were_saved():
     with _patch_store("set_statuses", return_value=saved) as store:
         result = await set_statuses(
             map_id="map-1",
-            statuses=_statuses({"name": "Open", "color": GREEN}, {"name": "Closed", "color": RED}),
+            statuses=_statuses(
+                {"name": "Open", "color": GREEN, "expires_after": 4}, {"name": "Closed", "color": RED},
+            ),
             user=_user(),
         )
 
     store.assert_awaited_once_with("map-1", "user-1", [
-        {"id": None, "name": "Open", "description": "", "color": GREEN, "archived": False},
-        {"id": None, "name": "Closed", "description": "", "color": RED, "archived": False},
+        {"id": None, "name": "Open", "description": "", "color": GREEN, "expires_after": 4, "archived": False},
+        {"id": None, "name": "Closed", "description": "", "color": RED, "expires_after": None, "archived": False},
     ])
     assert [(status.id, status.name, status.description) for status in result.statuses] == [
         ("s-1", "Open", ""), ("s-2", "Closed", "Nobody can pass"),
@@ -130,24 +150,26 @@ async def test_set_maps_store_errors_to_http(error, status_code):
 
 # ---- PUT /v2/points/{point_id}/status ----
 
-async def test_set_point_status_returns_the_status_and_when_it_was_updated():
-    updated_at = datetime(2026, 10, 6, 12, 0, tzinfo=UTC)
+async def test_set_point_status_returns_the_status_since_when_and_its_last_confirmation():
+    since = datetime(2026, 10, 6, 9, 0, tzinfo=UTC)
+    confirmed_at = datetime(2026, 10, 6, 12, 0, tzinfo=UTC)
 
-    with _patch_store("set_point_status", return_value=("s-1", updated_at)) as store:
+    with _patch_store("set_point_status", return_value=_tag("s-1", since, confirmed_at)) as store:
         result = await set_point_status(point_id="p-1", point_status=PointStatus(status="s-1"), user=_user())
 
-    store.assert_awaited_once_with("p-1", "user-1", "s-1")
-    assert result.status == "s-1"
-    assert result.status_updated_at == updated_at
+    store.assert_awaited_once_with("p-1", "user-1", "s-1", None)
+    assert (result.status, result.since, result.confirmed_at) == ("s-1", since, confirmed_at)
+    # As before there was a history
+    assert result.status_updated_at == confirmed_at
+
 
 
 async def test_set_point_status_can_leave_a_point_without_status():
-    with _patch_store("set_point_status", return_value=(None, None)) as store:
+    with _patch_store("set_point_status", return_value=None) as store:
         result = await set_point_status(point_id="p-1", point_status=PointStatus(status=None), user=_user())
 
-    store.assert_awaited_once_with("p-1", "user-1", None)
-    assert result.status is None
-    assert result.status_updated_at is None
+    store.assert_awaited_once_with("p-1", "user-1", None, None)
+    assert (result.status, result.since, result.confirmed_at, result.status_updated_at) == (None, None, None, None)
 
 
 @pytest.mark.parametrize("error, status_code", [
@@ -207,3 +229,24 @@ def test_archived_statuses_do_not_count_for_the_limit():
     )
 
     assert len(statuses.statuses) == MAX_STATUSES + 1
+
+
+@pytest.mark.parametrize("hours", [0, -1, 721])
+def test_a_status_expires_after_a_limited_number_of_hours(hours):
+    with pytest.raises(ValidationError):
+        MapStatusItem(name="Open", color=GREEN, expires_after=hours)
+
+
+def test_a_status_does_not_need_to_expire():
+    assert MapStatusItem(name="Open", color=GREEN).expires_after is None
+
+
+def test_a_time_without_zone_is_taken_as_utc():
+    status = PointStatus(status="s-1", happened_at=datetime(2026, 10, 6, 8, 30))
+
+    assert status.happened_at == datetime(2026, 10, 6, 8, 30, tzinfo=UTC)
+
+
+def test_a_status_cannot_be_given_for_a_time_to_come():
+    with pytest.raises(ValidationError):
+        PointStatus(status="s-1", happened_at=datetime.now(UTC) + timedelta(hours=1))

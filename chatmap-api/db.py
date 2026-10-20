@@ -14,7 +14,8 @@ from contextlib import contextmanager
 from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
-    Enum as SqlEnum, Boolean, Integer
+    Enum as SqlEnum, Boolean, Integer, BigInteger, Identity, Interval,
+    ForeignKeyConstraint, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
@@ -123,18 +124,90 @@ def get_live_map_id(db, user_id: str) -> str:
     ).scalar_one()
 
 
-# Model representing a status the points of a map can have.
-# Defined here and not in its store because Point refers to it.
-class MapStatus(Base):
-    __tablename__ = "map_statuses"
-    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+# Tags of points as key=value, as in OpenStreetMap: the status of a point is
+# one more tag. Rules the database keeps are in the migration e3a1f7c2b9d4.
+
+# Model representing a key the points of a map can have: status, tag, category...
+class MapKey(Base):
+    __tablename__ = "map_keys"
+    # A key is once per map whatever its case (an index in the migration)
+    __table_args__ = (
+        UniqueConstraint("id", "single", name="map_keys_id_single_key"),
+    )
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), index=True, nullable=False)
-    name = Column(String, nullable=False)
-    description = Column(String, nullable=False, default="")
-    color = Column(String, nullable=False)
-    position = Column(Integer, nullable=False)
-    # An archived status cannot be given to a point; the points having it keep it
+    key = Column(String, nullable=False)
+    # One value per point (status) or many (tags)
+    single = Column(Boolean, nullable=False)
+    # Only the values of its list (status) or any text (tags)
+    closed = Column(Boolean, nullable=False)
+    # Keys of the system cannot be removed or renamed
+    builtin = Column(Boolean, nullable=False, default=False)
+    # The key whose colors the points of the map show by default; one at most per map
+    colors_map = Column(Boolean, nullable=False, default=False)
+    position = Column(Integer, nullable=False, default=0)
     archived_at = Column(DateTime(timezone=True), nullable=True)
+
+
+# Model representing an option of a key with a list: "Closed" for status
+class MapKeyValue(Base):
+    __tablename__ = "map_key_values"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    key_id = Column(String, ForeignKey("map_keys.id", ondelete="CASCADE"), index=True, nullable=False)
+    value = Column(String, nullable=False)
+    description = Column(String, nullable=False, default="")
+    color = Column(String, nullable=True)
+    position = Column(Integer, nullable=False, default=0)
+    # How long it lasts without being confirmed; None: it does not expire
+    expires_after = Column(Interval, nullable=True)
+    # An archived value cannot be given to a point; the points having it keep it
+    archived_at = Column(DateTime(timezone=True), nullable=True)
+
+
+# Model representing what a point has now: one row per value. It is always
+# what the changes of the point say (see PointTagChange).
+class PointTag(Base):
+    __tablename__ = "point_tags"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["key_id", "single"], ["map_keys.id", "map_keys.single"], onupdate="CASCADE", ondelete="CASCADE",
+        ),
+    )
+    id = Column(BigInteger, Identity(), primary_key=True)
+    point_id = Column(String, ForeignKey("points.id", ondelete="CASCADE"), nullable=False)
+    key_id = Column(String, nullable=False)
+    single = Column(Boolean, nullable=False)
+    # Exactly one: a value of the list, or a free one
+    value_id = Column(String, ForeignKey("map_key_values.id"), nullable=True)
+    value = Column(String, nullable=True)
+    # Since when it has this value, and the last time someone said so
+    since = Column(DateTime(timezone=True), nullable=False)
+    confirmed_at = Column(DateTime(timezone=True), nullable=False)
+    source = Column(String, nullable=False)
+    user_id = Column(String, nullable=True)
+
+
+# Model representing a change of a tag of a point, or its confirmation. Rows
+# are only added; undoing one marks it.
+class PointTagChange(Base):
+    __tablename__ = "point_tag_changes"
+    id = Column(BigInteger, Identity(), primary_key=True)
+    point_id = Column(String, ForeignKey("points.id", ondelete="CASCADE"), nullable=False)
+    key_id = Column(String, ForeignKey("map_keys.id", ondelete="CASCADE"), nullable=False)
+    # "set" (give or confirm a value) or "remove"
+    action = Column(String, nullable=False)
+    value_id = Column(String, ForeignKey("map_key_values.id", ondelete="SET NULL"), nullable=True)
+    # The name the value had then
+    value = Column(String, nullable=True)
+    # When it happened: the time of the message, or of the click. It orders the changes.
+    happened_at = Column(DateTime(timezone=True), nullable=False)
+    recorded_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    # manual, message, rule, model, import, system (a point moved to another map)
+    source = Column(String, nullable=False)
+    message_id = Column(String, nullable=True)
+    user_id = Column(String, nullable=True)
+    undone_at = Column(DateTime(timezone=True), nullable=True)
+    undone_by = Column(String, nullable=True)
 
 
 # Model representing a geographic point in a map
@@ -148,8 +221,6 @@ class Point(Base):
     file = Column(String)
     tags = Column(String)
     removed = Column(Boolean, nullable=False, default=False)
-    status_id = Column(String, ForeignKey("map_statuses.id", ondelete="SET NULL"), index=True, nullable=True)
-    status_updated_at = Column(DateTime(timezone=True), nullable=True)
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map = relationship("Map", back_populates="points")
@@ -169,6 +240,10 @@ def add_points(db: Session, points, user_id):
     map_id = get_or_create_live_map(db, user_id)
     for pt in points:
         pt.setdefault("map_id", map_id)
+    # Points already in another map move to this one: the tags of the old map are not theirs
+    moving = [row.id for row in db.execute(
+        select(Point.id).where(Point.id.in_([pt["id"] for pt in points if pt.get("id")]), Point.map_id != map_id)
+    )]
     stmt = insert(Point).values(points)
     update_dict = {
         "geom": stmt.excluded.geom,
@@ -182,6 +257,10 @@ def add_points(db: Session, points, user_id):
         set_=update_dict
     )
     db.execute(stmt)
+    if moving:
+        # Imported here: the stores import this module
+        from store.map_keys_store import clear_tags_of
+        clear_tags_of(db, moving)
     db.commit()
 
 
