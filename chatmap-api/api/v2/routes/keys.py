@@ -31,10 +31,6 @@ def _key_item(key, values) -> KeyItem:
     )
 
 
-def _values(values) -> list[dict] | None:
-    return None if values is None else [value.model_dump() for value in values]
-
-
 @router.get("/maps/{map_id}/keys")
 async def read_keys(map_id: str, user: CurrentUserOptional) -> MapKeysResponse:
     keys = await call_store(MapKeysStore.read_keys(map_id, user.id if user else None))
@@ -45,21 +41,13 @@ async def read_keys(map_id: str, user: CurrentUserOptional) -> MapKeysResponse:
 
 @router.post("/maps/{map_id}/keys", status_code=201)
 async def create_key(map_id: str, key: NewKey, user: CurrentUser) -> KeyItem:
-    row, values = await call_store(MapKeysStore.create_key(
-        map_id, user.id, {**key.model_dump(exclude={"values"}), "values": _values(key.values)}, MAX_KEYS,
-    ))
+    row, values = await call_store(MapKeysStore.create_key(map_id, user.id, key.model_dump(), MAX_KEYS))
     return _key_item(row, values)
 
 
 @router.put("/maps/{map_id}/keys/{key_id}")
 async def update_key(map_id: str, key_id: str, changes: KeyChanges, user: CurrentUser) -> KeyItem:
-    row, values = await call_store(MapKeysStore.update_key(
-        map_id, key_id, user.id,
-        {
-            "key": changes.key, "archived": changes.archived, "colors_map": changes.colors_map,
-            "values": _values(changes.values),
-        },
-    ))
+    row, values = await call_store(MapKeysStore.update_key(map_id, key_id, user.id, changes.model_dump()))
     return _key_item(row, values)
 
 

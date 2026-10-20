@@ -21,8 +21,8 @@ class PointTagItem(BaseModel):
     confirmed_at: datetime
 
 
-class MapTagsResponse(BaseModel):
-    """What the points of a map have for its keys. Points without tags are left out."""
+class PointTagsResponse(BaseModel):
+    """What points have for keys: the points of a map, or one point for a key after a change."""
     tags: list[PointTagItem] = []
 
 
@@ -60,11 +60,6 @@ class TagChangeRequest(BaseModel):
         if happened_at > datetime.now(UTC) + MAX_CLOCK_SKEW:
             raise ValueError("a change cannot happen in a time to come")
         return happened_at
-
-
-class PointKeyTags(BaseModel):
-    """What a point has for a key after a change."""
-    tags: list[PointTagItem] = []
 
 
 class TagChangeItem(BaseModel):

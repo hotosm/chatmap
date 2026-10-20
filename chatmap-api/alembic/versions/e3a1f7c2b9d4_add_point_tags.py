@@ -2,9 +2,9 @@
 
 The status of a point becomes a key=value tag, as in OpenStreetMap. Each
 map defines its keys (a status, the fuel there is, a category...) and the
-options of the ones with a list. What a point has now lives in point_tags; everything that
-happened, in order, in point_tag_changes, and point_tags is always what those
-changes say.
+options of the ones with a list. What a point has now lives in point_tags;
+everything that happened, in order, in point_tag_changes, and point_tags is
+always what those changes say.
 
 It replaces the statuses of d9c65c15145d: its table map_statuses and the
 columns status_id and status_updated_at of points are removed. No map used
@@ -48,7 +48,6 @@ def upgrade() -> None:
         # Target of the copy of "single" in point_tags
         sa.UniqueConstraint('id', 'single', name='map_keys_id_single_key'),
     )
-    op.create_index(op.f('ix_map_keys_map_id'), 'map_keys', ['map_id'])
     # A key once per map, whatever its case
     op.create_index('ix_map_keys_map_id_key', 'map_keys', ['map_id', sa.text('lower(key)')], unique=True)
     # One key at most colors a map by default
@@ -70,7 +69,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['key_id'], ['map_keys.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
     )
-    op.create_index(op.f('ix_map_key_values_key_id'), 'map_key_values', ['key_id'])
     # A name once per key, whatever its case, archived ones included
     op.create_index(
         'ix_map_key_values_key_id_value', 'map_key_values', ['key_id', sa.text('lower(value)')], unique=True,
@@ -86,12 +84,10 @@ def upgrade() -> None:
         sa.Column('value', sa.String(), nullable=True),
         sa.Column('since', sa.DateTime(timezone=True), nullable=False),
         sa.Column('confirmed_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('source', sa.String(), nullable=False),
-        sa.Column('user_id', sa.String(), nullable=True),
         sa.ForeignKeyConstraint(['point_id'], ['points.id'], ondelete='CASCADE'),
         # The copy of "single" has to be the one of the key
         sa.ForeignKeyConstraint(
-            ['key_id', 'single'], ['map_keys.id', 'map_keys.single'], onupdate='CASCADE', ondelete='CASCADE',
+            ['key_id', 'single'], ['map_keys.id', 'map_keys.single'], ondelete='CASCADE',
         ),
         # A value some point has cannot be removed ("in use")
         sa.ForeignKeyConstraint(['value_id'], ['map_key_values.id']),
@@ -113,6 +109,8 @@ def upgrade() -> None:
         'ix_point_tags_value', 'point_tags', ['point_id', 'key_id', 'value'], unique=True,
         postgresql_where=sa.text('value IS NOT NULL'),
     )
+    # What a point has for a key, and removing a point
+    op.create_index('ix_point_tags_point_id_key_id', 'point_tags', ['point_id', 'key_id'])
     op.create_index(op.f('ix_point_tags_key_id'), 'point_tags', ['key_id'])
     op.create_index(op.f('ix_point_tags_value_id_fk'), 'point_tags', ['value_id'])
 
@@ -140,14 +138,10 @@ def upgrade() -> None:
         sa.CheckConstraint("action IN ('set', 'remove')", name='point_tag_changes_action'),
         sa.PrimaryKeyConstraint('id'),
     )
-    # The last changes of a point that count, to work out what it has now
+    # The changes of a point, newest first: what it has now, its history, removing it
     op.create_index(
-        'ix_point_tag_changes_current', 'point_tag_changes',
-        ['point_id', 'key_id', sa.text('happened_at DESC')],
-        postgresql_where=sa.text('undone_at IS NULL'),
+        'ix_point_tag_changes_point_id', 'point_tag_changes', ['point_id', 'key_id', sa.text('happened_at DESC')],
     )
-    # Removing changes by how long they are kept
-    op.create_index(op.f('ix_point_tag_changes_recorded_at'), 'point_tag_changes', ['recorded_at'])
 
     # The statuses of d9c65c15145d are kept in the tables above now
     op.drop_index(op.f('ix_points_status_id'), table_name='points')

@@ -66,11 +66,8 @@ def save_values(db, key: MapKey, values: list[dict]) -> None:
     # An option some points have is not removed, so they do not lose it by mistake
     stale = [row_id for row_id in existing if row_id not in kept]
     if stale:
-        in_use = list(db.execute(
-            select(PointTag.value_id).where(PointTag.value_id.in_(stale)).distinct()
-        ).scalars())
-        if in_use:
-            raise ValueInUse(in_use)
+        if db.execute(select(PointTag.id).where(PointTag.value_id.in_(stale)).limit(1)).first():
+            raise ValueInUse(stale)
         db.execute(delete(MapKeyValue).where(MapKeyValue.id.in_(stale)))
     db.flush()
 
@@ -86,11 +83,10 @@ def readable(db, map_id: str, user_id: str | None) -> tuple[Map | None, bool]:
     return map_obj, owner
 
 
-def _owned(db, map_id: str, user_id: str) -> Map:
+def _owned(db, map_id: str, user_id: str) -> None:
     map_obj = db.get(Map, map_id)
     if map_obj is None or map_obj.owner_id != user_id:
         raise NotAuthorized
-    return map_obj
 
 
 def _color_map_by(db, map_id: str, key: MapKey | None) -> None:

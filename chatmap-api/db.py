@@ -132,12 +132,13 @@ def get_live_map_id(db, user_id: str) -> str:
 # Model representing a key the points of a map can have
 class MapKey(Base):
     __tablename__ = "map_keys"
-    # A key is once per map whatever its case (an index in the migration)
+    # Target of the copy of "single" in point_tags; a key is once per map
+    # whatever its case (an index in the migration)
     __table_args__ = (
         UniqueConstraint("id", "single", name="map_keys_id_single_key"),
     )
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), index=True, nullable=False)
+    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), nullable=False)
     key = Column(String, nullable=False)
     # One value per point (a status) or many (the services there are)
     single = Column(Boolean, nullable=False)
@@ -153,7 +154,7 @@ class MapKey(Base):
 class MapKeyValue(Base):
     __tablename__ = "map_key_values"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    key_id = Column(String, ForeignKey("map_keys.id", ondelete="CASCADE"), index=True, nullable=False)
+    key_id = Column(String, ForeignKey("map_keys.id", ondelete="CASCADE"), nullable=False)
     value = Column(String, nullable=False)
     description = Column(String, nullable=False, default="")
     color = Column(String, nullable=True)
@@ -170,7 +171,7 @@ class PointTag(Base):
     __tablename__ = "point_tags"
     __table_args__ = (
         ForeignKeyConstraint(
-            ["key_id", "single"], ["map_keys.id", "map_keys.single"], onupdate="CASCADE", ondelete="CASCADE",
+            ["key_id", "single"], ["map_keys.id", "map_keys.single"], ondelete="CASCADE",
         ),
     )
     id = Column(BigInteger, Identity(), primary_key=True)
@@ -183,8 +184,6 @@ class PointTag(Base):
     # Since when it has this value, and the last time someone said so
     since = Column(DateTime(timezone=True), nullable=False)
     confirmed_at = Column(DateTime(timezone=True), nullable=False)
-    source = Column(String, nullable=False)
-    user_id = Column(String, nullable=True)
 
 
 # Model representing a change of a tag of a point, or its confirmation. Rows

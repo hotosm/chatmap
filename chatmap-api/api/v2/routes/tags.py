@@ -3,9 +3,8 @@ from hotosm_auth_fastapi import CurrentUser, CurrentUserOptional
 
 from api.v2.errors import call_store
 from api.v2.schemas.tags import (
-    MapTagsResponse,
-    PointKeyTags,
     PointTagItem,
+    PointTagsResponse,
     TagChangeItem,
     TagChangeRequest,
     TagHistoryResponse,
@@ -43,20 +42,20 @@ def _change_item(change, key: str) -> TagChangeItem:
 
 
 @router.get("/maps/{map_id}/tags")
-async def read_tags(map_id: str, user: CurrentUserOptional) -> MapTagsResponse:
+async def read_tags(map_id: str, user: CurrentUserOptional) -> PointTagsResponse:
     tags = await call_store(PointTagsStore.read_tags(map_id, user.id if user else None))
     if tags is None:
         raise HTTPException(status_code=404, detail="Map not found.")
-    return MapTagsResponse(tags=[_tag_item(tag) for tag in tags])
+    return PointTagsResponse(tags=[_tag_item(tag) for tag in tags])
 
 
 @router.put("/points/{point_id}/tags/{key_id}")
-async def set_point_tag(point_id: str, key_id: str, change: TagChangeRequest, user: CurrentUser) -> PointKeyTags:
+async def set_point_tag(point_id: str, key_id: str, change: TagChangeRequest, user: CurrentUser) -> PointTagsResponse:
     tags = await call_store(PointTagsStore.set_point_tag(
         point_id, key_id, user.id, change.action,
         value_id=change.value_id, value=change.value, happened_at=change.happened_at,
     ))
-    return PointKeyTags(tags=[_tag_item(tag) for tag in tags])
+    return PointTagsResponse(tags=[_tag_item(tag) for tag in tags])
 
 
 @router.get("/points/{point_id}/history")

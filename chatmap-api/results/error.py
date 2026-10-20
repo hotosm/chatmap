@@ -35,15 +35,6 @@ class PointAlreadyHasMedia(Exception):
         self.point_id = point_id
 
 
-class MapNotFound(Exception):
-    ...
-
-
-class PointIdAlreadyTaken(Exception):
-    def __init__(self, point_id):
-        self.point_id = point_id
-
-
 class UnknownTagChange(Exception):
     def __init__(self, change_id):
         self.change_id = change_id
@@ -87,3 +78,12 @@ class InvalidTagValue(Exception):
 class TooManyKeys(Exception):
     def __init__(self, max_keys):
         self.max_keys = max_keys
+
+
+class MapNotFound(Exception):
+    ...
+
+
+class PointIdAlreadyTaken(Exception):
+    def __init__(self, point_id):
+        self.point_id = point_id

@@ -4,7 +4,7 @@ from db import MapKey, PointTagChange
 from store.point_tags_store import REMOVE, SET, tags_from_changes
 
 STATUS = MapKey(id="k-status", key="status", single=True, closed=True)
-TAG = MapKey(id="k-tag", key="tag", single=False, closed=False)
+NOTES = MapKey(id="k-notes", key="Notes", single=False, closed=False)
 
 
 def _at(time):
@@ -19,7 +19,7 @@ def _status(time, value_id=None, action=SET, source="manual"):
 
 
 def _tag(time, value, action=SET):
-    return PointTagChange(point_id="p-1", key_id=TAG.id, action=action, value=value, happened_at=_at(time), source="manual")
+    return PointTagChange(point_id="p-1", key_id=NOTES.id, action=action, value=value, happened_at=_at(time), source="manual")
 
 
 def _newest_first(*changes):
@@ -78,29 +78,19 @@ def test_a_change_whose_value_was_removed_is_skipped():
     assert _status_of(_status("08:30", "open"), removed) == [("open", _at("08:30"), _at("08:30"))]
 
 
-def test_the_tag_keeps_how_and_by_whom_the_last_change_came():
-    first = _status("08:30", "open", source="message")
-    last = _status("11:00", "open", source="manual")
-    last.user_id = "user-1"
-
-    [tag] = tags_from_changes(_newest_first(first, last), STATUS)
-
-    assert (tag.source, tag.user_id, tag.single, tag.value) == ("manual", "user-1", True, None)
-
-
-# ---- a key with many values: free tags ----
+# ---- a key without a list, with many values ----
 
 def _tags_of(*changes):
-    return sorted((tag.value, tag.since, tag.confirmed_at) for tag in tags_from_changes(_newest_first(*changes), TAG))
+    return sorted((tag.value, tag.since, tag.confirmed_at) for tag in tags_from_changes(_newest_first(*changes), NOTES))
 
 
-def test_each_free_tag_has_its_own_history():
+def test_each_value_has_its_own_history():
     changes = (_tag("08:00", "guard"), _tag("09:00", "pediatrics"), _tag("10:00", "guard"))
 
     assert _tags_of(*changes) == [("guard", _at("08:00"), _at("10:00")), ("pediatrics", _at("09:00"), _at("09:00"))]
 
 
-def test_removing_a_free_tag_keeps_the_others():
+def test_removing_a_value_keeps_the_others():
     changes = (_tag("08:00", "guard"), _tag("09:00", "pediatrics"), _tag("16:00", "pediatrics", REMOVE))
 
     assert _tags_of(*changes) == [("guard", _at("08:00"), _at("08:00"))]

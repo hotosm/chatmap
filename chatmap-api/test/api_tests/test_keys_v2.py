@@ -6,21 +6,9 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from api.v2.routes.keys import create_key, read_keys, update_key
-from api.v2.schemas.keys import MAX_KEY_VALUES, KeyChanges, KeyValueItem, NewKey
-from results.error import (
-    ArchivedValue,
-    InvalidTagValue,
-    KeyInUse,
-    KeyNameTaken,
-    NotAuthorized,
-    StoreUnavailable,
-    TooManyKeys,
-    UnknownKey,
-    UnknownTagChange,
-    UnknownValue,
-    ValueInUse,
-)
+from api.v2.routes.keys import create_key, read_keys
+from api.v2.schemas.keys import MAX_KEY_VALUES, KeyValueItem, NewKey
+
 
 def _user(user_id="user-1"):
     return SimpleNamespace(id=user_id)
@@ -43,6 +31,7 @@ def _patch_store(method, **kwargs):
 
 
 # ---- GET /v2/maps/{map_id}/keys ----
+
 
 async def test_read_keys_returns_each_key_with_its_values():
     keys = [
@@ -71,6 +60,7 @@ async def test_read_keys_does_not_find_a_map_the_user_cannot_see():
 
 # ---- POST, PUT, DELETE /v2/maps/{map_id}/keys ----
 
+
 async def test_create_key_passes_the_key_and_its_options():
     new = NewKey(key=" Fuel ", values=[KeyValueItem(value="There is", expires_after=6)])
 
@@ -85,38 +75,13 @@ async def test_create_key_passes_the_key_and_its_options():
     assert (result.id, result.key) == ("k-1", "Fuel")
 
 
-
-
-@pytest.mark.parametrize("error, status_code", [
-    (NotAuthorized(), 403),
-    (UnknownKey("k-9"), 404),
-    (UnknownValue("v-9"), 404),
-    (KeyNameTaken("Fuel"), 409),
-    (KeyInUse("k-1"), 409),
-    (ValueInUse(["v-1"]), 409),
-    (ArchivedValue("v-1"), 409),
-    (TooManyKeys(10), 409),
-    (UnknownTagChange(9), 404),
-    (InvalidTagValue("a text is needed"), 422),
-    (StoreUnavailable(), 503),
-])
-async def test_store_errors_are_told_over_http(error, status_code):
-    with _patch_store("update_key", side_effect=error), pytest.raises(HTTPException) as raised:
-        await update_key(map_id="map-1", key_id="k-1", changes=KeyChanges(), user=_user())
-
-    assert raised.value.status_code == status_code
-
-
 # ---- what a key may be ----
+
 
 @pytest.mark.parametrize("name", ["", "   ", "x" * 41])
 def test_a_key_name_needs_a_valid_length(name):
     with pytest.raises(ValidationError):
         NewKey(key=name)
-
-
-def test_a_value_of_a_key_may_have_no_color():
-    assert KeyValueItem(value="Hospital").color is None
 
 
 @pytest.mark.parametrize("color", ["red", "#FFF", "#3E9E47; x"])

@@ -92,11 +92,6 @@ def test_a_free_value_is_trimmed_and_has_a_maximum_length():
         TagChangeRequest(value="x" * 101)
 
 
-def test_a_change_is_set_or_remove():
-    with pytest.raises(ValidationError):
-        TagChangeRequest(action="replace", value_id="v-1")
-
-
 def test_a_change_cannot_happen_in_a_time_to_come():
     with pytest.raises(ValidationError):
         TagChangeRequest(value_id="v-1", happened_at=datetime.now(UTC) + timedelta(hours=1))

@@ -90,8 +90,6 @@ def tags_from_changes(changes: list[PointTagChange], key: MapKey) -> list[PointT
             value=None if key.closed else last.value,
             since=since,
             confirmed_at=last.happened_at,
-            source=last.source,
-            user_id=last.user_id,
         ))
     return tags
 
@@ -143,6 +141,57 @@ def record_change(
     return change
 
 
+def _give_tag(
+        db, point_id: str, key: MapKey, action: str, value_id: str | None, value: str | None,
+        happened_at: datetime | None, user_id: str,
+) -> list[PointTag]:
+    """
+    Check a change of a tag of a point against its key and write it down;
+    the point has to be locked. Taking out what the point does not have
+    writes nothing. Returns what the point has for the key after it.
+    """
+    if action == SET and key.archived_at is not None:
+        raise InvalidTagValue("an archived key cannot be given")
+
+    option = None
+    needs_value = action == SET or not key.single
+    if key.closed:
+        if value is not None:
+            raise InvalidTagValue("a key with a list takes the id of one of its options")
+        if needs_value and value_id is None:
+            raise InvalidTagValue("the id of an option is needed")
+        if value_id is not None:
+            option = db.get(MapKeyValue, value_id)
+            if option is None or option.key_id != key.id:
+                raise UnknownValue(value_id)
+            if action == SET and option.archived_at is not None:
+                raise ArchivedValue(value_id)
+    else:
+        if value_id is not None:
+            raise InvalidTagValue("a key without a list takes a text")
+        if needs_value and not value:
+            raise InvalidTagValue("a text is needed")
+
+    def current() -> list[PointTag]:
+        return list(db.execute(
+            select(PointTag).where(PointTag.point_id == point_id, PointTag.key_id == key.id).order_by(PointTag.id)
+        ).scalars())
+
+    if action == REMOVE:
+        tags = current()
+        # Without a value, a key with one value takes out the one it has; with one, only that one
+        has = [tag for tag in tags if (key.single and value_id is None and value is None)
+               or (tag.value_id, tag.value) == (value_id, value)]
+        if not has:
+            return tags
+
+    record_change(
+        db, point_id, key, action, option=option, value=None if key.closed else value,
+        happened_at=happened_at, user_id=user_id,
+    )
+    return current()
+
+
 class PointTagsStore:
 
     @classmethod
@@ -160,10 +209,12 @@ class PointTagsStore:
                 if owner_id is None or owner_id != user_id:
                     raise NotAuthorized
 
+                # Changes of the keys of a map the point was in before are not this map's
                 return list(db.execute(
                     select(PointTagChange, MapKey.key)
                     .join(MapKey, MapKey.id == PointTagChange.key_id)
-                    .where(PointTagChange.point_id == point_id)
+                    .join(Point, Point.id == PointTagChange.point_id)
+                    .where(PointTagChange.point_id == point_id, MapKey.map_id == Point.map_id)
                     .order_by(PointTagChange.happened_at.desc(), PointTagChange.id.desc())
                 ).tuples())
             except SQLAlchemyError as error:
@@ -188,6 +239,9 @@ class PointTagsStore:
                     raise NotAuthorized
 
                 key = db.get(MapKey, change.key_id)
+                # A change of a map the point was in before cannot come back
+                if key.map_id != row.Point.map_id:
+                    raise UnknownTagChange(change_id)
                 if undone and change.undone_at is None:
                     change.undone_at = datetime.now(UTC)
                     change.undone_by = user_id
@@ -256,7 +310,7 @@ class PointTagsStore:
                 if key is None or key.map_id != row.Point.map_id:
                     raise UnknownKey(key_id)
 
-                current = give_tag(db, point_id, key, action, value_id, value, happened_at, user_id)
+                current = _give_tag(db, point_id, key, action, value_id, value, happened_at, user_id)
                 db.commit()
                 for tag in current:
                     db.refresh(tag)
@@ -267,55 +321,7 @@ class PointTagsStore:
                 raise StoreUnavailable
 
 
-def give_tag(
-        db, point_id: str, key: MapKey, action: str, value_id: str | None, value: str | None,
-        happened_at: datetime | None, user_id: str,
-) -> list[PointTag]:
-    """
-    Check a change of a tag of a point against its key and write it down;
-    the point has to be locked. Taking out what the point does not have
-    writes nothing. Returns what the point has for the key after it.
-    """
-    if action == SET and key.archived_at is not None:
-        raise InvalidTagValue("an archived key cannot be given")
-
-    option = None
-    needs_value = action == SET or not key.single
-    if key.closed:
-        if value is not None:
-            raise InvalidTagValue("a key with a list takes the id of one of its options")
-        if needs_value and value_id is None:
-            raise InvalidTagValue("the id of an option is needed")
-        if value_id is not None:
-            option = db.get(MapKeyValue, value_id)
-            if option is None or option.key_id != key.id:
-                raise UnknownValue(value_id)
-            if action == SET and option.archived_at is not None:
-                raise ArchivedValue(value_id)
-    else:
-        if value_id is not None:
-            raise InvalidTagValue("a key without a list takes a text")
-        if needs_value and not value:
-            raise InvalidTagValue("a text is needed")
-
-    def current() -> list[PointTag]:
-        return list(db.execute(
-            select(PointTag).where(PointTag.point_id == point_id, PointTag.key_id == key.id).order_by(PointTag.id)
-        ).scalars())
-
-    if action == REMOVE:
-        has = [tag for tag in current() if key.single or (tag.value_id, tag.value) == (value_id, value)]
-        if not has:
-            return current()
-
-    record_change(
-        db, point_id, key, action, option=option, value=None if key.closed else value,
-        happened_at=happened_at, user_id=user_id,
-    )
-    return current()
-
-
-def clear_tags_of(db, point_ids: list[str], source: str = SYSTEM) -> None:
+def clear_tags_of(db, point_ids: list[str]) -> None:
     """
     Take out every tag of these points, writing each removal down. Used
     when points move to another map: the keys of the old one are not theirs.
@@ -324,5 +330,5 @@ def clear_tags_of(db, point_ids: list[str], source: str = SYSTEM) -> None:
         key = db.get(MapKey, tag.key_id)
         option = db.get(MapKeyValue, tag.value_id) if tag.value_id is not None else None
         record_change(
-            db, tag.point_id, key, REMOVE, option=option, value=tag.value, source=source,
+            db, tag.point_id, key, REMOVE, option=option, value=tag.value, source=SYSTEM,
         )
