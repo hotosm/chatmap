@@ -1,42 +1,75 @@
-from datetime import datetime
-from typing import Literal
+import re
 
 from pydantic import BaseModel, field_validator, model_validator
 
-from api.v2.schemas.statuses import STATUS_COLOR, MapStatusItem, happened_at_utc
-
+# A color is a hex color like #D73F3F
+COLOR = re.compile(r"#[0-9A-Fa-f]{6}")
 MAX_KEYS = 10
 MAX_KEY_NAME_LENGTH = 40
 MAX_KEY_VALUES = 30
-MAX_FREE_VALUE_LENGTH = 100
+MAX_LIST_VALUE_LENGTH = 40
+MAX_VALUE_DESCRIPTION_LENGTH = 200
+# An option lasts up to 30 days without being confirmed
+MAX_EXPIRES_AFTER_HOURS = 720
 
 
-class KeyValueItem(MapStatusItem):
+class KeyValueItem(BaseModel):
     """
-    An option of a key with a list, like a status: its name, a description,
-    and how long it lasts without being confirmed. Its color is optional:
-    without one it shows gray.
+    A value of a key with a list (an option, on screen), like "Closed" for a
+    status. One without id is new; the id of an existing one is kept across
+    edits because points refer to it. An archived value cannot be given, but
+    the points having it keep it. Its color is optional: without one it shows
+    gray. A point nobody confirmed for expires_after hours shows as unknown;
+    None: it does not expire.
     """
+    id: str | None = None
+    value: str
+    description: str = ""
     color: str | None = None
+    expires_after: int | None = None
+    archived: bool = False
+
+    @field_validator("value")
+    @classmethod
+    def check_value(cls, value: str) -> str:
+        value = value.strip()
+        if not 1 <= len(value) <= MAX_LIST_VALUE_LENGTH:
+            raise ValueError(f"a value needs between 1 and {MAX_LIST_VALUE_LENGTH} characters")
+        return value
+
+    @field_validator("description")
+    @classmethod
+    def check_description(cls, description: str) -> str:
+        description = description.strip()
+        if len(description) > MAX_VALUE_DESCRIPTION_LENGTH:
+            raise ValueError(f"a value description takes up to {MAX_VALUE_DESCRIPTION_LENGTH} characters")
+        return description
 
     @field_validator("color")
     @classmethod
     def check_color(cls, color: str | None) -> str | None:
         if color is None:
             return None
-        if not STATUS_COLOR.fullmatch(color):
+        if not COLOR.fullmatch(color):
             raise ValueError("a color must be a hex color like #D73F3F")
         return color.upper()
+
+    @field_validator("expires_after")
+    @classmethod
+    def check_expires_after(cls, hours: int | None) -> int | None:
+        if hours is not None and not 1 <= hours <= MAX_EXPIRES_AFTER_HOURS:
+            raise ValueError(f"a value expires after between 1 and {MAX_EXPIRES_AFTER_HOURS} hours")
+        return hours
 
 
 def _check_values(values: list[KeyValueItem] | None):
     if values is None:
         return
     if len([value for value in values if not value.archived]) > MAX_KEY_VALUES:
-        raise ValueError(f"a key takes up to {MAX_KEY_VALUES} options, not counting the archived ones")
-    names = [value.name.lower() for value in values]
-    if len(names) != len(set(names)):
-        raise ValueError("every option needs a different name")
+        raise ValueError(f"a key takes up to {MAX_KEY_VALUES} values, not counting the archived ones")
+    texts = [value.value.lower() for value in values]
+    if len(texts) != len(set(texts)):
+        raise ValueError("every value of a key needs to be different")
 
 
 def _check_name(name: str) -> str:
@@ -72,7 +105,7 @@ class NewKey(BaseModel):
 class KeyChanges(BaseModel):
     """
     What changes in a key; what is left out stays. values is the whole list
-    of its options: one left out is removed, if no point has it.
+    of its values: one left out is removed, if no point has it.
     """
     key: str | None = None
     archived: bool | None = None
@@ -92,12 +125,11 @@ class KeyChanges(BaseModel):
 
 
 class KeyItem(BaseModel):
-    """A key of a map with its options. A key of the system cannot be removed nor renamed."""
+    """A key of a map with its values."""
     id: str
     key: str
     single: bool
     closed: bool
-    builtin: bool
     colors_map: bool
     archived: bool
     values: list[KeyValueItem] = []
@@ -105,54 +137,3 @@ class KeyItem(BaseModel):
 
 class MapKeysResponse(BaseModel):
     keys: list[KeyItem] = []
-
-
-class PointTagItem(BaseModel):
-    """
-    One value a point has for a key: an option of its list (value_id) or a
-    text (value), since when, and the last time it was confirmed.
-    """
-    point_id: str
-    key_id: str
-    value_id: str | None
-    value: str | None
-    since: datetime
-    confirmed_at: datetime
-
-
-class MapTagsResponse(BaseModel):
-    """What the points of a map have for its keys. Points without tags are left out."""
-    tags: list[PointTagItem] = []
-
-
-class PointTagChange(BaseModel):
-    """
-    A value to give a point (set; the same again confirms it) or to take
-    out (remove). An option of the list goes by its id; a free value, as
-    text. Taking out the value of a key with one value needs no value.
-    happened_at is when it was so; by default, now.
-    """
-    action: Literal["set", "remove"] = "set"
-    value_id: str | None = None
-    value: str | None = None
-    happened_at: datetime | None = None
-
-    @field_validator("value")
-    @classmethod
-    def check_value(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        value = value.strip()
-        if not 1 <= len(value) <= MAX_FREE_VALUE_LENGTH:
-            raise ValueError(f"a value needs between 1 and {MAX_FREE_VALUE_LENGTH} characters")
-        return value
-
-    @field_validator("happened_at")
-    @classmethod
-    def check_happened_at(cls, happened_at: datetime | None) -> datetime | None:
-        return happened_at_utc(happened_at)
-
-
-class PointKeyTags(BaseModel):
-    """What a point has for a key after a change."""
-    tags: list[PointTagItem] = []

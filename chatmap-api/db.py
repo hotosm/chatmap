@@ -124,10 +124,12 @@ def get_live_map_id(db, user_id: str) -> str:
     ).scalar_one()
 
 
-# Tags of points as key=value, as in OpenStreetMap: the status of a point is
-# one more tag. Rules the database keeps are in the migration e3a1f7c2b9d4.
+# Tags of points as key=value, as in OpenStreetMap: each map defines its keys
+# (a status, the fuel there is, a category...). Free tags are not keys: they
+# stay as text in points.tags. Rules the database keeps are in the migration
+# e3a1f7c2b9d4.
 
-# Model representing a key the points of a map can have: status, tag, category...
+# Model representing a key the points of a map can have
 class MapKey(Base):
     __tablename__ = "map_keys"
     # A key is once per map whatever its case (an index in the migration)
@@ -137,19 +139,17 @@ class MapKey(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), index=True, nullable=False)
     key = Column(String, nullable=False)
-    # One value per point (status) or many (tags)
+    # One value per point (a status) or many (the services there are)
     single = Column(Boolean, nullable=False)
-    # Only the values of its list (status) or any text (tags)
+    # Only its options (a status) or any text (notes)
     closed = Column(Boolean, nullable=False)
-    # Keys of the system cannot be removed or renamed
-    builtin = Column(Boolean, nullable=False, default=False)
     # The key whose colors the points of the map show by default; one at most per map
     colors_map = Column(Boolean, nullable=False, default=False)
     position = Column(Integer, nullable=False, default=0)
     archived_at = Column(DateTime(timezone=True), nullable=True)
 
 
-# Model representing an option of a key with a list: "Closed" for status
+# Model representing an option of a key with a list: "Closed" for a status
 class MapKeyValue(Base):
     __tablename__ = "map_key_values"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -259,7 +259,7 @@ def add_points(db: Session, points, user_id):
     db.execute(stmt)
     if moving:
         # Imported here: the stores import this module
-        from store.map_keys_store import clear_tags_of
+        from store.point_tags_store import clear_tags_of
         clear_tags_of(db, moving)
     db.commit()
 

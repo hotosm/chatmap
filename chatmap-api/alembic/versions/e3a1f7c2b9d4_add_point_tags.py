@@ -1,8 +1,8 @@
 """Add map keys, point tags and their changes
 
-The status of a point becomes one more key=value tag, as in OpenStreetMap.
-Each map defines its keys (status, tag, category...) and the options of the
-ones with a list. What a point has now lives in point_tags; everything that
+The status of a point becomes a key=value tag, as in OpenStreetMap. Each
+map defines its keys (a status, the fuel there is, a category...) and the
+options of the ones with a list. What a point has now lives in point_tags; everything that
 happened, in order, in point_tag_changes, and point_tags is always what those
 changes say.
 
@@ -35,12 +35,10 @@ def upgrade() -> None:
         sa.Column('id', sa.String(), nullable=False),
         sa.Column('map_id', sa.String(), nullable=False),
         sa.Column('key', sa.String(), nullable=False),
-        # One value per point (status, category) or many (tags)
+        # One value per point (a status) or many (the services there are)
         sa.Column('single', sa.Boolean(), nullable=False),
-        # Only values of its list (status) or any text (tags)
+        # Only its options (a status) or any text (notes)
         sa.Column('closed', sa.Boolean(), nullable=False),
-        # Keys of the system cannot be removed or renamed
-        sa.Column('builtin', sa.Boolean(), nullable=False, server_default=sa.false()),
         # The key whose colors the points of the map show by default
         sa.Column('colors_map', sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column('position', sa.Integer(), nullable=False, server_default='0'),

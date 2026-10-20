@@ -7,9 +7,8 @@ now, point_tags, is always worked out again from those changes after each
 write, inside the same transaction and with the point locked, so two writes
 at the same time cannot leave them apart.
 
-The time a change happened (the one of the message, or of the click) orders
-the changes, not the time it was written down: a message linked late does
-not override a newer one.
+The time a change happened orders the changes, not the time it was written
+down: a change recorded late does not override a newer one.
 """
 import logging
 from datetime import UTC, datetime
@@ -17,14 +16,25 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from db import Map, MapKey, Point, PointTag, PointTagChange, session_scope
-from results.error import NotAuthorized, StoreUnavailable, UnknownTagChange
+from db import Map, MapKey, MapKeyValue, Point, PointTag, PointTagChange, session_scope
+from results.error import (
+    ArchivedValue,
+    InvalidTagValue,
+    NotAuthorized,
+    StoreUnavailable,
+    UnknownKey,
+    UnknownTagChange,
+    UnknownValue,
+)
+from store.map_keys_store import readable
 
 logger = logging.getLogger(__name__)
 
 SET = "set"
 REMOVE = "remove"
+# Sources of a change
 MANUAL = "manual"
+SYSTEM = "system"
 
 
 def lock_point(db, point_id: str):
@@ -104,7 +114,7 @@ def refresh_tags(db, point_id: str, key: MapKey) -> None:
 
 def record_change(
         db, point_id: str, key: MapKey, action: str, *,
-        value_row=None, value: str | None = None,
+        option: MapKeyValue | None = None, value: str | None = None,
         happened_at: datetime | None = None, source: str = MANUAL,
         user_id: str | None = None, message_id: str | None = None,
 ) -> PointTagChange:
@@ -118,9 +128,9 @@ def record_change(
         point_id=point_id,
         key_id=key.id,
         action=action,
-        value_id=value_row.id if value_row is not None else None,
-        # The name the value has now, so history keeps it if it is renamed
-        value=value_row.value if value_row is not None else value,
+        value_id=option.id if option is not None else None,
+        # The text the value has now, so history keeps it if it is renamed
+        value=option.value if option is not None else value,
         happened_at=happened_at or now,
         recorded_at=now,
         source=source,
@@ -193,3 +203,126 @@ class PointTagsStore:
                 db.rollback()
                 logger.error(f"Undo tag change '{change_id}' failed with: '{error}'")
                 raise StoreUnavailable
+
+    @classmethod
+    async def read_tags(cls, map_id: str, user_id: str | None) -> list | None:
+        """
+        What each point of a map has for its keys, or None when the user
+        cannot see the map. It does not tell who changed what.
+        """
+        with session_scope() as db:
+            try:
+                map_obj, owner = readable(db, map_id, user_id)
+                if map_obj is None:
+                    return None
+                # A point only shows tags of the keys of its own map
+                query = (
+                    select(
+                        PointTag.point_id, PointTag.key_id, PointTag.value_id, PointTag.value,
+                        PointTag.since, PointTag.confirmed_at,
+                    )
+                    .join(Point, Point.id == PointTag.point_id)
+                    .join(MapKey, MapKey.id == PointTag.key_id)
+                    .where(Point.map_id == map_id, MapKey.map_id == map_id)
+                    .order_by(PointTag.point_id, MapKey.position, PointTag.id)
+                )
+                # Removed points are only shown to the owner of the map
+                if not owner:
+                    query = query.where(Point.removed.is_(False))
+                return db.execute(query).all()
+            except SQLAlchemyError as error:
+                logger.error(f"Fetch tags of map '{map_id}' failed with: '{error}'")
+                raise StoreUnavailable
+
+    @classmethod
+    async def set_point_tag(
+            cls, point_id: str, key_id: str, user_id: str, action: str, *,
+            value_id: str | None = None, value: str | None = None, happened_at: datetime | None = None,
+    ) -> list[PointTag]:
+        """
+        Give a value of a key to a point, confirm it (the same again) or take
+        it out, by hand. A key with a list takes the id of one of its options;
+        one without, a text. Taking out the value of a key with one value
+        needs no value. Returns what the point has for the key after it.
+        """
+        with session_scope() as db:
+            try:
+                row = lock_point(db, point_id)
+                if row is None or row.owner_id != user_id:
+                    raise NotAuthorized
+
+                key = db.get(MapKey, key_id)
+                # A point only takes keys of its own map
+                if key is None or key.map_id != row.Point.map_id:
+                    raise UnknownKey(key_id)
+
+                current = give_tag(db, point_id, key, action, value_id, value, happened_at, user_id)
+                db.commit()
+                for tag in current:
+                    db.refresh(tag)
+                return current
+            except SQLAlchemyError as error:
+                db.rollback()
+                logger.error(f"Save tag '{key_id}' of point '{point_id}' failed with: '{error}'")
+                raise StoreUnavailable
+
+
+def give_tag(
+        db, point_id: str, key: MapKey, action: str, value_id: str | None, value: str | None,
+        happened_at: datetime | None, user_id: str,
+) -> list[PointTag]:
+    """
+    Check a change of a tag of a point against its key and write it down;
+    the point has to be locked. Taking out what the point does not have
+    writes nothing. Returns what the point has for the key after it.
+    """
+    if action == SET and key.archived_at is not None:
+        raise InvalidTagValue("an archived key cannot be given")
+
+    option = None
+    needs_value = action == SET or not key.single
+    if key.closed:
+        if value is not None:
+            raise InvalidTagValue("a key with a list takes the id of one of its options")
+        if needs_value and value_id is None:
+            raise InvalidTagValue("the id of an option is needed")
+        if value_id is not None:
+            option = db.get(MapKeyValue, value_id)
+            if option is None or option.key_id != key.id:
+                raise UnknownValue(value_id)
+            if action == SET and option.archived_at is not None:
+                raise ArchivedValue(value_id)
+    else:
+        if value_id is not None:
+            raise InvalidTagValue("a key without a list takes a text")
+        if needs_value and not value:
+            raise InvalidTagValue("a text is needed")
+
+    def current() -> list[PointTag]:
+        return list(db.execute(
+            select(PointTag).where(PointTag.point_id == point_id, PointTag.key_id == key.id).order_by(PointTag.id)
+        ).scalars())
+
+    if action == REMOVE:
+        has = [tag for tag in current() if key.single or (tag.value_id, tag.value) == (value_id, value)]
+        if not has:
+            return current()
+
+    record_change(
+        db, point_id, key, action, option=option, value=None if key.closed else value,
+        happened_at=happened_at, user_id=user_id,
+    )
+    return current()
+
+
+def clear_tags_of(db, point_ids: list[str], source: str = SYSTEM) -> None:
+    """
+    Take out every tag of these points, writing each removal down. Used
+    when points move to another map: the keys of the old one are not theirs.
+    """
+    for tag in db.execute(select(PointTag).where(PointTag.point_id.in_(point_ids))).scalars().all():
+        key = db.get(MapKey, tag.key_id)
+        option = db.get(MapKeyValue, tag.value_id) if tag.value_id is not None else None
+        record_change(
+            db, tag.point_id, key, REMOVE, option=option, value=tag.value, source=source,
+        )

@@ -35,21 +35,6 @@ class PointAlreadyHasMedia(Exception):
         self.point_id = point_id
 
 
-class UnknownStatus(Exception):
-    def __init__(self, status_id):
-        self.status_id = status_id
-
-
-class ArchivedStatus(Exception):
-    def __init__(self, status_id):
-        self.status_id = status_id
-
-
-class StatusInUse(Exception):
-    def __init__(self, status_ids):
-        self.status_ids = status_ids
-
-
 class MapNotFound(Exception):
     ...
 
@@ -65,11 +50,6 @@ class UnknownTagChange(Exception):
 
 
 class UnknownKey(Exception):
-    def __init__(self, key_id):
-        self.key_id = key_id
-
-
-class BuiltinKey(Exception):
     def __init__(self, key_id):
         self.key_id = key_id
 
@@ -102,3 +82,8 @@ class ValueInUse(Exception):
 class InvalidTagValue(Exception):
     def __init__(self, reason):
         self.reason = reason
+
+
+class TooManyKeys(Exception):
+    def __init__(self, max_keys):
+        self.max_keys = max_keys
