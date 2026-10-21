@@ -1,0 +1,534 @@
+/* The tags of a point: one row of chips, the values of the keys first */
+.pointTags {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    text-align: left;
+}
+
+.pointTags__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.pointTags__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    box-sizing: border-box;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 2px solid transparent;
+    border-radius: var(--hot-border-radius-pill);
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.pointTags__chip--free {
+    padding-right: 2px;
+    background-color: var(--hot-color-gray-100);
+    color: var(--hot-color-gray-900);
+    font-weight: var(--hot-font-weight-normal);
+}
+
+/* A value nobody confirmed for too long, as the map shows it: white outlined in gray */
+.pointTags__chip--unknown {
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-gray-700);
+    border-color: var(--hot-color-gray-400);
+}
+
+.pointTags__trigger {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+/* A small caret tells the value can be changed */
+.pointTags__trigger .pointTags__chip::after {
+    content: "";
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+}
+
+.pointTags__remove {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-medium);
+    cursor: pointer;
+}
+
+.pointTags__remove:hover {
+    background-color: var(--hot-color-gray-200);
+}
+
+.pointTags__add {
+    justify-content: center;
+    width: 28px;
+    padding: 0;
+    border: 2px dashed var(--hot-color-gray-400);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-gray-700);
+    font-size: var(--hot-font-size-medium);
+    cursor: pointer;
+}
+
+.pointTags__time {
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.pointTags__menu sl-menu-item::part(base) {
+    font-size: var(--hot-font-size-small);
+}
+
+.pointTags__menu .tags__dot,
+.pointTags__panel .tags__dot {
+    width: 12px;
+    height: 12px;
+    margin-right: var(--hot-spacing-x-small);
+}
+
+/* The panel of the "+": floats over the map, the popup keeps its size */
+.pointTags__panel {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    max-height: 320px;
+    overflow: auto;
+    padding: var(--hot-spacing-x-small);
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-neutral-0);
+    box-shadow: var(--sl-shadow-large);
+}
+
+.pointTags__panelTitle {
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-small) var(--hot-spacing-2x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.pointTags__option {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--hot-spacing-x-small);
+    border: 0;
+    border-radius: var(--hot-border-radius-small);
+    background: none;
+    font-size: var(--hot-font-size-small);
+    text-align: left;
+    cursor: pointer;
+}
+
+.pointTags__option:hover {
+    background-color: var(--hot-color-gray-50);
+}
+
+.pointTags__suggestions {
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--hot-spacing-2x-small);
+}
+
+.tags__dot--none {
+    box-sizing: border-box;
+    border: 1px dashed var(--hot-color-gray-400);
+}
+
+/* The popup of a point, with the module on: the message is the name of
+   the point, and everything keeps the same distance to the border. Its width
+   is fixed, so it does not jump when its tags or menus change */
+.activePopupFeatureContent--tags {
+    width: 280px;
+}
+
+.activePopupFeatureContent--tags .message .text {
+    padding: 0 var(--hot-spacing-medium);
+    font-size: var(--hot-font-size-medium);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.activePopupFeatureContent--tags .pointTags {
+    padding: 0 var(--hot-spacing-medium) var(--hot-spacing-medium);
+}
+
+/* The tags of a map, by key: a header with its kind, then its options */
+.tags__key {
+    padding: var(--hot-spacing-medium) 0;
+    border-top: 1px solid var(--hot-color-gray-100);
+}
+
+.tags__keyHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    margin-bottom: var(--hot-spacing-x-small);
+}
+
+.tags__keyHeader h3 {
+    margin: 0;
+    font-size: var(--hot-font-size-medium);
+}
+
+.tags__keyActions {
+    margin-left: auto;
+}
+
+.tags__badge {
+    padding: 2px 6px;
+    border-radius: var(--hot-border-radius-small);
+    background-color: var(--hot-color-gray-50);
+    color: var(--hot-color-gray-700);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.tags__values {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tags__value {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+    width: 100%;
+    min-height: 44px;
+    padding: var(--hot-spacing-x-small);
+    border: 0;
+    border-radius: var(--hot-border-radius-medium);
+    background: none;
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    text-align: left;
+    cursor: pointer;
+}
+
+button.tags__value:hover {
+    background-color: var(--hot-color-gray-50);
+}
+
+.tags__value .tags__dot {
+    flex: none;
+}
+
+.tags__valueText {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tags__expires {
+    flex: none;
+    font-size: var(--hot-font-size-x-small);
+}
+
+.tags__value--archived {
+    cursor: default;
+}
+
+.tags__value--archived .tags__dot {
+    opacity: .5;
+}
+
+.tags__empty {
+    margin: var(--hot-spacing-x-small) 0;
+    font-size: var(--hot-font-size-small);
+}
+
+.tags__inUse {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.tags__inUseTag {
+    padding-right: 10px;
+}
+
+.tags__dot {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.tags__muted {
+    color: var(--hot-color-gray-600);
+}
+
+.tags__colors {
+    display: flex;
+    gap: var(--hot-spacing-x-small);
+    /* Room for the ring of the picked color, the body of the dialog cuts what goes out */
+    padding: var(--hot-spacing-2x-small);
+}
+
+.tags__color {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid var(--hot-color-neutral-0);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.tags__color--selected {
+    box-shadow: 0 0 0 2px var(--hot-color-neutral-900);
+}
+
+/* The picker of any other color: a rainbow until a color of its own is picked */
+.tags__picker::part(trigger) {
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--hot-color-neutral-0);
+    background: conic-gradient(#D9414A, #E9A23B, #4FB3BB, #2E4873, #7A4FB5, #D9414A);
+}
+
+.tags__picker::part(trigger)::before {
+    box-shadow: none;
+}
+
+.tags__picker--selected::part(trigger) {
+    box-shadow: 0 0 0 2px var(--hot-color-neutral-900);
+}
+
+.tags__input {
+    display: block;
+    margin-top: var(--hot-spacing-medium);
+}
+
+.tags__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--hot-spacing-small);
+    margin-top: var(--hot-spacing-large);
+}
+
+.tags__aside {
+    margin-right: auto;
+}
+
+.tags__danger::part(base) {
+    color: #D9414A;
+}
+
+.tags__archived {
+    margin: var(--hot-spacing-small) 0 var(--hot-spacing-2x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+/* The title and what follows go together */
+sl-dialog.tags__dialog::part(body) {
+    padding-top: 0;
+}
+
+.tags__help {
+    margin: 0 0 var(--hot-spacing-large);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-medium);
+}
+
+/* Adding a point by hand: the button goes over the map, below the header */
+/* Add point and Color by, stacked over the map, under the header */
+.mapTools {
+    position: absolute;
+    top: calc(68px + var(--hot-spacing-medium));
+    left: var(--hot-spacing-medium);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--hot-spacing-x-small);
+}
+
+/* Both pills as wide as the widest, icon and text lined up on the left */
+.mapTools > .addPoint,
+.mapTools > .colorBy {
+    display: block;
+}
+
+.mapTools sl-button {
+    width: 100%;
+}
+
+.mapTools sl-button::part(base) {
+    justify-content: flex-start;
+}
+
+.mapTools sl-button::part(label) {
+    flex: 1;
+    text-align: left;
+}
+
+.addPoint__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    border-radius: var(--hot-border-radius-pill);
+    background-color: var(--hot-color-neutral-900);
+    color: var(--hot-color-neutral-0);
+    font-size: var(--hot-font-size-small);
+}
+
+.addPoint__cancel {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.map--picking canvas {
+    cursor: crosshair !important;
+}
+
+.addPoint__marker {
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--hot-color-neutral-0);
+    border-radius: 50%;
+    background-color: var(--hot-color-neutral-900);
+    box-shadow: 0 0 3px color-mix(in srgb, var(--hot-color-neutral-1000) 50%, transparent);
+}
+
+/* The label of a select, as the one of the other fields */
+.tags__dialog sl-select::part(form-control-label) {
+    font-weight: bold;
+    margin-bottom: var(--hot-spacing-small);
+}
+
+.tags__dialog sl-select .tags__dot {
+    width: 12px;
+    height: 12px;
+    margin-right: var(--hot-spacing-x-small);
+}
+
+.tags__dialog sl-select > .tags__dot {
+    margin-left: var(--hot-spacing-small);
+}
+
+/* The options of the keys in the filter of the map */
+.tagFilter__dot {
+    width: 12px;
+    height: 12px;
+    margin-right: var(--hot-spacing-x-small);
+}
+
+.tagFilter__dot--unknown {
+    box-sizing: border-box;
+    border: 2px solid var(--hot-color-gray-400);
+    background-color: var(--hot-color-neutral-0);
+}
+
+/* A value without a color of its own */
+.pointTags__chip--plain {
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-gray-900);
+    border-color: var(--hot-color-gray-400);
+}
+
+/* A value of a key with many: its chip and a × to take it out */
+.pointTags__chip--many {
+    gap: 0;
+    padding: 0 2px 0 0;
+    background: none;
+}
+
+/* The name of the key of a written value: "Notes: near the school" */
+.pointTags__key {
+    color: var(--hot-color-gray-600);
+}
+
+.pointTags__panelKey + .pointTags__panelKey {
+    margin-top: var(--hot-spacing-2x-small);
+}
+
+/* What a key is, under its name: "One per point · picked from options" */
+.tags__kind {
+    margin: 0 0 var(--hot-spacing-x-small);
+    font-size: var(--hot-font-size-x-small);
+}
+
+/* No color: a white circle crossed out */
+.tags__color--none {
+    background: linear-gradient(135deg, transparent 45%, var(--hot-color-gray-400) 45%, var(--hot-color-gray-400) 55%, transparent 55%), var(--hot-color-neutral-0);
+    box-shadow: inset 0 0 0 1px var(--hot-color-gray-400);
+}
+
+/* The radio groups of a new key, and room under the help of a field */
+.tags__input::part(form-control-help-text) {
+    margin-top: var(--hot-spacing-x-small);
+    margin-bottom: var(--hot-spacing-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+    line-height: 1.4;
+}
+
+
+/* A question of a new key with its choices: labeled like the other fields, with room */
+.tags__choice {
+    margin-top: var(--hot-spacing-large);
+}
+
+.tags__choice::part(form-control-label) {
+    margin-bottom: var(--hot-spacing-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.tags__choice sl-radio + sl-radio {
+    margin-top: var(--hot-spacing-small);
+}
+
+.tags__dialog form .tags__buttons {
+    margin-top: var(--hot-spacing-x-large);
+}
+
+/* A change of a tag the API did not take */
+.pointTags__error {
+    color: var(--hot-color-red-700);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.colorBy__check {
+    display: inline-block;
+    width: 1em;
+}
+
+/* The point was added, but not its value */
+.addPoint__warning {
+    display: block;
+    max-width: 260px;
+    margin-top: var(--hot-spacing-2x-small);
+    padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-red-700);
+    font-size: var(--hot-font-size-x-small);
+}
