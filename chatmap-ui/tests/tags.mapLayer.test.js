@@ -1,10 +1,13 @@
-import { expect, test as it} from 'vitest'
+import { beforeEach, expect, test as it, vi } from 'vitest'
 
 import { tagsPaint } from '../src/components/Tags/mapLayer';
 import { mapTags } from '../src/components/Tags/useMapTags';
 import { keyFilter, UNKNOWN } from '../src/components/Tags/tags';
 
 const NOW = new Date("2026-10-06T12:00:00Z").getTime();
+
+// Keys are on, as with ?dashboard in the address
+beforeEach(() => vi.stubGlobal('window', { location: { hash: '#/map/map-1?dashboard' } }));
 
 const POINT_COLOR = '#2E4873';
 const KEY = { id: "k-1", values: [{ id: "v-1", color: "#3E9E47" }, { id: "v-2", color: null }] };
@@ -54,4 +57,11 @@ it('should show and filter by the values of the key that colors the map', () => 
   expect(tags.shown(data).features.map((feature) => feature.properties.color_value)).toEqual(["v-1", null]);
   expect(data.features.filter(byValue).map((feature) => feature.properties.id)).toEqual(["p-1"]);
   expect(tags.filter("some free tag")).toBeNull();
+});
+
+it('should leave the map as it always was when keys are turned off, even if it was read with them', () => {
+  vi.stubGlobal('window', { location: { hash: '#/map/map-1' } });
+  const data = { ...DATA, keys: [{ ...KEY, single: true, closed: true, colors_map: true }] };
+
+  expect(mapTags(data, NOW).shown(data)).toBe(data);
 });

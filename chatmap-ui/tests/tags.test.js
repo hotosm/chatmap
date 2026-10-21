@@ -149,10 +149,11 @@ it('should show the keys of a map only with the dashboard parameter', () => {
   expect(keysOn("#/map/map-1?dash")).toBe(false);
 });
 
-it('should tell a map read with its keys, even none, from one read without them', () => {
-  expect(usesKeys({ keys: [] })).toBe(true);
-  expect(usesKeys({ features: [] })).toBe(false);
-  expect(usesKeys(null)).toBe(false);
+it('should show the keys of a map read with them, even none, only while keys are on', () => {
+  expect(usesKeys({ keys: [] }, true)).toBe(true);
+  expect(usesKeys({ keys: [] }, false)).toBe(false);
+  expect(usesKeys({ features: [] }, true)).toBe(false);
+  expect(usesKeys(null, true)).toBe(false);
 });
 
 // withKeyTags

@@ -9,8 +9,8 @@ export const UNKNOWN = "unknown";
 export const keysOn = (hash = window.location.hash) =>
     new URLSearchParams(hash.split("?")[1] || "").has("dashboard");
 
-// Whether a map was read with its keys: everything of this module shows only then
-export const usesKeys = (mapData) => Array.isArray(mapData && mapData.keys);
+// Whether a map shows its keys: they are on and it was read with them. Everything of this module shows only then
+export const usesKeys = (mapData, on = keysOn()) => on && Array.isArray(mapData && mapData.keys);
 
 const DARK_TEXT = "#1F2329";
 

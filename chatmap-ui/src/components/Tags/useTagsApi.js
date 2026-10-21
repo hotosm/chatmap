@@ -24,16 +24,17 @@ const send = (method, url, body) => request(url, {
 
 /**
  * A map as the API v1 answers it, with its keys and what its points have
- * when keys are shown. When they are not, or cannot be read, the map as it
- * came: it shows without them.
+ * when keys are shown. When they are not, or cannot be read, without keys:
+ * `keys` goes empty on purpose, so the ones of a map read before do not stay.
  */
 export const withMapTags = async (apiUrl, mapData) => {
-    if (!keysOn()) return mapData;
+    const withoutKeys = { ...mapData, keys: undefined };
+    if (!keysOn()) return withoutKeys;
     const api = apiV2(apiUrl);
     const [keys, tags] = await Promise.all([
         request(`${api}/maps/${mapData.id}/keys`), request(`${api}/maps/${mapData.id}/tags`),
     ]);
-    return keys && tags ? withTags(mapData, keys.keys, tags.tags) : mapData;
+    return keys && tags ? withTags(mapData, keys.keys, tags.tags) : withoutKeys;
 };
 
 export default function useTagsApi() {
