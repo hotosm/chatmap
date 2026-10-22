@@ -19,6 +19,7 @@ import SettingsDialog from "../../components/SettingsDialog/index.jsx";
 import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import UpdateButton from "../../components/UpdateButton/index.jsx";
 import EditMapDialog from '../../components/EditMapDialog/index.jsx';
+import { MapTagsOptions } from '../../components/Tags';
 import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
 import Progress from "../../components/Progress/index.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
@@ -89,7 +90,9 @@ function MapView() {
       payload: mapData,
     });
     if (mapData.id) {
-      history.replaceState(null, '', `/#map/${mapData.id}`);
+      // Its parameters stay, like ?dashboard
+      const query = window.location.hash.split("?")[1];
+      history.replaceState(null, '', `/#map/${mapData.id}${query ? `?${query}` : ""}`);
     }
   }, [mapData]);
 
@@ -161,6 +164,8 @@ function MapView() {
               onSelectTag={selectTagHandler}
               tags={tags}
               selectedTag={data.filterTag}
+              keys={data.keys}
+              features={data.features}
             />
           }
           { dataAvailable && mapData.owner && <>
@@ -232,6 +237,15 @@ function MapView() {
                     </SlButton>
 
                     </div>
+
+                    <MapTagsOptions
+                      mapData={mapData}
+                      data={data}
+                      onChange={(keys) => mapDataDispatch({type: 'set', payload: {
+                        // The map is colored again by the key its owner chose
+                        keys, colorKey: undefined,
+                      }})}
+                    />
 
                     {/* Live options */}
                     { mapData.is_live && mapData.owner && <>
