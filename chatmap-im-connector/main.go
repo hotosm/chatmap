@@ -4,6 +4,7 @@
 // The server exposes a small REST API:
 //
 //   /status      – returns the connection status for a session
+//   /groups?session=<id>      – lists the chat groups of a session, with their names
 //   /logout      – logs out a specific session
 //   /media/…     – streams an image or video referenced by a message ID
 //   /start-qr?session=<id>    – starts a session and streams the QR code that the
@@ -170,6 +171,13 @@ type SessionMeta struct {
 type Status struct {
     Status string `json:"status"`
     User string `json:"user"`
+}
+
+// Group is a chat group the phone of a session is in: the hash of its
+// chat, the same one its messages carry, and its name.
+type Group struct {
+    Chat string `json:"chat"`
+    Name string `json:"name"`
 }
 
 // Package‑level variables
@@ -1111,6 +1119,53 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(status)
 }
 
+// groupsOf lists the chat groups returned by ``joined`` (the client's
+// GetJoinedGroups), without their JIDs nor their participants. The parent
+// group of a community is left out: it gets no messages.
+func groupsOf(ctx context.Context, joined func(context.Context) ([]*types.GroupInfo, error)) ([]Group, error) {
+    infos, err := joined(ctx)
+    if err != nil {
+        return nil, err
+    }
+    groups := make([]Group, 0, len(infos))
+    for _, info := range infos {
+        if info.IsParent {
+            continue
+        }
+        groups = append(groups, Group{Chat: hash(info.JID.String()), Name: info.Name})
+    }
+    return groups, nil
+}
+
+// groupsHandler lists the chat groups the phone of a session is in, so
+// its owner can choose which ones a map listens to. A session that does
+// not exist or is not connected has none.
+func groupsHandler(w http.ResponseWriter, r *http.Request) {
+    sessionID := r.URL.Query().Get("session")
+    if sessionID == "" {
+        http.Error(w, "Missing session ID", http.StatusBadRequest)
+        return
+    }
+
+    clientsMu.RLock()
+    client, exists := clients[sessionID]
+    clientsMu.RUnlock()
+
+    groups := []Group{}
+    if exists && client.IsConnected() && client.IsLoggedIn() {
+        found, err := groupsOf(r.Context(), client.GetJoinedGroups)
+        if err != nil {
+            log.Printf("Failed to list the groups of session %s: %v", sessionID, err)
+            http.Error(w, "Failed to list groups", http.StatusBadGateway)
+            return
+        }
+        groups = found
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(groups)
+}
+
 // logout terminates the WhatsApp session identified by ``sessionID``
 // and deletes its database file.  It also removes the session from
 // the global maps.
@@ -1199,6 +1254,7 @@ func main() {
     reInitSessions()
 
     http.HandleFunc("/status", statusHandler)
+    http.HandleFunc("/groups", groupsHandler)
     http.HandleFunc("/logout", logoutHandler)
     http.HandleFunc("/media/", mediaHandler)
     http.HandleFunc("/start-qr", startAndQRHandler)
