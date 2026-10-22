@@ -15,7 +15,7 @@ from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
     Enum as SqlEnum, Boolean, Integer, BigInteger, Identity, Interval,
-    ForeignKeyConstraint, UniqueConstraint
+    ForeignKeyConstraint, UniqueConstraint, true
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
@@ -74,6 +74,8 @@ class Map(Base):
     updated_at = Column(DateTime(timezone=False), default=datetime.now, nullable=False)
     is_live = Column(Boolean, default=False, nullable=False)
     bot_active = Column(Boolean, default=False, nullable=False)
+    # How many days the messages of its chat groups are kept
+    messages_kept_days = Column(Integer, nullable=False, default=30, server_default="30")
     centroid = Column(Geometry(geometry_type="POINT", srid=4326), nullable=True, default=None)
 
     # Relationship to Point model
@@ -207,6 +209,41 @@ class PointTagChange(Base):
     user_id = Column(String, nullable=True)
     undone_at = Column(DateTime(timezone=True), nullable=True)
     undone_by = Column(String, nullable=True)
+
+
+# Model representing a chat group a live map listens to. Only groups its owner
+# enabled are here: nothing is kept from the others, not even their names.
+# A group disabled later stays: its messages are kept, hidden from the map,
+# until they expire (or go when it is disabled, if its owner asks).
+class ChatGroup(Base):
+    __tablename__ = "chat_groups"
+    __table_args__ = (UniqueConstraint("map_id", "chat"),)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), nullable=False)
+    # Pseudonym of the chat (see store.group_messages_store.pseudonym)
+    chat = Column(String, nullable=False)
+    name = Column(String, nullable=False, default="", server_default="")
+    enabled = Column(Boolean, nullable=False, default=True, server_default=true())
+    # When it was last enabled: nothing said in the group before is kept
+    enabled_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
+# Model representing a message of a chat group, kept so the owner of the map
+# can link it to a place. Text and location only; who sent it, as a pseudonym.
+class GroupMessage(Base):
+    __tablename__ = "group_messages"
+    # A message read twice from the stream is kept once
+    __table_args__ = (UniqueConstraint("map_id", "stream_id"),)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), nullable=False)
+    group_id = Column(String, ForeignKey("chat_groups.id", ondelete="CASCADE"), nullable=False)
+    stream_id = Column(String, nullable=False)
+    sender = Column(String, nullable=False)
+    text = Column(String, nullable=False, default="", server_default="")
+    location = Column(String, nullable=True)
+    sent_at = Column(DateTime(timezone=True), nullable=False)
+    received_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    dismissed_at = Column(DateTime(timezone=True), nullable=True)
 
 
 # Model representing a geographic point in a map
