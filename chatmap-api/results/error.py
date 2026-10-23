@@ -84,6 +84,15 @@ class MapNotFound(Exception):
     ...
 
 
+class MapNotLive(Exception):
+    ...
+
+
+class UnknownGroup(Exception):
+    def __init__(self, chat):
+        self.chat = chat
+
+
 class PointIdAlreadyTaken(Exception):
     def __init__(self, point_id):
         self.point_id = point_id

@@ -7,9 +7,12 @@ from results.error import (
     InvalidTagValue,
     KeyInUse,
     KeyNameTaken,
+    MapNotFound,
+    MapNotLive,
     NotAuthorized,
     StoreUnavailable,
     TooManyKeys,
+    UnknownGroup,
     UnknownKey,
     UnknownTagChange,
     UnknownValue,
@@ -28,6 +31,9 @@ from results.error import (
     (TooManyKeys(10), 409),
     (UnknownTagChange(9), 404),
     (InvalidTagValue("a text is needed"), 422),
+    (MapNotFound(), 404),
+    (UnknownGroup("c-9"), 404),
+    (MapNotLive(), 409),
     (StoreUnavailable(), 503),
 ])
 async def test_store_errors_are_told_over_http(error, status_code):
