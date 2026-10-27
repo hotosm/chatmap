@@ -29,6 +29,20 @@ def find_for_read(db, media_id: str):
     return db.execute(query).one_or_none()
 
 
+def find_map_for_read(db, map_id: str) -> Map | None:
+    return db.execute(select(Map).where(Map.id == map_id)).scalar_one_or_none()
+
+
+def for_map(db, map_id: str):
+    query = (
+        select(Media, Point.contributor_id)
+        .join(Point, Point.id == Media.point_id)
+        .where(Point.map_id == map_id)
+    )
+
+    return db.execute(query).all()
+
+
 def insert(db, media_id: str, point_id: str, storage_key: str, content_type: str, size: int,
            captured_at: datetime) -> Media:
     media = Media(

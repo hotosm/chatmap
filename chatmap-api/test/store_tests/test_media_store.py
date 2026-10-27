@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from db import Map, SharePermission
-from results.error import NotAuthorized, PointAlreadyHasMedia, StoreUnavailable, UnsupportedMediaType
+from results.error import MapNotFound, NotAuthorized, PointAlreadyHasMedia, StoreUnavailable, UnsupportedMediaType
 from store.contributors.authorization import Owner
 from store.credentials import Credentials
 from store.media.model import Media
@@ -431,3 +431,99 @@ async def test_read_reports_the_store_unavailable_when_the_contributor_lookup_fa
     with _patch_scope(db):
         with pytest.raises(StoreUnavailable):
             await _read_as_contributor()
+
+
+# ---- media_of_map ----
+
+def _found(value):
+    result = MagicMock()
+    result.scalar_one_or_none.return_value = value
+    return result
+
+
+def _rows(*rows):
+    result = MagicMock()
+    result.all.return_value = list(rows)
+    return result
+
+
+def _db_results(*results):
+    db = MagicMock()
+    db.execute.side_effect = list(results)
+    return db
+
+
+def _media_of(point_id):
+    return Media(id=f"media-{point_id}", point_id=point_id, storage_key=f"media-{point_id}.jpg",
+                 content_type="image/jpeg", size=4)
+
+
+# A point of the owner, one of the contributor c-1 and one of the contributor c-9
+_OWNER_MEDIA, _C1_MEDIA, _C9_MEDIA = _media_of("p-owner"), _media_of("p-c1"), _media_of("p-c9")
+_MAP_MEDIA = _rows((_OWNER_MEDIA, None), (_C1_MEDIA, "c-1"), (_C9_MEDIA, "c-9"))
+
+
+async def test_media_of_map_rejects_a_map_that_does_not_exist():
+    db = _db_results(_found(None))
+
+    with _patch_scope(db):
+        with pytest.raises(MapNotFound):
+            await MediaStore.media_of_map("map-1", _AS_OWNER)
+
+    assert db.execute.call_count == 1
+
+
+async def test_media_of_map_of_a_public_map_is_all_of_it_for_anyone():
+    db = _db_results(_found(_map(sharing=SharePermission.PUBLIC)), _MAP_MEDIA)
+
+    with _patch_scope(db):
+        media = await MediaStore.media_of_map("map-1", Credentials())
+
+    assert media == [_OWNER_MEDIA, _C1_MEDIA, _C9_MEDIA]
+    assert db.execute.call_count == 2
+
+
+async def test_media_of_map_of_a_private_map_is_all_of_it_for_its_owner():
+    with _patch_scope(_db_results(_found(_map()), _MAP_MEDIA)):
+        media = await MediaStore.media_of_map("map-1", _AS_OWNER)
+
+    assert media == [_OWNER_MEDIA, _C1_MEDIA, _C9_MEDIA]
+
+
+@pytest.mark.parametrize("user_id", ["someone-else", None])
+async def test_media_of_map_hides_a_private_map_from_a_session_that_does_not_own_it(user_id):
+    db = _db_results(_found(_map()), _MAP_MEDIA)
+
+    with _patch_scope(db):
+        with pytest.raises(MapNotFound):
+            await MediaStore.media_of_map("map-1", Credentials(user_id=user_id))
+
+    assert db.execute.call_count == 1
+
+
+async def test_media_of_map_shows_a_contributor_only_the_media_of_their_own_points():
+    with _patch_scope(_db_results(_found(_map()), _found(_contributor("c-1")), _MAP_MEDIA)):
+        media = await MediaStore.media_of_map("map-1", _AS_CONTRIBUTOR)
+
+    assert media == [_C1_MEDIA]
+
+
+@pytest.mark.parametrize("contributor", [None, _contributor(removed_at="2026-10-01")])
+async def test_media_of_map_rejects_a_secret_without_an_active_contributor(contributor):
+    with _patch_scope(_db_results(_found(_map()), _found(contributor), _MAP_MEDIA)):
+        with pytest.raises(NotAuthorized):
+            await MediaStore.media_of_map("map-1", _AS_CONTRIBUTOR)
+
+
+async def test_media_of_map_of_a_map_without_media_is_empty():
+    with _patch_scope(_db_results(_found(_map()), _rows())):
+        assert await MediaStore.media_of_map("map-1", _AS_OWNER) == []
+
+
+async def test_media_of_map_reports_the_store_unavailable_when_the_lookup_fails():
+    db = MagicMock()
+    db.execute.side_effect = SQLAlchemyError("boom")
+
+    with _patch_scope(db):
+        with pytest.raises(StoreUnavailable):
+            await MediaStore.media_of_map("map-1", _AS_OWNER)

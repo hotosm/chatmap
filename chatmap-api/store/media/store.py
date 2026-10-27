@@ -14,10 +14,15 @@ from store.contributors.authorization import Owner, role_in_map
 from store.contributors.model import Contributor
 from store.credentials import Credentials
 from store.media.model import CONTENT_TYPES, Media
-from store.media.repository import find_for_read, insert, upload_target
+from store.media.repository import find_for_read, find_map_for_read, for_map, insert, upload_target
 from store.media.storage import discard_object, get_object, put_object
 
 logger = logging.getLogger(__name__)
+
+
+def _reads(reader: Owner | Contributor, contributor_id: str | None) -> bool:
+    # The owner reads all the media of the map, a contributor only the media of their own points
+    return isinstance(reader, Owner) or reader.id == contributor_id
 
 
 def _can_read(db, row, credentials: Credentials) -> bool:
@@ -31,8 +36,7 @@ def _can_read(db, row, credentials: Credentials) -> bool:
     except (MapNotFound, NotAuthorized):
         return False
 
-    # The owner reads all the media of the map, a contributor only the media of their own points
-    return isinstance(reader, Owner) or reader.id == contributor_id
+    return _reads(reader, contributor_id)
 
 
 class MediaStore:
@@ -136,3 +140,24 @@ class MediaStore:
         except (BotoCoreError, ClientError) as error:
             logger.error(f"Read media '{media_id}' failed with: '{error}'")
             raise StoreUnavailable
+
+    @classmethod
+    async def media_of_map(cls, map_id: str, credentials: Credentials) -> list[Media]:
+        with session_scope() as db:
+            try:
+                map_obj = find_map_for_read(db, map_id)
+
+                if map_obj is None:
+                    raise MapNotFound
+
+                # Anyone reads all the media of a public map; otherwise, it depends on the role
+                reader = None
+                if map_obj.sharing != SharePermission.PUBLIC:
+                    reader = role_in_map(db, map_obj.id, map_obj.owner_id, credentials)
+
+                rows = for_map(db, map_id)
+            except SQLAlchemyError as error:
+                logger.error(f"Fetch the media of map '{map_id}' failed with: '{error}'")
+                raise StoreUnavailable
+
+        return [media for media, contributor_id in rows if reader is None or _reads(reader, contributor_id)]

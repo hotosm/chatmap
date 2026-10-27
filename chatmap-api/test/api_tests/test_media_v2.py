@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 from hotosm_auth_fastapi import get_current_user_optional
 
 from api.v2 import router as v2_router
-from api.v2.routes.media import add_media, media_uploader, read_media
-from results.error import NotAuthorized, PointAlreadyHasMedia, StoreUnavailable, UnsupportedMediaType
+from api.v2.routes.media import add_media, list_map_media, media_uploader, read_media
+from results.error import MapNotFound, NotAuthorized, PointAlreadyHasMedia, StoreUnavailable, UnsupportedMediaType
 from settings import API_URL
 from store.contributors.authorization import Owner
 from store.credentials import Credentials
@@ -172,6 +172,48 @@ async def test_read_answers_unavailable_when_the_store_is_down():
     assert raised.value.status_code == 503
 
 
+# ---- GET /v2/maps/{map_id}/media ----
+
+async def test_list_returns_the_media_of_the_map_with_their_points():
+    with _patch_store("media_of_map", return_value=[_media()]) as store:
+        result = await list_map_media(map_id="map-1", credentials=_AS_OWNER)
+
+    store.assert_awaited_once_with("map-1", _AS_OWNER)
+    [item] = result.media
+    assert item.point_id == "p-1"
+    assert item.id == "media-1"
+    assert item.url == f"{API_URL}/v2/media/media-1"
+    assert item.content_type == "image/jpeg"
+    assert item.captured_at == datetime(2026, 10, 20, 18, 12, tzinfo=timezone.utc)
+
+
+async def test_list_of_a_map_without_media_is_empty():
+    with _patch_store("media_of_map", return_value=[]):
+        result = await list_map_media(map_id="map-1", credentials=_AS_OWNER)
+
+    assert result.media == []
+
+
+async def test_list_asks_as_anonymous_without_credentials():
+    with _patch_store("media_of_map", return_value=[]) as store:
+        await list_map_media(map_id="map-1", credentials=Credentials())
+
+    store.assert_awaited_once_with("map-1", Credentials())
+
+
+@pytest.mark.parametrize("error, status_code", [
+    (MapNotFound(), 404),
+    (NotAuthorized(), 403),
+    (StoreUnavailable(), 503),
+])
+async def test_list_maps_store_errors_to_http(error, status_code):
+    with _patch_store("media_of_map", side_effect=error):
+        with pytest.raises(HTTPException) as raised:
+            await list_map_media(map_id="map-1", credentials=_AS_OWNER)
+
+    assert raised.value.status_code == status_code
+
+
 # ---- over HTTP ----
 
 _UPLOAD = {"file": ("photo.jpg", b"data", "image/jpeg")}
@@ -257,3 +299,21 @@ def test_http_read_as_a_contributor_streams_the_media():
     assert response.content == b"data"
     assert response.headers["content-type"] == "image/jpeg"
     store.assert_awaited_once_with("media-1", _AS_CONTRIBUTOR)
+
+
+def test_http_list_without_credentials_still_reaches_the_store_for_public_maps():
+    with _patch_store("media_of_map", return_value=[_media()]) as store:
+        response = _client().get("/v2/maps/map-1/media")
+
+    assert response.status_code == 200
+    assert response.json()["media"][0]["point_id"] == "p-1"
+    store.assert_awaited_once_with("map-1", Credentials())
+
+
+def test_http_list_as_the_owner_passes_the_session():
+    with _patch_store("media_of_map", return_value=[]) as store:
+        response = _client(user=_user()).get("/v2/maps/map-1/media")
+
+    assert response.status_code == 200
+    assert response.json() == {"media": []}
+    store.assert_awaited_once_with("map-1", _AS_OWNER)
