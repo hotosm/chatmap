@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "chatmap-app",
-    "slug": "chatmap-app",
+    "slug": "chatmap",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "chatmapapp",
+    "scheme": "hot-chatmap",
     "userInterfaceStyle": "automatic",
     "android": {
       "predictiveBackGestureEnabled": false,
@@ -44,11 +44,23 @@
           "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to access your location"
         }
       ],
-      "expo-image"
+      "expo-image",
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-audio",
+      "expo-video",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1822b39a-34b2-4ff2-899e-138778bf140a"
+      }
+    },
+    "owner": "lawal-coop"
   }
 }
