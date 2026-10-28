@@ -3,12 +3,12 @@ import {Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native
 import {router, Stack, useLocalSearchParams} from 'expo-router';
 import {useCameraPermissions} from 'expo-camera';
 import {RecordingPresets, requestRecordingPermissionsAsync, useAudioRecorder} from 'expo-audio';
-import * as Location from 'expo-location';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {Button} from '../../components/Button';
 import {CameraModal} from '../../components/map/CameraModal';
 import {MessageInputBar, RecordingBar} from '../../components/map/InputBar';
+import {LocationPicker} from '../../components/map/LocationPicker';
 import {MapHeader} from '../../components/map/MapHeader';
 import {PointEntry} from '../../components/map/PointEntry';
 import {setRecordingMode} from '../../components/map/recordingMode';
@@ -40,6 +40,7 @@ export default function MapperScreen() {
     const stickToBottom = useRef(true);
     const [awaitingMedia, setAwaitingMedia] = useState<number | null>(null);
     const [cameraOpen, setCameraOpen] = useState(false);
+    const [pickerOpen, setPickerOpen] = useState(false);
     const [recordingAudio, setRecordingAudio] = useState(false);
     const [, requestCameraPermission] = useCameraPermissions();
     const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -61,21 +62,14 @@ export default function MapperScreen() {
         setRecordingMode(false).catch((error) => console.warn('Setting the audio mode failed', error));
     }, []);
 
-    const shareLocation = async () => {
+    const sendLocation = async (latitude: number, longitude: number) => {
+        setPickerOpen(false);
+
         try {
-            const {granted} = await Location.requestForegroundPermissionsAsync();
-            if (!granted) {
-                console.error('Location permission denied');
-                return;
-            }
-
-            const position = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.High});
-            const {latitude, longitude} = position.coords;
-
             stickToBottom.current = true;
             setAwaitingMedia(await capturePoint(id, latitude, longitude));
         } catch (error) {
-            console.error('Failed to get location:', error);
+            console.error('Failed to save the location:', error);
         }
     };
 
@@ -178,12 +172,19 @@ export default function MapperScreen() {
             ) : (
                 <MessageInputBar
                     locationShared={awaitingMedia !== null}
-                    onLocationPress={shareLocation}
+                    onLocationPress={() => setPickerOpen(true)}
                     onCameraPress={openCamera}
                     onMicrophonePress={startAudio}
                 />
             )}
             {cameraOpen && <CameraModal onClose={() => setCameraOpen(false)} onCapture={saveMedia} />}
+            {pickerOpen && (
+                <LocationPicker
+                    online={online}
+                    onClose={() => setPickerOpen(false)}
+                    onPick={(latitude, longitude) => void sendLocation(latitude, longitude)}
+                />
+            )}
         </View>
     );
 }
