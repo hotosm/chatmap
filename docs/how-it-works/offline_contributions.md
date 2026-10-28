@@ -1,311 +1,316 @@
-# Feature spec — Contribuciones sin conexión
+# Feature spec — Offline contributions
 
-`chatmap-app` captura Points y media en el campo, donde la conexión no es
-confiable. Este documento define cómo la app detecta que no tiene conexión,
-cómo captura mientras tanto, y cómo sube lo capturado cuando vuelve la señal.
-Continúa [map_contributions.md](map_contributions.md), que define quién puede
-contribuir y cómo se autoriza.
+`chatmap-app` captures Points and media in the field, where the connection is
+unreliable. This document defines how the app detects that it has no
+connection, how it captures in the meantime, and how it uploads what it captured
+when the signal comes back. It continues
+[map_contributions.md](map_contributions.md), which defines who can contribute
+and how they are authorized.
 
-## Propósito
+## Purpose
 
-Permitir que una persona siga capturando Points y media sin conexión, sin
-perder datos ni duplicarlos, y que se suban solos al mapa para el que se
-capturaron cuando vuelva la señal.
+Let a person keep capturing Points and media offline, without losing or
+duplicating data, and have them upload on their own to the map they were
+captured for once the signal comes back.
 
-## Alcance
+## Scope
 
-**Dentro**
+**In scope**
 
-- Detectar si la app tiene acceso a nuestro servidor.
-- Guardar y refrescar la lista de mapas en el teléfono.
-- Capturar sin conexión para un mapa de esa lista, y subir lo capturado.
-- Los estados que ve el usuario para cada Point y para su media.
-- El historial de lo que el usuario subió a un mapa, leído del servidor.
-- Que un reintento no cree un Point duplicado (el id se calcula de los datos).
-- Los endpoints nuevos (`health`, "mis mapas", "mis Points de un mapa") y el
-  cambio en la creación de Points.
-- Las dos pantallas de la app y qué hace cada una.
+- Detecting whether the app can reach our server.
+- Storing and refreshing the list of maps on the phone.
+- Capturing offline for a map on that list, and uploading what was captured.
+- The states the user sees for each Point and for its media.
+- The history of what the user uploaded to a map, read from the server.
+- Making sure a retry doesn't create a duplicate Point (the id is computed from
+  the data).
+- The new endpoints (`health`, "my maps", "my Points on a map") and the change
+  to Point creation.
+- The app's two screens and what each one does.
 
-**Fuera / diferido**
+**Out of scope / deferred**
 
-- **Garantizar que la copia esté al día antes de salir al campo.** La app
-  refresca la lista cuando puede, pero no impide salir con una vieja: es
-  responsabilidad del usuario.
-- Un modo manual para forzar el estado offline.
-- Refresco en segundo plano con la app cerrada, y refresco periódico con la app
-  abierta.
-- Consultar en lote el estado de los envíos (Decisión 16).
-- Guardar en el teléfono el historial de lo ya creado (Decisión 12).
-- Login con Hanko, moderación y control de abuso (ver
+- **Guaranteeing that the copy is up to date before going into the field.** The
+  app refreshes the list when it can, but doesn't stop the user from going out
+  with an old one: that is the user's responsibility.
+- A manual mode to force the offline state.
+- Background refresh with the app closed, and periodic refresh with the app
+  open.
+- Querying the status of the uploads in bulk (Decision 16).
+- Storing the history of what was already created on the phone (Decision 12).
+- Login with Hanko, moderation and abuse control (see
   [map_contributions.md](map_contributions.md)).
 
-## Premisas
+## Premises
 
-- **El servidor es la fuente de verdad.** Lo que hay en el teléfono es una
-  copia: la lista de mapas y la cola de envío. El historial de lo ya creado
-  **no se guarda**: se lee del servidor cada vez.
-- **Unirse a un mapa necesita conexión**, porque el `join` es contra el
-  servidor. Sin conexión, escanear una invitación debe avisarlo. Al unirse, el
-  mapa se agrega a la lista guardada con la respuesta del `join`.
-- **La lista de mapas se guarda en el teléfono** y puede estar desactualizada.
-  Que la lista esté al día antes de salir es responsabilidad del usuario.
-- El almacenamiento local es `expo-sqlite`.
+- **The server is the source of truth.** What's on the phone is a copy: the
+  list of maps and the send queue. The history of what was already created **is
+  not stored**: it is read from the server every time.
+- **Joining a map needs a connection**, because `join` goes to the server.
+  Offline, scanning an invitation must say so. On joining, the map is added to
+  the stored list with the `join` response.
+- **The list of maps is stored on the phone** and can be out of date. Keeping
+  the list up to date before going out is the user's responsibility.
+- Local storage is `expo-sqlite`.
 
-## Pantallas
+## Screens
 
 ```mermaid
 flowchart LR
-    I["Inicio"] -->|"elegir un mapa"| M["Subida: contenido y coordenada"]
-    M -->|"atrás"| I
-    I -->|"escanear invitación, con conexión"| S["Escáner"]
-    S --> J["Unirse: apodo"]
-    J -->|"Listo: el mapa se agrega a la lista"| I
+    I["Home"] -->|"pick a map"| M["Upload: content and coordinate"]
+    M -->|"back"| I
+    I -->|"scan invitation, online"| S["Scanner"]
+    S --> J["Join: nickname"]
+    J -->|"Done: the map is added to the list"| I
 ```
 
-| Pantalla | Con conexión | Sin conexión |
+| Screen | Online | Offline |
 |---|---|---|
-| **Inicio** | La lista de mapas donde contribuís, refrescada, con la hora de su última actualización, y el botón para escanear una invitación | La última lista guardada, con la hora de su última actualización. Se puede elegir cualquier mapa de la lista. Escanear avisa que necesita conexión |
-| **Subida** | La pantalla actual de contenido y coordenada, para el mapa elegido. Muestra el historial de lo que el usuario subió a ese mapa (leído del servidor) junto con lo que está en la cola, cada ítem con su estado. Todas las fotos y videos se dibujan con la misma proporción, estén en la cola o en el historial. Los videos y audios se cargan recién cuando el usuario los toca. Cada globo muestra la fecha y hora en que el usuario lo mandó en la app: el de la ubicación, la hora de captura del Point; el de la media, la hora en que se adjuntó | La misma, pero **sin historial**: solo se ve lo que está en la cola (sin confirmar y rechazado). Desde ahí se puede volver al Inicio y elegir otro mapa |
+| **Home** | The list of maps you contribute to, refreshed, with the time of its last update, and the button to scan an invitation | The last stored list, with the time of its last update. Any map on the list can be picked. Scanning says that it needs a connection |
+| **Upload** | The current content and coordinate screen, for the chosen map. It shows the history of what the user uploaded to that map (read from the server) together with what's in the queue, each item with its state. All photos and videos are drawn with the same aspect ratio, whether they are in the queue or in the history. Videos and audios load only when the user taps them. Each bubble shows the date and time the user sent it in the app: for the location, the Point's capture time; for the media, the time it was attached | The same, but **without history**: only what's in the queue is shown (unconfirmed and rejected). From there the user can go back to Home and pick another map |
 
-## Actualización de la lista de mapas
+## Updating the list of maps
 
-La lista se pide con "mis mapas" (ver [Contrato](#contrato)) y la respuesta
-**reemplaza** la copia guardada. Se refresca:
+The list is requested with "my maps" (see [Contract](#contract)) and the
+response **replaces** the stored copy. It is refreshed:
 
-- al abrir el Inicio con conexión,
-- al volver la conexión, antes de enviar lo que haya en la cola,
-- con un gesto de actualizar.
+- when Home is opened while online,
+- when the connection comes back, before sending whatever is in the queue,
+- with a pull-to-refresh gesture.
 
-No hay refresco periódico. El Inicio muestra la hora de la última
-actualización. Si el refresco falla, se conserva la última lista.
+There is no periodic refresh. Home shows the time of the last update. If the
+refresh fails, the last list is kept.
 
-Un contribuyente siempre tiene al menos un mapa en la lista: unirse necesita
-conexión y agrega el mapa a la copia local.
+A contributor always has at least one map on the list: joining needs a
+connection and adds the map to the local copy.
 
-## Detección de conectividad
+## Connectivity detection
 
-La app tiene dos estados, **online** y **offline**, y los decide un módulo
-propio. Lo que importa no es si el teléfono tiene red, sino si **nuestro
-servidor contesta**. Un teléfono puede estar conectado a una Wi-Fi sin salida a
-internet: `expo-network` documenta que `isConnected` no implica internet
-alcanzable, y que en iOS `isInternetReachable` es siempre igual a
+The app has two states, **online** and **offline**, and its own module decides
+them. What matters isn't whether the phone has a network, but whether **our
+server answers**. A phone can be connected to a Wi-Fi network with no internet
+access: `expo-network` documents that `isConnected` doesn't imply reachable
+internet, and that on iOS `isInternetReachable` is always the same as
 `isConnected`.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Online
-    Online --> Offline: fallan las comprobaciones, o un pedido no llega
-    Offline --> Online: una comprobación a /v2/health responde
+    Online --> Offline: the checks fail, or a request doesn't get through
+    Offline --> Online: a check to /v2/health answers
 ```
 
-| Fuente | Para qué sirve |
+| Source | What it's for |
 |---|---|
-| Avisos del sistema (`expo-network`) | Disparan una comprobación inmediata cuando cambia la red |
-| Comprobación periódica a `GET /v2/health`, con la app abierta | Detecta una red que no llega al servidor, aunque nadie esté haciendo nada |
-| El resultado de cada pedido real | Una señal más, sin costo: si un pedido falla por la red, no hay que esperar la siguiente comprobación |
+| System notifications (`expo-network`) | They trigger an immediate check when the network changes |
+| Periodic check to `GET /v2/health`, with the app open | Detects a network that doesn't reach the server, even if nobody is doing anything |
+| The result of each real request | One more signal, at no cost: if a request fails because of the network, there's no need to wait for the next check |
 
-- La comprobación es **la misma en iOS y en Android**. Lo nativo de Android
-  sirve de disparador, pero no decide, porque "internet validado" no significa
-  que nuestro servidor conteste.
-- Solo cuenta como "sin conexión" cuando el pedido **no llega**. Si el servidor
-  contesta con un error (403, 404, 500), llegó, y la app sigue online.
-- Con la app cerrada no hay detección.
+- The check is **the same on iOS and on Android**. Android's native signal
+  serves as a trigger, but doesn't decide, because "validated internet" doesn't
+  mean our server answers.
+- It only counts as "no connection" when the request **doesn't get through**.
+  If the server answers with an error (403, 404, 500), it got through, and the
+  app stays online.
+- With the app closed there is no detection.
 
-**Parámetros.** Arrancan con estos valores estándar y se cambian con variables
-de entorno de la app, que se fijan al construirla. Los nombres son provisorios.
+**Parameters.** They start with these standard values and are changed with the
+app's environment variables, which are set when it is built. The names are
+provisional.
 
-| Parámetro | Valor inicial | Variable |
+| Parameter | Initial value | Variable |
 |---|---|---|
-| Cada cuánto se comprueba, estando online | 30 s | `EXPO_PUBLIC_HEALTH_INTERVAL_MS` |
-| Cuánto se espera la respuesta de una comprobación | 5 s | `EXPO_PUBLIC_HEALTH_TIMEOUT_MS` |
-| Fallos seguidos para pasar a offline | 2 | `EXPO_PUBLIC_HEALTH_FAILURES_TO_OFFLINE` |
-| Pausa entre comprobaciones estando offline | Empieza en 5 s, se duplica y llega a un máximo de 60 s | `EXPO_PUBLIC_HEALTH_RETRY_MIN_MS`, `EXPO_PUBLIC_HEALTH_RETRY_MAX_MS` |
+| How often to check, while online | 30 s | `EXPO_PUBLIC_HEALTH_INTERVAL_MS` |
+| How long to wait for a check's response | 5 s | `EXPO_PUBLIC_HEALTH_TIMEOUT_MS` |
+| Consecutive failures to go offline | 2 | `EXPO_PUBLIC_HEALTH_FAILURES_TO_OFFLINE` |
+| Pause between checks while offline | Starts at 5 s, doubles, up to a maximum of 60 s | `EXPO_PUBLIC_HEALTH_RETRY_MIN_MS`, `EXPO_PUBLIC_HEALTH_RETRY_MAX_MS` |
 
-Una sola comprobación que responde alcanza para volver a online. Los mismos
-tiempos de pausa se usan para reintentar un envío que dio 5xx.
+A single check that answers is enough to go back online. The same pause times
+are used to retry an upload that got a 5xx.
 
-## Captura y subida
+## Capture and upload
 
 ```mermaid
 flowchart TD
-    A["El usuario captura un Point en un mapa"] --> C["Se guarda en la cola local con su mapa"]
-    C --> B{"¿Online?"}
-    B -->|"sí"| E["Se envía el siguiente de la cola"]
-    B -->|"no"| D["Espera en el teléfono"]
-    D --> F["Vuelve la señal"]
-    F --> G["La app refresca 'mis mapas'"]
-    G --> M{"¿El mapa sigue en la lista?"}
-    M -->|"no"| J["Se borra de la cola, sin enviarse"]
-    M -->|"sí"| E
-    E --> H{"Respuesta del Point"}
-    H -->|"201 o 200"| I["Point creado"]
-    H -->|"403, 404 o 422"| J2["Rechazado"]
-    H -->|"sin respuesta, o 5xx"| K["Sin confirmar: se reintenta con los mismos datos"]
+    A["The user captures a Point on a map"] --> C["It is stored in the local queue with its map"]
+    C --> B{"Online?"}
+    B -->|"yes"| E["The next one in the queue is sent"]
+    B -->|"no"| D["It waits on the phone"]
+    D --> F["The signal comes back"]
+    F --> G["The app refreshes 'my maps'"]
+    G --> M{"Is the map still on the list?"}
+    M -->|"no"| J["Deleted from the queue, without being sent"]
+    M -->|"yes"| E
+    E --> H{"Point response"}
+    H -->|"201 or 200"| I["Point created"]
+    H -->|"403, 404 or 422"| J2["Rejected"]
+    H -->|"no response, or 5xx"| K["Unconfirmed: retried with the same data"]
     K --> E
-    I --> N{"¿Tiene media?"}
-    N -->|"no"| Z["Listo"]
-    N -->|"sí"| P["Se sube la media con el id del Point"]
-    P --> Q{"Respuesta de la media"}
-    Q -->|"201 o 409"| R["Media subida"]
-    Q -->|"403, 415 o 422"| S["Media rechazada"]
-    Q -->|"sin respuesta, o 5xx"| T["Se reintenta"]
+    I --> N{"Does it have media?"}
+    N -->|"no"| Z["Done"]
+    N -->|"yes"| P["The media is uploaded with the Point's id"]
+    P --> Q{"Media response"}
+    Q -->|"201 or 409"| R["Media uploaded"]
+    Q -->|"403, 415 or 422"| S["Media rejected"]
+    Q -->|"no response, or 5xx"| T["Retried"]
     T --> P
 ```
 
-Un mismo mecanismo atiende los dos casos: todo Point pasa por la cola local,
-con o sin conexión. Con conexión se envía enseguida. Sin conexión espera.
+A single mechanism handles both cases: every Point goes through the local
+queue, online or offline. Online, it is sent right away. Offline, it waits.
 
-**Hay una sola cola, ordenada por la hora de captura**, sin separar por mapa.
-Dentro de un mapa el orden de captura se respeta. Entre mapas no cambia el
-resultado en el servidor, porque ningún Point depende de uno de otro mapa. Un
-rechazo no frena la cola: se marca y se sigue con el siguiente. Una falla de red
-sí la detiene, porque no hay nada que enviar hasta que vuelva.
+**There is a single queue, ordered by capture time**, not split by map. Within
+a map, the capture order is respected. Across maps it doesn't change the result
+on the server, because no Point depends on one from another map. A rejection
+doesn't stop the queue: it is marked and the next one is sent. A network failure
+does stop it, because nothing can be sent until the connection comes back.
 
-**Qué guarda cada ítem de la cola en el teléfono**
+**What each queue item stores on the phone**
 
-| Dato | Detalle |
+| Data | Detail |
 |---|---|
-| Hora de captura | La que fijó la app cuando el usuario capturó, no la de envío ni la que ve el servidor al recibirlo |
-| Hora de la media | Solo si tiene: la que fijó la app cuando el usuario la adjuntó. Como la del Point, no es la de envío |
-| Coordenadas y mensaje | Lo que el usuario cargó |
-| Media | El archivo local, hasta que se suba |
-| Mapa | El mapa para el que se capturó |
-| Estado del Point | Sin confirmar, creado o rechazado |
-| Estado de la media | Solo si tiene: esperando, subida o rechazada |
-| Id del Point en el servidor | Se completa cuando el servidor lo informa |
+| Capture time | The one the app set when the user captured, not the send time nor the time the server sees when it receives it |
+| Media time | Only if it has media: the one the app set when the user attached it. Like the Point's, it isn't the send time |
+| Coordinates and message | What the user entered |
+| Media | The local file, until it is uploaded |
+| Map | The map it was captured for |
+| Point state | Unconfirmed, created or rejected |
+| Media state | Only if it has media: waiting, uploaded or rejected |
+| Point id on the server | Filled in when the server reports it |
 
-Un ítem sale de la cola cuando queda completo (Point creado y, si tiene, media
-subida) y **no está abierto**. Desde ahí el usuario lo ve en el historial que lee
-del servidor. Los rechazados siguen en la cola, visibles con su motivo, hasta que
-el usuario los descarte. Si un Point está a la vez en la cola y en el historial
-(por ejemplo, creado y con la media pendiente), se muestra una sola vez, con los
-datos de la cola, comparando por el id del servidor.
+An item leaves the queue when it is complete (Point created and, if it has
+media, media uploaded) and **isn't open**. From then on the user sees it in the
+history read from the server. Rejected items stay in the queue, visible with
+their reason, until the user discards them. If a Point is both in the queue and
+in the history (for example, created with its media still pending), it is shown
+only once, with the queue's data, matching by the server id.
 
-**Cada Point lleva como máximo una media: una foto, un video o un audio.** Foto y
-video se capturan con la cámara, que tiene los modos Photo y Video. El audio se
-graba desde el micrófono de la barra, que pasa a mostrar el tiempo de grabación,
-un botón para descartar y otro para terminar. Grabar empieza y termina con un
-toque, no manteniendo apretado: la media adjunta no se puede deshacer, y soltar
-el dedo sin querer la mandaría. Por ahora no hay límite de duración ni de tamaño.
+**Each Point carries at most one media: a photo, a video or an audio.** Photo
+and video are captured with the camera, which has Photo and Video modes. Audio
+is recorded from the microphone in the bar, which then shows the recording time,
+a button to discard and another to finish. Recording starts and stops with a
+tap, not by holding: attached media can't be undone, and lifting the finger by
+accident would send it. For now there is no duration or size limit.
 
-**Un Point abierto es el que espera su media.** El usuario comparte la ubicación,
-que crea el Point, y recién después captura la media. Con conexión, el Point puede
-quedar creado en el servidor antes de que llegue la media. Si saliera de la cola
-por estar completo, la media no tendría a qué ítem engancharse. Por eso el Point
-queda abierto desde que se captura y se cierra cuando se adjunta la media, cuando
-el usuario comparte otra ubicación en el mismo mapa, o cuando sale de la
-pantalla. Un Point abierto se queda en la cola aunque ya esté creado. El estado
-de "abierto" no se guarda: si la app se cierra, al volver nada está abierto y la
-próxima limpieza saca lo que ya estaba completo.
+**An open Point is one waiting for its media.** The user shares the location,
+which creates the Point, and only then captures the media. Online, the Point can
+be created on the server before the media arrives. If it left the queue for being
+complete, the media would have no item to attach to. That is why the Point is
+open from the moment it is captured, and it closes when the media is attached,
+when the user shares another location on the same map, or when they leave the
+screen. An open Point stays in the queue even if it is already created. The
+"open" state isn't stored: if the app closes, nothing is open when it comes back,
+and the next cleanup removes whatever was already complete.
 
-**La media se copia a una carpeta persistente** del teléfono en cuanto se adjunta.
-La que dejan la cámara y el micrófono está en el caché, que el sistema puede
-vaciar, y una media en cola tiene que sobrevivir hasta que se suba. El servidor
-deduce el tipo por la extensión del archivo, así que la copia la conserva. La
-copia se borra cuando la media se sube, cuando el usuario descarta el ítem, o
-cuando el mapa sale de la lista (que borra las filas de la cola, pero no los
-archivos): al arrancar y cada vez que cambia la lista de mapas, la app borra las
-copias que ninguna fila de la cola referencia.
+**The media is copied to a persistent folder** on the phone as soon as it is
+attached. The one the camera and the microphone leave is in the cache, which the
+system can empty, and a queued media has to survive until it is uploaded. The
+server infers the type from the file extension, so the copy keeps it. The copy is
+deleted when the media is uploaded, when the user discards the item, or when the
+map leaves the list (which deletes the queue rows, but not the files): on startup
+and every time the list of maps changes, the app deletes the copies that no queue
+row references.
 
-**La media se sube después del Point**, usando el id que devolvió el servidor,
-porque la ruta de media (`POST /v2/points/{point_id}/media`) lo necesita. Un 409
-de la ruta de media significa que el Point ya tiene una, y cuenta como subida.
+**The media is uploaded after the Point**, using the id the server returned,
+because the media route (`POST /v2/points/{point_id}/media`) needs it. A 409 from
+the media route means the Point already has one, and it counts as uploaded.
 
-## Estados de un Point
+## Point states
 
-Cada Point tiene un estado propio. Si además lleva media, la media tiene otro,
-y el usuario ve una marca por cada uno: la primera es la del Point y la segunda
-es la de la media.
+Each Point has its own state. If it also carries media, the media has another,
+and the user sees one mark for each: the first is the Point's and the second is
+the media's.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> SinConfirmar: se captura
-    SinConfirmar --> SinConfirmar: falla de red o 5xx, se reintenta
-    SinConfirmar --> Creado: 201 o 200
-    SinConfirmar --> Rechazado: 403, 404 o 422
+    [*] --> Unconfirmed: captured
+    Unconfirmed --> Unconfirmed: network failure or 5xx, retried
+    Unconfirmed --> Created: 201 or 200
+    Unconfirmed --> Rejected: 403, 404 or 422
 ```
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Esperando: el Point está creado
-    Esperando --> Esperando: falla de red o 5xx, se reintenta
-    Esperando --> Subida: 201 o 409
-    Esperando --> Rechazada: 403, 415 o 422
+    [*] --> Waiting: the Point is created
+    Waiting --> Waiting: network failure or 5xx, retried
+    Waiting --> Uploaded: 201 or 409
+    Waiting --> Rejected: 403, 415 or 422
 ```
 
-| Lo que ve el usuario | Significa | Cómo se llega |
+| What the user sees | Meaning | How it gets there |
 |---|---|---|
-| **Sin confirmar** (⏳) | El Point está solo en el teléfono, o se envió y no hubo respuesta | Al capturarlo. Se mantiene mientras no haya una respuesta definitiva |
-| **Creado** (✓) | El servidor tiene el Point | Responde 201, o 200 al reintentar |
-| **Rechazado** (✗) | El Point no se va a insertar y reintentar no cambia nada | El servidor responde 403 (te quitaron), 404 (el mapa ya no existe) o 422 (el Point es inválido) |
-| **Media subida** (segunda marca ✓) | El servidor tiene la media del Point | Responde 201, o 409 si el Point ya tenía una |
-| **Media rechazada** (segunda marca ✗) | La media no se va a subir | El servidor responde 403 (el Point no existe o no es tuyo), 415 (tipo de archivo no soportado) o 422 (la hora de la media es inválida) |
+| **Unconfirmed** (⏳) | The Point is only on the phone, or it was sent and there was no response | When it is captured. It stays like this until there is a definitive response |
+| **Created** (✓) | The server has the Point | It responds 201, or 200 on a retry |
+| **Rejected** (✗) | The Point won't be inserted and retrying changes nothing | The server responds 403 (you were removed), 404 (the map no longer exists) or 422 (the Point is invalid) |
+| **Media uploaded** (second mark ✓) | The server has the Point's media | It responds 201, or 409 if the Point already had one |
+| **Media rejected** (second mark ✗) | The media won't be uploaded | The server responds 403 (the Point doesn't exist or isn't yours), 415 (unsupported file type) or 422 (the media time is invalid) |
 
-Combinaciones que ve el usuario:
+Combinations the user sees:
 
-| Point sin media | Point con media |
+| Point without media | Point with media |
 |---|---|
-| ⏳ sin confirmar | ⏳ sin confirmar (la media espera) |
-| ✓ creado (final) | ✓ creado, media esperando |
-| ✗ rechazado | ✓✓ Point y media entregados |
-| | ✗ rechazado (la media no se intenta) |
-| | ✓ ✗ creado, media rechazada |
+| ⏳ unconfirmed | ⏳ unconfirmed (the media waits) |
+| ✓ created (final) | ✓ created, media waiting |
+| ✗ rejected | ✓✓ Point and media delivered |
+| | ✗ rejected (the media isn't attempted) |
+| | ✓ ✗ created, media rejected |
 
-"Sin confirmar" no dice "no fue creado": cuando no hay respuesta, la app **no
-sabe** si el servidor lo guardó. "Creado" significa que el servidor lo tiene,
-no que siga visible en el mapa.
+"Unconfirmed" doesn't say "not created": when there is no response, the app
+**doesn't know** whether the server stored it. "Created" means the server has
+it, not that it is still visible on the map.
 
-Un Point que llegó al servidor y cuya respuesta se perdió, reintentado después
-de que el dueño quitó al contribuyente, recibe 403 y queda como rechazado en la
-cola aunque el servidor lo tenga. No se reconcilia: al refrescar la lista el mapa
-ya no está, el ítem se borra de la cola, y el Point queda en el servidor (se
-oculta, según la Decisión 17 de [map_contributions.md](map_contributions.md)).
+A Point that reached the server and whose response was lost, retried after the
+owner removed the contributor, gets a 403 and stays as rejected in the queue
+even though the server has it. It isn't reconciled: when the list is refreshed
+the map is no longer there, the item is deleted from the queue, and the Point
+stays on the server (hidden, per Decision 17 of
+[map_contributions.md](map_contributions.md)).
 
-## Casos y bordes
+## Cases and edge cases
 
-| Situación | Disparador | Resultado observable |
+| Situation | Trigger | Observable result |
 |---|---|---|
-| Se pierde la conexión | Fallan las comprobaciones o un pedido no llega | La app pasa a offline. Lo que se captura sigue entrando a la cola, con su mapa |
-| Elegir otro mapa sin conexión | El usuario vuelve al Inicio desde la Subida | Puede elegir cualquier mapa de la última lista guardada |
-| Vuelve la conexión | Una comprobación a `/v2/health` responde | La app pasa a online, refresca la lista y envía lo que haya en la cola, en orden de hora de captura |
-| Entrar a un mapa sin conexión | El usuario abre la Subida de un mapa estando offline | Ve solo lo que está en la cola. El historial aparece cuando haya conexión |
-| Escanear sin conexión | El usuario abre el escáner | La app avisa que necesita conexión |
-| La lista está vieja | Quitaron al usuario de un mapa mientras estaba sin conexión | Pudo capturar para ese mapa. Al volver la conexión, la lista refrescada ya no lo trae, esos Points se borran de la cola sin enviarse y la app avisa cuántos se descartaron (Decisión 8) |
-| El mapa se renombró o se borró | Cambió en el servidor mientras la lista estaba vieja | La lista guardada muestra el nombre viejo. Si se borró, el envío responde 404 y pasa a "rechazado" |
-| El refresco de la lista falla | Hay conexión, pero el pedido de "mis mapas" falla | Se conserva la última lista y se reintenta después |
-| Respuesta perdida | Se envió, el servidor lo guardó, la respuesta no llegó | El ítem sigue "sin confirmar". Se reintenta con los mismos datos, el servidor calcula el mismo id y responde 200 con el mismo Point. Pasa a "creado" y no se duplica |
-| Servidor caído, con red | `/v2/health` no responde | La app queda offline, igual que sin red |
-| El servidor contesta con un 5xx | Error interno | Sigue online. El ítem queda "sin confirmar" y se reintenta con pausas |
-| Quitaron al usuario entre el refresco y el envío | El servidor responde 403 | Los Points de ese mapa pasan a "rechazado" y **no se insertan**. En el próximo refresco el mapa ya no figura y se borran de la cola |
-| Un mapa del que te quitaron | Se pide "mis mapas" | No aparece en la lista, y la app avisa con un mensaje neutro. Si el usuario estaba en su Subida, vuelve a la lista de mapas. No se puede entrar a su Subida, así que sus rechazados no se ven |
-| Se cierra la app con Points en cola | El usuario la cierra o el sistema la mata | Los Points en cola y la lista de mapas persisten en `expo-sqlite` |
-| Un Point con media | Se captura con una foto, un video o un audio | Se envía el Point (primera marca) y, con el id devuelto, se sube la media (segunda marca). Si el Point se rechaza, la media no se intenta |
-| La media se reintenta | La respuesta de la media se perdió y el servidor ya la tenía | Responde 409. Cuenta como subida |
-| Un video de iPhone | La cámara de iOS graba en `.mov` | El servidor lo acepta como `video/quicktime`. En Android la cámara graba `.mp4` |
-| Una media pesada con mala señal | La subida no termina dentro del timeout de la app (120 s) | Se reintenta desde cero. Como la cola va en orden de captura, los ítems siguientes esperan detrás. No hay límite de tamaño que lo evite |
-| Un Point enviado cuya respuesta se perdió, visto en el historial | Se abre el historial antes de que el reintento responda | Puede verse dos veces: el ítem "sin confirmar" de la cola y el Point creado del historial. Al responder el reintento, el ítem pasa a creado y se muestra una sola vez. La app envía la cola antes de leer el historial para que pase lo menos posible |
-| Se descarta un rechazado | El usuario lo descarta | Sale de la cola. No se vuelve a intentar |
+| The connection is lost | The checks fail or a request doesn't get through | The app goes offline. What is captured keeps going into the queue, with its map |
+| Pick another map while offline | The user goes back to Home from Upload | They can pick any map from the last stored list |
+| The connection comes back | A check to `/v2/health` answers | The app goes online, refreshes the list and sends whatever is in the queue, in capture time order |
+| Open a map while offline | The user opens a map's Upload screen while offline | They only see what's in the queue. The history appears when there is a connection |
+| Scan while offline | The user opens the scanner | The app says that it needs a connection |
+| The list is old | The user was removed from a map while offline | They could capture for that map. When the connection comes back, the refreshed list no longer has it, those Points are deleted from the queue without being sent, and the app says how many were discarded (Decision 8) |
+| The map was renamed or deleted | It changed on the server while the list was old | The stored list shows the old name. If it was deleted, the upload responds 404 and becomes "rejected" |
+| The list refresh fails | There is a connection, but the "my maps" request fails | The last list is kept and the refresh is retried later |
+| Lost response | It was sent, the server stored it, the response didn't arrive | The item stays "unconfirmed". It is retried with the same data, the server computes the same id and responds 200 with the same Point. It becomes "created" and isn't duplicated |
+| Server down, with network | `/v2/health` doesn't answer | The app stays offline, same as with no network |
+| The server answers with a 5xx | Internal error | It stays online. The item stays "unconfirmed" and is retried with pauses |
+| The user was removed between the refresh and the upload | The server responds 403 | That map's Points become "rejected" and **are not inserted**. On the next refresh the map no longer appears and they are deleted from the queue |
+| A map you were removed from | "My maps" is requested | It doesn't appear on the list, and the app says so with a neutral message. If the user was on its Upload screen, they go back to the list of maps. Its Upload screen can't be opened, so its rejected items aren't visible |
+| The app is closed with Points in the queue | The user closes it or the system kills it | The queued Points and the list of maps persist in `expo-sqlite` |
+| A Point with media | It is captured with a photo, a video or an audio | The Point is sent (first mark) and, with the returned id, the media is uploaded (second mark). If the Point is rejected, the media isn't attempted |
+| The media is retried | The media's response was lost and the server already had it | It responds 409. It counts as uploaded |
+| An iPhone video | The iOS camera records `.mov` | The server accepts it as `video/quicktime`. On Android the camera records `.mp4` |
+| Heavy media with a bad signal | The upload doesn't finish within the app's timeout (120 s) | It is retried from scratch. Since the queue goes in capture order, the following items wait behind it. There is no size limit that prevents it |
+| A sent Point whose response was lost, seen in the history | The history is opened before the retry responds | It can show up twice: the "unconfirmed" queue item and the created Point from the history. When the retry responds, the item becomes created and is shown only once. The app sends the queue before reading the history to make this as rare as possible |
+| A rejected item is discarded | The user discards it | It leaves the queue. It isn't attempted again |
 
-## Contrato
+## Contract
 
-**Nombres de ruta provisorios**, salvo `health`. La identidad de quien pregunta
-va en la credencial, no en la ruta: ninguna ruta lleva `me`.
+**Route names are provisional**, except `health`. The caller's identity goes in
+the credential, not in the route: no route carries `me`.
 
-| Operación | Quién | Efecto observable |
+| Operation | Who | Observable effect |
 |---|---|---|
-| `GET /v2/health` | Sin sesión | Responde 200 con un cuerpo mínimo, por ejemplo `{"status": "ok"}`. **No consulta la base de datos**: dice que el servidor contesta, no que todo funcione. Se pide sin usar caché. No tiene relación con `GET /v1/status`, que es otra cosa y exige sesión |
-| Listar mis mapas (`GET /v2/maps`) | Dueño (sesión) o contribuyente (`Authorization: Contributor <secreto>`) | Devuelve `{ "maps": [ { "map_id", "map_name", "role", "nickname" } ] }` con los mapas de quien firma el pedido. Con secreto: los mapas donde el hash de ese secreto tiene un Contributor activo, en el orden en que se unió, con `role: "contributor"` y el `nickname` con que se unió. No incluye los removidos, y un secreto que no es de nadie recibe una lista vacía con 200, no un error. Con sesión: los mapas de los que es dueño, del más viejo al más nuevo, con `role: "owner"` y `nickname: null`. Si llegan las dos credenciales gana el secreto, como en `POST /v2/points`. Sin credencial responde 401. `map_id` y `map_name` se llaman igual que en la respuesta del `join`. En la app, la respuesta reemplaza la lista guardada en el teléfono |
-| `POST /v2/points` (existente, se modifica) | Dueño o contribuyente, según [map_contributions.md](map_contributions.md) | El pedido **ya no lleva `id`**: el servidor lo calcula a partir de los datos del Point. Responde **201** con el id si lo crea, y **200** con el mismo id si ya existía un Point con esos datos. La hora de captura es obligatoria. Esto reemplaza el comportamiento actual (el id lo manda la app, con 409 si es de otro) |
-| Listar mis Points de un mapa (`GET /v2/maps/{map_id}/points`) | Contribuyente: `Authorization: Contributor <secreto>` | Devuelve los Points que **el contribuyente que firma el pedido** creó en ese mapa, sin los que el dueño ocultó (`removed`). Es el historial que dibuja la Subida: de cada Point trae id, hora de captura, coordenadas, mensaje y, si tiene, la media (id, `url`, tipo, tamaño y la hora en que se adjuntó, `null` si es de antes de que se registrara). Responde 403 si el secreto no corresponde a un contribuyente activo de ese mapa, lo que incluye a los quitados y a un mapa borrado. Va de los más nuevos a los más viejos, de a 50 por página. La respuesta trae `next`, un cursor para pedir la página siguiente con el parámetro `cursor`, o `null` si no hay más. El cursor es opaco: la app lo devuelve tal cual, y uno inválido responde 422. La paginación es por clave `(hora de captura, id)`, no por desplazamiento, así que un Point nuevo mientras se pagina no repite ni se salta ninguno. `time` viaja en UTC. Qué devuelve esta ruta con la credencial del dueño queda para cuando se use |
-| `GET /v2/media/{media_id}` (existente, se modifica) | Contribuyente: `Authorization: Contributor <secreto>`, además de lo que ya acepta | Deja leer la media de los Points **propios** del contribuyente, aunque el mapa sea privado. Antes solo leía el dueño, o cualquiera si el mapa es público, y eso sigue igual. Un contribuyente quitado, o que pide la media de otro contribuyente o del dueño en un mapa privado, recibe 404. Si llegan las dos credenciales, se usa solo el secreto, como en el resto de los endpoints |
-| Listar la media de un mapa (`GET /v2/maps/{map_id}/media`) | Sin sesión (mapa público), dueño (sesión) o contribuyente (`Authorization: Contributor <secreto>`) | Devuelve `{ "media": [ { "point_id", "id", "url", "content_type", "size", "captured_at" } ] }` con lo que `GET /v2/media/{media_id}` dejaría leer: toda la media si el mapa es público o lo pide el dueño, y solo la de los Points propios si lo pide un contribuyente. Un mapa sin media devuelve la lista vacía. Lo usa la web para mostrar en el popup de cada Point la media subida desde la app, sin cambiar la lectura v1 del mapa. Responde 404 si el mapa no existe o la sesión no es del dueño en un mapa privado; 403 a un contribuyente quitado o que no es del mapa; 503 si la base no responde |
-| `POST /v2/points/{point_id}/media` | Dueño o contribuyente, según [map_contributions.md](map_contributions.md) | Se amplía para aceptar contribuyentes. Responde 201; 403 si el Point no existe o no es del remitente; 415 si el tipo de archivo no está soportado; 409 si el Point ya tiene una media (la app lo cuenta como subida); 503 si el almacenamiento no responde |
+| `GET /v2/health` | No session | Responds 200 with a minimal body, for example `{"status": "ok"}`. **It doesn't query the database**: it says the server answers, not that everything works. It is requested without cache. It has nothing to do with `GET /v1/status`, which is something else and requires a session |
+| List my maps (`GET /v2/maps`) | Owner (session) or contributor (`Authorization: Contributor <secret>`) | Returns `{ "maps": [ { "map_id", "map_name", "role", "nickname" } ] }` with the maps of whoever signs the request. With a secret: the maps where that secret's hash has an active Contributor, in the order it joined them, with `role: "contributor"` and the `nickname` it joined with. Removed ones aren't included, and a secret that belongs to nobody gets an empty list with 200, not an error. With a session: the maps they own, from oldest to newest, with `role: "owner"` and `nickname: null`. If both credentials arrive, the secret wins, as in `POST /v2/points`. Without a credential it responds 401. `map_id` and `map_name` have the same names as in the `join` response. In the app, the response replaces the list stored on the phone |
+| `POST /v2/points` (existing, modified) | Owner or contributor, per [map_contributions.md](map_contributions.md) | The request **no longer carries `id`**: the server computes it from the Point's data. It responds **201** with the id if it creates it, and **200** with the same id if a Point with that data already existed. The capture time is required. This replaces the current behavior (the app sends the id, with 409 if it belongs to someone else) |
+| List my Points on a map (`GET /v2/maps/{map_id}/points`) | Contributor: `Authorization: Contributor <secret>` | Returns the Points that **the contributor signing the request** created on that map, without the ones the owner hid (`removed`). It is the history the Upload screen draws: for each Point it returns the id, capture time, coordinates, message and, if it has one, the media (id, `url`, type, size and the time it was attached, `null` if it predates that being recorded). It responds 403 if the secret doesn't belong to an active contributor of that map, which includes removed ones and a deleted map. It goes from newest to oldest, 50 per page. The response carries `next`, a cursor to request the next page with the `cursor` parameter, or `null` if there are no more. The cursor is opaque: the app sends it back as is, and an invalid one responds 422. Pagination is by key `(capture time, id)`, not by offset, so a new Point while paging neither repeats nor skips any. `time` travels in UTC. What this route returns with the owner's credential is left for when it is used |
+| `GET /v2/media/{media_id}` (existing, modified) | Contributor: `Authorization: Contributor <secret>`, in addition to what it already accepts | Lets the contributor read the media of their **own** Points, even if the map is private. Before, only the owner could read it, or anyone if the map is public, and that stays the same. A removed contributor, or one requesting the media of another contributor or of the owner on a private map, gets 404. If both credentials arrive, only the secret is used, as in the rest of the endpoints |
+| List a map's media (`GET /v2/maps/{map_id}/media`) | No session (public map), owner (session) or contributor (`Authorization: Contributor <secret>`) | Returns `{ "media": [ { "point_id", "id", "url", "content_type", "size", "captured_at" } ] }` with what `GET /v2/media/{media_id}` would allow reading: all the media if the map is public or the owner requests it, and only the media of their own Points if a contributor requests it. A map with no media returns the empty list. The web uses it to show, in each Point's popup, the media uploaded from the app, without changing the v1 read of the map. It responds 404 if the map doesn't exist or the session isn't the owner's on a private map; 403 to a removed contributor or one who isn't on the map; 503 if the database doesn't answer |
+| `POST /v2/points/{point_id}/media` | Owner or contributor, per [map_contributions.md](map_contributions.md) | Extended to accept contributors. It responds 201; 403 if the Point doesn't exist or isn't the sender's; 415 if the file type isn't supported; 409 if the Point already has a media (the app counts it as uploaded); 503 if the storage doesn't answer |
 
-El historial depende de que `POST /v2/points` guarde `contributor_id` en los
-Points de los contribuyentes: es lo que permite filtrar los propios. Para esa
-consulta hay un índice parcial sobre `points (contributor_id, time, id)` donde
-`contributor_id` no es nulo, así no indexa los Points del dueño, del bot ni de
-las importaciones.
+The history depends on `POST /v2/points` storing `contributor_id` on the
+contributors' Points: that is what makes it possible to filter one's own. For
+that query there is a partial index on `points (contributor_id, time, id)` where
+`contributor_id` isn't null, so it doesn't index the Points of the owner, the bot
+or imports.
 
 ```json
 {
@@ -328,207 +333,215 @@ las importaciones.
 }
 ```
 
-`media` es `null` si el Point no tiene. De ahí sale la marca que se dibuja: un
-Point sin `media` es ✓, y con `media` es ✓✓.
+`media` is `null` if the Point has none. That is where the drawn mark comes from:
+a Point without `media` is ✓, and with `media` it is ✓✓.
 
-**El id del Point se calcula de sus datos.** El servidor deriva el id con un hash
-de quién lo envía, el mapa, la hora de captura, las coordenadas y el mensaje. Los
-mismos datos dan siempre el mismo id. **La hora de captura es la que fijó la app
-cuando el usuario capturó**, no la hora en que el servidor recibe el pedido: si
-fuera la del servidor, un reintento tendría otra hora y daría otro id.
+**The Point id is computed from its data.** The server derives the id with a
+hash of who sends it, the map, the capture time, the coordinates and the
+message. The same data always gives the same id. **The capture time is the one
+the app set when the user captured**, not the time the server receives the
+request: if it were the server's, a retry would have another time and give
+another id.
 
 ```text
-Primer intento:  el servidor calcula el id X, inserta el Point con X, responde 201 y X
-(la respuesta se pierde)
-Reintento:       el servidor calcula el mismo X, la clave primaria ya existe → no inserta, responde 200 y X
+First attempt:  the server computes id X, inserts the Point with X, responds 201 and X
+(the response is lost)
+Retry:          the server computes the same X, the primary key already exists → doesn't insert, responds 200 and X
 ```
 
-- **No hay tabla ni encabezado extra.** La unicidad la garantiza la clave
-  primaria de `points`, que ya existe.
-- "Quién lo envía" es solo un ingrediente del cálculo: el contribuyente (su
-  `contributor.id`) o el dueño (su `user.id`). El id no depende de que
-  `contributor_id` esté completo. El historial sí lo usa, para filtrar los Points
-  propios (ver Contrato).
-- Dos personas con los mismos datos no comparten id, porque el remitente entra
-  en el cálculo.
-- **Lo capturado es inmutable**: un ítem de la cola no se edita, porque cambiar
-  un dato cambiaría el id y un reintento duplicaría. La **hora de captura es
-  obligatoria**.
-- El reintento devuelve el id del Point original, así la cola lo recupera aunque
-  se haya perdido la primera respuesta y puede subir la foto.
-- Al insertar, un id que ya existe no se toca (`ON CONFLICT DO NOTHING`). El modo
-  live, en cambio, actualiza la fila (`DO UPDATE`), porque reprocesa el mismo
-  mensaje a propósito. Acá lo subido es inmutable.
-- La forma exacta del hash (formato de cada dato, normalización de la hora a UTC,
-  tratamiento de un mensaje vacío) se define al implementar. La condición es que
-  sea determinista.
+- **There is no extra table or header.** Uniqueness is guaranteed by the
+  primary key of `points`, which already exists.
+- "Who sends it" is only one ingredient of the computation: the contributor
+  (their `contributor.id`) or the owner (their `user.id`). The id doesn't depend
+  on `contributor_id` being filled in. The history does use it, to filter one's
+  own Points (see Contract).
+- Two people with the same data don't share an id, because the sender is part
+  of the computation.
+- **What is captured is immutable**: a queue item isn't edited, because
+  changing a field would change the id and a retry would duplicate. The
+  **capture time is required**.
+- The retry returns the original Point's id, so the queue recovers it even if
+  the first response was lost, and can upload the photo.
+- On insert, an id that already exists isn't touched (`ON CONFLICT DO NOTHING`).
+  Live mode, on the other hand, updates the row (`DO UPDATE`), because it
+  reprocesses the same message on purpose. Here, what is uploaded is immutable.
+- The exact shape of the hash (format of each field, normalization of the time
+  to UTC, handling of an empty message) is defined at implementation time. The
+  condition is that it be deterministic.
 
-## Decisiones
+## Decisions
 
-1. **El servidor es la fuente de verdad, y lo local es una copia.**
-   *Descartado:* que el teléfono sea la fuente y el servidor la reciba. Con una
-   copia, una baja o un cambio del dueño se reflejan al refrescar.
-2. **Almacenamiento local en `expo-sqlite`.** Sirve para la lista de mapas y la
-   cola de envío, que necesitan orden y persistencia. *Descartado:* AsyncStorage
-   (para una cola ordenada habría que sumar otra cosa) y `expo-secure-store`
-   con un JSON (límites de tamaño en algunas versiones de iOS, y es una
-   herramienta para secretos).
-3. **Sin conexión se captura para un mapa de la lista guardada, y lo capturado se
-   envía solo al volver la señal.** Desde la Subida se puede volver al Inicio y
-   elegir otro mapa. La lista puede estar vieja, y eso es responsabilidad del
-   usuario. *Descartado:* capturar borradores sin mapa y elegir el destino al
-   volver la señal (agrega una pantalla de asignación, grupos y selección de
-   subconjuntos), y un modo offline manual con descarga previa. *Costo
-   aceptado:* quien capturó para un mapa del que ya lo habían quitado pierde
-   esos Points.
-4. **Dos estados, online y offline, decididos por una comprobación a nuestro
-   servidor en las dos plataformas.** Los avisos del sistema son el disparador,
-   y cada pedido real aporta una señal. *Descartado:* confiar solo en el estado
-   de red del sistema (en iOS no distingue una Wi-Fi sin salida), solo en el
-   resultado de los pedidos (no avisa cuándo volvió la conexión), y usar lo
-   nativo en Android y el ping solo en iOS (responden preguntas distintas y hay
-   dos caminos que mantener).
-5. **No hay modo manual de forzar offline.** Existía para descargar antes de
-   salir, y con la decisión 3 ya no hay nada que preparar. Se puede agregar
-   después sin cambiar el resto.
-6. **El id del Point lo calcula el servidor a partir de los datos del Point.**
-   Un reintento no duplica aunque la respuesta se haya perdido, porque da el
-   mismo id y la clave primaria lo rechaza. Vale también para la ruta del dueño,
-   que deja de recibir el id de la app: hoy nadie la usa, así que el cambio no
-   rompe nada. Tiene precedente en D-003 de [live_mode.md](live_mode.md), donde
-   el id del modo live se deriva de la hora del mensaje de WhatsApp. Acá es un
-   hash de remitente, mapa, hora de captura, coordenadas y mensaje, porque
-   `points.id` es la clave primaria de toda la tabla y usar solo la hora, como el
-   live (con resolución de segundo), chocaría entre remitentes. La hora es la que
-   fijó la app al capturar, no la que ve el servidor. *Descartado:* copiar el id
-   del modo live tal cual; que el id lo genere la app (el Point no debe depender
-   de la sincronización);
-   una clave de idempotencia con una tabla aparte (agrega una tabla que crece
-   con cada Point, un encabezado y un vencimiento); una regla única solo por
-   coordenadas (descartaría Points legítimos hechos en el mismo lugar); una
-   restricción única sobre columnas de `points` (no cubre al dueño, que tiene
-   `contributor_id` vacío, igual que el bot y las importaciones); y preguntar el
-   estado después (la consulta no cierra la carrera entre el pedido original y
-   el reintento). *Riesgo aceptado:* dos Points con exactamente los mismos datos
-   se fusionan en uno. No preocupa, porque coinciden remitente, mapa, hora de
-   captura, coordenadas y mensaje.
-7. **Tres estados para el Point (sin confirmar, creado, rechazado) y otros tres
-   para su media (esperando, subida, rechazada), con una marca por cada uno.**
-   "Sin confirmar" junta "en la cola" y "enviado sin respuesta", porque el
-   usuario no puede hacer nada distinto en cada caso. Los rechazados quedan
-   visibles con su motivo hasta que el usuario los descarte. Un fallo de red o un
-   5xx no es un rechazo. Una media que responde 409 cuenta como subida.
-   *Descartado:* "no fue creado" como texto del primer estado, porque sin
-   respuesta la app no puede afirmarlo; y mostrar "creado" solo cuando el Point y
-   la media estén confirmados (el Point ya existe, y la media es un segundo pedido
-   que puede fallar por separado).
-8. **Si te quitaron, los Points en cola de ese mapa no se insertan, y la app
-   avisa.** Resuelve la pregunta 4 de [map_contributions.md](map_contributions.md).
-   Al volver la conexión, la app refresca la lista antes de enviar y borra de la
-   cola, sin enviarlos, los Points de los mapas que ya no figuran: ese mapa no es
-   accesible, así que sus rechazados no se podrían ver. Si la baja ocurre entre el
-   refresco y el envío, el servidor responde 403, el Point queda rechazado y se
-   borra en el próximo refresco. *Costo aceptado:* quien capturó antes de la baja
-   y subió después pierde esos Points.
+1. **The server is the source of truth, and what's local is a copy.**
+   *Discarded:* the phone being the source and the server receiving it. With a
+   copy, a removal or a change by the owner shows up on refresh.
+2. **Local storage in `expo-sqlite`.** It serves the list of maps and the send
+   queue, which need order and persistence. *Discarded:* AsyncStorage (an
+   ordered queue would need something else on top) and `expo-secure-store` with
+   a JSON (size limits on some iOS versions, and it is a tool for secrets).
+3. **Offline, capturing is for a map on the stored list, and what is captured is
+   sent on its own when the signal comes back.** From Upload the user can go
+   back to Home and pick another map. The list can be old, and that is the
+   user's responsibility. *Discarded:* capturing drafts with no map and choosing
+   the destination when the signal comes back (it adds an assignment screen,
+   groups and subset selection), and a manual offline mode with a download
+   beforehand. *Accepted cost:* someone who captured for a map they had already
+   been removed from loses those Points.
+4. **Two states, online and offline, decided by a check against our server on
+   both platforms.** System notifications are the trigger, and each real
+   request adds a signal. *Discarded:* relying only on the system's network
+   state (on iOS it doesn't tell apart a Wi-Fi with no internet), only on the
+   result of requests (it doesn't say when the connection came back), and using
+   the native signal on Android and the ping only on iOS (they answer different
+   questions and there are two paths to maintain).
+5. **There is no manual mode to force offline.** It existed to download before
+   going out, and with Decision 3 there is nothing to prepare anymore. It can be
+   added later without changing the rest.
+6. **The server computes the Point id from the Point's data.** A retry doesn't
+   duplicate even if the response was lost, because it gives the same id and the
+   primary key rejects it. It also applies to the owner's route, which stops
+   receiving the id from the app: nobody uses it today, so the change doesn't
+   break anything. It has a precedent in D-003 of [live_mode.md](live_mode.md),
+   where the live mode id is derived from the time of the WhatsApp message.
+   Here it is a hash of sender, map, capture time, coordinates and message,
+   because `points.id` is the primary key of the whole table and using only the
+   time, like live mode (with one-second resolution), would collide across
+   senders. The time is the one the app set when capturing, not the one the
+   server sees. *Discarded:* copying the live mode id as is; having the app
+   generate the id (the Point must not depend on the sync); an idempotency key
+   with a separate table (it adds a table that grows with every Point, a header
+   and an expiry); a unique rule on coordinates only (it would discard
+   legitimate Points made in the same place); a unique constraint on columns of
+   `points` (it doesn't cover the owner, who has an empty `contributor_id`, like
+   the bot and imports); and asking for the status afterward (the query doesn't
+   close the race between the original request and the retry). *Accepted
+   risk:* two Points with exactly the same data merge into one. It isn't a
+   concern, because sender, map, capture time, coordinates and message all
+   match.
+7. **Three states for the Point (unconfirmed, created, rejected) and another
+   three for its media (waiting, uploaded, rejected), with one mark for each.**
+   "Unconfirmed" covers both "in the queue" and "sent with no response",
+   because the user can't do anything different in each case. Rejected items
+   stay visible with their reason until the user discards them. A network
+   failure or a 5xx isn't a rejection. A media that responds 409 counts as
+   uploaded. *Discarded:* "not created" as the text of the first state, because
+   without a response the app can't claim it; and showing "created" only when
+   the Point and the media are both confirmed (the Point already exists, and the
+   media is a second request that can fail on its own).
+8. **If you were removed, the queued Points for that map aren't inserted, and
+   the app says so.** It resolves question 4 of
+   [map_contributions.md](map_contributions.md). When the connection comes
+   back, the app refreshes the list before sending, and deletes from the queue,
+   without sending them, the Points of maps that are no longer listed: that map
+   isn't accessible, so its rejected items couldn't be seen. If the removal
+   happens between the refresh and the upload, the server responds 403, the
+   Point stays rejected and is deleted on the next refresh. *Accepted cost:*
+   someone who captured before the removal and uploaded after it loses those
+   Points.
 
-   **El aviso.** Cuando un refresco detecta que un mapa salió de la lista, la app
-   muestra un aviso en cualquier pantalla, una sola vez por mapa. Si el usuario
-   estaba en la Subida de ese mapa, además vuelve a la lista de mapas. El texto es
-   neutro, porque la app no puede distinguir si lo quitaron del mapa o si el dueño
-   lo borró (para ambos el mapa deja de figurar): *You no longer have access to
-   "<nombre>".* Si había Points sin enviar, suma cuántos: *3 pending points were
-   not sent.* Cuentan los Points que todavía tenían algo por enviar (sin confirmar,
-   o creados con la foto pendiente), y no los rechazados ni los terminados. La
-   cuenta se hace en la misma transacción que borra el mapa, antes de que la
-   cascada borre las filas. *Descartado:* un mensaje que diga "fuiste removido"
-   (es falso si el mapa se borró), y avisar solo desde la Subida (si estás en el
-   Inicio, el mapa desaparecería de la lista sin explicación).
-9. **Unirse necesita conexión.** El `join` es contra el servidor.
-10. **La lista de mapas se guarda en el teléfono como copia, con la hora de su
-    última actualización.** Es lo que permite elegir un mapa sin conexión. Se
-    invierte una decisión anterior, que era no guardarla y pedirla al volver la
-    señal. *Descartado:* no guardarla.
-11. **La lista se refresca al abrir el Inicio con conexión, al volver la
-    conexión y con un gesto de actualizar.** No hay refresco periódico, porque
-    con la app abierta la lista casi no cambia. *Descartado:* refrescarla
-    también cada cierto tiempo.
-12. **El historial de lo ya creado se lee del servidor y no se guarda en el
-    teléfono.** El usuario entra a un mapa y ve lo que subió, traído con "mis
-    Points de un mapa". En el teléfono quedan solo la lista de mapas y la cola
-    (sin confirmar y rechazados). Sin conexión no hay historial. *Descartado:*
-    guardar una copia del historial (habría que decidir cuánto se conserva y
-    cómo se reconcilia con el servidor). *Costo aceptado:* sin conexión no se ve
-    lo ya subido.
-13. **Una sola cola, ordenada por la hora de captura.** No se separa por mapa. La
-    hora de captura es la que fija la app, y es la que entra en el id. *Descartado:*
-    una cola por mapa (no cambia el resultado y agrega una regla).
-14. **`/v2/health` no consulta la base de datos.** Una falla de la base no deja a
-    toda la flota "offline", y el endpoint responde solo que el servidor contesta.
-15. **Los parámetros de la detección tienen valores estándar y se cambian con
-    variables de entorno de la app.** Ver la tabla de parámetros en Detección de
-    conectividad.
-16. **No hay consulta de estado en lote.** Con el id calculado por el servidor, la
-    app no lo conoce hasta la primera respuesta, así que no podría preguntar por
-    él. Alcanza con reintentar con los mismos datos.
-17. **El historial se pide de a 50, de los más nuevos a los más viejos, y las
-    fotos se dibujan todas con la misma proporción.** La respuesta trae lo
-    necesario para dibujar cada Point en la Subida: coordenadas para el mosaico
-    del mapa y, si hay media, su `url`. Por eso la tabla `media` no guarda ancho
-    ni alto. *Descartado:* que la app mande las dimensiones al subir (agrega una
-    migración y dos campos para algo que solo afecta cómo se dibuja), calcularlas
-    en el servidor (suma una librería de imágenes y no sirve para audio), y
-    devolver todo el historial de una vez (crece sin límite).
-18. **Un Point abierto no sale de la cola.** Es el que espera su foto. Sin esta
-    regla, un Point sin foto ya creado saldría de la cola como "completo" y la
-    foto que llega después no tendría dónde engancharse. Ver "Captura y subida".
-    *Descartado:* mandar el Point y la foto juntos al terminar la captura (cambia
-    el flujo que definió el usuario: la ubicación crea el Point y queda con su
-    marca, y la foto es un segundo paso), y guardar la marca de "abierto" en la
-    base (no aporta: al reabrir la app nadie espera una foto).
-19. **La app arma la URL de la media con su propio servidor.** Usa
-    `<servidor de la app>/v2/media/<id>` y no el campo `url` de la respuesta,
-    porque ese campo depende de la dirección pública que tenga configurada el
-    servidor (`CHATMAP_API_URL`), que en desarrollo puede no ser la que alcanza el
-    teléfono. La app habla con un único servidor, fijado al construirla.
-20. **"Mis mapas" lista los mapas de quien firma el pedido, sea dueño o
-    contribuyente, y cada mapa dice su `role`.** La ruta nombra el recurso, los
-    mapas, y la credencial dice quién pregunta (ver Contrato). Un Contributor no
-    es una persona que tiene mapas: es la participación de un secreto en un mapa.
-    Lo que une varios mapas es el secreto, que es la credencial. El `role` le dice
-    a quien llama qué puede hacer en cada mapa. Si llegan las dos credenciales
-    gana el secreto, la misma regla que en `POST /v2/points`. *Descartado:* una
-    ruta solo para contribuyentes (`/v2/contributor/maps`), porque `contributor`
-    no es un recurso que contenga mapas, y dejar la ruta genérica respondiendo 401
-    a un dueño. *Costo aceptado:* quien es dueño y contribuyente ve sus dos listas
-    con dos pedidos, uno por credencial.
+   **The notice.** When a refresh detects that a map left the list, the app
+   shows a notice on any screen, once per map. If the user was on that map's
+   Upload screen, they also go back to the list of maps. The text is neutral,
+   because the app can't tell whether they were removed from the map or the
+   owner deleted it (in both cases the map stops being listed): *You no longer
+   have access to "<name>".* If there were unsent Points, it adds how many:
+   *3 pending points were not sent.* It counts the Points that still had
+   something to send (unconfirmed, or created with the photo pending), not the
+   rejected or finished ones. The count is done in the same transaction that
+   deletes the map, before the cascade deletes the rows. *Discarded:* a message
+   saying "you were removed" (it is false if the map was deleted), and showing
+   the notice only from Upload (if you are on Home, the map would disappear from
+   the list with no explanation).
+9. **Joining needs a connection.** `join` goes to the server.
+10. **The list of maps is stored on the phone as a copy, with the time of its
+    last update.** That is what makes it possible to pick a map offline. It
+    reverses an earlier decision, which was not to store it and to request it
+    when the signal came back. *Discarded:* not storing it.
+11. **The list is refreshed when Home is opened while online, when the
+    connection comes back and with a pull-to-refresh gesture.** There is no
+    periodic refresh, because with the app open the list barely changes.
+    *Discarded:* also refreshing it every so often.
+12. **The history of what was already created is read from the server and not
+    stored on the phone.** The user opens a map and sees what they uploaded,
+    fetched with "my Points on a map". Only the list of maps and the queue
+    (unconfirmed and rejected) stay on the phone. Offline there is no history.
+    *Discarded:* storing a copy of the history (it would require deciding how
+    much is kept and how it is reconciled with the server). *Accepted cost:*
+    offline, what was already uploaded can't be seen.
+13. **A single queue, ordered by capture time.** It isn't split by map. The
+    capture time is the one the app sets, and it is the one that goes into the
+    id. *Discarded:* one queue per map (it doesn't change the result and adds a
+    rule).
+14. **`/v2/health` doesn't query the database.** A database failure doesn't
+    leave the whole fleet "offline", and the endpoint only says that the server
+    answers.
+15. **The detection parameters have standard values and are changed with the
+    app's environment variables.** See the parameters table in Connectivity
+    detection.
+16. **There is no bulk status query.** With the id computed by the server, the
+    app doesn't know it until the first response, so it couldn't ask about it.
+    Retrying with the same data is enough.
+17. **The history is requested 50 at a time, from newest to oldest, and all
+    photos are drawn with the same aspect ratio.** The response carries what's
+    needed to draw each Point on the Upload screen: coordinates for the map tile
+    and, if there is media, its `url`. That is why the `media` table doesn't
+    store width or height. *Discarded:* having the app send the dimensions when
+    uploading (it adds a migration and two fields for something that only
+    affects how it is drawn), computing them on the server (it adds an image
+    library and doesn't work for audio), and returning the whole history at once
+    (it grows without limit).
+18. **An open Point doesn't leave the queue.** It is the one waiting for its
+    photo. Without this rule, an already created Point with no photo would leave
+    the queue as "complete" and the photo that arrives later would have nothing
+    to attach to. See "Capture and upload". *Discarded:* sending the Point and
+    the photo together when the capture is finished (it changes the flow the
+    user defined: the location creates the Point and gets its mark, and the
+    photo is a second step), and storing the "open" mark in the database (it
+    adds nothing: when the app reopens, nobody is waiting for a photo).
+19. **The app builds the media URL with its own server.** It uses
+    `<app's server>/v2/media/<id>` and not the `url` field of the response,
+    because that field depends on the public address configured on the server
+    (`CHATMAP_API_URL`), which in development may not be the one the phone can
+    reach. The app talks to a single server, fixed when it is built.
+20. **"My maps" lists the maps of whoever signs the request, whether owner or
+    contributor, and each map says its `role`.** The route names the resource,
+    the maps, and the credential says who is asking (see Contract). A
+    Contributor isn't a person who has maps: it is a secret's participation in a
+    map. What ties several maps together is the secret, which is the credential.
+    The `role` tells the caller what they can do on each map. If both
+    credentials arrive the secret wins, the same rule as in `POST /v2/points`.
+    *Discarded:* a contributor-only route (`/v2/contributor/maps`), because
+    `contributor` isn't a resource that contains maps, and leaving the generic
+    route answering 401 to an owner. *Accepted cost:* someone who is both owner
+    and contributor sees their two lists with two requests, one per credential.
 
-## Preguntas abiertas
+## Open questions
 
-Las marcadas como **Resuelta** indican dónde quedó la decisión.
+The ones marked **Resolved** say where the decision ended up.
 
-1. **Resuelta** (Decisión 3): lo capturado queda en el mapa para el que se
-   capturó.
-2. **Resuelta** (Decisión 3): no hay asignación de destino al volver la señal.
-3. **Resuelta** (Decisión 7): "sin confirmar" es un único estado.
-4. **Resuelta** (Decisión 7): los rechazados quedan visibles hasta que el usuario
-   los descarte.
-5. **Resuelta** (Decisión 6): la ruta del dueño para crear Points pasa al
-   mecanismo nuevo.
-6. **Resuelta** (Decisión 7): un Point con foto tiene una marca por el Point y
-   otra por la media.
-7. **Resuelta** (Decisión 14): `/v2/health` no toca la base de datos.
-8. **Resuelta** (Decisión 15): valores estándar con variables de entorno.
-9. **Resuelta** (Decisión 12): los Points ya creados no se guardan en el
-   teléfono.
-10. **Resuelta** (Decisión 7): una media que responde 409 cuenta como subida.
-11. **Resuelta** (sección Estados de un Point): un Point que llegó, reintentado
-    después de la baja, queda como rechazado en la cola aunque el servidor lo
-    tenga, y no se reconcilia.
-12. **Resuelta** (Decisión 16): no hay consulta de estado en lote.
-13. **Resuelta** (Decisión 11): la lista se refresca al abrir el Inicio con
-    conexión, al volver la conexión y con un gesto de actualizar.
-14. **Resuelta** (Decisión 13): una sola cola por hora de captura.
-15. **Resuelta** (Decisión 6): ya no hay clave de idempotencia ni encabezado.
-16. **Resuelta** (Decisión 8): los Points en cola de un mapa que sale de la lista
-    se borran, porque su Subida no es accesible.
-17. **Resuelta** (Decisión 17): la forma de "mis Points de un mapa".
+1. **Resolved** (Decision 3): what is captured stays on the map it was captured
+   for.
+2. **Resolved** (Decision 3): there is no destination assignment when the
+   signal comes back.
+3. **Resolved** (Decision 7): "unconfirmed" is a single state.
+4. **Resolved** (Decision 7): rejected items stay visible until the user
+   discards them.
+5. **Resolved** (Decision 6): the owner's route for creating Points moves to the
+   new mechanism.
+6. **Resolved** (Decision 7): a Point with a photo has one mark for the Point
+   and another for the media.
+7. **Resolved** (Decision 14): `/v2/health` doesn't touch the database.
+8. **Resolved** (Decision 15): standard values with environment variables.
+9. **Resolved** (Decision 12): Points already created aren't stored on the
+   phone.
+10. **Resolved** (Decision 7): a media that responds 409 counts as uploaded.
+11. **Resolved** (Point states section): a Point that got through, retried
+    after the removal, stays as rejected in the queue even though the server has
+    it, and isn't reconciled.
+12. **Resolved** (Decision 16): there is no bulk status query.
+13. **Resolved** (Decision 11): the list is refreshed when Home is opened while
+    online, when the connection comes back and with a pull-to-refresh gesture.
+14. **Resolved** (Decision 13): a single queue by capture time.
+15. **Resolved** (Decision 6): there is no longer an idempotency key or header.
+16. **Resolved** (Decision 8): the queued Points of a map that leaves the list
+    are deleted, because its Upload screen isn't accessible.
+17. **Resolved** (Decision 17): the shape of "my Points on a map".

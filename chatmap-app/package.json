@@ -46,7 +46,7 @@
     "start": "APP_VARIANT=local expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "APP_VARIANT=local expo run:android",
-    "ios": "expo run:ios",
+    "ios": "APP_VARIANT=local expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },

@@ -27,6 +27,10 @@ export default ({config}: ConfigContext): ExpoConfig => {
         ...config,
         name: `${config.name}${variant.nameSuffix}`,
         slug: config.slug ?? 'chatmap',
+        ios: {
+            ...config.ios,
+            bundleIdentifier: `${config.ios?.bundleIdentifier}${variant.packageSuffix}`,
+        },
         android: {
             ...config.android,
             package: `${config.android?.package}${variant.packageSuffix}`,

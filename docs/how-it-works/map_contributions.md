@@ -1,137 +1,135 @@
-# Feature spec — Contribuciones desde la app
+# Feature spec — Contributions from the app
 
-`chatmap-app` (Expo / React Native) permite que una persona se una a un mapa
-con una invitación y agregue Points y media, con conexión o sin ella. Este
-documento cubre la **primera entrega**: cómo el dueño invita, cómo una persona
-se convierte en contribuyente y cómo se autoriza lo que escribe. La cola
-offline y el envío ordenado de Points se especifican en
-[offline_contributions.md](offline_contributions.md).
+`chatmap-app` (Expo / React Native) lets a person join a map with an invitation
+and add Points and media, online or offline. This document covers the **first
+delivery**: how the owner invites, how a person becomes a contributor, and how
+what they write is authorized. The offline queue and the ordered sending of
+Points are specified in [offline_contributions.md](offline_contributions.md).
 
-**Vocabulario de versiones.** "API v1" y "API v2" son las rutas `/v1` y `/v2`.
-"Primera entrega" es el primer alcance de esta feature. Son cosas distintas.
+**Version vocabulary.** "API v1" and "API v2" are the `/v1` and `/v2` routes.
+"First delivery" is the first scope of this feature. They are different things.
 
-**Premisa.** La app se conecta a **un solo servidor**, fijado al compilarla.
-Quien despliegue una instancia propia necesita su propia compilación de la app.
-Por eso el QR no necesita llevar la dirección del servidor.
+**Premise.** The app connects to **a single server**, fixed when it is built.
+Anyone who deploys their own instance needs their own build of the app. That is
+why the QR doesn't need to carry the server address.
 
-## Decisiones de arquitectura (resueltas en esta spec)
+## Architecture decisions (resolved in this spec)
 
-Estas dos reglas cruzan toda la API y no existían en el decision record
-([live_mode.md](live_mode.md), D-001 a D-010). Se resolvieron acá y **viven en
-esta spec**. Otras specs que las necesiten pueden enlazarlas desde este
-documento.
+These two rules cut across the whole API and didn't exist in the decision record
+([live_mode.md](live_mode.md), D-001 to D-010). They were resolved here and
+**live in this spec**. Other specs that need them can link to them from this
+document.
 
-**A1. La API acepta dos tipos de quien escribe.** Hoy autoriza escrituras solo
-con `CurrentUser`: valida un JWT emitido por Hanko (`hotosm_auth_fastapi`) y
-compara `map.owner_id == user.id`. Pasa a aceptar también al **contribuyente**,
-identificado por un secreto que la propia API registra y verifica. No es un
-puente hasta tener Hanko: contribuir sin cuenta es una función permanente. El
-secreto de contribuyente solo puede hacer lo que se declara en
-[Contrato](#contrato): unirse, crear Points y subir media a **sus** Points.
-Nunca puede alcanzar operaciones del dueño.
+**A1. The API accepts two kinds of writer.** Today it authorizes writes only
+with `CurrentUser`: it validates a JWT issued by Hanko (`hotosm_auth_fastapi`)
+and compares `map.owner_id == user.id`. It now also accepts the **contributor**,
+identified by a secret that the API itself registers and verifies. It isn't a
+bridge until Hanko is in place: contributing without an account is a permanent
+feature. The contributor secret can only do what is declared in
+[Contract](#contract): join, create Points and upload media to **their own**
+Points. It can never reach owner operations.
 
-**A2. Convivencia con `CurrentUser`.**
+**A2. Coexistence with `CurrentUser`.**
 
-- Todo el código nuevo vive en **API v2** (`api/v2`). API v1 no se toca.
-- **Ninguna ruta acepta contribuyentes salvo que lo declare.** Por defecto una
-  ruta acepta solo al dueño.
-- El secreto viaja en `Authorization: Contributor <secreto>`, un esquema propio
-  que se distingue sin adivinar del `Bearer` del JWT de Hanko. En `join` va en
-  el cuerpo, porque todavía no hay un secreto registrado.
-- Si un pedido trae las dos credenciales, se usa solo el secreto. La regla se
-  aplica una vez, al leer las credenciales, y vale para todos los endpoints,
-  también para leer media.
-- El rol de quien llama en un mapa (dueño o contribuidor) se resuelve en una
-  dependencia de la ruta, que responde 401, 403 o 404 si no tiene ninguno. El
-  store recibe el rol y nunca las credenciales. Una única función,
-  `role_in_map`, decide el rol (ver [Coexistencia de credenciales](#coexistencia-de-credenciales)).
+- All new code lives in **API v2** (`api/v2`). API v1 is not touched.
+- **No route accepts contributors unless it says so.** By default a route
+  accepts only the owner.
+- The secret travels in `Authorization: Contributor <secret>`, a custom scheme
+  that can be told apart, without guessing, from the `Bearer` of Hanko's JWT. In
+  `join` it goes in the body, because there is no registered secret yet.
+- If a request carries both credentials, only the secret is used. The rule is
+  applied once, when reading the credentials, and holds for every endpoint,
+  including reading media.
+- The caller's role on a map (owner or contributor) is resolved in a route
+  dependency, which responds 401, 403 or 404 if they have none. The store
+  receives the role and never the credentials. A single function,
+  `role_in_map`, decides the role (see [Credential coexistence](#credential-coexistence)).
 
-## Propósito
+## Purpose
 
-Permitir que el dueño de un mapa invite, con un QR, a personas que usan la app a
-agregar Points y media a su mapa sin necesitar una cuenta. Iniciar sesión es
-opcional.
+Let a map's owner invite people who use the app, with a QR, to add Points and
+media to their map without needing an account. Logging in is optional.
 
-## Alcance
+## Scope
 
-**Dentro**
+**In scope**
 
-- El eje de permiso de **escritura** de un mapa, separado del de lectura.
-- La entidad `Invitation` (el QR): generarla, verla, revocarla.
-- La entidad `Contributor` (la persona que se une): registrarla, listarla,
-  quitarla.
-- Autorizar a un contribuyente para unirse, crear Points y subir media a sus
-  propios Points.
-- Atribución de cada Point a su contribuyente.
-- Consultar quién entró por una invitación en un rango de fechas.
-- Cómo conviven el contribuyente anónimo (permanente) y el autenticado con
-  Hanko.
+- The map's **write** permission axis, separate from the read one.
+- The `Invitation` entity (the QR): generating, viewing and revoking it.
+- The `Contributor` entity (the person who joins): registering, listing and
+  removing them.
+- Authorizing a contributor to join, create Points and upload media to their
+  own Points.
+- Attributing each Point to its contributor.
+- Querying who joined through an invitation within a date range.
+- How the anonymous contributor (permanent) and the one authenticated with
+  Hanko coexist.
 
-**Fuera / diferido**
+**Out of scope / deferred**
 
-- **Pausar un mapa** o dejarlo "cerrado": no existe en la primera entrega. El
-  único freno inmediato es quitar a un contribuyente.
-- **Expulsión en bloque** (por ejemplo, quitar a todos los que entraron por una
-  invitación). El modelo ya lo permite consultar, ver
-  [Decisiones](#decisiones), 15.
-- **Bloqueo de un dispositivo en todos los mapas, también en los nuevos.** Ya se
-  puede reconocer al mismo dispositivo por su `secret_hash`. Falta guardar el
-  bloqueo aparte para que valga en mapas donde todavía no entró.
-- **Vencimiento del contribuyente** y de la invitación.
-- **Rate limiting y abuso:** `max_uses`, topes por mapa, tope de tamaño de
-  media. Deben cerrarse antes de exponer `join` y la escritura fuera de
-  desarrollo (ver pregunta 6).
-- **Lectura para contribuyentes** en mapas privados.
-- Login de contribuyentes con Hanko y contraseña en la invitación. Solo se
-  deja el lugar.
-- Cola offline y reintentos: ver [offline_contributions.md](offline_contributions.md).
-- Moderación (Points pendientes de aprobación).
-- Filtro del modo live por remitente de WhatsApp (otra feature).
-- Pantallas de la app, incluida la alerta que recomienda iniciar sesión.
+- **Pausing a map** or leaving it "closed": it doesn't exist in the first
+  delivery. The only immediate brake is removing a contributor.
+- **Bulk removal** (for example, removing everyone who joined through an
+  invitation). The model already allows querying it, see
+  [Decisions](#decisions), 15.
+- **Blocking a device on every map, including new ones.** The same device can
+  already be recognized by its `secret_hash`. What's missing is storing the
+  block separately, so that it applies to maps it hasn't joined yet.
+- **Expiry of the contributor** and of the invitation.
+- **Rate limiting and abuse:** `max_uses`, per-map caps, a media size cap. They
+  must be closed before exposing `join` and writing outside development (see
+  question 6).
+- **Reading for contributors** on private maps.
+- Contributor login with Hanko, and a password on the invitation. Only the room
+  for them is left.
+- Offline queue and retries: see [offline_contributions.md](offline_contributions.md).
+- Moderation (Points pending approval).
+- Live mode filter by WhatsApp sender (another feature).
+- The app's screens, including the alert that recommends logging in.
 
-## Vocabulario: "público" ya existe y significa otra cosa
+## Vocabulary: "public" already exists and means something else
 
-`Map.sharing` (`PRIVATE` / `PUBLIC`, `db.py`) controla solo la **lectura**. Esta
-feature **no lo modifica**.
+`Map.sharing` (`PRIVATE` / `PUBLIC`, `db.py`) controls only **reading**. This
+feature **doesn't change it**.
 
-| Eje | Pregunta | Dónde vive |
+| Axis | Question | Where it lives |
 |---|---|---|
-| Lectura | ¿Quién puede ver el mapa? | `Map.sharing` (ya existe) |
-| Escritura | ¿Quién puede agregar Points desde la app? | `Invitation` y `Contributor` (nuevos) |
+| Read | Who can see the map? | `Map.sharing` (already exists) |
+| Write | Who can add Points from the app? | `Invitation` and `Contributor` (new) |
 
-Los dos son independientes. En un mapa **privado**, solo lo ve el dueño, aunque
-tenga contribuyentes.
+The two are independent. A **private** map is seen only by its owner, even if
+it has contributors.
 
-## Modelo
+## Model
 
 ```mermaid
 erDiagram
-    MAP ||--o{ INVITATION : tiene
-    MAP ||--o{ CONTRIBUTOR : tiene
-    MAP ||--o{ POINT : contiene
-    INVITATION ||--o{ CONTRIBUTOR : "se unen por"
-    CONTRIBUTOR |o--o{ POINT : "escribe"
-    POINT ||--o| MEDIA : tiene
+    MAP ||--o{ INVITATION : has
+    MAP ||--o{ CONTRIBUTOR : has
+    MAP ||--o{ POINT : contains
+    INVITATION ||--o{ CONTRIBUTOR : "join through"
+    CONTRIBUTOR |o--o{ POINT : "writes"
+    POINT ||--o| MEDIA : has
 
     MAP {
         string id PK
-        enum sharing "lectura, ya existe"
+        enum sharing "read, already exists"
     }
     INVITATION {
         string id PK
         string map_id FK
-        string token_hash "unico, hash del token del QR"
-        datetime created_at "UTC con zona"
-        datetime revoked_at "null = vigente"
+        string token_hash "unique, hash of the QR token"
+        datetime created_at "UTC with zone"
+        datetime revoked_at "null = active"
     }
     CONTRIBUTOR {
-        string id PK "publico"
+        string id PK "public"
         string map_id FK
-        string invitation_id FK "por cual entro"
-        string secret_hash "privado, hash del secreto personal"
+        string invitation_id FK "the one they joined through"
+        string secret_hash "private, hash of the personal secret"
         string nickname
-        datetime created_at "UTC con zona"
-        datetime removed_at "null = activo"
+        datetime created_at "UTC with zone"
+        datetime removed_at "null = active"
     }
     POINT {
         string id PK
@@ -140,338 +138,343 @@ erDiagram
     }
     MEDIA {
         string id PK
-        string point_id FK "unico, ya existe en v2"
+        string point_id FK "unique, already exists in v2"
     }
 ```
 
-- `Point.contributor_id` es `null` para los Points del dueño, del bot de
-  WhatsApp y de importaciones.
-- **Una sola invitación vigente por mapa**, garantizada por un índice único
-  parcial: `UNIQUE (map_id) WHERE revoked_at IS NULL`.
-- `UNIQUE (map_id, secret_hash)` en `contributors`, y un índice por
-  `(invitation_id, created_at)` y otro por `secret_hash`. El mismo
-  `secret_hash` aparece en una fila por cada mapa al que se unió esa persona.
-- Las claves foráneas hacia `maps` llevan `ON DELETE CASCADE`, para que
-  `DELETE /v1/map/{id}` siga funcionando sin tocar API v1.
-  `contributors.invitation_id` también cae en cascada, para que borrar un mapa
-  no dependa del orden en que la base borra sus filas.
-- Las fechas de las tablas nuevas son **UTC con zona**. El resto del código
-  guarda hora local sin zona, y no se modifica.
+- `Point.contributor_id` is `null` for Points from the owner, the WhatsApp bot
+  and imports.
+- **A single active invitation per map**, guaranteed by a partial unique
+  index: `UNIQUE (map_id) WHERE revoked_at IS NULL`.
+- `UNIQUE (map_id, secret_hash)` on `contributors`, plus one index on
+  `(invitation_id, created_at)` and another on `secret_hash`. The same
+  `secret_hash` appears in one row for each map that person joined.
+- Foreign keys to `maps` carry `ON DELETE CASCADE`, so that
+  `DELETE /v1/map/{id}` keeps working without touching API v1.
+  `contributors.invitation_id` also cascades, so that deleting a map doesn't
+  depend on the order in which the database deletes its rows.
+- Dates in the new tables are **UTC with time zone**. The rest of the code
+  stores local time without a zone, and that isn't changed.
 
-**Reservado, no se crea ahora:** `invitations.password_hash`,
+**Reserved, not created now:** `invitations.password_hash`,
 `invitations.requires_login`, `invitations.expires_at`, `contributors.user_id`
-y `contributors.expires_at`.
+and `contributors.expires_at`.
 
-## Comportamiento
+## Behavior
 
-### Estados
+### States
 
-| Entidad | Estados | Cómo se calcula |
+| Entity | States | How it's computed |
 |---|---|---|
-| Invitación | **Vigente** o **revocada** | `revoked_at IS NULL` |
-| Contributor | **Activo** o **removido** | `removed_at IS NULL` |
+| Invitation | **Active** or **revoked** | `revoked_at IS NULL` |
+| Contributor | **Active** or **removed** | `removed_at IS NULL` |
 
-- La invitación vigente controla **quién entra** (`join`).
-- Un Contributor activo controla **quién escribe**.
-- **No hay un estado "abierto/cerrado" del mapa.** Revocar la invitación no
-  afecta a quienes ya entraron.
+- The active invitation controls **who gets in** (`join`).
+- An active Contributor controls **who writes**.
+- **There is no "open/closed" state for the map.** Revoking the invitation
+  doesn't affect those who already joined.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Vigente: generar
-    Vigente --> Revocada: revocar, o generar una nueva
-    Revocada --> [*]
+    [*] --> Active: generate
+    Active --> Revoked: revoke, or generate a new one
+    Revoked --> [*]
 ```
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Activo: join
-    Activo --> Removido: el dueño lo quita
-    Removido --> [*]
+    [*] --> Active: join
+    Active --> Removed: the owner removes them
+    Removed --> [*]
 ```
 
-### Flujo completo
+### Full flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant D as Dueño (autenticado)
-    participant C as App del contribuyente
+    participant D as Owner (authenticated)
+    participant C as Contributor's app
     participant A as API v2
-    participant B as Base
+    participant B as Database
 
-    D->>A: generar invitación
-    A->>B: revoca la vigente (si hay) e inserta la nueva (hash del token)
-    A-->>D: token (una sola vez) y url con deep link
+    D->>A: generate invitation
+    A->>B: revokes the active one (if any) and inserts the new one (token hash)
+    A-->>D: token (only once) and url with deep link
 
-    Note over C: Escanea el QR. Si todavía no tiene un secreto personal,<br/>genera 32 bytes al azar y los guarda en almacenamiento seguro.<br/>Es el mismo para todos los mapas
-    C->>A: join { token, apodo, secreto }
-    A->>B: ¿invitación vigente con el hash de ese token?
-    A->>B: crea o devuelve el Contributor (hash del secreto)
-    A-->>C: map_id, nombre del mapa, contributor_id
+    Note over C: Scans the QR. If it doesn't have a personal secret yet,<br/>it generates 32 random bytes and stores them in secure storage.<br/>It is the same one for every map
+    C->>A: join { token, nickname, secret }
+    A->>B: active invitation with that token's hash?
+    A->>B: creates or returns the Contributor (secret hash)
+    A-->>C: map_id, map name, contributor_id
 
-    C->>A: crear Points (Authorization: Contributor secreto)
-    A->>B: ¿Contributor activo con ese hash en ese mapa?
-    A->>B: inserta el Point (id calculado de sus datos, contributor_id, username = apodo)
-    A-->>C: ids de los Points
+    C->>A: create Points (Authorization: Contributor secret)
+    A->>B: active Contributor with that hash on that map?
+    A->>B: inserts the Point (id computed from its data, contributor_id, username = nickname)
+    A-->>C: Point ids
 
-    C->>A: subir media del Point
-    A->>B: ¿el Point es de este contribuyente?
+    C->>A: upload the Point's media
+    A->>B: does the Point belong to this contributor?
 ```
 
-### Casos y bordes
+### Cases and edge cases
 
-| Situación | Disparador | Resultado observable |
+| Situation | Trigger | Observable result |
 |---|---|---|
-| Generar sin invitación vigente | El dueño pide generar | Se crea una invitación vigente. Se devuelve el token **una sola vez** y la `url` |
-| Generar con una invitación vigente | El dueño pide generar | En una sola operación: la vigente pasa a `revoked_at = ahora` y se crea la nueva. Los contribuyentes no se ven afectados |
-| Ver la invitación vigente | El dueño la consulta | Se devuelven sus datos (`id`, `created_at`, cuántos entraron), **nunca el token**. Si no hay vigente, no devuelve ninguna |
-| Revocar | El dueño pide revocar | `revoked_at = ahora`. Nadie nuevo entra. Los contribuyentes siguen escribiendo |
-| Revocar sin invitación vigente | El dueño pide revocar | Sin cambios y sin error |
-| Generar, ver o revocar sin ser el dueño | Usuario que no es `owner_id`, o sin sesión | Se rechaza, con la convención de `PUT /map/{id}/share/` |
-| `join` válido | Token de la invitación vigente, secreto bien formado, apodo | Se crea un Contributor activo (con `invitation_id` y `created_at`). Responde **201** con `contributor_id`, `map_id` y el nombre del mapa |
-| `join` repetido | El mismo secreto en el mismo mapa, con la invitación vigente | **No hace nada.** Responde **200** (en lugar de 201) con el mismo Contributor, y esa es la marca para que la app muestre un aviso. No cambia el apodo, el `invitation_id` ni el `created_at` |
-| `join` con invitación revocada o inexistente | Token que no corresponde a una invitación vigente | Responde **404** y **no se crea ninguna fila**. No se distingue "revocada" de "inexistente". Vale también para quien ya era contribuyente: no puede volver a unirse con ese QR, pero sigue pudiendo escribir |
-| `join` con secreto mal formado | Largo distinto de 43 caracteres o caracteres fuera de base64url | Responde **422** y no se crea nada |
-| `join` con el secreto de un Contributor removido | El secreto ya tiene `removed_at` en ese mapa | Responde **403**. Es un bloqueo, y es distinto del 404 para que la app pueda decirle a la persona que fue quitada |
-| Mismo teléfono, otro mapa | La app se une a dos mapas | El mismo secreto y dos Contributors, uno por mapa. Cada uno tiene su propio estado: quitarlo de un mapa no afecta al otro. El servidor puede reconocer que comparten `secret_hash` |
-| Escritura válida | Secreto de un Contributor activo del mapa | Se crea el Point con `contributor_id` |
-| Reintento de un Point | Los mismos datos del mismo contribuyente | El servidor calcula el mismo id y devuelve el Point existente (200). No se modifica |
-| Contributor removido escribe | `removed_at` no es nulo | Se rechaza |
-| Quitar a un contribuyente | El dueño lo quita | `removed_at = ahora`. Sus Points **no se borran ni se modifican**. Ocultarlos es tarea del front (pregunta 2) |
-| Secreto que no existe | Hash sin fila | Se rechaza |
-| Contributor de otro mapa | El `map_id` pedido no es el suyo | Se responde como "mapa no encontrado" |
-| Subir media a un Point propio | El Point tiene su `contributor_id` | Se adjunta |
-| Subir media a un Point ajeno | Point del dueño, del bot o de otro contribuyente | Se rechaza |
-| Contribuyente lee un mapa privado | Cualquier lectura | Se rechaza: en un mapa privado solo lee el dueño |
-| Dueño escribe | `CurrentUser` con `owner_id` | Sin cambios. El dueño no es un Contributor |
-| Se borra el mapa | El dueño elimina el mapa completo | Se borran en cascada sus invitaciones y contribuyentes. Es lo único que borra un Contributor: de a uno, solo se los marca como removidos |
-| Se pierde el dispositivo | Cambiar de teléfono, o reinstalar la app (en Android) | Se genera otro secreto, y la persona es una identidad nueva en **todos** sus mapas: un Contributor nuevo por cada uno al que vuelva a unirse. Los anteriores quedan hasta que el dueño los quite. En iOS, reinstalar puede conservar el secreto, sin garantía |
+| Generate with no active invitation | The owner asks to generate | An active invitation is created. The token is returned **only once**, along with the `url` |
+| Generate with an active invitation | The owner asks to generate | In a single operation: the active one gets `revoked_at = now` and the new one is created. Contributors are not affected |
+| View the active invitation | The owner queries it | Its data is returned (`id`, `created_at`, how many joined), **never the token**. If there is no active one, none is returned |
+| Revoke | The owner asks to revoke | `revoked_at = now`. Nobody new gets in. Contributors keep writing |
+| Revoke with no active invitation | The owner asks to revoke | No changes and no error |
+| Generate, view or revoke without being the owner | A user who isn't `owner_id`, or no session | Rejected, following the convention of `PUT /map/{id}/share/` |
+| Valid `join` | Token of the active invitation, well-formed secret, nickname | An active Contributor is created (with `invitation_id` and `created_at`). Responds **201** with `contributor_id`, `map_id` and the map name |
+| Repeated `join` | The same secret on the same map, with the active invitation | **Does nothing.** Responds **200** (instead of 201) with the same Contributor, and that is the signal for the app to show a notice. The nickname, `invitation_id` and `created_at` don't change |
+| `join` with a revoked or nonexistent invitation | A token that doesn't match an active invitation | Responds **404** and **no row is created**. "Revoked" isn't distinguished from "nonexistent". This also applies to someone who was already a contributor: they can't join again with that QR, but they can still write |
+| `join` with a malformed secret | Length other than 43 characters, or characters outside base64url | Responds **422** and nothing is created |
+| `join` with the secret of a removed Contributor | The secret already has `removed_at` on that map | Responds **403**. It is a block, and it differs from the 404 so the app can tell the person they were removed |
+| Same phone, another map | The app joins two maps | The same secret and two Contributors, one per map. Each has its own state: removing it from one map doesn't affect the other. The server can recognize that they share `secret_hash` |
+| Valid write | Secret of an active Contributor of the map | The Point is created with `contributor_id` |
+| Retry of a Point | The same data from the same contributor | The server computes the same id and returns the existing Point (200). It isn't modified |
+| A removed Contributor writes | `removed_at` is not null | Rejected |
+| Remove a contributor | The owner removes them | `removed_at = now`. Their Points are **not deleted or modified**. Hiding them is the front end's job (question 2) |
+| Secret that doesn't exist | Hash with no row | Rejected |
+| Contributor of another map | The requested `map_id` isn't theirs | Answered as "map not found" |
+| Upload media to one's own Point | The Point has their `contributor_id` | Attached |
+| Upload media to someone else's Point | A Point of the owner, the bot or another contributor | Rejected |
+| A contributor reads a private map | Any read | Rejected: on a private map only the owner reads |
+| The owner writes | `CurrentUser` with `owner_id` | No changes. The owner isn't a Contributor |
+| The map is deleted | The owner deletes the whole map | Its invitations and contributors are deleted in cascade. It is the only thing that deletes a Contributor: one at a time, they are only marked as removed |
+| The device is lost | Changing phones, or reinstalling the app (on Android) | Another secret is generated, and the person is a new identity on **all** their maps: a new Contributor for each one they join again. The old ones stay until the owner removes them. On iOS, reinstalling may keep the secret, with no guarantee |
 
-## Contrato
+## Contract
 
-**Nombres de ruta provisorios**, salvo la de media, que ya existe.
+**Route names are provisional**, except the media one, which already exists.
 
-| Operación | Quién | Entrada | Efecto observable |
+| Operation | Who | Input | Observable effect |
 |---|---|---|---|
-| Generar invitación (`POST /v2/maps/{map_id}/invitations`) | Dueño (`CurrentUser`) | `map_id` | Revoca la vigente, crea una nueva y devuelve `{ id, token, url, created_at }`. El token solo viaja en esta respuesta |
-| Ver invitación vigente | Dueño | `map_id` | Datos de la invitación, sin el token |
-| Revocar invitación | Dueño | `map_id` | `revoked_at = ahora` |
-| Listar contribuyentes | Dueño | `map_id`, filtros opcionales `invitation_id`, `desde` y `hasta` (sobre `created_at`) | Apodo, `created_at`, `invitation_id`, `removed_at` y cantidad de Points |
-| Quitar contribuyente | Dueño | `contributor_id` | `removed_at = ahora`. Permanente |
-| Unirse (`POST /v2/invitations/join`) | Sin sesión: lo autoriza el token | `token`, `nickname`, `secret` | Responde **201** si crea el Contributor y **200** si ya existía. Devuelve `{ contributor_id, map_id, map_name }`. Errores: 404 invitación inválida, 403 contribuyente removido, 422 pedido mal formado |
-| Crear Point (`POST /v2/points`, se amplía para aceptar contribuyentes) | Dueño o contribuyente | `Authorization: Contributor <secreto>` y el Point, sin `id`, con la hora de captura obligatoria | Responde 201 con el id que calcula el servidor a partir de los datos, o 200 con el mismo id si ya existía un Point con esos datos. Errores: 401 sin credencial o con un secreto mal formado, 403 contribuyente sin acceso o quitado, 404 mapa inexistente, 422 pedido inválido. Si trae `Authorization: Contributor`, esa credencial decide aunque haya sesión. Ver [create_point.md](create_point.md) y [offline_contributions.md](offline_contributions.md) |
-| Subir media | Contribuyente o dueño | `POST /v2/points/{point_id}/media`, con el archivo y `captured_at` | Adjunta si el Point es suyo. Esta ruta existente pasa a declarar que acepta contribuyentes. `captured_at` es obligatorio: la hora en que el usuario adjuntó la media en la app, con zona horaria. Se valida igual que el `time` del Point: sin zona responde 422, y una hora futura se acepta. El servidor la guarda en UTC y nunca usa la hora en que recibió el archivo. Las medias subidas antes de este campo quedan sin hora (`null`) |
+| Generate invitation (`POST /v2/maps/{map_id}/invitations`) | Owner (`CurrentUser`) | `map_id` | Revokes the active one, creates a new one and returns `{ id, token, url, created_at }`. The token only travels in this response |
+| View active invitation | Owner | `map_id` | The invitation's data, without the token |
+| Revoke invitation | Owner | `map_id` | `revoked_at = now` |
+| List contributors | Owner | `map_id`, optional filters `invitation_id`, `from` and `to` (on `created_at`) | Nickname, `created_at`, `invitation_id`, `removed_at` and number of Points |
+| Remove contributor | Owner | `contributor_id` | `removed_at = now`. Permanent |
+| Join (`POST /v2/invitations/join`) | No session: the token authorizes it | `token`, `nickname`, `secret` | Responds **201** if it creates the Contributor and **200** if it already existed. Returns `{ contributor_id, map_id, map_name }`. Errors: 404 invalid invitation, 403 removed contributor, 422 malformed request |
+| Create Point (`POST /v2/points`, extended to accept contributors) | Owner or contributor | `Authorization: Contributor <secret>` and the Point, without `id`, with the capture time required | Responds 201 with the id the server computes from the data, or 200 with the same id if a Point with that data already existed. Errors: 401 no credential or a malformed secret, 403 contributor without access or removed, 404 nonexistent map, 422 invalid request. If it carries `Authorization: Contributor`, that credential decides even if there is a session. See [create_point.md](create_point.md) and [offline_contributions.md](offline_contributions.md) |
+| Upload media | Contributor or owner | `POST /v2/points/{point_id}/media`, with the file and `captured_at` | Attaches it if the Point is theirs. This existing route now declares that it accepts contributors. `captured_at` is required: the time the user attached the media in the app, with time zone. It is validated like the Point's `time`: without a zone it responds 422, and a future time is accepted. The server stores it in UTC and never uses the time it received the file. Media uploaded before this field existed has no time (`null`) |
 
-**El QR** lleva un link con el esquema propio `hot-chatmap://`, que arma el
-servidor (el campo `url`). Contiene **solo el token**: la app ya sabe a qué
-servidor hablar, y el token resuelve a qué mapa corresponde. El `map_id` le
-llega a la app en la respuesta del `join`. El formato es
+**The QR** carries a link with the custom scheme `hot-chatmap://`, built by the
+server (the `url` field). It contains **only the token**: the app already knows
+which server to talk to, and the token resolves which map it belongs to. The
+`map_id` reaches the app in the `join` response. The format is
 `hot-chatmap://join?token=<token>`.
 
-**Point del contribuyente: qué acepta el servidor**
+**Contributor's Point: what the server accepts**
 
-| Campo | ¿Lo manda la app? | Qué hace el servidor |
+| Field | Does the app send it? | What the server does |
 |---|---|---|
-| Coordenadas | Sí | Valida los rangos |
-| `message` | Sí | Lo guarda como viene |
-| `time` (captura) | Sí | Lo acepta tal cual, sea vieja o futura. Sin zona horaria responde 422 |
-| Id | No | Lo calcula el servidor a partir del remitente, el mapa, la hora de captura, las coordenadas y el mensaje |
-| `username` | No | Lo completa con el apodo del Contributor |
-| `file` | No | La media va por la ruta de media, después de crear el Point |
-| `tags` | No | Quedan para el dueño |
-| `removed` | No | Siempre `false` |
+| Coordinates | Yes | Validates the ranges |
+| `message` | Yes | Stores it as is |
+| `time` (capture) | Yes | Accepts it as is, whether old or in the future. Without a time zone it responds 422 |
+| Id | No | The server computes it from the sender, the map, the capture time, the coordinates and the message |
+| `username` | No | Filled in with the Contributor's nickname |
+| `file` | No | Media goes through the media route, after the Point is created |
+| `tags` | No | Left for the owner |
+| `removed` | No | Always `false` |
 
-**Secretos.** Hay dos, con necesidades distintas:
+**Secrets.** There are two, with different needs:
 
-| Secreto | Quién lo genera | Cuántos hay | Se guarda como | Para qué sirve |
+| Secret | Who generates it | How many there are | Stored as | What it's for |
 |---|---|---|---|---|
-| Token de la invitación | La API | Uno por invitación, compartido por todos los que escanean | `token_hash`. **Se muestra una sola vez** | Probar "el dueño me invitó", solo al unirse |
-| Secreto personal | La app, 32 bytes al azar | **Uno por instalación**, el mismo para todos los mapas | `secret_hash` | Probar "soy este contribuyente", en cada escritura |
+| Invitation token | The API | One per invitation, shared by everyone who scans it | `token_hash`. **Shown only once** | Proving "the owner invited me", only when joining |
+| Personal secret | The app, 32 random bytes | **One per install**, the same for every map | `secret_hash` | Proving "I am this contributor", on every write |
 
-Los hashes son SHA-256 sin sal: con 32 bytes al azar no hace falta más. El `id`
-público del Contributor y su secreto son dos valores distintos, porque
-`Point.contributor_id` puede aparecer en exports y GeoJSON.
+The hashes are unsalted SHA-256: with 32 random bytes nothing more is needed.
+The Contributor's public `id` and its secret are two different values, because
+`Point.contributor_id` can appear in exports and GeoJSON.
 
-**Formato del secreto personal.** Son 32 bytes al azar escritos en **base64url
-sin relleno**: 43 caracteres de `A-Z`, `a-z`, `0-9`, `-` y `_`. El servidor
-rechaza cualquier otra cosa, porque es lo que garantiza que el secreto tenga la
-fuerza que dice esta spec, y calcula el hash del texto tal como llega. Es el
-mismo formato que el token de la invitación.
+**Personal secret format.** It is 32 random bytes written in **base64url
+without padding**: 43 characters from `A-Z`, `a-z`, `0-9`, `-` and `_`. The
+server rejects anything else, because that is what guarantees the secret has
+the strength this spec claims, and it hashes the text exactly as it arrives. It
+is the same format as the invitation token.
 
-**Pedido del `join`: qué acepta el servidor**
+**`join` request: what the server accepts**
 
-| Campo | Regla |
+| Field | Rule |
 |---|---|
-| `token` | Texto no vacío. Se compara por su hash con las invitaciones vigentes |
-| `nickname` | Se le quitan los espacios de los extremos y no puede quedar vacío. Todavía no tiene tope de largo (ver pregunta 6) |
-| `secret` | El formato de arriba |
+| `token` | Non-empty text. Compared by its hash against the active invitations |
+| `nickname` | Leading and trailing spaces are trimmed, and it can't end up empty. It has no length cap yet (see question 6) |
+| `secret` | The format above |
 
-## Decisiones
+## Decisions
 
-1. **Eje de escritura separado de `sharing`.** Mezclarlos ataría "el mundo
-   puede ver mi mapa" con "el mundo puede escribir en él", y al migrar los
-   mapas `PUBLIC` existentes se volverían escribibles. *Descartado:* reusar
-   `sharing` con otro valor.
-2. **La invitación controla quién entra, el Contributor activo controla quién
-   escribe, y no hay estado "abierto/cerrado" ni pausa.** *Descartado:* un flag
-   en `Map`, y derivar "abierto" de las invitaciones y los contribuyentes, que
-   obligaba a quitar a todos al cerrar. *Costo aceptado:* no hay un freno
-   general, y el único inmediato es quitar de a uno. La pausa queda fuera de
-   alcance.
-3. **`Invitation` y `Contributor` son entidades separadas.** El token del QR
-   circula por pantallas y chats, y se filtra fácil. El secreto personal vive
-   solo en el teléfono. Separarlos permite quitar a una persona sin invalidar a
-   las demás y saber quién escribió cada Point. *Descartado:* un token
-   compartido que escriba directo (no se puede quitar a una sola persona ni
-   atribuir) y un link por persona (no sirve para invitar a varias con un QR).
-4. **El secreto personal lo genera la app, uno por instalación y el mismo para
-   todos los mapas, y la API guarda su hash.** Así el `join` es idempotente y la
-   API no emite credenciales. Como la app se conecta a un solo servidor, un QR no
-   puede hacer que entregue su secreto a otro servidor. *Consecuencias:* un
-   mismo `secret_hash` aparece en una fila por mapa, lo que permite reconocer al
-   mismo dispositivo en varios mapas (para bloquearlo donde ya está, o para unir
-   su historial al iniciar sesión) sin una tabla de usuarios. Un secreto
-   filtrado afecta a todos los mapas de esa persona. *Descartado:*
-   - *MAC del dispositivo:* Android la oculta desde la versión 6, iOS nunca la
-     expone, y un identificador no es un secreto.
-   - *Token emitido por la API:* rescanear crearía otro Contributor.
-   - *Sin ninguna validación:* el `map_id` no es secreto (aparece en URLs y en
-     el listado de mapas públicos).
-   - *Un secreto por mapa:* se pensó contra un servidor falso, que no es posible
-     si la app habla con un solo servidor. Costaba no poder reconocer al mismo
-     dispositivo entre mapas.
-5. **Los tokens de Hanko no se pueden delegar.** Hanko no ofrece API keys ni
-   tokens delegados. Su Admin API puede crear una sesión para un `user_id`, pero
-   emite un JWT **como ese usuario**, sin vencimiento propio por token y con la
-   API key de administración. Haría pasar a los contribuyentes por el dueño.
-   *Consecuencia:* quien entra con cuenta lo hace con su propio JWT, y el
-   Contributor se enlaza con `user_id`.
-6. **El contribuyente anónimo es permanente, no un puente hacia Hanko.** El
-   secreto propio y el JWT de Hanko coexisten sin fecha de retiro, así que no
-   hay ventana de transición. *Descartado:* tratar el secreto como credencial
-   transitoria. Una única función, `role_in_map`, decide si quien llama es
-   dueño o contribuidor de un mapa. La usan las dependencias de las rutas y la
-   lectura de media, y los stores reciben el rol ya resuelto. *Descartado:* que
-   cada store decida el rol a partir de las credenciales, porque repartía la
-   regla de qué credencial gana y la elección del error entre varios archivos.
-7. **Contributors en tabla y no en un array de `Map`.** Cada uno tiene apodo,
-   fechas, `removed_at` y `secret_hash`. Buscar por secreto, indexar y
-   garantizar unicidad con un array sería mucho más incómodo.
-8. **El apodo es autodeclarado.** No es una identidad verificada. La identidad
-   real llega con `user_id`.
-9. **Perder el dispositivo pierde la identidad anónima, y se acepta.** La
-   persona aparece como otro Contributor en cada mapa al que vuelva a unirse, y
-   sus Points anteriores quedan atribuidos a los viejos. El secreto se guarda
-   con `expo-secure-store`: en Android no sobrevive a reinstalar la app, y en
-   iOS vive en el Keychain, que según la documentación de Expo puede conservarse
-   tras desinstalar, aunque no está garantizado, así que no hay que depender de
-   eso. *Descartado:* un código de recuperación, porque agrega un segundo secreto
-   que también se puede perder. *Mitigación:* la app mostrará una alerta que
-   recomienda iniciar sesión para no perder las contribuciones.
-10. **El token de la invitación se guarda como hash y se muestra una sola vez.
-    Generar uno nuevo revoca el anterior.** La base necesita reconocer y
-    revocar la invitación, no conservar el token: con el hash, quien lea la
-    base no puede unirse a ningún mapa. Como hay a lo sumo una vigente y la UI
-    siempre puede mostrar sus datos (sin el token), no existen invitaciones
-    válidas e invisibles. *Descartado:* guardarlo en claro; un token recuperable
-    calculado con una clave del servidor; varias vigentes a la vez. *Costo
-    aceptado:* un QR entregado a alguien que todavía no escaneó deja de servir
-    al regenerar. La UI debe avisarlo y ofrecer descargar el QR al crearlo.
-11. **Campos del Point del contribuyente** según la tabla del
-    [Contrato](#contrato). `username` lo completa el servidor, para que nadie
-    firme un Point como otra persona.
-12. **Reemplazada por la Decisión 6 de
-    [offline_contributions.md](offline_contributions.md).** Antes decía que el id
-    del Point se derivaba con `uuid5(contributor.id, client_id)`, con un
-    `client_id` que mandaba la app. Ahora el servidor calcula el id solo a
-    partir de los datos del Point, sin nada que mande la app. Sigue valiendo que
-    no se reutiliza `add_points` de API v1, que hace `ON CONFLICT DO UPDATE` y
-    pisaría datos.
-13. **El QR es un link con el esquema propio y único `hot-chatmap://`, armado
-    por el servidor.** El escáner de la app lo lee directamente, y el esquema
-    permite además que la cámara del teléfono abra la app. Es lo habitual en
-    apps que vinculan dispositivos o cuentas con un QR (por ejemplo Signal y
-    Nextcloud). El nombre no es exclusivo en el dispositivo: otra app podría
-    registrar el mismo esquema, y por eso la seguridad no depende de él.
-    *Descartado:*
-    - *El esquema `chatmapapp`:* sale del nombre del proyecto en la plantilla de
-      Expo y no es un identificador de producción.
-    - *Universal links:* como la app tiene un solo servidor, ahora serían
-      posibles, pero exigen declarar el dominio al compilar y servir archivos de
-      verificación desde el servidor. Se pueden sumar más adelante.
-    - *Un texto sin esquema:* más simple, pero se aparta de lo habitual y la
-      cámara del teléfono no podría abrir la app.
-14. **Mapa privado: solo lo ve el dueño.** La lectura para contribuyentes queda
-    diferida.
-15. **El historial por invitación sale del modelo.** `contributors.invitation_id`
-    y `created_at` permiten consultar quién entró por una invitación en un
-    rango, incluidos los removidos. El `join` repetido conserva la primera
-    invitación y fecha. El mecanismo de expulsión queda fuera de alcance.
-16. **Un `join` repetido no hace nada.** Si alguien que ya es contribuyente
-    escanea otra vez el QR de ese mapa, no se modifica ninguna fila, y la
-    respuesta indica que ya lo era. La app muestra un aviso.
-17. **Quitar a un contribuyente no toca sus Points.** Se quedan en la base. Ocultar
-    los Points de un contribuyente removido es tarea del front. *Consecuencia:*
-    el front necesita saber de quién es cada Point (ver pregunta 2).
+1. **Write axis separate from `sharing`.** Mixing them would tie "the world can
+   see my map" to "the world can write to it", and when migrating, existing
+   `PUBLIC` maps would become writable. *Discarded:* reusing `sharing` with
+   another value.
+2. **The invitation controls who gets in, the active Contributor controls who
+   writes, and there is no "open/closed" state or pause.** *Discarded:* a flag
+   on `Map`, and deriving "open" from the invitations and contributors, which
+   forced removing everyone to close it. *Accepted cost:* there is no general
+   brake, and the only immediate one is removing people one at a time. Pausing
+   is out of scope.
+3. **`Invitation` and `Contributor` are separate entities.** The QR token
+   circulates through screens and chats, and leaks easily. The personal secret
+   lives only on the phone. Separating them makes it possible to remove one
+   person without invalidating the others, and to know who wrote each Point.
+   *Discarded:* a shared token that writes directly (you can't remove a single
+   person or attribute anything) and a link per person (it doesn't work to
+   invite several people with one QR).
+4. **The personal secret is generated by the app, one per install and the same
+   for every map, and the API stores its hash.** That makes `join` idempotent,
+   and the API doesn't issue credentials. Since the app connects to a single
+   server, a QR can't make it hand its secret to another server.
+   *Consequences:* the same `secret_hash` appears in one row per map, which
+   makes it possible to recognize the same device across maps (to block it
+   where it already is, or to merge its history when logging in) without a
+   users table. A leaked secret affects all of that person's maps.
+   *Discarded:*
+   - *Device MAC:* Android hides it since version 6, iOS never exposes it, and
+     an identifier isn't a secret.
+   - *Token issued by the API:* rescanning would create another Contributor.
+   - *No validation at all:* the `map_id` isn't secret (it appears in URLs and
+     in the list of public maps).
+   - *One secret per map:* it was meant to protect against a fake server, which
+     isn't possible if the app talks to a single server. The cost was not being
+     able to recognize the same device across maps.
+5. **Hanko tokens can't be delegated.** Hanko offers neither API keys nor
+   delegated tokens. Its Admin API can create a session for a `user_id`, but it
+   issues a JWT **as that user**, with no per-token expiry of its own and using
+   the admin API key. It would make contributors pass as the owner.
+   *Consequence:* whoever joins with an account does so with their own JWT, and
+   the Contributor is linked with `user_id`.
+6. **The anonymous contributor is permanent, not a bridge to Hanko.** The
+   custom secret and Hanko's JWT coexist with no retirement date, so there is no
+   transition window. *Discarded:* treating the secret as a temporary
+   credential. A single function, `role_in_map`, decides whether the caller is
+   the owner or a contributor of a map. The route dependencies and the media
+   read use it, and the stores receive the role already resolved.
+   *Discarded:* having each store decide the role from the credentials, because
+   it spread the rule about which credential wins, and the choice of error,
+   across several files.
+7. **Contributors in a table, not in an array on `Map`.** Each one has a
+   nickname, dates, `removed_at` and `secret_hash`. Looking up by secret,
+   indexing and guaranteeing uniqueness with an array would be much more
+   awkward.
+8. **The nickname is self-declared.** It isn't a verified identity. Real
+   identity comes with `user_id`.
+9. **Losing the device loses the anonymous identity, and that is accepted.**
+   The person shows up as another Contributor on each map they join again, and
+   their earlier Points stay attributed to the old ones. The secret is stored
+   with `expo-secure-store`: on Android it doesn't survive reinstalling the app,
+   and on iOS it lives in the Keychain, which according to the Expo docs may be
+   kept after uninstalling, though that isn't guaranteed, so it shouldn't be
+   relied on. *Discarded:* a recovery code, because it adds a second secret that
+   can also be lost. *Mitigation:* the app will show an alert recommending
+   logging in so as not to lose contributions.
+10. **The invitation token is stored as a hash and shown only once. Generating
+    a new one revokes the previous one.** The database needs to recognize and
+    revoke the invitation, not keep the token: with the hash, whoever reads the
+    database can't join any map. Since there is at most one active invitation
+    and the UI can always show its data (without the token), there are no
+    valid, invisible invitations. *Discarded:* storing it in clear; a
+    recoverable token computed with a server key; several active at once.
+    *Accepted cost:* a QR handed to someone who hasn't scanned it yet stops
+    working when a new one is generated. The UI must warn about it and offer to
+    download the QR when it is created.
+11. **The contributor's Point fields** follow the table in
+    [Contract](#contract). The server fills in `username`, so that nobody signs
+    a Point as someone else.
+12. **Replaced by Decision 6 of
+    [offline_contributions.md](offline_contributions.md).** It used to say the
+    Point id was derived with `uuid5(contributor.id, client_id)`, with a
+    `client_id` sent by the app. Now the server computes the id only from the
+    Point's data, with nothing sent by the app. It still holds that API v1's
+    `add_points` isn't reused, since it does `ON CONFLICT DO UPDATE` and would
+    overwrite data.
+13. **The QR is a link with the custom, unique scheme `hot-chatmap://`, built
+    by the server.** The app's scanner reads it directly, and the scheme also
+    lets the phone's camera open the app. It is the usual approach in apps that
+    link devices or accounts with a QR (for example Signal and Nextcloud). The
+    name isn't exclusive on the device: another app could register the same
+    scheme, and that is why security doesn't depend on it. *Discarded:*
+    - *The `chatmapapp` scheme:* it comes from the project name in the Expo
+      template and isn't a production identifier.
+    - *Universal links:* since the app has a single server, they would now be
+      possible, but they require declaring the domain at build time and serving
+      verification files from the server. They can be added later.
+    - *Plain text with no scheme:* simpler, but it departs from the usual
+      approach and the phone's camera couldn't open the app.
+14. **Private map: only the owner sees it.** Reading for contributors is
+    deferred.
+15. **The history per invitation comes from the model.**
+    `contributors.invitation_id` and `created_at` make it possible to query who
+    joined through an invitation within a range, including the removed ones. A
+    repeated `join` keeps the first invitation and date. The removal mechanism
+    is out of scope.
+16. **A repeated `join` does nothing.** If someone who is already a contributor
+    scans that map's QR again, no row is modified, and the response says they
+    already were one. The app shows a notice.
+17. **Removing a contributor doesn't touch their Points.** They stay in the
+    database. Hiding the Points of a removed contributor is the front end's job.
+    *Consequence:* the front end needs to know who each Point belongs to (see
+    question 2).
 
-## Coexistencia de credenciales
+## Credential coexistence
 
-Un Contributor tiene **una credencial por fila**, y su tipo se deriva de cuál
-está presente. No hay una columna `type`.
+A Contributor has **one credential per row**, and its type is derived from
+which one is present. There is no `type` column.
 
-| Credencial en la fila | Tipo | Quién la verifica | Estado |
+| Credential in the row | Type | Who verifies it | Status |
 |---|---|---|---|
-| `secret_hash` | Anónimo | Nadie: es un secreto que generó la app | Primera entrega |
-| `user_id` | Autenticado | Hanko | Reservado |
-| `whatsapp_sender_hash` | WhatsApp | WhatsApp, que garantiza el remitente | Diferido, otra feature |
+| `secret_hash` | Anonymous | Nobody: it is a secret the app generated | First delivery |
+| `user_id` | Authenticated | Hanko | Reserved |
+| `whatsapp_sender_hash` | WhatsApp | WhatsApp, which guarantees the sender | Deferred, another feature |
 
-El anónimo no desaparece cuando exista Hanko. Por eso `secret_hash` tiene que
-aceptar vacío: un contribuyente autenticado no tiene secreto propio.
+The anonymous one doesn't go away once Hanko is in place. That is why
+`secret_hash` has to accept empty values: an authenticated contributor has no
+secret of their own.
 
-## Preguntas abiertas
+## Open questions
 
-1. **Resuelta** (Decisión 16): un `join` repetido no hace nada.
-2. **Cómo lee el front los Points y la media de los contribuyentes.** Se habla
-   en otra sesión. Hay dos necesidades que hoy API v1 no cubre:
-   - **Media:** API v1 solo muestra la de `points.file`, y la de v2 vive en la
-     tabla `media`, así que la web no la ve. Opciones: (1) v2 también guarda en
-     `points.file` un link con forma compatible (fotos sí, video y audio no);
-     (2) lo anterior más una excepción mínima en v1 para el reproductor; (3) la
-     web combina lo de v1 y lo de v2; (4) sin media en la web. Depende de si el
-     dueño necesita ver video y audio.
-   - **Ocultar los Points de un contribuyente removido** (Decisión 17): API v1
-     no devuelve de quién es cada Point, así que el front no puede filtrarlos
-     con lo que lee hoy. Necesita `contributor_id` o una marca equivalente en
-     lo que lee.
-3. **Resuelta** (Decisión 17): los Points de un contribuyente removido se
-   quedan, y el front los oculta.
-4. **Resuelta** (Decisión 8 de
-   [offline_contributions.md](offline_contributions.md)): si te quitaron, los
-   Points en cola no se insertan.
-5. **Reclamo de historial.** Quien aportó como anónimo e inicia sesión conserva
-   lo que hizo, y la app lo recomienda (Decisión 9). Con un secreto por
-   instalación, el reclamo puede completar `user_id` en todas sus filas de una
-   sola vez. Falta definir qué pasa si ya existe otro Contributor suyo en el
-   mapa, y si al reclamar se retira el `secret_hash` para volver a una
-   credencial por fila.
-6. **Abuso y rate limiting.** Diferido, y **debe cerrarse antes de exponer
-   `join` y la escritura fuera de desarrollo**. Incluye `max_uses` en la
-   invitación (un `join` repetido no contaría), un tope de contribuyentes por
-   mapa, un tope de tamaño de media, un tope de largo para el apodo y el rate
-   limit de `join`.
-7. **Vista previa antes de unirse.** ¿La app muestra el nombre del mapa antes
-   de confirmar? Requeriría un endpoint de lectura con el token. Hoy el nombre
-   llega en la respuesta del `join`.
-8. **Forma de `requires_login`.** ¿Un booleano o un conjunto de tipos
-   permitidos por invitación? Hoy reservado.
-9. **Filtro del modo live por remitente de WhatsApp.** Otra feature, con su
-   propia spec: cómo se enrola el contribuyente, el modo explícito por mapa, la
-   retroactividad dentro de los 30 minutos, y cómo normaliza el conector los
-   identificadores de WhatsApp.
-10. **Vencimiento del contribuyente y de la invitación**, y la lectura para
-    contribuyentes en mapas privados. Diferidos.
-11. **Identificadores de la app antes de publicar.** El esquema ya es
-    `hot-chatmap` en `app.json`. El `package` de Android
-    (`com.anonymous.chatmapapp`) y el identificador de iOS siguen con valores de
-    plantilla.
+1. **Resolved** (Decision 16): a repeated `join` does nothing.
+2. **How the front end reads the contributors' Points and media.** To be
+   discussed in another session. There are two needs that API v1 doesn't cover
+   today:
+   - **Media:** API v1 only shows the media in `points.file`, and v2's lives in
+     the `media` table, so the web doesn't see it. Options: (1) v2 also stores
+     in `points.file` a link with a compatible shape (photos yes, video and
+     audio no); (2) the above plus a minimal exception in v1 for the player;
+     (3) the web combines what comes from v1 and from v2; (4) no media on the
+     web. It depends on whether the owner needs to see video and audio.
+   - **Hiding the Points of a removed contributor** (Decision 17): API v1
+     doesn't return who each Point belongs to, so the front end can't filter
+     them with what it reads today. It needs `contributor_id`, or an equivalent
+     mark, in what it reads.
+3. **Resolved** (Decision 17): the Points of a removed contributor stay, and
+   the front end hides them.
+4. **Resolved** (Decision 8 of
+   [offline_contributions.md](offline_contributions.md)): if you were removed,
+   the queued Points aren't inserted.
+5. **Claiming history.** Someone who contributed anonymously and then logs in
+   keeps what they did, and the app recommends it (Decision 9). With one secret
+   per install, the claim can fill in `user_id` on all their rows at once. Still
+   to define: what happens if another Contributor of theirs already exists on
+   the map, and whether claiming retires the `secret_hash` to get back to one
+   credential per row.
+6. **Abuse and rate limiting.** Deferred, and **must be closed before exposing
+   `join` and writing outside development**. It includes `max_uses` on the
+   invitation (a repeated `join` wouldn't count), a cap on contributors per
+   map, a media size cap, a nickname length cap and the rate limit for `join`.
+7. **Preview before joining.** Does the app show the map name before
+   confirming? It would require a read endpoint that takes the token. Today the
+   name arrives in the `join` response.
+8. **Shape of `requires_login`.** A boolean, or a set of allowed types per
+   invitation? Reserved for now.
+9. **Live mode filter by WhatsApp sender.** Another feature, with its own spec:
+   how the contributor enrolls, the explicit per-map mode, retroactivity within
+   the 30 minutes, and how the connector normalizes WhatsApp identifiers.
+10. **Expiry of the contributor and of the invitation**, and reading for
+    contributors on private maps. Deferred.
+11. **App identifiers before publishing.** The scheme is already `hot-chatmap`
+    in `app.json`. The Android `package` (`com.anonymous.chatmapapp`) and the
+    iOS identifier still have template values.

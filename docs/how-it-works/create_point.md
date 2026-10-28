@@ -1,123 +1,123 @@
-# Feature spec — Crear un Point (`POST /v2/points`)
+# Feature spec — Create a Point (`POST /v2/points`)
 
-## Propósito
+## Purpose
 
-Permitir que el dueño de un mapa, o un contribuyente de ese mapa, cree un Point
-desde un cliente con conexión inestable (`chatmap-app`), de forma que reintentar
-sea seguro y que el cliente conozca el id del Point para subirle media con
+Let a map's owner, or a contributor to that map, create a Point from a client
+with an unreliable connection (`chatmap-app`), so that retrying is safe and the
+client knows the Point's id to upload media to it with
 `POST /v2/points/{point_id}/media`.
 
-Quién puede contribuir y cómo se autoriza lo define
-[map_contributions.md](map_contributions.md). La cola de envío de la app, en
+Who can contribute and how they are authorized is defined in
+[map_contributions.md](map_contributions.md). The app's send queue is in
 [offline_contributions.md](offline_contributions.md).
 
-## Alcance
+## Scope
 
-**Dentro**
+**In scope**
 
-- Crear **un** Point por request, en un mapa del usuario autenticado (incluido
-  su live map) o en un mapa donde la credencial es de un contribuyente activo.
-- Id del Point calculado por el servidor a partir de los datos, con reintentos
-  idempotentes.
-- Campos: coordenadas, hora de captura (obligatoria) y mensaje. `username` lo
-  completa la API.
+- Creating **one** Point per request, on a map of the authenticated user
+  (including their live map) or on a map where the credential belongs to an
+  active contributor.
+- Point id computed by the server from the data, with idempotent retries.
+- Fields: coordinates, capture time (required) and message. The API fills in
+  `username`.
 
-**Fuera / diferido**
+**Out of scope / deferred**
 
-- Media. Ya existe `POST /v2/points/{point_id}/media`.
+- Media. `POST /v2/points/{point_id}/media` already exists.
 - Tags.
-- Editar, ocultar o borrar Points.
-- Crear varios Points en un request.
-- La cola offline de la app.
-- Leer Points en v2 (el historial del contribuyente está en
+- Editing, hiding or deleting Points.
+- Creating several Points in one request.
+- The app's offline queue.
+- Reading Points in v2 (the contributor's history is in
   [offline_contributions.md](offline_contributions.md)).
 
-## Comportamiento
+## Behavior
 
-### Flujo
+### Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as App
     participant A as API
-    participant B as Base
+    participant B as Database
 
     C->>A: POST /v2/points { map_id, time, ... }
-    A->>B: ¿El mapa existe y la credencial puede escribir en él?
-    Note over A: Calcula el id X a partir de los datos
+    A->>B: Does the map exist, and can the credential write to it?
+    Note over A: Computes id X from the data
     A->>B: INSERT Point X ... ON CONFLICT (id) DO NOTHING
     A-->>C: 201 { id: X }
-    Note over C,A: Si la respuesta se pierde, la app reintenta con los mismos datos
-    C->>A: POST /v2/points { los mismos datos }
-    Note over A: Calcula el mismo X
-    A->>B: X ya existe
-    A-->>C: 200 { id: X } (sin modificar nada)
+    Note over C,A: If the response is lost, the app retries with the same data
+    C->>A: POST /v2/points { the same data }
+    Note over A: Computes the same X
+    A->>B: X already exists
+    A-->>C: 200 { id: X } (nothing modified)
     C->>A: POST /v2/points/X/media
 ```
 
-### Quién escribe
+### Who writes
 
-| Credencial | Quién es | Condición |
+| Credential | Who it is | Condition |
 |---|---|---|
-| Sesión de Hanko (`Authorization: Bearer` o cookie `hanko`) | El dueño | El mapa es suyo |
-| `Authorization: Contributor <secreto>` | Un contribuyente | Tiene un Contributor activo en ese mapa |
+| Hanko session (`Authorization: Bearer` or `hanko` cookie) | The owner | The map is theirs |
+| `Authorization: Contributor <secret>` | A contributor | Has an active Contributor on that map |
 
-Si el pedido trae `Authorization: Contributor`, esa credencial decide, aunque
-también haya una sesión.
+If the request carries `Authorization: Contributor`, that credential decides,
+even if there is also a session.
 
-### Orden de los chequeos
+### Order of checks
 
-1. Alguna credencial → 401. Un secreto de contribuyente mal formado también es 401.
-2. Validación del body → 422.
-3. Mapa existente → 404. Para el dueño, además, que sea suyo.
-4. Solo contribuyente: Contributor activo en ese mapa → 403.
-5. Insertar: nuevo → 201; ya existía con esos datos → 200.
+1. Some credential → 401. A malformed contributor secret is also 401.
+2. Body validation → 422.
+3. Map exists → 404. For the owner, also that it is theirs.
+4. Contributor only: active Contributor on that map → 403.
+5. Insert: new → 201; already existed with that data → 200.
 
-Un body inválido para un mapa ajeno responde 422, no 404.
+An invalid body for someone else's map gets 422, not 404.
 
-### Casos y bordes
+### Cases and edge cases
 
-| Situación | Disparador | Resultado observable |
+| Situation | Trigger | Observable result |
 |---|---|---|
-| Point nuevo | Los datos no coinciden con ningún Point y la credencial puede escribir | Se crea el Point. `201 { id }` |
-| Reintento | Los mismos datos, del mismo remitente, para el mismo mapa | El servidor calcula el mismo id. No se modifica nada. `200 { id }` |
-| Reintento de un Point oculto | El Point existe y el dueño lo ocultó (`removed = true`) | `200 { id }`. Sigue oculto |
-| Intentos simultáneos | Dos requests con los mismos datos llegan a la vez | Un solo Point. Uno recibe 201 y el otro 200. Lo garantiza la clave primaria (`INSERT ... ON CONFLICT`), no un SELECT previo |
-| Dos remitentes, mismos datos | Dos contribuyentes mandan lo mismo | Dos Points distintos: el remitente entra en el cálculo del id |
-| Mismo instante, otra zona horaria | `12:00-03:00` y `15:00Z` | Mismo id: la hora se normaliza a UTC |
-| Mensaje vacío o ausente | `""` o sin `message` | Mismo id en los dos casos |
-| El body trae `id` | La app manda un id propio | Se ignora. El id lo calcula el servidor |
-| Mapa inexistente o ajeno | `map_id` que no existe, o es de otro usuario y la credencial es una sesión | `404 "Map not found."`. No se distingue un caso del otro |
-| Mapa borrado antes del reintento | El dueño borró el mapa y llega un reintento | `404`. Los Points y los Contributors se borraron en cascada |
-| Contribuyente sin acceso | El secreto no es de un Contributor de ese mapa | `403` |
-| Contribuyente quitado | El Contributor tiene `removed_at` | `403`. No se inserta, aunque el Point ya hubiera llegado antes |
-| Hora en el futuro | `time` posterior a la actual, por ejemplo con el reloj del teléfono adelantado | Se acepta tal cual, igual que una hora vieja. El Point aparece primero en el historial |
-| Live map | `map_id` del live map del usuario | Se crea como en cualquier otro mapa. No hay restricción extra |
-| Sin credencial | Sin `Authorization` ni cookie `hanko`, o token vencido | `401` |
-| Secreto de contribuyente mal formado | No son 43 caracteres de base64url | `401` |
-| Falta un campo obligatorio o tiene otro tipo | | `422` |
-| Coordenadas fuera de rango | `latitude` fuera de [-90, 90] o `longitude` fuera de [-180, 180] | `422` |
-| `time` sin zona horaria | Por ejemplo `2026-10-07T12:15:23` | `422` |
-| `time` muy viejo | El reloj del teléfono está mal | Se acepta tal cual |
-| Sin `message` | | Se guarda `null` |
-| Campos desconocidos | El body trae `username`, `file`, `tags` u otro campo fuera del contrato | Se ignoran y el request sigue normalmente |
-| Usuario sin `username` en Hanko | | `username` queda `null`. No se deriva del email |
+| New Point | The data matches no Point and the credential can write | The Point is created. `201 { id }` |
+| Retry | The same data, from the same sender, for the same map | The server computes the same id. Nothing is modified. `200 { id }` |
+| Retry of a hidden Point | The Point exists and the owner hid it (`removed = true`) | `200 { id }`. It stays hidden |
+| Simultaneous attempts | Two requests with the same data arrive at the same time | A single Point. One gets 201 and the other 200. The primary key guarantees it (`INSERT ... ON CONFLICT`), not a prior SELECT |
+| Two senders, same data | Two contributors send the same thing | Two different Points: the sender is part of the id computation |
+| Same instant, another time zone | `12:00-03:00` and `15:00Z` | Same id: the time is normalized to UTC |
+| Empty or missing message | `""` or no `message` | Same id in both cases |
+| The body carries `id` | The app sends its own id | Ignored. The server computes the id |
+| Map missing or someone else's | `map_id` that doesn't exist, or belongs to another user and the credential is a session | `404 "Map not found."`. The two cases can't be told apart |
+| Map deleted before the retry | The owner deleted the map and a retry arrives | `404`. The Points and Contributors were deleted in cascade |
+| Contributor without access | The secret isn't a Contributor of that map | `403` |
+| Removed contributor | The Contributor has `removed_at` | `403`. Not inserted, even if the Point had arrived before |
+| Time in the future | `time` later than now, for example with the phone's clock ahead | Accepted as is, just like an old time. The Point shows first in the history |
+| Live map | `map_id` of the user's live map | Created as on any other map. No extra restriction |
+| No credential | No `Authorization` or `hanko` cookie, or an expired token | `401` |
+| Malformed contributor secret | Not 43 base64url characters | `401` |
+| A required field is missing or has another type | | `422` |
+| Coordinates out of range | `latitude` outside [-90, 90] or `longitude` outside [-180, 180] | `422` |
+| `time` without a time zone | For example `2026-10-07T12:15:23` | `422` |
+| Very old `time` | The phone's clock is wrong | Accepted as is |
+| No `message` | | `null` is stored |
+| Unknown fields | The body carries `username`, `file`, `tags` or another field outside the contract | Ignored, and the request proceeds normally |
+| User without a `username` in Hanko | | `username` stays `null`. It is not derived from the email |
 
-## Contrato
+## Contract
 
 ### Request
 
 ```
 POST /v2/points
-Authorization: Bearer <JWT de Hanko>   (o cookie hanko)
+Authorization: Bearer <Hanko JWT>   (or hanko cookie)
 ```
 
-o, para un contribuyente:
+or, for a contributor:
 
 ```
 POST /v2/points
-Authorization: Contributor <secreto>
+Authorization: Contributor <secret>
 ```
 
 ```json
@@ -126,185 +126,184 @@ Authorization: Contributor <secreto>
   "latitude": -34.6037,
   "longitude": -58.3816,
   "time": "2026-10-07T12:15:23-03:00",
-  "message": "Calle inundada"
+  "message": "Flooded street"
 }
 ```
 
-| Campo | Obligatorio | Regla |
+| Field | Required | Rule |
 |---|---|---|
-| `map_id` | Sí | Mapa del usuario autenticado, o mapa donde el secreto es de un contribuyente activo |
-| `latitude` | Sí | Número en [-90, 90] |
-| `longitude` | Sí | Número en [-180, 180] |
-| `time` | Sí | ISO 8601 con zona horaria. Es la hora en que se tomó el Point |
-| `message` | No | Texto |
+| `map_id` | Yes | A map of the authenticated user, or a map where the secret belongs to an active contributor |
+| `latitude` | Yes | Number in [-90, 90] |
+| `longitude` | Yes | Number in [-180, 180] |
+| `time` | Yes | ISO 8601 with time zone. The time the Point was taken |
+| `message` | No | Text |
 
-### Respuestas
+### Responses
 
-| Código | Cuándo | Body |
+| Code | When | Body |
 |---|---|---|
-| 201 | Se creó el Point | `{ "id": "…" }` |
-| 200 | Ya existía un Point con esos datos | `{ "id": "…" }` |
-| 401 | Sin credencial, JWT inválido o secreto mal formado | Error de autenticación |
-| 403 | Contribuyente que no es de ese mapa, o quitado | `"Not authorized."` |
-| 404 | El mapa no existe, o no es del usuario | `"Map not found."` |
-| 422 | Body inválido | Error de validación |
-| 503 | Falla la base de datos | `"Point storage unavailable."` |
+| 201 | The Point was created | `{ "id": "…" }` |
+| 200 | A Point with that data already existed | `{ "id": "…" }` |
+| 401 | No credential, invalid JWT or malformed secret | Authentication error |
+| 403 | Contributor not on that map, or removed | `"Not authorized."` |
+| 404 | The map doesn't exist, or isn't the user's | `"Map not found."` |
+| 422 | Invalid body | Validation error |
+| 503 | The database fails | `"Point storage unavailable."` |
 
-### El id del Point
+### The Point id
 
-El servidor lo calcula como el SHA-256, en hexadecimal (64 caracteres), de estos
-datos:
+The server computes it as the SHA-256, in hexadecimal (64 characters), of this
+data:
 
-| Dato | Detalle |
+| Data | Detail |
 |---|---|
-| Remitente | `owner:<user.id>` para el dueño, `contributor:<contributor.id>` para un contribuyente |
-| `map_id` | El del body |
-| Hora de captura | El `time` del body, en UTC, con microsegundos |
-| Coordenadas | `latitude` y `longitude` |
-| Mensaje | El del body. Vacío y ausente cuentan igual |
+| Sender | `owner:<user.id>` for the owner, `contributor:<contributor.id>` for a contributor |
+| `map_id` | The one in the body |
+| Capture time | The body's `time`, in UTC, with microseconds |
+| Coordinates | `latitude` and `longitude` |
+| Message | The one in the body. Empty and missing count the same |
 
-Los mismos datos dan siempre el mismo id. La hora es la que fijó la app al
-capturar, no la hora en que el servidor recibe el pedido: si fuera la del
-servidor, un reintento daría otro id.
+The same data always gives the same id. The time is the one the app set when
+capturing, not the time the server receives the request: if it were the
+server's, a retry would give another id.
 
-### Lo que se guarda
+### What is stored
 
-| Columna | Valor |
+| Column | Value |
 |---|---|
-| `id` | El hash de arriba |
-| `map_id` | El del body |
+| `id` | The hash above |
+| `map_id` | The one in the body |
 | `geom` | `POINT(longitude latitude)`, SRID 4326 |
-| `time` | El `time` del body convertido a UTC. La columna no guarda zona |
-| `message` | El del body, o `null` |
-| `username` | El `username` del usuario de Hanko, o el apodo del contribuyente. Puede ser `null` |
-| `contributor_id` | El id del Contributor, o `null` para el dueño |
+| `time` | The body's `time` converted to UTC. The column stores no time zone |
+| `message` | The one in the body, or `null` |
+| `username` | The Hanko user's `username`, or the contributor's nickname. Can be `null` |
+| `contributor_id` | The Contributor's id, or `null` for the owner |
 | `removed` | `false` |
 | `file` | `null` |
 | `tags` | `null` |
 
-## Decisiones
+## Decisions
 
-1. **Pueden crear el dueño del mapa y los contribuyentes activos.** El dueño se
-   autoriza con la sesión y `map.owner_id`. El contribuyente, con
-   `Authorization: Contributor <secreto>` y un Contributor activo en ese mapa.
-   Es la misma ruta, con una dependencia que acepta las dos credenciales. *Antes:*
-   solo el dueño, a la espera de la escalada de
+1. **The map's owner and active contributors can create.** The owner is
+   authorized with the session and `map.owner_id`. The contributor, with
+   `Authorization: Contributor <secret>` and an active Contributor on that map.
+   It is the same route, with a dependency that accepts both credentials.
+   *Before:* only the owner, pending the escalation in
    [map_contributions.md](map_contributions.md).
 
-2. **Ruta `POST /v2/points`, con `map_id` en el body.** Crear Points y subir
-   media (`/v2/points/{point_id}/media`) quedan sobre el mismo recurso. En v2
-   la autorización vive en el store, como en `MediaStore`, así que no hace
-   falta el mapa en el path. *Descartado:* `POST /v2/maps/{map_id}/points`.
+2. **Route `POST /v2/points`, with `map_id` in the body.** Creating Points and
+   uploading media (`/v2/points/{point_id}/media`) sit on the same resource. In
+   v2 authorization lives in the store, as in `MediaStore`, so the map isn't
+   needed in the path. *Discarded:* `POST /v2/maps/{map_id}/points`.
 
-3. **Un Point por request.** La media se sube de a un Point y el flujo es
-   crear y después subir. *Descartado:* crear varios en un request.
+3. **One Point per request.** Media is uploaded one Point at a time, and the
+   flow is create, then upload. *Discarded:* creating several in one request.
 
-4. **El id lo calcula el servidor a partir de los datos.** Con mala señal, la
-   respuesta de un request puede perderse después de que la API guardó el
-   Point. Un reintento con los mismos datos da el mismo id, y la clave primaria
-   lo rechaza. Detalle y alternativas descartadas en la Decisión 6 de
-   [offline_contributions.md](offline_contributions.md). *Antes:* el id lo
-   generaba la app (el patrón de ODK Collect con su `instanceID`).
+4. **The server computes the id from the data.** With a bad signal, a
+   request's response can be lost after the API saved the Point. A retry with
+   the same data gives the same id, and the primary key rejects it. Details and
+   discarded alternatives in Decision 6 of
+   [offline_contributions.md](offline_contributions.md). *Before:* the app
+   generated the id (the ODK Collect pattern with its `instanceID`).
 
-5. **Un reintento no modifica el Point y responde `200 { id }`.** El POST solo
-   crea. Un reintento viejo que llega tarde no puede pisar una edición
-   posterior ni volver visible un Point que el dueño ocultó. Como el id sale de
-   los datos, un reintento con otro contenido no es un reintento: es otro Point.
-   *Descartado:* upsert, que mezcla crear con editar.
+5. **A retry doesn't modify the Point and responds `200 { id }`.** The POST
+   only creates. An old retry that arrives late can't overwrite a later edit or
+   make visible a Point the owner hid. Since the id comes from the data, a
+   retry with different content isn't a retry: it is another Point.
+   *Discarded:* upsert, which mixes creating with editing.
 
-6. **Sin 409 por id.** Antes el cliente elegía el id y podía chocar con un Point
-   de otro mapa, y eso respondía 409. Ahora el mapa entra en el cálculo del id,
-   así que el choque no existe.
+6. **No 409 for the id.** Before, the client chose the id and could collide
+   with a Point on another map, which got a 409. Now the map is part of the id
+   computation, so the collision can't happen.
 
-7. **404 si el mapa no existe o no es del usuario, 403 si el contribuyente no
-   puede escribir.** El 404 es lo que hace v1 (`"Map not found"`). El 403 para
-   el contribuyente es lo que hace media en v2. Un contribuyente sobre un mapa
-   que no existe recibe 404.
+7. **404 if the map doesn't exist or isn't the user's, 403 if the contributor
+   can't write.** The 404 is what v1 does (`"Map not found"`). The 403 for the
+   contributor is what media does in v2. A contributor on a map that doesn't
+   exist gets 404.
 
-8. **Coordenadas como `latitude` y `longitude` con nombre.** Así no hay forma
-   de invertirlas. *Descartado:* la geometría GeoJSON
-   `{ "type": "Point", "coordinates": [lon, lat] }`, cuyo orden es una trampa
-   conocida.
+8. **Coordinates as named `latitude` and `longitude`.** That way they can't be
+   swapped. *Discarded:* the GeoJSON geometry
+   `{ "type": "Point", "coordinates": [lon, lat] }`, whose order is a
+   well-known trap.
 
-9. **`time` lo manda la app, con zona horaria, y se guarda en UTC.** Un Point
-   cargado sin señal puede llegar días después, y el mapa tiene que mostrar
-   cuándo se observó. Los exports ya asumen que la columna está en UTC
-   (`main.py:1050`). No se usa el default de la columna: `datetime.now()` se
-   evalúa una sola vez al importar el módulo y guarda la hora en que arrancó la
-   API. *Descartado:* la hora en que la API recibe el request.
+9. **The app sends `time`, with a time zone, and it is stored in UTC.** A Point
+   captured with no signal can arrive days later, and the map has to show when
+   it was observed. Exports already assume the column is in UTC
+   (`main.py:1050`). The column default isn't used: `datetime.now()` is
+   evaluated only once, when the module is imported, and stores the time the
+   API started. *Discarded:* the time the API receives the request.
 
-10. **`username` lo completa la API.** La app no lo puede falsificar. Para el
-    dueño es el `username` de Hanko, o `null` si no tiene. No se usa
-    `display_name`, porque en ese caso toma la parte de antes de la `@` del
-    email y la publicaría en los mapas públicos. Para el contribuyente es su
-    apodo. *Descartado:* que la app lo mande como texto libre.
+10. **The API fills in `username`.** The app can't forge it. For the owner it
+    is the Hanko `username`, or `null` if they don't have one. `display_name`
+    isn't used, because in that case it takes the part of the email before the
+    `@` and would publish it on public maps. For the contributor it is their
+    nickname. *Discarded:* the app sending it as free text.
 
-11. **Sin `tags` ni `file`.** Los tags se pueden agregar con
-    `PUT /v1/point/{id}/tags/`, y sumarlos después como campo opcional no
-    rompe a ningún cliente. La media va por su propio endpoint.
+11. **No `tags` or `file`.** Tags can be added with
+    `PUT /v1/point/{id}/tags/`, and adding them later as an optional field
+    breaks no client. Media goes through its own endpoint.
 
-12. **La respuesta trae solo el id.** La app ya tiene el contenido que mandó,
-    y el código dice si el Point se creó (201) o ya existía (200).
-    *Consecuencia:* en un reintento la app no ve el contenido guardado ni se
-    entera de que el Point está oculto. *Descartado:* devolver el Point
-    completo.
+12. **The response carries only the id.** The app already has the content it
+    sent, and the code says whether the Point was created (201) or already
+    existed (200). *Consequence:* on a retry the app doesn't see the stored
+    content, nor learn that the Point is hidden. *Discarded:* returning the
+    whole Point.
 
-13. **El live map se acepta como cualquier otro mapa.** Un live map es una
-    campaña en curso, y el dueño puede sumar Points desde la app mientras otros
-    mapean por WhatsApp. Los ids no pueden chocar (ver la nota sobre D-003).
-    La restricción que tiene chatmap-ui para importar en mapas live es de la
-    importación de exports, no del dominio.
+13. **The live map is accepted like any other map.** A live map is an ongoing
+    campaign, and the owner can add Points from the app while others map over
+    WhatsApp. The ids can't collide (see the note on D-003). The restriction
+    chatmap-ui has on importing into live maps belongs to importing exports,
+    not to the domain.
 
-14. **Solo se mapean los campos del contrato y los demás se ignoran.** El
-    Point se arma con los campos conocidos del body. Lo que no está en el
-    contrato no se guarda ni produce error. Incluye un `id` que mande la app.
-    *Descartado:* responder 422 ante campos desconocidos.
+14. **Only the contract fields are mapped, and the rest are ignored.** The
+    Point is built from the known fields of the body. Anything outside the
+    contract isn't stored and doesn't produce an error. This includes an `id`
+    sent by the app. *Discarded:* responding 422 to unknown fields.
 
-15. **Si hay una credencial de contribuyente y una sesión, decide la del
-    contribuyente.** Es la que el pedido declara de forma explícita, mientras
-    que la cookie de sesión llega sola. El secreto mal formado es 401 y no
-    cae a la sesión.
+15. **If there is both a contributor credential and a session, the
+    contributor's decides.** It is the one the request declares explicitly,
+    while the session cookie arrives on its own. A malformed secret is a 401
+    and doesn't fall back to the session.
 
-16. **Una hora en el futuro se acepta, igual que una vieja.** Lo único que
-    cambia es el orden del historial: el Point aparece primero. No rompe la
-    paginación ni ninguna lectura, y el dueño puede ocultarlo. Una hora vieja
-    también se acepta, porque una cola offline puede subir días después.
-    *Descartado:* rechazar con 422 a un contribuyente con una hora posterior a
-    la actual más 5 minutos de tolerancia, que era la decisión anterior. Con el
-    reloj del teléfono adelantado, la app marcaba como rechazadas capturas
-    válidas y no las reintentaba, aunque el mismo pedido se habría aceptado más
-    tarde. Además, el dueño nunca tuvo ese chequeo.
+16. **A time in the future is accepted, just like an old one.** The only thing
+    that changes is the history order: the Point shows first. It breaks neither
+    pagination nor any read, and the owner can hide it. An old time is also
+    accepted, because an offline queue can upload days later. *Discarded:*
+    rejecting with 422 a contributor whose time is later than now plus 5
+    minutes of tolerance, which was the previous decision. With the phone's
+    clock ahead, the app marked valid captures as rejected and didn't retry
+    them, even though the same request would have been accepted later. Besides,
+    the owner never had that check.
 
-## Nota para architect: alcance de D-003 (no bloquea)
+## Note for architect: scope of D-003 (non-blocking)
 
-[D-003](live_mode.md#d-003-point-id-determinism) dice que todo `Point.id` se
-deriva del id de la entrada de Redis. Su justificación solo habla del stream,
-y v1 ya crea Points con `uuid4()`. Esta feature agrega ids calculados por el
-servidor a partir de los datos. Se propone acotar el texto de D-003 a los
-Points del pipeline live.
+[D-003](live_mode.md#d-003-point-id-determinism) says every `Point.id` is
+derived from the Redis entry id. Its rationale only talks about the stream,
+and v1 already creates Points with `uuid4()`. This feature adds ids computed by
+the server from the data. The proposal is to narrow D-003's text to the Points
+of the live pipeline.
 
-Además, D-003 tiene un segundo motivo que el record no menciona. El bot
-(`conversation_engine/tool.py:70`) toma como `point_id` el id del mensaje de
-ubicación, por su cuenta y sin comunicarse con el stream.
-`survey_responses.point_id` no tiene FK a `points`. Las respuestas de la
-encuesta coinciden con el Point solo porque el bot y el stream derivan el id
-del mismo mensaje.
+D-003 also has a second reason the record doesn't mention. The bot
+(`conversation_engine/tool.py:70`) takes the location message's id as
+`point_id`, on its own and without talking to the stream.
+`survey_responses.point_id` has no FK to `points`. The survey answers match the
+Point only because the bot and the stream derive the id from the same message.
 
-Esta feature necesita que los ids del stream y los calculados acá no puedan
-coincidir nunca. Lo garantiza la forma: los ids del stream tienen la forma
-`<epoch-ms>-0`, y los de esta feature son 64 caracteres hexadecimales. Si
-coincidieran, el upsert de `add_points` (`ON CONFLICT (id) DO UPDATE`) movería
-el Point de la app al live map y pisaría su ubicación.
+This feature needs the stream's ids and the ones computed here to never
+collide. Their shape guarantees it: stream ids look like `<epoch-ms>-0`, and
+this feature's are 64 hexadecimal characters. If they matched, the upsert in
+`add_points` (`ON CONFLICT (id) DO UPDATE`) would move the app's Point to the
+live map and overwrite its location.
 
-## Preguntas abiertas
+## Open questions
 
-1. **Resuelta** (Decisión 16): nadie tiene chequeo de hora futura, así que el
-   reloj del dueño tampoco lo necesita.
-2. **Borrado real de Points.** Hoy solo se pueden ocultar
-   (`PUT /v1/point/{id}/remove/`). Si se agrega un borrado real, un reintento
-   tardío volvería a crear el Point, porque para la API sería un id
-   desconocido. Habría que guardar alguna marca de los ids borrados.
-3. **Media de v2 en las lecturas de v1.** `map_response` (`main.py:441`) solo
-   lee `Point.file` y no consulta la tabla `media`. Una media subida por v2
-   no aparece al leer el mapa, así que en chatmap-ui el Point se vería sin
-   foto. Queda fuera de esta feature.
+1. **Resolved** (Decision 16): nobody has a future-time check, so the owner's
+   clock doesn't need one either.
+2. **Actually deleting Points.** Today they can only be hidden
+   (`PUT /v1/point/{id}/remove/`). If real deletion is added, a late retry
+   would create the Point again, because to the API it would be an unknown id.
+   Some record of the deleted ids would have to be kept.
+3. **v2 media in v1 reads.** `map_response` (`main.py:441`) only reads
+   `Point.file` and doesn't query the `media` table. Media uploaded through v2
+   doesn't appear when reading the map, so in chatmap-ui the Point would show
+   without a photo. Out of scope for this feature.

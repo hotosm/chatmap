@@ -7,6 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "hot-chatmap",
     "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.chatmapapp"
+    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",

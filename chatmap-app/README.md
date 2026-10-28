@@ -1,231 +1,351 @@
 # chatmap-app
 
-App móvil de ChatMap (Expo / React Native). Este documento explica cómo hacer
-un build en cada uno de los tres flujos. Por ahora cubre solo Android.
+ChatMap's mobile app (Expo / React Native). This document explains how to make
+a build in each of the three flows. The steps are written for Android; what
+changes on iOS is in [iOS](#ios).
 
-## Los tres flujos
+## The three flows
 
-| Flujo | Servidor | Perfil de EAS | App instalada | Package |
+| Flow | Server | EAS profile | Installed app | ID (Android and iOS) |
 |---|---|---|---|---|
-| Local | backend en la máquina (`http://localhost:8000`) | `local` | chatmap-app Local | `com.anonymous.chatmapapp.local` |
+| Local | backend on the machine (`.env.local` or ngrok tunnel) | `local-devclient` (dev client) or `local-standalone` (JavaScript bundled in, via ngrok) | chatmap-app Local | `com.anonymous.chatmapapp.local` |
 | Development | `https://dev.chatmap.hotosm.org/` | `development` | chatmap-app Dev | `com.anonymous.chatmapapp.dev` |
-| Production | `https://chatmap.hotosm.org/` | `production` (Play Store) o `production-apk` (APK) | chatmap-app | `com.anonymous.chatmapapp` |
+| Production | `https://chatmap.hotosm.org/` | `production-store` (Play Store) or `production-direct` (APK) | chatmap-app | `com.anonymous.chatmapapp` |
 
-Cada flujo es una app distinta para Android. Las tres se pueden instalar en el
-mismo teléfono, y cada una guarda sus propios mapas, su cola de Points y sus
-secretos. Así los datos de un servidor nunca se mezclan con los de otro.
+Each flow is a separate app, on Android and on iOS. All three can be installed
+on the same phone, and each one keeps its own maps, its Points queue and its
+secrets. That way the data from one server never mixes with another's.
 
-### Cómo llega la URL de la API a la app
+### How the API URL reaches the app
 
-La app toma el servidor de `EXPO_PUBLIC_API_URL`. Esta variable queda escrita
-en el JavaScript al momento de compilarlo; no se lee al abrir la app. Eso define
-cómo funciona cada flujo:
+The app takes the server from `EXPO_PUBLIC_API_URL`. This variable is written
+into the JavaScript when it is compiled; it isn't read when the app opens. That
+defines how each flow works:
 
-- **Development y Production** llevan el JavaScript adentro del APK. La URL sale
-  de las variables de EAS al hacer el build. Para cambiar de servidor hace falta
-  un build nuevo.
-- **Local** usa un *development build* (dev client). Ese binario no trae el
-  JavaScript: lo pide a Metro en la máquina, y Metro lee `.env.local` cada vez
-  que arranca.
+- **Development, Production and `local-standalone`** carry the JavaScript
+  inside the APK. The URL comes from the EAS variables at build time. Changing
+  servers requires a new build.
+- **`local-devclient`** is a *development build* (dev client). That binary
+  doesn't include the JavaScript: it requests it from Metro on the machine, and
+  Metro reads `.env.local` every time it starts.
 
-Si `EXPO_PUBLIC_API_URL` no está definida, la app se cierra al abrir
+If `EXPO_PUBLIC_API_URL` isn't defined, the app closes when it opens
 (`src/config.ts`).
 
-### Cómo se elige la variante
+### How the variant is chosen
 
-`app.config.ts` lee `APP_VARIANT` (`local`, `development` o `production`) y le
-agrega un sufijo al nombre y al `package` que están en `app.json`. Cada perfil
-de `eas.json` define su `APP_VARIANT`, y `npm start` usa `local`. Sin
-`APP_VARIANT`, la variante es `production`.
+`app.config.ts` reads `APP_VARIANT` (`local`, `development` or `production`) and
+adds a suffix to the name, to the Android `package` and to the iOS
+`bundleIdentifier` in `app.json`. Each
+`eas.json` profile defines its `APP_VARIANT`, and `npm start` uses `local`.
+Without `APP_VARIANT`, the variant is `production`.
 
-## Antes de cualquier build
+## Before any build
 
-1. Instalar las dependencias con `npm install`.
-2. Iniciar sesión en EAS con una cuenta que tenga acceso al proyecto
-   `@lawal-coop/chatmap`: `npx eas-cli@latest login`. Para ver la sesión
-   actual: `npx eas-cli@latest whoami`.
-3. Correr los chequeos:
+1. Install the dependencies with `npm install`.
+2. Log in to EAS with an account that has access to the
+   `@lawal-coop/chatmap` project: `npx eas-cli@latest login`. To see the
+   current session: `npx eas-cli@latest whoami`.
+3. Run the checks:
 
    ```bash
-   npx expo-doctor            # dependencias y config del proyecto
-   npx expo install --check   # paquetes con versión distinta a la del SDK (--fix los corrige)
-   npx tsc --noEmit           # tipos
+   npx expo-doctor            # project dependencies and config
+   npx expo install --check   # packages whose version differs from the SDK's (--fix corrects them)
+   npx tsc --noEmit           # types
    npx expo lint              # lint
    ```
 
-Para Development y Production conviene además compilar el JavaScript de
-producción con la URL del servidor. Así los errores de bundling aparecen en
-segundos y no al final de un build en EAS:
+For Development and Production it is also worth compiling the production
+JavaScript with the server URL. That way bundling errors show up in seconds
+instead of at the end of an EAS build:
 
 ```bash
 EXPO_PUBLIC_API_URL=https://dev.chatmap.hotosm.org/ npx expo export --platform android --output-dir /tmp/chatmap-export
 ```
 
-La primera vez que se hace un build de un `package` nuevo, EAS pregunta si
-genera un keystore para firmar la app. Hay que aceptar: EAS lo guarda y lo usa
-en los builds siguientes.
+The first time a build is made for a new `package`, EAS asks whether to
+generate a keystore to sign the app. Accept: EAS stores it and uses it for the
+following builds.
 
 ## Local
 
-El backend corre en la máquina y la app usa un dev client. El JavaScript se
-recarga en vivo, y el binario solo se vuelve a compilar cuando cambia algo
-nativo.
+The backend runs on the machine and the app uses a dev client. The JavaScript
+reloads live, and the binary is only rebuilt when something native changes.
 
-1. Levantar el backend con `compose.dev.yml`. La API queda en el puerto 8000.
-2. Crear `.env.local` a partir de `.env.example`:
+1. Start the backend with `compose.dev.yml`. The API runs on port 8000.
+2. Create `.env.local` from `.env.example`:
 
    ```
    EXPO_PUBLIC_API_URL=http://localhost:8000
    ```
 
-3. Conectar el teléfono por USB y redirigir el puerto:
+3. Connect the phone over USB and forward the port:
 
    ```bash
    adb reverse tcp:8000 tcp:8000
    ```
 
-   En el teléfono, `localhost` es el propio teléfono. Este comando hace que su
-   puerto 8000 apunte al de la máquina. Hay que repetirlo cada vez que se
-   desconecta el teléfono o se reinicia `adb`.
+   On the phone, `localhost` is the phone itself. This command makes its port
+   8000 point to the machine's. It has to be repeated every time the phone is
+   disconnected or `adb` restarts.
 
-4. Instalar el dev client, la primera vez o cuando cambia algo nativo:
+4. Install the dev client, the first time or when something native changes:
 
    ```bash
-   npx eas-cli@latest build --profile local --platform android
+   npx eas-cli@latest build --profile local-devclient --platform android
    ```
 
-   Al terminar, EAS muestra un link y un QR para instalar el APK. También se
-   puede compilar en la máquina con `npm run android`, que necesita Android
-   Studio y el SDK de Android.
+   When it finishes, EAS shows a link and a QR to install the APK. It can also
+   be built on the machine with `npm run android`, which needs Android Studio
+   and the Android SDK.
 
-5. Arrancar Metro y abrir la app **chatmap-app Local**:
+5. Start Metro and open the **chatmap-app Local** app:
 
    ```bash
    npm start
    ```
 
-   Hay que usar `npm start` y no `npx expo start`: el script define
-   `APP_VARIANT=local`, y sin eso Expo busca la app de producción al abrirla
-   desde la terminal. Los scripts usan la sintaxis `APP_VARIANT=local ...` de
-   Linux y macOS.
+   Use `npm start` and not `npx expo start`: the script sets
+   `APP_VARIANT=local`, and without it Expo looks for the production app when
+   opening it from the terminal. The scripts use the Linux and macOS
+   `APP_VARIANT=local ...` syntax.
 
-Hay que volver a compilar el dev client cuando:
+The dev client has to be rebuilt when:
 
-- se agrega o se quita un paquete con código nativo;
-- cambian plugins, permisos u otra config nativa en `app.json` o
+- a package with native code is added or removed;
+- plugins, permissions or other native config change in `app.json` or
   `app.config.ts`;
-- se actualiza Expo, incluso un parche con `npx expo install --fix`.
+- Expo is updated, even a patch with `npx expo install --fix`.
 
-Si se compila con `npm run android` y ya existe una carpeta `android/`
-generada antes, hay que regenerarla primero:
+If you build with `npm run android` and an `android/` folder generated earlier
+already exists, regenerate it first:
 
 ```bash
 APP_VARIANT=local npx expo prebuild --clean --platform android
 ```
 
-Para probar el dev client contra el servidor de dev sin hacer un build, alcanza
-con poner `EXPO_PUBLIC_API_URL=https://dev.chatmap.hotosm.org/` en `.env.local`
-y reiniciar Metro.
+To test the dev client against the dev server without making a build, it is
+enough to set `EXPO_PUBLIC_API_URL=https://dev.chatmap.hotosm.org/` in
+`.env.local` and restart Metro.
+
+### Local with the JavaScript bundled in
+
+Useful to test the app as a user sees it, but against the local backend. EAS
+doesn't receive `.env.local`, so the backend is exposed with a fixed-URL ngrok
+tunnel, and that URL is written into the build: if it changes, a new build is
+needed.
+
+1. Start the backend with `compose.dev.yml` and the ngrok tunnel to port 8000.
+2. The first time, load the tunnel URL into the EAS `preview` environment:
+
+   ```bash
+   npx eas-cli@latest env:set --name EXPO_PUBLIC_API_URL --value <tunnel-url> --environment preview --visibility plaintext
+   ```
+
+   The URL doesn't go in the repo: with it, anyone can reach the local backend
+   while the tunnel is open.
+
+3. Start the build:
+
+   ```bash
+   npx eas-cli@latest build --profile local-standalone --platform android
+   ```
+
+4. Install the APK from the link or the QR that EAS shows. It installs as
+   **chatmap-app Local**, the same app as the dev client: installing one
+   replaces the other and keeps the data, because both talk to the same backend.
 
 ## Development
 
-Build con el JavaScript adentro, contra `https://dev.chatmap.hotosm.org/`, para
-probar la app como la ve un usuario.
+A build with the JavaScript bundled in, against
+`https://dev.chatmap.hotosm.org/`, to test the app as a user sees it.
 
-1. Correr los chequeos de [Antes de cualquier build](#antes-de-cualquier-build).
-2. Lanzar el build:
+1. Run the checks in [Before any build](#before-any-build).
+2. Start the build:
 
    ```bash
    npx eas-cli@latest build --profile development --platform android
    ```
 
-3. Instalar el APK desde el link o el QR que muestra EAS. Se instala como
+3. Install the APK from the link or the QR that EAS shows. It installs as
    **chatmap-app Dev**.
 
-EAS sube el `versionCode` en cada build, así que el APK nuevo se instala como
-actualización del anterior y no se pierden los datos.
+EAS bumps the `versionCode` on every build, so the new APK installs as an update
+of the previous one and the data isn't lost.
 
 ## Production
 
-Contra `https://chatmap.hotosm.org/`. Hay dos perfiles para la misma app:
-`production` genera un `.aab` para Play Store y `production-apk` genera un
-`.apk` para instalar directo.
+Against `https://chatmap.hotosm.org/`. There are two profiles for the same app:
+`production-store` generates an `.aab` for Play Store and `production-direct`
+generates an `.apk` to install directly.
 
-### Antes del primer build de producción
+### Before the first production build
 
-- **Definir el `package` definitivo** en `app.json` (`android.package`). Hoy es
-  `com.anonymous.chatmapapp`, un valor de plantilla. Una vez publicado en Play
-  Store no se puede cambiar: cambiarlo crea otra app. Las variantes Dev y Local
-  toman ese mismo valor con su sufijo.
-- **Elegir un canal por usuario.** Play Store vuelve a firmar la app con su
-  propia clave (Play App Signing). Por eso una app instalada desde Play Store no
-  se puede actualizar con el APK directo, ni al revés. Para cambiar de canal hay
-  que desinstalar, y se pierden los datos locales.
+- **Set the final `package`** in `app.json` (`android.package`). Today it is
+  `com.anonymous.chatmapapp`, a template value. Once published on Play Store it
+  can't be changed: changing it creates another app. The Dev and Local variants
+  take that same value with their suffix.
+- **Pick one channel per user.** Play Store re-signs the app with its own key
+  (Play App Signing). That is why an app installed from Play Store can't be
+  updated with the direct APK, or the other way around. Switching channels
+  requires uninstalling, and the local data is lost.
 
-### Hacer una versión nueva
+### Making a new version
 
-1. Subir `version` en `app.json`, por ejemplo de `1.0.0` a `1.1.0`. Es la
-   versión que ve el usuario. El `versionCode` lo sube EAS en cada build.
-2. Correr los chequeos de [Antes de cualquier build](#antes-de-cualquier-build).
-3. Lanzar el build según el canal.
+1. Bump `version` in `app.json`, for example from `1.0.0` to `1.1.0`. It is the
+   version the user sees. EAS bumps the `versionCode` on every build.
+2. Run the checks in [Before any build](#before-any-build).
+3. Start the build for the channel.
 
    Play Store:
 
    ```bash
-   npx eas-cli@latest build --profile production --platform android
-   npx eas-cli@latest submit --profile production --platform android --latest
+   npx eas-cli@latest build --profile production-store --platform android
+   npx eas-cli@latest submit --profile production-store --platform android --latest
    ```
 
-   `submit` sube el último `.aab` a Play Console. Necesita una clave de cuenta
-   de servicio de Google. La primera subida de la app a Play Console tiene que
-   ser manual.
+   `submit` uploads the latest `.aab` to Play Console. It needs a Google
+   service account key. The app's first upload to Play Console has to be
+   manual.
 
-   APK directo:
+   Direct APK:
 
    ```bash
-   npx eas-cli@latest build --profile production-apk --platform android
+   npx eas-cli@latest build --profile production-direct --platform android
    ```
 
-   EAS muestra un link para descargar el `.apk`.
+   EAS shows a link to download the `.apk`.
 
-## Variables de entorno en EAS
+## iOS
 
-| Entorno de EAS | Perfiles | `EXPO_PUBLIC_API_URL` |
+The profiles are the same as on Android, with `--platform ios`. Two things
+change: signing depends on an Apple Developer account, and a direct-install
+build only installs on the iPhones registered in that account.
+
+### Apple account and bundle ID
+
+For now, iOS builds are signed with a temporary Apple account, to test the
+beta. That is why the `bundleIdentifier` in `app.json` is
+`com.anonymous.chatmapapp`, a provisional value.
+
+The bundle ID is unique across all of Apple, and it stays with the account that
+registers it. If a build with that ID is uploaded to App Store Connect
+(TestFlight or App Store), the ID is tied to that account and can't be used in
+another one, even if the app is deleted. That is why:
+
+- With the temporary account, only the direct-install profiles are used on
+  iOS. Not `production-store`, because it goes through App Store Connect.
+- The final bundle ID is registered only by the account that will publish.
+
+When the publishing account takes over:
+
+1. Put the final bundle ID in `app.json` (`ios.bundleIdentifier`). The Dev and
+   Local variants take that value with their suffix.
+2. Start the build with that account. EAS asks to log in to Apple and generates
+   that account's certificate and signing profiles.
+3. The temporary account's credentials stay stored in EAS. They can be deleted
+   from the project's Credentials section on expo.dev.
+
+### Registering iPhones
+
+A direct-install build carries the list of iPhones that can install it. Each
+iPhone is registered before the build:
+
+1. Run:
+
+   ```bash
+   npx eas-cli@latest device:create
+   ```
+
+   It asks to log in to Apple to know which account to register it in. Choose
+   **Website**: EAS shows a link and a QR.
+
+2. Send the link to the person who will test. They have to open it on the
+   iPhone with **Safari**; other browsers may fail.
+3. On the iPhone: Settings → Profile Downloaded → Install. That profile only
+   passes the iPhone's identifier (UDID) to EAS.
+
+To see the registered iPhones: `npx eas-cli@latest device:list`.
+
+- An iPhone registered after a build can't install that build: a new one is
+  needed.
+- Apple allows up to 100 iPhones per year on each account.
+- With a newly created or renewed Apple account, Apple can take between 24 and
+  72 hours to accept a new iPhone, and the first build that includes it may
+  fail.
+
+### Direct-install build
+
+1. Run the checks in [Before any build](#before-any-build).
+2. Start the build:
+
+   ```bash
+   npx eas-cli@latest build --profile production-direct --platform ios
+   ```
+
+   The first time, it asks to log in to Apple and creates the distribution
+   certificate and the signing profile with the registered iPhones. EAS stores
+   them for the following builds. If there are registered iPhones that aren't
+   in the profile, it asks which ones to include and updates it.
+
+3. Share the link EAS shows. It is opened on the iPhone with Safari and installs
+   **chatmap-app**.
+4. On iOS 16 or newer, the first time you have to turn on developer mode: open
+   the app, go to Settings → Privacy & Security → Developer Mode, turn it on and
+   restart the iPhone. Without it the app doesn't open.
+
+### The other profiles
+
+- `development` and `local-standalone` work the same as `production-direct`:
+  change the profile in the command, and they only install on registered
+  iPhones.
+- `local-devclient` is also built on EAS with `--platform ios`. Building it on
+  the machine needs a Mac with Xcode. The iPhone has no `adb reverse`, so in
+  `.env.local` it is better to use the ngrok tunnel URL.
+
+## Environment variables in EAS
+
+| EAS environment | Profiles | `EXPO_PUBLIC_API_URL` |
 |---|---|---|
-| `development` | `local`, `development` | `https://dev.chatmap.hotosm.org/` |
-| `production` | `production`, `production-apk` | `https://chatmap.hotosm.org/` |
+| `development` | `local-devclient`, `development` | `https://dev.chatmap.hotosm.org/` |
+| `preview` | `local-standalone` | ngrok tunnel URL (not in the repo) |
+| `production` | `production-store`, `production-direct` | `https://chatmap.hotosm.org/` |
 
-El perfil `local` declara el entorno `development`, pero el dev client no lleva
-el JavaScript adentro, así que esa URL no se usa: la app toma la de `.env.local`.
+The `local-devclient` profile declares the `development` environment, but the
+dev client doesn't carry the JavaScript, so that URL isn't used: the app takes
+the one in `.env.local`. The `preview` environment is used for
+`local-standalone` because EAS only has three fixed environments and it was the
+free one.
 
 ```bash
 npx eas-cli@latest env:list --environment development
 npx eas-cli@latest env:set --name EXPO_PUBLIC_API_URL --value <url> --environment development --visibility plaintext
 ```
 
-Un cambio en una variable se aplica recién en el próximo build. Las variables
-opcionales de detección de conexión (`EXPO_PUBLIC_HEALTH_*`, en `.env.example`)
-se cargan de la misma forma si hace falta cambiarlas.
+A change to a variable only takes effect on the next build. The optional
+connection detection variables (`EXPO_PUBLIC_HEALTH_*`, in `.env.example`) are
+loaded the same way if they need to be changed.
 
-## Qué se sube a EAS
+## What gets uploaded to EAS
 
-`.easignore`, en la raíz del repo, hace que EAS suba solo `chatmap-app/` y no el
-monorepo entero. Ese archivo reemplaza a todos los `.gitignore` para EAS: una
-regla nueva en `chatmap-app/.gitignore` también hay que copiarla ahí. Para ver
-exactamente qué se sube:
+`.easignore`, at the repo root, makes EAS upload only `chatmap-app/` and not the
+whole monorepo. For EAS, that file replaces every `.gitignore`: a new rule in
+`chatmap-app/.gitignore` also has to be copied there. To see exactly what gets
+uploaded:
 
 ```bash
 npx eas-cli@latest build:inspect --platform android --profile development --stage archive --output /tmp/eas-archive
 ```
 
-## Problemas comunes
+## Common problems
 
-- **La app se cierra apenas abre.** Falta `EXPO_PUBLIC_API_URL`. En Local,
-  revisar `.env.local` y reiniciar Metro. En un build, revisar `env:list` del
-  entorno del perfil.
-- **En Local la app no llega al servidor.** Revisar que el backend esté
-  corriendo y volver a correr `adb reverse tcp:8000 tcp:8000`.
-- **Al escanear un QR de invitación con la cámara, Android pregunta con qué app
-  abrirlo.** Las tres apps comparten el esquema `hot-chatmap://`. Hay que
-  elegir la del servidor que generó la invitación. Escanear desde la propia app
-  no tiene este problema.
+- **The app closes as soon as it opens.** `EXPO_PUBLIC_API_URL` is missing. In
+  Local, check `.env.local` and restart Metro. In a build, check `env:list` for
+  the profile's environment.
+- **In Local the app doesn't reach the server.** Check that the backend is
+  running and run `adb reverse tcp:8000 tcp:8000` again. With
+  `local-standalone`, check that the ngrok tunnel is open.
+- **When scanning an invitation QR with the camera, Android asks which app to
+  open it with.** The three apps share the `hot-chatmap://` scheme. Choose the
+  one for the server that generated the invitation. Scanning from inside the app
+  doesn't have this problem.

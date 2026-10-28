@@ -506,7 +506,7 @@ semantics):
 16. **A dedicated endpoint (`GET /bot/templates`), not a field on
     `GET /map`.** The completeness check (#11) means loading a map's
     messages and running the validator — heavier than an existence check.
-    `GET /map` backs the "Mis mapas" list, loaded far more often than the
+    `GET /map` backs the "My Maps" list, loaded far more often than the
     setup page's picker is opened; computing this for every map on every
     visit there would be waste for a feature that page doesn't use.
     *Discarded:* a `has_bot_config`-style boolean added to `GET /map`.
