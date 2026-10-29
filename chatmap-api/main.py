@@ -420,7 +420,7 @@ async def get_video_player(
 
 # Retrieve HTML for embedded media (image/video/audio)
 def html_for_embedded_media(file):
-    if file:
+    if file and "media/" in file:
         filename = file.split("=")[1] if "=" in file else file.split("media/")[1]
         file_url = f"{API_URL}/v{API_VERSION}/media_player/{filename}"
         if file.endswith("jpg") or file.endswith("jpeg"):
