@@ -63,9 +63,12 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 |✅| [Save data directly in ChatMap](https://github.com/hotosm/chatmap/issues/64) - Thanks [Abraham](https://github.com/categulario)!
 |✅| [Update a saved map with new data](https://github.com/hotosm/chatmap/issues/60) - Thanks [Abraham](https://github.com/categulario)!
 |✅| [Attach both image and text to a location](https://github.com/hotosm/chatmap/issues/1)
-|✅| [ChatBot for creating automated surveys](https://github.com/hotosm/chatmap/issues/186)
-|⚙️| Mapper app
+|✅| [ChatBot for creating automated surveys](https://github.com/hotosm/chatmap/issues/186) (beta)
+|✅| Show my location on the map
+|⚙️| Mapper app for iOS and Android
 |⚙️| Live Dashboard for creating and updating map points with chat data
+| | Connector support for Telegram
+| | Connector support for Signal
 | | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
 | | User content licensing options |
 | | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
