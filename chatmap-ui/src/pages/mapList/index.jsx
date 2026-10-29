@@ -1,12 +1,13 @@
 import { FormattedMessage, FormattedRelativeTime } from "react-intl";
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, NavLink } from "react-router";
+import { useNavigate, useSearchParams, NavLink } from "react-router";
 
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import SlBadge from "@shoelace-style/shoelace/dist/react/badge/index.js";
 
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
+import InviteQRDialog from "../../components/InviteQRDialog/index.jsx";
 import Header from "../header.jsx";
 import Footer from "../footer.jsx";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
@@ -21,6 +22,11 @@ export default function MapList() {
   const [mapList, setMapList] = useState([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmDialogData, setConfirmDialogData] = useState();
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteDialogMap, setInviteDialogMap] = useState();
+  const [searchParams] = useSearchParams();
+  // The invitation QR shows only with "?contributor-qr=true" in the address (#/maps?contributor-qr=true)
+  const showInviteQR = searchParams.get("contributor-qr") === "true";
 
   useEffect(() => {
     async function fetchData() {
@@ -153,6 +159,17 @@ export default function MapList() {
                     <SlButton outline loading={!!map.loading} onClick={() => handleDeleteRequest(map)}>
                       <SlIcon name="trash" slot="prefix" />
                     </SlButton>
+                    { showInviteQR &&
+                    <SlButton
+                      outline
+                      onClick={() => {
+                        setInviteDialogMap(map);
+                        setInviteDialogOpen(true);
+                      }}
+                    >
+                      <SlIcon name="qr-code-scan" slot="prefix" />
+                    </SlButton>
+                    }
                     { map.is_live &&
                     <SlButton outline className={map.bot_active ? "" : "dashed"} onClick={() => navigate("/bot-setup/" + map.id)}>
                       <SlIcon name="robot" slot="prefix" />
@@ -188,6 +205,12 @@ export default function MapList() {
       >
         { confirmDialogData?.name }
       </ConfirmDialog>
+
+      <InviteQRDialog
+        open={inviteDialogOpen}
+        setOpen={setInviteDialogOpen}
+        map={inviteDialogMap}
+      />
     </>
   );
 };

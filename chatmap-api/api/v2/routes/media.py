@@ -1,26 +1,57 @@
-from fastapi import APIRouter, HTTPException, UploadFile
+from datetime import timezone
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from hotosm_auth_fastapi import CurrentUser, CurrentUserOptional
+from pydantic import AwareDatetime
 from starlette.background import BackgroundTask
 
-from api.v2.schemas.media import MediaResponse
-from results.error import (
-    NotAuthorized, PointAlreadyHasMedia, StoreUnavailable, UnsupportedMediaType,
-)
+from api.v2.credentials import RequestCredentials, require_credential
+from api.v2.schemas.media import MapMediaResponse, MediaResponse, PointMediaResponse
+from results.error import MapNotFound, NotAuthorized, PointAlreadyHasMedia, StoreUnavailable, UnsupportedMediaType
 from settings import API_URL
-from store.media_store import MediaStore
+from store.contributors.authorization import Owner
+from store.contributors.model import Contributor
+from store.media.model import Media
+from store.media.store import MediaStore
 
 router = APIRouter()
 
 
-@router.post("/points/{point_id}/media", status_code=201)
+def _media_fields(media: Media) -> dict:
+    return dict(
+        id=media.id,
+        url=f"{API_URL}/v2/media/{media.id}",
+        content_type=media.content_type,
+        size=media.size,
+        captured_at=media.captured_at.replace(tzinfo=timezone.utc) if media.captured_at else None,
+    )
+
+
+async def media_uploader(point_id: str, credentials: RequestCredentials) -> Owner | Contributor:
+    try:
+        return await MediaStore.uploader_of(point_id, credentials)
+    except NotAuthorized:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    except StoreUnavailable:
+        raise HTTPException(status_code=503, detail="Media storage unavailable.")
+
+
+MediaUploader = Annotated[Owner | Contributor, Depends(media_uploader)]
+
+
+@router.post("/points/{point_id}/media", status_code=201, dependencies=[Depends(require_credential)])
 async def add_media(
         point_id: str,
         file: UploadFile,
-        user: CurrentUser,
+        captured_at: Annotated[AwareDatetime, Form()],
+        uploader: MediaUploader,
 ) -> MediaResponse:
+    filename = file.filename or ""
+    data = await file.read()
+
     try:
-        media = await MediaStore.add_media(point_id, user.id, file.filename or "", await file.read())
+        media = await MediaStore.add_media(point_id, uploader, filename, data, captured_at)
     except NotAuthorized:
         raise HTTPException(status_code=403, detail="Not authorized.")
     except UnsupportedMediaType as error:
@@ -30,21 +61,35 @@ async def add_media(
     except StoreUnavailable:
         raise HTTPException(status_code=503, detail="Media storage unavailable.")
 
-    return MediaResponse(
-        id=media.id,
-        url=f"{API_URL}/v2/media/{media.id}",
-        content_type=media.content_type,
-        size=media.size,
+    return MediaResponse(**_media_fields(media))
+
+
+@router.get("/maps/{map_id}/media")
+async def list_map_media(
+        map_id: str,
+        credentials: RequestCredentials,
+) -> MapMediaResponse:
+    try:
+        media = await MediaStore.media_of_map(map_id, credentials)
+    except MapNotFound:
+        raise HTTPException(status_code=404, detail="Map not found.")
+    except NotAuthorized:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    except StoreUnavailable:
+        raise HTTPException(status_code=503, detail="Media storage unavailable.")
+
+    return MapMediaResponse(
+        media=[PointMediaResponse(point_id=item.point_id, **_media_fields(item)) for item in media],
     )
 
 
 @router.get("/media/{media_id}", response_class=StreamingResponse)
 async def read_media(
         media_id: str,
-        user: CurrentUserOptional,
+        credentials: RequestCredentials,
 ):
     try:
-        result = await MediaStore.read_media(media_id, user.id if user else None)
+        result = await MediaStore.read_media(media_id, credentials)
     except StoreUnavailable:
         raise HTTPException(status_code=503, detail="Media storage unavailable.")
 

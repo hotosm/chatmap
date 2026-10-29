@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Map as MapGL, GeolocateControl } from 'maplibre-gl';
+import React, {useRef, useEffect, useState} from 'react';
+import {Map as MapGL, GeolocateControl} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {osm} from './source';
 import Popup from './popup';
@@ -48,7 +48,7 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
         '#9A969B', // --hot-color-neutral-400
         [
             "case",
-            ["to-boolean", ["get", "file"]],
+            ["any", ["to-boolean", ["get", "file"]], ["to-boolean", ["get", "media"]]],
             '#D73F3F',  // --hot-color-red-600
             '#2E4873', // --hot-color-blue-600
         ]
@@ -68,26 +68,26 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
 
         map.current.on("load", async () => {
 
-           // Center the map on the first feature
-           map.current.setCenter(data.features[0].geometry.coordinates)
+            // Center the map on the first feature
+            map.current.setCenter(data.features[0].geometry.coordinates)
 
-           // Add background control
-           map.current.addControl(new BackgroundControl());
+            // Add background control
+            map.current.addControl(new BackgroundControl());
 
-           // Add location control
-           let geolocate = new GeolocateControl({
-              positionOptions: {
-                  enableHighAccuracy: true
-              },
-              trackUserLocation: true
+            // Add location control
+            let geolocate = new GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: true
             });
             // Add the control to the map.
             map.current.addControl(geolocate);
 
             // Add geojson data source
             map.current.addSource('locations', {
-              data: mapTags.shown(data),
-              type: "geojson"
+                data: mapTags.shown(data),
+                type: "geojson"
             });
 
             // Fit map bounds on data extent
@@ -181,9 +181,9 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
                         ...data,
                         features: data.features.filter(feature =>
                             byValue ? byValue(feature)
-                            : data.filterTag !== undefined ?
-                                feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
-                                : !feature.properties.tags
+                                : data.filterTag !== undefined ?
+                                    feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
+                                    : !feature.properties.tags
                         )
                     }));
                 }
@@ -236,7 +236,7 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
     const handleAddPoint = (feature) => {
         mapDataDispatch({
             type: "set",
-            payload: { features: [...dataRef.current.features, feature] }
+            payload: {features: [...dataRef.current.features, feature]}
         });
         showFeature(feature);
     }

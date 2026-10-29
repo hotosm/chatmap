@@ -34,7 +34,16 @@ export const formatDate = (datetime) => {
  */
 export function GetMessage({message, msgType, dataFiles}) {
   let content;
-  if (message.file && dataFiles && message.file in dataFiles) {
+  // Media of the API v2, uploaded from the app
+  if (message.media) {
+    if (msgType === "image") {
+      content = <img className="popupImage" alt={message.media.url} src={message.media.url} />
+    } else if (msgType === "video") {
+      content = <video controls className="popupVideo" alt={message.media.url} src={message.media.url} />
+    } else if (msgType === "audio") {
+      content = <audio controls className="popupAudio" alt={message.media.url} src={message.media.url} />
+    }
+  } else if (message.file && dataFiles && message.file in dataFiles) {
 
     // Image
     if (msgType === "image") {

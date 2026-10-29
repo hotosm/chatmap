@@ -6,6 +6,7 @@ import {Popup as PopupGL} from "maplibre-gl";
 import Tagger from '../Tagger';
 import Message from '../Message';
 import { PointTags } from '../Tags';
+import { mediaType } from '../Media';
 import {useIntl} from 'react-intl';
 import {useLanguage} from "../../context/LanguageContext";
 
@@ -69,6 +70,10 @@ export default function Popup({
     const {lang, messages} = useLanguage();
 
     const getMsgType = (message) => {
+        // The media of the API v2 goes before the one of the API v1
+        if (message.media) {
+            return mediaType(message.media.content_type);
+        }
         if (message.file) {
             if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
                 return "image";

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useConfigContext } from '../../context/ConfigContext.jsx'
 import { withMapTags } from '../Tags';
+import { withMapMedia } from '../Media';
 
 /**
  *  ChatMap API
@@ -74,7 +75,7 @@ const useApi = (params = {}) => {
             }
             if (!response.ok) throw new Error('Failed to fetch data');
             const result = await response.json();
-            setMapData(await withMapTags(config.API_URL, result));
+            setMapData(await withMapMedia(config.API_URL, await withMapTags(config.API_URL, result)));
         });
     }, [params]);
 

@@ -223,6 +223,7 @@ class Point(Base):
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map = relationship("Map", back_populates="points")
+    contributor_id = Column(String, nullable=True)
 
 
 # Insert or update multiple points for a user

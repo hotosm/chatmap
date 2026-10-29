@@ -33,6 +33,10 @@ iteration are marked **(new)**.
   unreleased migration that creates the type.
 - The `chatmap-ui` bot setup page: adding a question of either kind,
   editing it, validating the form before save.
+- Reusing another map's bot configuration as a starting point for a new
+  one: a `templates` endpoint listing eligible source maps, and a picker
+  on the setup page that loads one into the in-memory form before Save.
+  See [Reusing another map's configuration as a template](#reusing-another-maps-configuration-as-a-template).
 
 **Out of scope / deferred**
 
@@ -48,6 +52,13 @@ iteration are marked **(new)**.
 - Encrypting survey answers at rest. Not changed — see
   [Decisions](#decisions) #8.
 - `MAX_ATTEMPTS` content rules beyond what already exists.
+- Keeping a copied configuration linked to its source. Applying a template
+  is a one-time copy; editing the source afterward does not affect a map
+  that already copied from it.
+- Disambiguating candidate maps that share a name in the template picker.
+  The owner picks by name only.
+- Copying `bot_active` itself, or any of the source map's runtime state
+  (recorded survey answers, in-flight conversations).
 
 ## The configuration model
 
@@ -243,6 +254,71 @@ matter for this feature:
   (single choice and free text) in list order, `NULL` to everything else.
 - New i18n message ids for the free-text label and its add button.
 
+## Reusing another map's configuration as a template
+
+An owner setting up a new map's bot rarely starts from a blank page — they
+already have a working bot on another map and want the same messages. This
+lets them load another map's configuration into the form, review it, and
+Save it like any other edit. It is not a live link: once applied, the two
+maps' configurations are independent again, and editing one afterward
+never touches the other.
+
+### What counts as a template candidate
+
+A map is offered as a template only if its stored configuration would pass
+`BotSetup.check_messages` with `bot_active=True` — the same rule that
+already gates turning a bot on (see
+[Endpoints and validation](#endpoints-and-validation)). That means every
+fixed step present with text, `media`/`location` each with an
+`error_message`, and a complete `max_attempts_messages`. Reusing the
+existing validator here means the picker can't drift from what "a working
+bot" already means elsewhere in this doc — no separate, hand-kept notion
+of "complete enough."
+
+Whether the *source* map's bot is currently on or off is irrelevant; only
+whether its configuration is complete enough to run.
+
+### `GET /bot/templates`
+
+Not scoped to any particular map - it only needs to know who is asking.
+`401` for an unauthenticated caller. Returns every one of the caller's own
+maps that qualifies as a template, most recently created first (matching
+`GET /map`'s order):
+
+```json
+[
+  { "id": "mapA", "name": "Ecuador" },
+  { "id": "mapC", "name": "Perú" }
+]
+```
+
+An owner with no qualifying map gets an empty list. This includes the map
+the owner happens to be configuring right now, if it already has a
+complete bot of its own - the endpoint has no notion of "the current map"
+to leave out.
+
+### The picker, on the setup page
+
+- A select listing the candidates by name, populated from the endpoint
+  above with the current map's own id filtered out client-side, next to a
+  **"Use as template"** button. Both are hidden when the list is empty —
+  there is nothing useful to show.
+- Picking a map in the select changes nothing by itself. Only clicking
+  **"Use as template"** and confirming a dialog applies it — selecting is
+  never enough on its own to touch the form.
+- Confirming fetches that map's configuration
+  (`GET /map/{chosen_id}/bot/`) and replaces the whole form with it:
+  `messages` and `max_attempts_messages` are set from the response exactly
+  as `messagesFromSetup`/`maxAttemptsFromSetup` already do for the page's
+  own data, except every `id` (each message's, and
+  `max_attempts_messages`'s) is cleared to `null` first. `bot_active` is
+  left as it was in the form — applying a template never turns the bot on
+  or off by itself.
+- Cancelling the dialog leaves the form exactly as it was.
+- Nothing is persisted by picking or applying a template. The owner still
+  has to press the page's own **Save**, which runs the same validation as
+  any other edit.
+
 ## Behavior
 
 | Situation                                                        | Trigger                                                                                        | Observable result                                                                                                                                 |
@@ -261,6 +337,13 @@ matter for this feature:
 | Owner turns the bot off with a half-written question            | `PUT` `bot_active=false`, same                                                                 | Still `422` — a half-written question is rejected in both tiers.                                                                                   |
 | Migration runs on a fresh database                              | `alembic upgrade`                                                                              | The `bot_step` type is created with `'free_text'` already among its values — the value is part of the type's creating migration (`c41d7f9a2e08`), not a later one. |
 | A database already at `c41d7f9a2e08` gets the branch update     | `git pull` + `alembic upgrade` (no-op)                                                        | The edited creating migration is **not** re-run; `bot_step` still lacks `'free_text'`. Fixed with a one-off `ALTER TYPE bot_step ADD VALUE IF NOT EXISTS 'free_text'`. |
+| Owner opens the setup page with ≥1 other map whose bot is complete | page load | The template select lists those maps by name; "Use as template" is available |
+| Owner has no other map with a complete bot                       | page load                                                                                       | The template select and button are not shown                                                                                                       |
+| Owner picks a map in the select but never clicks "Use as template" | select changes, no further action                                                              | Form unchanged; nothing is fetched or applied                                                                                                      |
+| Owner clicks "Use as template" and confirms                      | confirm the dialog                                                                              | `GET /map/{chosen}/bot/` is fetched; `messages` and `max_attempts_messages` replace the form's, every `id` cleared to `null`; `bot_active` unchanged; nothing saved yet |
+| Owner clicks "Use as template" and cancels the dialog            | cancel the dialog                                                                               | Form unchanged                                                                                                                                      |
+| Owner applies a template, then Saves                             | `PUT` with the applied, id-less messages                                                       | Every message and the max-attempts row are inserted as new rows for this map with fresh UUIDs; the source map's own rows and `id`s are untouched   |
+| Owner applies a template, then tries to enable the bot with something still missing | `PUT bot_active=true`, a required field left blank | `422` — same "when active" rule as any other save; applying a template does not bypass validation |
 
 ## Contract
 
@@ -280,6 +363,16 @@ matter for this feature:
   reconciled by `id` (upsert present, delete absent); `max_attempts`
   row derived from `max_attempts_messages`.
 - Response: the new `BotSetupResult`.
+
+**`GET /bot/templates` → `[BotTemplateOption]`**
+
+- `id: str`, `name: str` — every one of the caller's own maps whose
+  configuration passes `check_messages` with `bot_active=True`. Not scoped
+  to a map, so nothing is excluded here; `401` only for an unauthenticated
+  caller.
+- Applying a template is otherwise a pure client-side state change: it
+  reads via the existing `GET /map/{map_id}/bot/` and writes via the
+  existing `PUT /map/{map_id}/bot/` — no new persistence contract.
 
 **Domain objects consumed by the flow** (unchanged shape, widened
 semantics):
@@ -374,6 +467,59 @@ semantics):
    and the validator are recorded here as-is so the new kind has a
    baseline to sit against. *Discarded:* a narrow `free_text` doc — it
    would have had to restate most of this as context anyway.
+10. **Applying a template loads it into the in-memory form; it does not
+    persist by itself.** The owner reviews and edits before the existing
+    Save writes it, through the validation that already exists.
+    *Discarded:* a server-side `POST .../copy-from/{source}` that persists
+    immediately — it skips the review step, and duplicates the ownership
+    check and validation `PUT` already has.
+11. **A template candidate is defined by "would pass `check_messages` with
+    `bot_active=True`," not "has any configured row."** Every map ever
+    saved through `PUT /map/{map_id}/bot/` has at least a `max_attempts`
+    row (the endpoint always writes one), so "has any row" would offer
+    maps nobody actually finished configuring. Reusing the existing
+    validator also means the definition can't drift from what "a working
+    bot" already means elsewhere in this doc. *Discarded:* "has any
+    non-`max_attempts` row" or "has any row with non-empty content" — both
+    are ad hoc restatements of a subset of `check_messages`, kept in sync
+    by hand.
+12. **`bot_active` is never copied.** The form's own switch keeps whatever
+    it already had. *Discarded:* copying it from the source — could
+    silently arm a bot on a map/device that hasn't been reviewed for it,
+    which is exactly what the "when active" validation tier exists to
+    prevent.
+13. **Every `id` (each message's, and `max_attempts_messages`'s) is cleared
+    when a template is applied.** They are new rows on a different map.
+    *Discarded:* leaving the source's `id`s in the form —
+    `update_configured_messages` looks them up scoped to the target
+    `map_id`, misses, and inserts new rows anyway, so the end result is
+    identical; but it leaves another map's `id`s sitting in this map's
+    form state for no reason.
+14. **Confirming is required every time, regardless of whether the form
+    had unsaved edits.** *Discarded:* skipping the dialog when the form is
+    untouched — an extra conditional to save one click in the one case
+    where nothing is actually at risk.
+15. **No disambiguation for candidate maps that share a name.** The select
+    shows the name as-is. *Discarded:* appending the update date or point
+    count — the owner sees the applied result before Saving and can pick
+    again if it's the wrong one.
+16. **A dedicated endpoint (`GET /bot/templates`), not a field on
+    `GET /map`.** The completeness check (#11) means loading a map's
+    messages and running the validator — heavier than an existence check.
+    `GET /map` backs the "My Maps" list, loaded far more often than the
+    setup page's picker is opened; computing this for every map on every
+    visit there would be waste for a feature that page doesn't use.
+    *Discarded:* a `has_bot_config`-style boolean added to `GET /map`.
+17. **The endpoint takes no `map_id` and isn't nested under `/map/{map_id}`.**
+    It only needs to know who's asking - the candidate list is scoped by
+    `owner_id`, not by any particular map - so a `map_id` would add a
+    check that gates nothing the query doesn't already gate. Excluding the
+    current map from what the picker shows is left to the setup page,
+    which already has its own id from the route. Matches `GET /map`, which
+    lists the caller's maps the same way, with nothing in the path.
+    *Discarded:* keeping `/map/{map_id}/bot/templates` with a per-request
+    ownership check on `map_id` and a `Map.id != map_id` filter - neither
+    protected anything the `owner_id` scoping didn't already cover.
 
 ## Open questions
 
