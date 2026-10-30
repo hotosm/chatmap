@@ -1,6 +1,6 @@
 import { expect, test as it} from 'vitest'
 
-import { timeAgo } from '../src/components/Tags/TimeAgo';
+import { timeAgo } from '../src/components/TimeAgo';
 
 const NOW = new Date("2026-10-06T12:00:00Z").getTime();
 

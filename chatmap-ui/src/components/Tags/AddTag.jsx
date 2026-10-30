@@ -80,13 +80,13 @@ export default function AddTag({ keys, properties, allTags, onSetTag, onAddTag }
         <sl-dropdown hoist ref={dropdown}>
             <button
                 slot="trigger"
-                className="pointTags__chip pointTags__add"
+                className="pill pointTags__add"
                 aria-label={intl.formatMessage({ id: "app.tags.add", defaultMessage: "Add tag" })}
                 title={intl.formatMessage({ id: "app.tags.add", defaultMessage: "Add tag" })}
             >
                 +
             </button>
-            <div className="pointTags__panel">
+            <div className="popoverPanel pointTags__panel">
                 { open.map(({ key, options }) => {
                     return (
                         <section key={key.id} className="pointTags__panelKey">

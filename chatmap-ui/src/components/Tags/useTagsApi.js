@@ -1,26 +1,7 @@
 import { useCallback } from "react";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
+import { apiV2, request, send } from "../../utils/apiV2.js";
 import { keysOn, withTags } from "./tags.js";
-
-// Tags live in the API v2
-const apiV2 = (apiUrl) => apiUrl.replace(/\/v\d+\/?$/, "/v2");
-
-// The answer of the API, or null when the request fails
-const request = async (url, options = {}) => {
-    try {
-        const response = await fetch(url, { credentials: 'include', ...options });
-        if (response.status === 204) return {};
-        return response.ok ? await response.json() : null;
-    } catch {
-        return null;
-    }
-};
-
-const send = (method, url, body) => request(url, {
-    method,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    headers: {"Content-Type": "application/json"},
-});
 
 /**
  * A map as the API v1 answers it, with its keys and what its points have

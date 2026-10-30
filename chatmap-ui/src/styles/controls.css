@@ -1,0 +1,59 @@
+/**
+ * Controls shared by the modules of the app, so all of them look the same:
+ * pills and the white panels that open under them.
+ */
+
+/* A pill: a tag, a status, or a small button */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    box-sizing: border-box;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: var(--hot-border-radius-pill);
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+button.pill {
+    cursor: pointer;
+}
+
+button.pill:focus-visible {
+    outline: 2px solid var(--hot-color-neutral-950);
+    outline-offset: 2px;
+}
+
+/* White with a thin gray border: a button, or a value with no color */
+.pill--outline {
+    border-color: var(--hot-color-gray-400);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-gray-900);
+}
+
+/* A thin chevron after the text tells it opens: in the color of the text, on any pill */
+.pill--caret::after {
+    content: "";
+    flex: none;
+    width: 5px;
+    height: 5px;
+    margin: -3px 2px 0 2px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
+/* The white panel a pill opens: a light border and shadow over the page */
+.popoverPanel {
+    box-sizing: border-box;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-neutral-0);
+    box-shadow: var(--sl-shadow-x-large);
+}
