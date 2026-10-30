@@ -30,6 +30,14 @@ class Devices:
             raise StoreUnavailable
 
     @classmethod
+    async def devices_with_live_map(cls, db_session: Session) -> set[str]:
+        try:
+            return set(db_session.execute(select(Map.owner_id).where(Map.is_live)).scalars())
+        except SQLAlchemyError as error:
+            logger.error(f"Fetch devices with live map failed with: {type(error).__name__}")
+            raise StoreUnavailable
+
+    @classmethod
     async def devices_with_active_bot(cls, db_session: Session) -> set[str]:
         try:
             query = select(Map.owner_id).where(Map.is_live, Map.bot_active)
