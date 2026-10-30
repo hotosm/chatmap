@@ -13,21 +13,7 @@
     gap: var(--hot-spacing-2x-small);
 }
 
-.pointTags__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--hot-spacing-2x-small);
-    box-sizing: border-box;
-    min-height: 28px;
-    padding: 0 10px;
-    border: 2px solid transparent;
-    border-radius: var(--hot-border-radius-pill);
-    font-size: var(--hot-font-size-small);
-    font-weight: var(--hot-font-weight-bold);
-    line-height: 1;
-    white-space: nowrap;
-}
-
+/* The chips are pills (styles/controls.css); these are what tags add to them */
 .pointTags__chip--free {
     padding-right: 2px;
     background-color: var(--hot-color-gray-100);
@@ -35,11 +21,9 @@
     font-weight: var(--hot-font-weight-normal);
 }
 
-/* A value nobody confirmed for too long, as the map shows it: white outlined in gray */
+/* A value nobody confirmed for too long, as the map shows it: an outlined pill, in gray */
 .pointTags__chip--unknown {
-    background-color: var(--hot-color-neutral-0);
     color: var(--hot-color-gray-700);
-    border-color: var(--hot-color-gray-400);
 }
 
 .pointTags__trigger {
@@ -47,14 +31,6 @@
     border: 0;
     background: none;
     cursor: pointer;
-}
-
-/* A small caret tells the value can be changed */
-.pointTags__trigger .pointTags__chip::after {
-    content: "";
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid currentColor;
 }
 
 .pointTags__remove {
@@ -77,11 +53,10 @@
     justify-content: center;
     width: 28px;
     padding: 0;
-    border: 2px dashed var(--hot-color-gray-400);
+    border: 1px dashed var(--hot-color-gray-400);
     background-color: var(--hot-color-neutral-0);
     color: var(--hot-color-gray-700);
     font-size: var(--hot-font-size-medium);
-    cursor: pointer;
 }
 
 .pointTags__time {
@@ -108,10 +83,6 @@
     max-height: 320px;
     overflow: auto;
     padding: var(--hot-spacing-x-small);
-    border: 1px solid var(--hot-color-gray-200);
-    border-radius: var(--hot-border-radius-medium);
-    background-color: var(--hot-color-neutral-0);
-    box-shadow: var(--sl-shadow-large);
 }
 
 .pointTags__panelTitle {
@@ -445,13 +416,6 @@ sl-dialog.tags__dialog::part(body) {
     box-sizing: border-box;
     border: 2px solid var(--hot-color-gray-400);
     background-color: var(--hot-color-neutral-0);
-}
-
-/* A value without a color of its own */
-.pointTags__chip--plain {
-    background-color: var(--hot-color-neutral-0);
-    color: var(--hot-color-gray-900);
-    border-color: var(--hot-color-gray-400);
 }
 
 /* A value of a key with many: its chip and a × to take it out */

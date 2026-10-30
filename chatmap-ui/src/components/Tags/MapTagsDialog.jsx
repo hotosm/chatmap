@@ -177,7 +177,7 @@ export default function MapTagsDialog({ open, setOpen, mapId, keys, inUse, freeT
           { freeTagsInUse.length > 0 ?
             <div className="tags__inUse">
               { freeTagsInUse.map(({ tag, count }) =>
-                <span key={tag} className="pointTags__chip pointTags__chip--free tags__inUseTag">
+                <span key={tag} className="pill pointTags__chip--free tags__inUseTag">
                   {tag} <span className="tags__muted">· {count}</span>
                 </span>
               )}

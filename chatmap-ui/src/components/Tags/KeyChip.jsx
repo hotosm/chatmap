@@ -1,7 +1,7 @@
 import { FormattedMessage, useIntl } from "react-intl";
 import "@shoelace-style/shoelace/dist/components/divider/divider.js";
 
-import TimeAgo from "./TimeAgo.jsx";
+import TimeAgo from "../TimeAgo";
 import { isExpired, selectable, textOn } from "./tags.js";
 
 // "20 Oct, 08:30"
@@ -29,12 +29,14 @@ export default function KeyChip({ keyItem, tag, now, onSetTag, showEditOptions }
     const title = useTitle(keyItem, value ? value.value : "", tag);
     if (!value) return null;
 
+    // A chip that opens a menu to change its value has a caret
+    const caret = showEditOptions && keyItem.single ? "pill--caret" : "";
     const chip = isExpired(value, tag, now) ?
-        <span className="pointTags__chip pointTags__chip--unknown" title={title}>
+        <span className={`pill pill--outline pointTags__chip--unknown ${caret}`} title={title}>
             <FormattedMessage id="app.tags.unknown" defaultMessage="Unknown" />
         </span> :
         <span
-            className={`pointTags__chip ${value.color ? "" : "pointTags__chip--plain"}`}
+            className={`pill ${value.color ? "" : "pill--outline"} ${caret}`}
             style={value.color ? { backgroundColor: value.color, color: textOn(value.color) } : {}}
             title={title}
         >
@@ -46,7 +48,7 @@ export default function KeyChip({ keyItem, tag, now, onSetTag, showEditOptions }
     // A key with many values: each one is taken out on its own
     if (!keyItem.single) {
         return (
-            <span className="pointTags__chip pointTags__chip--many" title={title}>
+            <span className="pill pointTags__chip--many" title={title}>
                 {chip}
                 <button
                     className="pointTags__remove"

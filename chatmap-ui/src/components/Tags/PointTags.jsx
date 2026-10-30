@@ -67,13 +67,13 @@ export default function PointTags({
                             showEditOptions={showEditOptions}
                         />
                     :
-                        <span key={`${key.id}-${tag.value}`} className="pointTags__chip pointTags__chip--free" title={key.key}>
+                        <span key={`${key.id}-${tag.value}`} className="pill pointTags__chip--free" title={key.key}>
                             <span className="pointTags__key">{key.key}:</span> {tag.value}
                             {removeButton(tag.value, () => setTag(key.id, { action: "remove", value: tag.value }))}
                         </span>
                 ))}
                 { tags.map(tag =>
-                    <span key={tag} className="pointTags__chip pointTags__chip--free">
+                    <span key={tag} className="pill pointTags__chip--free">
                         {tag}
                         {removeButton(tag, () => { setFailed(false); onRemoveTag(tag); })}
                     </span>
