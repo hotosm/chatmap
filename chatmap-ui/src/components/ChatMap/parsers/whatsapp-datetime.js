@@ -47,13 +47,17 @@ function getTimeParts(match) {
   const minute = Number(matches[2]);
   let second = 0;
 
-  if ((matches[3] && matches[3].startsWith(' ')) || matches[4]) {
-    hour += 12;
-    if (hour === 24) {
-      hour = 0;
-    }
-  } else if (matches[3] && matches[3].match(/\d+/)) {
+  if (matches[3] && matches[3].match(/\d+/)) {
     second = Number(matches[3].slice(1));
+  }
+
+  // 12-hour clock: 12 a.m. is midnight, 12 p.m. is noon
+  if (matches[4]) {
+    if (hour < 12) {
+      hour += 12;
+    }
+  } else if (hour === 12) {
+    hour = 0;
   }
 
   return [
@@ -61,6 +65,11 @@ function getTimeParts(match) {
     minute.toString().padStart(2, "0"),
     second.toString().padStart(2, "0"),
   ];
+}
+
+// WhatsApp exports carry local wall-clock times, not UTC
+function toLocalDate(year, month, day, hour, minute, second) {
+  return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second));
 }
 
 function normalizeParts(dateParts, yearIndex, monthIndex, dayIndex, match) {
@@ -105,7 +114,7 @@ function makeCase0Function(dateParts, system) {
       dateParts, yearIndex, monthIndex, dayIndex, match
     );
 
-    return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+    return toLocalDate(year, month, day, hour, minute, second);
   };
 }
 
@@ -136,9 +145,7 @@ function makeCase1Function(oldDate, dayIndex, system) {
     const [year, month, day, hour, minute, second] = normalizeParts(
       dateParts, yearIndex, monthIndex, dayIndex, match
     );
-    const strDate = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
-    const date = new Date(strDate);
-    return date;
+    return toLocalDate(year, month, day, hour, minute, second);
   };
 }
 
@@ -178,7 +185,7 @@ function makeCase2Function(changes, maxObserved, system) {
       dateParts, yearIndex, monthIndex, dayIndex, match
     );
 
-    return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+    return toLocalDate(year, month, day, hour, minute, second);
   };
 }
 
@@ -232,7 +239,7 @@ function makeCase3Function(changes, maxObserved, hasDecreased, fourDigits, syste
     const [year, month, day, hour, minute, second] = normalizeParts(
       dateParts, yearIndex, monthIndex, dayIndex, match
     );
-    return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+    return toLocalDate(year, month, day, hour, minute, second);
   };
 }
 
