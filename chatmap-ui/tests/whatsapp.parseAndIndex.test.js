@@ -177,3 +177,35 @@ it('should detect the year correctly in this chat', () => {
 
   expect(msgObjects[0].time).toEqual(new Date('2025-04-07T12:33:00.000Z'));
 });
+
+it('should keep the wall-clock hour for 12-hour exports with spaced meridiem', () => {
+  const msgs = [
+    "19/08/26 8:26 a. m. - Don Rafael Alvarado: ubicación: https://maps.google.com/?q=19.6228056,-99.1226566",
+  ];
+
+  const msgObjects = parseAndIndex(msgs, "ANDROID");
+
+  expect(msgObjects[0].time).toEqual(new Date('2026-08-19T08:26:00.000Z'));
+});
+
+it('should map 12 a.m. to midnight and 12 p.m. to noon', () => {
+  const msgs = [
+    "12/12/25 12:29 a.m. - person: hi",
+    "12/12/25 12:29 p.m. - person: hi",
+  ];
+
+  const msgObjects = parseAndIndex(msgs, "ANDROID");
+
+  expect(msgObjects[0].time).toEqual(new Date('2025-12-12T00:29:00.000Z'));
+  expect(msgObjects[1].time).toEqual(new Date('2025-12-12T12:29:00.000Z'));
+});
+
+it('should keep seconds for p.m. times', () => {
+  const msgs = [
+    "[08/01/25, 6:02:14 p.m.] Ann: Location: https://maps.google.com/?q=20.672598,-100.446259",
+  ];
+
+  const msgObjects = parseAndIndex(msgs, "IOS");
+
+  expect(msgObjects[0].time).toEqual(new Date('2025-08-01T18:02:14.000Z'));
+});
