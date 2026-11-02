@@ -1,0 +1,263 @@
+/**
+ * The messages of the groups of a map: the groups at the left, a line, the
+ * messages at the right. It fills the window below the fixed header and only
+ * the messages scroll, so the groups stay in sight (the body of the app hides
+ * its overflow, so a sticky column would not stay).
+ */
+.messagesInbox {
+    /* Below the fixed header of the page */
+    --messagesInbox-top: 6rem;
+    display: grid;
+    grid-template-columns: minmax(12rem, 20rem) minmax(0, 46rem);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--hot-spacing-3x-large);
+    width: 100%;
+    max-width: 72rem;
+    height: calc(100dvh - var(--messagesInbox-top));
+    margin: var(--messagesInbox-top) auto 0;
+    padding: 0 var(--hot-spacing-x-large);
+    box-sizing: border-box;
+}
+
+.messagesInbox__groups {
+    padding-right: var(--hot-spacing-x-large);
+    border-right: 1px solid var(--hot-color-neutral-950);
+    overflow-y: auto;
+}
+
+.messagesInbox__groupsList {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hot-spacing-large);
+}
+
+.messagesInbox__groupsList > ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.messagesInbox__group {
+    padding: var(--hot-spacing-2x-small) 0;
+    border: 0;
+    background: none;
+    color: var(--hot-color-neutral-950);
+    font: inherit;
+    font-size: var(--hot-font-size-x-large);
+    text-align: left;
+    cursor: pointer;
+}
+
+.messagesInbox__group:hover {
+    text-decoration: underline;
+}
+
+.messagesInbox__group[aria-current] {
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.messagesInbox__messages {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-medium);
+    padding-bottom: var(--hot-spacing-3x-large);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.messagesInbox__empty {
+    margin: var(--messagesInbox-top) auto 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-medium);
+}
+
+.messagesInbox__messages .messagesInbox__empty {
+    margin: 0;
+}
+
+.messagesInbox__error {
+    margin: 0;
+    color: var(--hot-color-danger-600);
+    font-size: var(--hot-font-size-small);
+}
+
+.messagesInbox__loading,
+.messagesInbox__more {
+    align-self: center;
+}
+
+/* A message: what it says on top; what can be done with it, and when and where it was said, below */
+.messageCard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-small);
+    padding: var(--hot-spacing-large) var(--hot-spacing-x-large);
+    border-radius: var(--hot-border-radius-x-large);
+    background-color: var(--hot-color-gray-50);
+}
+
+.messageCard__text {
+    margin: 0;
+    color: var(--hot-color-neutral-950);
+    font-size: var(--hot-font-size-medium);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.messageCard__location {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+}
+
+.messageCard__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hot-spacing-small);
+}
+
+.messageCard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--hot-spacing-x-small);
+}
+
+.messageCard__meta {
+    margin-left: auto;
+    color: var(--hot-color-neutral-950);
+    font-size: var(--hot-font-size-x-small);
+}
+
+/* On a phone the groups go on top, in a row that scrolls */
+@media (max-width: 720px) {
+    .messagesInbox {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: var(--hot-spacing-large);
+        --messagesInbox-top: 5rem;
+        padding: 0 var(--hot-spacing-medium);
+    }
+
+    .messagesInbox__groups {
+        padding: 0 0 var(--hot-spacing-small);
+        border-right: 0;
+        border-bottom: 1px solid var(--hot-color-neutral-950);
+        overflow: auto hidden;
+    }
+
+    .messagesInbox__groupsList {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .messagesInbox__groupsList > ul {
+        display: flex;
+        gap: var(--hot-spacing-large);
+    }
+
+    .messagesInbox__group {
+        font-size: var(--hot-font-size-medium);
+        white-space: nowrap;
+    }
+}
+
+/* The groups of the phone: a white panel (styles/controls.css) like "Select place", a bold title and plain rows */
+.groupsPicker__panel {
+    width: min(26rem, calc(100vw - 2 * var(--hot-spacing-medium)));
+    padding: var(--hot-spacing-large) var(--hot-spacing-x-large);
+}
+
+.groupsPicker__title {
+    margin: 0;
+    font-size: var(--hot-font-size-x-large);
+}
+
+.groupsPicker__help {
+    margin: var(--hot-spacing-x-small) 0 var(--hot-spacing-medium);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+}
+
+.groupsPicker__error {
+    margin: var(--hot-spacing-small) 0 0;
+    color: var(--hot-color-danger-600);
+    font-size: var(--hot-font-size-small);
+}
+
+.groupsPicker__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.groupsPicker__item + .groupsPicker__item {
+    border-top: 1px solid var(--hot-color-gray-100);
+}
+
+.groupsPicker__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hot-spacing-medium);
+    padding: var(--hot-spacing-small) 0;
+}
+
+.groupsPicker__name {
+    overflow: hidden;
+    font-size: var(--hot-font-size-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.groupsPicker__name--on {
+    font-weight: var(--hot-font-weight-bold);
+}
+
+/* Stopping a group, confirmed in its row */
+.groupsPicker__stop {
+    margin-bottom: var(--hot-spacing-small);
+    padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-gray-50);
+}
+
+.groupsPicker__stop p {
+    margin: 0 0 var(--hot-spacing-small);
+    color: var(--hot-color-gray-700);
+    font-size: var(--hot-font-size-small);
+}
+
+.groupsPicker__stopActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+}
+
+.groupsPicker__cancel {
+    padding: 0 var(--hot-spacing-x-small);
+    border: 0;
+    background: none;
+    color: var(--hot-color-gray-700);
+    font: inherit;
+    font-size: var(--hot-font-size-x-small);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.groupsPicker__days {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hot-spacing-medium);
+    margin-top: var(--hot-spacing-medium);
+    padding-top: var(--hot-spacing-medium);
+    border-top: 1px solid var(--hot-color-gray-200);
+    font-size: var(--hot-font-size-small);
+}

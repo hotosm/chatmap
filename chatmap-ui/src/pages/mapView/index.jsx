@@ -20,6 +20,7 @@ import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import UpdateButton from "../../components/UpdateButton/index.jsx";
 import EditMapDialog from '../../components/EditMapDialog/index.jsx';
 import { MapTagsOptions } from '../../components/Tags';
+import { MessagesLink } from '../../components/Messages';
 import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
 import Progress from "../../components/Progress/index.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
@@ -168,6 +169,7 @@ function MapView() {
               features={data.features}
             />
           }
+          <MessagesLink mapData={mapData} data={data} />
           { dataAvailable && mapData.owner && <>
             <ShareButton
               sharing={data.sharing}

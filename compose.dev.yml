@@ -14,6 +14,7 @@ services:
       - HANKO_API_URL=http://localhost:8002
       - ENABLE_LIVE=${ENABLE_LIVE:-true}
       - ENABLE_AUTH=${ENABLE_AUTH:-true}
+      - CHATMAP_ENABLE_GROUP_MESSAGES=${CHATMAP_ENABLE_GROUP_MESSAGES:-false}
       - LOGIN_URL=${LOGIN_URL:-http://localhost:5173/#/app}
       - CHATMAP_API_URL=${CHATMAP_API_URL:-http://localhost:8000}
       - CHATMAP_API_URL_SUFFIX=${CHATMAP_API_URL_SUFFIX:-v1}
