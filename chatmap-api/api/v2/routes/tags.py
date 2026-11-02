@@ -25,7 +25,7 @@ def _tag_item(tag) -> PointTagItem:
     )
 
 
-def _change_item(change, key: str) -> TagChangeItem:
+def _change_item(change, key: str, message_text: str | None = None) -> TagChangeItem:
     return TagChangeItem(
         id=change.id,
         key=key,
@@ -35,6 +35,8 @@ def _change_item(change, key: str) -> TagChangeItem:
         happened_at=change.happened_at,
         recorded_at=change.recorded_at,
         source=change.source,
+        message_id=change.message_id,
+        message_text=message_text,
         user_id=change.user_id,
         undone_at=change.undone_at,
         undone_by=change.undone_by,
@@ -61,7 +63,7 @@ async def set_point_tag(point_id: str, key_id: str, change: TagChangeRequest, us
 @router.get("/points/{point_id}/history")
 async def read_history(point_id: str, user: CurrentUser) -> TagHistoryResponse:
     rows = await call_store(PointTagsStore.history(point_id, user.id))
-    return TagHistoryResponse(changes=[_change_item(change, key) for change, key in rows])
+    return TagHistoryResponse(changes=[_change_item(change, key, text) for change, key, text in rows])
 
 
 @router.post("/tag-changes/{change_id}/undo")

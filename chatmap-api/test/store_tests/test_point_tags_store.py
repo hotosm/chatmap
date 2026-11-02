@@ -6,7 +6,7 @@ import pytest
 
 from db import MapKey, MapKeyValue, Point, PointTag
 from results.error import ArchivedValue, InvalidTagValue, NotAuthorized, UnknownKey, UnknownTagChange, UnknownValue
-from store.point_tags_store import PointTagsStore, _give_tag
+from store.point_tags_store import PointTagsStore, give_tag
 
 STATUS = MapKey(id="k-1", map_id="map-1", key="Status", single=True, closed=True)
 NOTES = MapKey(id="k-2", map_id="map-1", key="Notes", single=False, closed=False)
@@ -29,11 +29,11 @@ def _db(option=None, current=()):
 
 def _give(db, key=STATUS, action="set", value_id=None, value=None):
     with patch("store.point_tags_store.record_change") as record:
-        _give_tag(db, "p-1", key, action, value_id, value, None, "user-1")
+        give_tag(db, "p-1", key, action, value_id, value, None, "user-1")
     return record
 
 
-# ---- _give_tag ----
+# ---- give_tag ----
 
 def test_a_key_with_a_list_needs_one_of_its_values():
     with pytest.raises(InvalidTagValue):

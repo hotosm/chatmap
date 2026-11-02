@@ -7,9 +7,9 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from api.v2.routes.messages import read_groups, read_messages, update_group
-from api.v2.schemas.messages import ChatGroupChange, KeptDays
-from results.error import MapNotFound
+from api.v2.routes.messages import link_message, read_groups, read_messages, update_group, update_message
+from api.v2.schemas.messages import ChatGroupChange, KeptDays, LinkRequest, MessageChange
+from results.error import AlreadyLinked, MapNotFound, MessageLinked, UnknownMessage, UnknownPoint
 
 
 def _user(user_id="user-1"):
@@ -124,10 +124,10 @@ def test_the_routes_of_group_messages_are_there_only_with_the_switch_on(enabled)
 
 
 async def test_a_time_without_zone_in_the_cursor_is_taken_as_utc():
-    with _patch_store("messages", return_value=[]) as store:
+    with _patch_store("messages", return_value=([], {})) as store:
         await read_messages(map_id="map-1", user=_user(), before=datetime(2026, 10, 22, 12), before_id="m-9")
 
-    store.assert_awaited_once_with("map-1", "user-1", None, (datetime(2026, 10, 22, 12, tzinfo=UTC), "m-9"))
+    store.assert_awaited_once_with("map-1", "user-1", None, (datetime(2026, 10, 22, 12, tzinfo=UTC), "m-9"), None)
 
 
 async def test_read_messages_of_a_map_the_user_does_not_own_is_not_found():
@@ -138,15 +138,86 @@ async def test_read_messages_of_a_map_the_user_does_not_own_is_not_found():
 
 
 async def test_read_messages_gives_each_one_with_the_pseudonym_of_its_group():
-    message = SimpleNamespace(
-        id="m-1", sender="s-1", text="closed", location=None, sent_at=datetime(2026, 10, 22, 12, tzinfo=UTC),
-    )
-
-    with _patch_store("messages", return_value=[(message, "c-1")]) as store:
+    with _patch_store("messages", return_value=([(_message(), "c-1")], {})) as store:
         result = await read_messages(map_id="map-1", user=_user(), group_id="c-1")
 
-    store.assert_awaited_once_with("map-1", "user-1", "c-1", None)
-    assert [(item.id, item.group_id, item.text) for item in result.messages] == [("m-1", "c-1", "closed")]
+    store.assert_awaited_once_with("map-1", "user-1", "c-1", None, None)
+    assert [(item.id, item.group_id, item.text, item.links) for item in result.messages] == [("m-1", "c-1", "closed", [])]
+
+
+def _message(dismissed_at=None):
+    return SimpleNamespace(
+        id="m-1", sender="s-1", text="closed", location=None, sent_at=datetime(2026, 10, 22, 12, tzinfo=UTC),
+        dismissed_at=dismissed_at,
+    )
+
+
+def _change(change_id=7, undone_at=None):
+    return SimpleNamespace(
+        id=change_id, point_id="p-1", key_id="k-1", value_id="v-1", value="Closed", undone_at=undone_at,
+    )
+
+
+async def test_read_messages_gives_the_values_each_one_gave_to_points():
+    links = {"m-1": [_change(8), _change(7, undone_at=datetime(2026, 10, 23, tzinfo=UTC))]}
+
+    with _patch_store("messages", return_value=([(_message(), "c-1")], links)):
+        result = await read_messages(map_id="map-1", user=_user(), state="linked")
+
+    assert [(link.change_id, link.point_id, link.value, link.undone) for link in result.messages[0].links] == [
+        (8, "p-1", "Closed", False), (7, "p-1", "Closed", True),
+    ]
+
+
+# ---- POST /v2/messages/{id}/links, PUT /v2/messages/{id} ----
+
+async def test_linking_a_message_gives_the_value_to_the_point_and_says_whether_it_has_it_now():
+    tag = SimpleNamespace(
+        point_id="p-1", key_id="k-1", value_id="v-2", value=None,
+        since=datetime(2026, 10, 22, 13, tzinfo=UTC), confirmed_at=datetime(2026, 10, 22, 13, tzinfo=UTC),
+    )
+    link = LinkRequest(point_id="p-1", key_id="k-1", value_id="v-1")
+
+    with _patch_store("link", return_value=(_change(), [tag], False)) as store:
+        result = await link_message(message_id="m-1", link=link, user=_user())
+
+    store.assert_awaited_once_with("m-1", "user-1", "p-1", "k-1", value_id="v-1", value=None)
+    assert (result.link.change_id, result.applied, [item.value_id for item in result.tags]) == (7, False, ["v-2"])
+
+
+@pytest.mark.parametrize("error, status_code", [
+    (UnknownMessage("m-1"), 404), (UnknownPoint("p-1"), 404), (AlreadyLinked(7), 409),
+])
+async def test_linking_tells_what_failed(error, status_code):
+    link = LinkRequest(point_id="p-1", key_id="k-1", value_id="v-1")
+
+    with _patch_store("link", side_effect=error), pytest.raises(HTTPException) as raised:
+        await link_message(message_id="m-1", link=link, user=_user())
+
+    assert raised.value.status_code == status_code
+
+
+def test_a_free_value_of_a_link_is_trimmed():
+    assert LinkRequest(point_id="p-1", key_id="k-2", value="  near the school ").value == "near the school"
+    with pytest.raises(ValidationError):
+        LinkRequest(point_id="p-1", key_id="k-2", value=" ")
+
+
+async def test_dismissing_a_message_gives_it_back_dismissed():
+    dismissed_at = datetime(2026, 10, 23, tzinfo=UTC)
+
+    with _patch_store("set_dismissed", return_value=(_message(dismissed_at), "c-1", [])) as store:
+        result = await update_message(message_id="m-1", change=MessageChange(dismissed=True), user=_user())
+
+    store.assert_awaited_once_with("m-1", "user-1", True)
+    assert (result.id, result.group_id, result.dismissed_at) == ("m-1", "c-1", dismissed_at)
+
+
+async def test_a_linked_message_is_not_dismissed():
+    with _patch_store("set_dismissed", side_effect=MessageLinked("m-1")), pytest.raises(HTTPException) as raised:
+        await update_message(message_id="m-1", change=MessageChange(dismissed=True), user=_user())
+
+    assert raised.value.status_code == 409
 
 
 async def test_the_next_page_needs_both_the_time_and_the_id_of_the_last_message():

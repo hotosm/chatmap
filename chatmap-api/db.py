@@ -205,7 +205,8 @@ class PointTagChange(Base):
     recorded_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     # manual, message, rule, model, import, system (a point moved to another map)
     source = Column(String, nullable=False)
-    message_id = Column(String, nullable=True)
+    # The group message it comes from (source "message"); None once that message is gone
+    message_id = Column(String, ForeignKey("group_messages.id", ondelete="SET NULL"), nullable=True, index=True)
     user_id = Column(String, nullable=True)
     undone_at = Column(DateTime(timezone=True), nullable=True)
     undone_by = Column(String, nullable=True)

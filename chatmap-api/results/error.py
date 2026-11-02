@@ -105,6 +105,31 @@ class UnknownGroup(Exception):
         self.chat = chat
 
 
+class UnknownMessage(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
+class UnknownPoint(Exception):
+    def __init__(self, point_id):
+        self.point_id = point_id
+
+
+class MessageDismissed(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
+class MessageLinked(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
+class AlreadyLinked(Exception):
+    def __init__(self, change_id):
+        self.change_id = change_id
+
+
 class PointIdAlreadyTaken(Exception):
     def __init__(self, point_id):
         self.point_id = point_id

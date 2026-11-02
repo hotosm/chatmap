@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from api.v2.schemas.tags import PointTagItem, free_value
 from store.group_messages_store import MAX_KEPT_DAYS
 
 
@@ -42,11 +43,26 @@ class KeptDays(BaseModel):
     days: int = Field(ge=1, le=MAX_KEPT_DAYS)
 
 
+class MessageLink(BaseModel):
+    """
+    A value of a key a message gave a point: the change of its tag it made
+    (change_id, to undo it with /tag-changes/{id}/undo). `value` is the name
+    the value had then. An undone link stays, marked.
+    """
+    change_id: int
+    point_id: str
+    key_id: str
+    value_id: str | None
+    value: str | None
+    undone: bool
+
+
 class GroupMessageItem(BaseModel):
     """
     A message of a chat group the map listens to. `group_id` and `sender`
     are pseudonyms: the same group or person always has the same one within
-    a map. `location` is "latitude,longitude".
+    a map. `location` is "latitude,longitude". `links`: the values it gave
+    to points, newest first.
     """
     id: str
     group_id: str
@@ -54,6 +70,40 @@ class GroupMessageItem(BaseModel):
     text: str
     location: str | None
     sent_at: datetime
+    dismissed_at: datetime | None = None
+    links: list[MessageLink] = []
+
+
+class LinkRequest(BaseModel):
+    """
+    A value of a key a message tells about a point: the id of an option for
+    a key with a list, a text for one without. It takes the time of the message.
+    """
+    point_id: str
+    key_id: str
+    value_id: str | None = None
+    value: str | None = None
+
+    @field_validator("value")
+    @classmethod
+    def check_value(cls, value: str | None) -> str | None:
+        return free_value(value)
+
+
+class LinkResponse(BaseModel):
+    """
+    The link made, what the point has now for the key, and whether that is
+    the value of the message (`applied`): a message older than what the
+    point has only goes to its history.
+    """
+    link: MessageLink
+    tags: list[PointTagItem] = []
+    applied: bool
+
+
+class MessageChange(BaseModel):
+    """Dismiss a message, or bring it back."""
+    dismissed: bool
 
 
 class GroupMessagesResponse(BaseModel):
