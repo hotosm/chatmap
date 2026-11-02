@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from db import Map, MapKey, MapKeyValue, Point, PointTag, PointTagChange, session_scope
+from db import GroupMessage, Map, MapKey, MapKeyValue, Point, PointTag, PointTagChange, session_scope
 from results.error import (
     ArchivedValue,
     InvalidTagValue,
@@ -34,6 +34,7 @@ SET = "set"
 REMOVE = "remove"
 # Sources of a change
 MANUAL = "manual"
+MESSAGE = "message"
 SYSTEM = "system"
 
 
@@ -141,14 +142,15 @@ def record_change(
     return change
 
 
-def _give_tag(
+def give_tag(
         db, point_id: str, key: MapKey, action: str, value_id: str | None, value: str | None,
-        happened_at: datetime | None, user_id: str,
-) -> list[PointTag]:
+        happened_at: datetime | None, user_id: str, *, source: str = MANUAL, message_id: str | None = None,
+) -> tuple[PointTagChange | None, list[PointTag]]:
     """
     Check a change of a tag of a point against its key and write it down;
     the point has to be locked. Taking out what the point does not have
-    writes nothing. Returns what the point has for the key after it.
+    writes nothing (the change is None). Returns the change and what the
+    point has for the key after it.
     """
     if action == SET and key.archived_at is not None:
         raise InvalidTagValue("an archived key cannot be given")
@@ -183,22 +185,24 @@ def _give_tag(
         has = [tag for tag in tags if (key.single and value_id is None and value is None)
                or (tag.value_id, tag.value) == (value_id, value)]
         if not has:
-            return tags
+            return None, tags
 
-    record_change(
+    change = record_change(
         db, point_id, key, action, option=option, value=None if key.closed else value,
-        happened_at=happened_at, user_id=user_id,
+        happened_at=happened_at, source=source, user_id=user_id, message_id=message_id,
     )
-    return current()
+    return change, current()
 
 
 class PointTagsStore:
 
     @classmethod
-    async def history(cls, point_id: str, user_id: str) -> list[tuple[PointTagChange, str]]:
+    async def history(cls, point_id: str, user_id: str) -> list[tuple[PointTagChange, str, str | None]]:
         """
         The changes of the tags of a point, newest first, with the name of
-        their key. It tells who did what, so only the owner of the map sees it.
+        their key and the text of the message they come from (None when they
+        come from none, or it is gone). It tells who did what, so only the
+        owner of the map sees it.
         """
         with session_scope() as db:
             try:
@@ -211,9 +215,10 @@ class PointTagsStore:
 
                 # Changes of the keys of a map the point was in before are not this map's
                 return list(db.execute(
-                    select(PointTagChange, MapKey.key)
+                    select(PointTagChange, MapKey.key, GroupMessage.text)
                     .join(MapKey, MapKey.id == PointTagChange.key_id)
                     .join(Point, Point.id == PointTagChange.point_id)
+                    .outerjoin(GroupMessage, GroupMessage.id == PointTagChange.message_id)
                     .where(PointTagChange.point_id == point_id, MapKey.map_id == Point.map_id)
                     .order_by(PointTagChange.happened_at.desc(), PointTagChange.id.desc())
                 ).tuples())
@@ -310,7 +315,7 @@ class PointTagsStore:
                 if key is None or key.map_id != row.Point.map_id:
                     raise UnknownKey(key_id)
 
-                current = _give_tag(db, point_id, key, action, value_id, value, happened_at, user_id)
+                _, current = give_tag(db, point_id, key, action, value_id, value, happened_at, user_id)
                 db.commit()
                 for tag in current:
                     db.refresh(tag)

@@ -26,6 +26,16 @@ class PointTagsResponse(BaseModel):
     tags: list[PointTagItem] = []
 
 
+def free_value(value: str | None) -> str | None:
+    """A value of a key without a list, trimmed, with a maximum length."""
+    if value is None:
+        return None
+    value = value.strip()
+    if not 1 <= len(value) <= MAX_FREE_VALUE_LENGTH:
+        raise ValueError(f"a value needs between 1 and {MAX_FREE_VALUE_LENGTH} characters")
+    return value
+
+
 class TagChangeRequest(BaseModel):
     """
     A value to give a point (set; the same again confirms it) or to take
@@ -41,12 +51,7 @@ class TagChangeRequest(BaseModel):
     @field_validator("value")
     @classmethod
     def check_value(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        value = value.strip()
-        if not 1 <= len(value) <= MAX_FREE_VALUE_LENGTH:
-            raise ValueError(f"a value needs between 1 and {MAX_FREE_VALUE_LENGTH} characters")
-        return value
+        return free_value(value)
 
     @field_validator("happened_at")
     @classmethod
@@ -66,7 +71,9 @@ class TagChangeItem(BaseModel):
     """
     One change of a tag of a point, or its confirmation: what was set or
     removed, when it happened, when it was written down, how and by whom.
-    value is the name the value had then. An undone change stays, marked.
+    value is the name the value had then. One from a group message (source
+    "message") tells which, and its text while the map keeps it. An undone
+    change stays, marked.
     """
     id: int
     key: str
@@ -76,6 +83,8 @@ class TagChangeItem(BaseModel):
     happened_at: datetime
     recorded_at: datetime
     source: str
+    message_id: str | None = None
+    message_text: str | None = None
     user_id: str | None
     undone_at: datetime | None
     undone_by: str | None

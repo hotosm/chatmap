@@ -1,5 +1,6 @@
 import logging
 from datetime import UTC, datetime
+from typing import Literal
 
 import httpx
 from fastapi import APIRouter, HTTPException
@@ -14,8 +15,13 @@ from api.v2.schemas.messages import (
     GroupMessageItem,
     GroupMessagesResponse,
     KeptDays,
+    LinkRequest,
+    LinkResponse,
+    MessageChange,
+    MessageLink,
     PhoneGroup,
 )
+from api.v2.routes.tags import _tag_item
 from settings import SERVER_URL
 from store.group_messages_store import GroupMessagesStore
 
@@ -75,27 +81,62 @@ async def update_kept_days(map_id: str, kept: KeptDays, user: CurrentUser) -> Ke
     return KeptDays(days=await call_store(GroupMessagesStore.set_kept_days(map_id, user.id, kept.days)))
 
 
+def _link_item(change) -> MessageLink:
+    return MessageLink(
+        change_id=change.id,
+        point_id=change.point_id,
+        key_id=change.key_id,
+        value_id=change.value_id,
+        value=change.value,
+        undone=change.undone_at is not None,
+    )
+
+
+def _message_item(message, chat: str, links=()) -> GroupMessageItem:
+    return GroupMessageItem(
+        id=message.id,
+        group_id=chat,
+        sender=message.sender,
+        text=message.text,
+        location=message.location,
+        sent_at=message.sent_at,
+        dismissed_at=message.dismissed_at,
+        links=[_link_item(change) for change in links],
+    )
+
+
 @router.get("/maps/{map_id}/messages")
 async def read_messages(
         map_id: str, user: CurrentUser, group_id: str | None = None,
         before: datetime | None = None, before_id: str | None = None,
+        state: Literal["new", "linked", "dismissed"] | None = None,
 ) -> GroupMessagesResponse:
-    """The next page goes after the last message of the previous one: its sent_at and id."""
+    """
+    The next page goes after the last message of the previous one: its
+    sent_at and id. Without `state`, the messages not dismissed.
+    """
     if (before is None) != (before_id is None):
         raise HTTPException(status_code=422, detail="before and before_id go together.")
     # A time without zone is taken as UTC, as the messages give it
     if before is not None and before.tzinfo is None:
         before = before.replace(tzinfo=UTC)
     cursor = (before, before_id) if before is not None else None
-    rows = await call_store(GroupMessagesStore.messages(map_id, user.id, group_id, cursor))
+    rows, links = await call_store(GroupMessagesStore.messages(map_id, user.id, group_id, cursor, state))
     return GroupMessagesResponse(messages=[
-        GroupMessageItem(
-            id=message.id,
-            group_id=chat,
-            sender=message.sender,
-            text=message.text,
-            location=message.location,
-            sent_at=message.sent_at,
-        )
-        for message, chat in rows
+        _message_item(message, chat, links.get(message.id, [])) for message, chat in rows
     ])
+
+
+@router.post("/messages/{message_id}/links")
+async def link_message(message_id: str, link: LinkRequest, user: CurrentUser) -> LinkResponse:
+    change, tags, applied = await call_store(GroupMessagesStore.link(
+        message_id, user.id, link.point_id, link.key_id, value_id=link.value_id, value=link.value,
+    ))
+    return LinkResponse(link=_link_item(change), tags=[_tag_item(tag) for tag in tags], applied=applied)
+
+
+@router.put("/messages/{message_id}")
+async def update_message(message_id: str, change: MessageChange, user: CurrentUser) -> GroupMessageItem:
+    """Dismiss a message or bring it back."""
+    message, chat, links = await call_store(GroupMessagesStore.set_dismissed(message_id, user.id, change.dismissed))
+    return _message_item(message, chat, links)

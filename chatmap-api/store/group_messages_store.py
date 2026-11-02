@@ -10,7 +10,7 @@ import hmac
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import delete, func, select, tuple_
+from sqlalchemy import delete, exists, func, select, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import (
     InterfaceError,
@@ -20,15 +20,31 @@ from sqlalchemy.exc import (
 )
 
 from data import decrypt_message
-from db import ChatGroup, GroupMessage, Map, session_scope
-from results.error import MapNotFound, MapNotLive, StoreUnavailable, UnknownGroup
+from db import ChatGroup, GroupMessage, Map, MapKey, Point, PointTag, PointTagChange, session_scope
+from results.error import (
+    AlreadyLinked,
+    MapNotFound,
+    MapNotLive,
+    MessageDismissed,
+    MessageLinked,
+    StoreUnavailable,
+    UnknownGroup,
+    UnknownKey,
+    UnknownMessage,
+    UnknownPoint,
+)
 from settings import CHATMAP_ENC_KEY
+from store.point_tags_store import MESSAGE, SET, give_tag, lock_point
 from store.received_messages_store import ReceivedMessage
 
 logger = logging.getLogger(__name__)
 
 # How many messages a read returns at most
 PAGE_SIZE = 100
+# What can be asked of the messages of a map, besides the ones not dismissed
+NEW = "new"
+LINKED = "linked"
+DISMISSED = "dismissed"
 # How many days a map can keep the messages of its groups
 MAX_KEPT_DAYS = 90
 # Longer texts are cut, so a message cannot fill the database
@@ -67,6 +83,33 @@ def _owned_live_map(db, map_id: str, user_id: str) -> Map:
     if not map_obj.is_live:
         raise MapNotLive
     return map_obj
+
+
+def _owned_message(db, message_id: str, user_id: str) -> GroupMessage:
+    """
+    The message, locked until the transaction ends, when the user owns its
+    map and the map listens to its group. To anyone else it does not exist.
+    """
+    row = db.execute(
+        select(GroupMessage, Map.owner_id, ChatGroup.enabled)
+        .join(Map, Map.id == GroupMessage.map_id)
+        .join(ChatGroup, ChatGroup.id == GroupMessage.group_id)
+        .where(GroupMessage.id == message_id)
+        .with_for_update(of=GroupMessage)
+    ).one_or_none()
+    if row is None or row.owner_id != user_id or not row.enabled:
+        raise UnknownMessage(message_id)
+    return row.GroupMessage
+
+
+# The changes a message made that are not undone, to points still in its map: what links it to them
+def _live_links(message_id, map_id):
+    return (
+        (PointTagChange.message_id == message_id)
+        & (PointTagChange.source == MESSAGE)
+        & PointTagChange.undone_at.is_(None)
+        & PointTagChange.point_id.in_(select(Point.id).where(Point.map_id == map_id))
+    )
 
 
 def _readable(message: ReceivedMessage) -> tuple[ReceivedMessage, str, str | None, datetime] | None:
@@ -277,36 +320,160 @@ class GroupMessagesStore:
     @classmethod
     async def messages(
             cls, map_id: str, user_id: str, chat: str | None = None, before: tuple[datetime, str] | None = None,
-    ) -> list[tuple[GroupMessage, str]]:
+            state: str | None = None,
+    ) -> tuple[list[tuple[GroupMessage, str]], dict[str, list[PointTagChange]]]:
         """
         The messages of the groups a map listens to, newest first, each with
         the pseudonym of its group; one group with `chat`. A page holds up to
         PAGE_SIZE messages; `before` (the time and id of the last message of
         a page) asks for the next ones. Both go, since many messages can be
         sent in the same second.
+
+        By default the ones not dismissed; `state` asks for the NEW ones (not
+        linked to any point nor dismissed), the LINKED or the DISMISSED. Also
+        the changes each message of the page made to points (its links),
+        undone ones too, newest first.
         """
         with session_scope() as db:
             try:
                 _owned_map(db, map_id, user_id)
+                linked = exists().where(_live_links(GroupMessage.id, GroupMessage.map_id))
                 query = (
                     select(GroupMessage, ChatGroup.chat)
                     .join(ChatGroup, GroupMessage.group_id == ChatGroup.id)
-                    .where(GroupMessage.map_id == map_id, ChatGroup.enabled, GroupMessage.dismissed_at.is_(None))
+                    .where(GroupMessage.map_id == map_id, ChatGroup.enabled)
                 )
+                if state == DISMISSED:
+                    query = query.where(GroupMessage.dismissed_at.is_not(None))
+                else:
+                    query = query.where(GroupMessage.dismissed_at.is_(None))
+                if state == NEW:
+                    query = query.where(~linked)
+                elif state == LINKED:
+                    query = query.where(linked)
                 if chat is not None:
                     query = query.where(ChatGroup.chat == chat)
                 if before is not None:
                     query = query.where(tuple_(GroupMessage.sent_at, GroupMessage.id) < tuple_(*before))
                 query = query.order_by(GroupMessage.sent_at.desc(), GroupMessage.id.desc()).limit(PAGE_SIZE)
-                return [(row.GroupMessage, row.chat) for row in db.execute(query)]
+                rows = [(row.GroupMessage, row.chat) for row in db.execute(query)]
+                return rows, _links_of(db, map_id, [message.id for message, _ in rows])
             except SQLAlchemyError as error:
                 logger.error(f"Fetch group messages of map '{map_id}' failed with: {type(error).__name__}")
+                raise StoreUnavailable
+
+    @classmethod
+    async def link(
+            cls, message_id: str, user_id: str, point_id: str, key_id: str, *,
+            value_id: str | None = None, value: str | None = None,
+    ) -> tuple[PointTagChange, list[PointTag], bool]:
+        """
+        Gives a point of the map of a message the value of a key the message
+        tells (Closed for Status): a change of its tag from the message, at
+        the time it was sent. A message can tell about many points. Returns
+        the change, what the point has for the key after it, and whether the
+        point has it now: a message older than what the point has only goes
+        to its history. Undoing the change (PointTagsStore.set_undone) undoes
+        the link.
+        """
+        with session_scope() as db:
+            try:
+                message = _owned_message(db, message_id, user_id)
+                if message.dismissed_at is not None:
+                    raise MessageDismissed(message_id)
+
+                row = lock_point(db, point_id)
+                if row is None or row.Point.map_id != message.map_id or row.Point.removed:
+                    raise UnknownPoint(point_id)
+                key = db.get(MapKey, key_id)
+                if key is None or key.map_id != message.map_id:
+                    raise UnknownKey(key_id)
+
+                # The same message giving the same value to the same point again says nothing new
+                same_value = PointTagChange.value_id == value_id if key.closed else PointTagChange.value == value
+                twice = db.execute(
+                    select(PointTagChange.id).where(
+                        _live_links(message.id, message.map_id), PointTagChange.point_id == point_id,
+                        PointTagChange.key_id == key_id, PointTagChange.action == SET, same_value,
+                    )
+                ).scalars().first()
+                if twice is not None:
+                    raise AlreadyLinked(twice)
+
+                change, current = give_tag(
+                    db, point_id, key, SET, value_id, value, message.sent_at, user_id,
+                    source=MESSAGE, message_id=message.id,
+                )
+                db.commit()
+                db.refresh(change)
+                for tag in current:
+                    db.refresh(tag)
+                applied = any(
+                    tag.confirmed_at == change.happened_at and (tag.value_id, tag.value) == (change.value_id, value)
+                    for tag in current
+                )
+                return change, current, applied
+            except SQLAlchemyError as error:
+                db.rollback()
+                logger.error(f"Link group message '{message_id}' to point '{point_id}' failed with: {type(error).__name__}")
+                raise StoreUnavailable
+
+    @classmethod
+    async def set_dismissed(
+            cls, message_id: str, user_id: str, dismissed: bool,
+    ) -> tuple[GroupMessage, str, list[PointTagChange]]:
+        """
+        Dismisses a message (it tells nothing about the points of the map) or
+        brings it back. A message linked to a point is not dismissed: its
+        links are undone first. Returns it with the pseudonym of its group and
+        its links, as a read gives them.
+        """
+        with session_scope() as db:
+            try:
+                message = _owned_message(db, message_id, user_id)
+                if dismissed and message.dismissed_at is None:
+                    if db.execute(select(exists().where(_live_links(message.id, message.map_id)))).scalar():
+                        raise MessageLinked(message_id)
+                    message.dismissed_at = func.now()
+                elif not dismissed:
+                    message.dismissed_at = None
+                db.commit()
+                db.refresh(message)
+                chat = db.get(ChatGroup, message.group_id).chat
+                return message, chat, _links_of(db, message.map_id, [message.id]).get(message.id, [])
+            except SQLAlchemyError as error:
+                db.rollback()
+                logger.error(f"Dismiss group message '{message_id}' failed with: {type(error).__name__}")
                 raise StoreUnavailable
 
     @classmethod
     async def prune(cls) -> int:
         """Removes the messages each map keeps for longer than it says. Answers how many."""
         return await asyncio.to_thread(_prune)
+
+
+def _links_of(db, map_id: str, message_ids: list[str]) -> dict[str, list[PointTagChange]]:
+    """
+    The changes these messages made to points of the map, by message, newest
+    first. A point that moved to another map took its links with it.
+    """
+    if not message_ids:
+        return {}
+    links = {}
+    changes = db.execute(
+        select(PointTagChange)
+        .join(MapKey, MapKey.id == PointTagChange.key_id)
+        .join(Point, Point.id == PointTagChange.point_id)
+        # Neither the changes of the keys of a map a point was in before, nor the ones of points that left this map
+        .where(
+            PointTagChange.message_id.in_(message_ids), PointTagChange.source == MESSAGE,
+            MapKey.map_id == map_id, Point.map_id == map_id,
+        )
+        .order_by(PointTagChange.happened_at.desc(), PointTagChange.id.desc())
+    ).scalars()
+    for change in changes:
+        links.setdefault(change.message_id, []).append(change)
+    return links
 
 
 def _prune() -> int:

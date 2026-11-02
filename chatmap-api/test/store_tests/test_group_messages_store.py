@@ -6,8 +6,19 @@ import pytest
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import DataError, MultipleResultsFound, OperationalError
 
-from db import ChatGroup, Map
-from results.error import MapNotFound, MapNotLive, StoreUnavailable, UnknownGroup
+from db import ChatGroup, GroupMessage, Map, MapKey, Point, PointTag, PointTagChange
+from results.error import (
+    AlreadyLinked,
+    MapNotFound,
+    MapNotLive,
+    MessageDismissed,
+    MessageLinked,
+    StoreUnavailable,
+    UnknownGroup,
+    UnknownKey,
+    UnknownMessage,
+    UnknownPoint,
+)
 from store.group_messages_store import (
     MAX_TEXT_LENGTH,
     PRUNE_CHUNK,
@@ -381,6 +392,19 @@ async def test_the_messages_of_a_map_are_the_ones_of_the_groups_it_listens_to_ne
     assert "ORDER BY group_messages.sent_at DESC, group_messages.id DESC" in query
 
 
+async def test_a_message_is_linked_only_to_points_still_in_its_map():
+    db = MagicMock()
+    db.get.return_value = _map()
+    db.execute.return_value = []
+
+    with _patch_scope(db):
+        await GroupMessagesStore.messages("map-1", "user-1", state="linked")
+
+    query = str(db.execute.call_args.args[0])
+    assert "point_tag_changes.undone_at IS NULL" in query
+    assert "points.map_id = group_messages.map_id" in query
+
+
 async def test_the_next_page_goes_after_the_time_and_id_of_the_last_message():
     db = MagicMock()
     db.get.return_value = _map()
@@ -390,3 +414,141 @@ async def test_the_next_page_goes_after_the_time_and_id_of_the_last_message():
         await GroupMessagesStore.messages("map-1", "user-1", before=(datetime(2026, 10, 22, tzinfo=UTC), "m-9"))
 
     assert "(group_messages.sent_at, group_messages.id) < (" in str(db.execute.call_args.args[0])
+
+
+# ---- link, set_dismissed ----
+
+SENT_AT = datetime(2026, 10, 22, 12, tzinfo=UTC)
+STATUS = MapKey(id="k-1", map_id="map-1", key="Status", single=True, closed=True)
+
+
+def _group_message(dismissed_at=None):
+    return GroupMessage(id="m-1", map_id="map-1", group_id="g-1", sent_at=SENT_AT, dismissed_at=dismissed_at)
+
+
+def _point(map_id="map-1", removed=False):
+    return SimpleNamespace(Point=Point(id="p-1", map_id=map_id, removed=removed), owner_id="user-1")
+
+
+def _patch_link(message=None, point=None, key=STATUS, twice=None, given=None):
+    """A message of the user, a point and a key it can link, and what give_tag answers."""
+    db = MagicMock()
+    db.get.return_value = key
+    db.execute.return_value.scalars.return_value.first.return_value = twice
+    patches = (
+        _patch_scope(db),
+        patch("store.group_messages_store._owned_message", return_value=message or _group_message()),
+        patch("store.group_messages_store.lock_point", return_value=point or _point()),
+        patch("store.group_messages_store.give_tag", return_value=given or (_tag_change(), [_point_tag()])),
+    )
+    return db, patches
+
+
+def _tag_change(value_id="v-1"):
+    return PointTagChange(id=7, point_id="p-1", key_id="k-1", value_id=value_id, value="Closed", happened_at=SENT_AT)
+
+
+def _point_tag(value_id="v-1", confirmed_at=SENT_AT):
+    return PointTag(point_id="p-1", key_id="k-1", value_id=value_id, since=confirmed_at, confirmed_at=confirmed_at)
+
+
+async def _link(patches, **kwargs):
+    with patches[0], patches[1], patches[2], patches[3] as give:
+        result = await GroupMessagesStore.link("m-1", "user-1", "p-1", kwargs.get("key_id", "k-1"), value_id="v-1")
+    return result, give
+
+
+async def test_a_link_gives_the_value_at_the_time_of_the_message():
+    db, patches = _patch_link()
+
+    (change, tags, applied), give = await _link(patches)
+
+    give.assert_called_once_with(
+        db, "p-1", STATUS, "set", "v-1", None, SENT_AT, "user-1", source="message", message_id="m-1",
+    )
+    db.commit.assert_called_once()
+    assert (change.id, applied) == (7, True)
+
+
+async def test_a_message_older_than_what_the_point_has_only_goes_to_its_history():
+    newer = _point_tag(value_id="v-2", confirmed_at=datetime(2026, 10, 22, 13, tzinfo=UTC))
+    _, patches = _patch_link(given=(_tag_change(), [newer]))
+
+    (_, tags, applied), _ = await _link(patches)
+
+    assert ([tag.value_id for tag in tags], applied) == (["v-2"], False)
+
+
+@pytest.mark.parametrize("point", [_point(map_id="map-2"), _point(removed=True)])
+async def test_a_message_only_links_to_points_of_its_map_that_are_not_removed(point):
+    _, patches = _patch_link(point=point)
+
+    with pytest.raises(UnknownPoint):
+        await _link(patches)
+
+
+async def test_a_message_does_not_link_to_a_key_of_another_map():
+    _, patches = _patch_link(key=MapKey(id="k-9", map_id="map-2", key="Status", single=True, closed=True))
+
+    with pytest.raises(UnknownKey):
+        await _link(patches)
+
+
+async def test_a_dismissed_message_is_not_linked():
+    _, patches = _patch_link(message=_group_message(dismissed_at=SENT_AT))
+
+    with pytest.raises(MessageDismissed):
+        await _link(patches)
+
+
+async def test_the_same_link_twice_is_refused():
+    db, patches = _patch_link(twice=7)
+
+    with pytest.raises(AlreadyLinked):
+        await _link(patches)
+    db.commit.assert_not_called()
+
+
+def _patch_dismiss(message, linked=False):
+    db = MagicMock()
+    db.execute.return_value.scalar.return_value = linked
+    db.get.return_value = ChatGroup(id="g-1", chat="c-1")
+    return db, (
+        _patch_scope(db),
+        patch("store.group_messages_store._owned_message", return_value=message),
+        patch("store.group_messages_store._links_of", return_value={}),
+    )
+
+
+async def test_a_message_is_dismissed_and_brought_back():
+    message = _group_message()
+    db, (scope, owned, links) = _patch_dismiss(message)
+
+    with scope, owned, links:
+        dismissed, chat, _ = await GroupMessagesStore.set_dismissed("m-1", "user-1", True)
+    assert dismissed.dismissed_at is not None and chat == "c-1"
+
+    with scope, owned, links:
+        back, _, _ = await GroupMessagesStore.set_dismissed("m-1", "user-1", False)
+    assert back.dismissed_at is None
+
+
+async def test_a_linked_message_is_not_dismissed():
+    db, (scope, owned, links) = _patch_dismiss(_group_message(), linked=True)
+
+    with scope, owned, links, pytest.raises(MessageLinked):
+        await GroupMessagesStore.set_dismissed("m-1", "user-1", True)
+    db.commit.assert_not_called()
+
+
+async def test_a_message_of_another_user_or_of_a_group_not_listened_to_does_not_exist():
+    db = MagicMock()
+    db.execute.return_value.one_or_none.side_effect = [
+        None,
+        SimpleNamespace(GroupMessage=_group_message(), owner_id="user-2", enabled=True),
+        SimpleNamespace(GroupMessage=_group_message(), owner_id="user-1", enabled=False),
+    ]
+
+    for _ in range(3):
+        with _patch_scope(db), pytest.raises(UnknownMessage):
+            await GroupMessagesStore.set_dismissed("m-1", "user-1", True)
