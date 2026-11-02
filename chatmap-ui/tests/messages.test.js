@@ -1,7 +1,8 @@
 import { expect, test as it } from 'vitest'
 
 import {
-  PAGE_SIZE, coordsOf, groupMessagesOn, groupNames, messagesOn, nextPage, pageOf, startsOver, withNewer, withOlder,
+  PAGE_SIZE, coordsOf, groupMessagesOn, groupNames, liveLinks, messagesOn, metersBetween, nextPage, pageOf,
+  placesNamed, placesOf, startsOver, withMessage, withNewer, withOlder,
 } from '../src/components/Messages/messages';
 
 const message = (id, sent_at) => ({ id, sent_at, group_id: "g-1", text: id });
@@ -99,4 +100,48 @@ it('should keep the parameters of the current page, like ?dashboard', () => {
 });
 it('should go without parameters when the current page has none', () => {
   expect(pageOf("/map/map-1", "#/map/map-1/messages")).toBe("#/map/map-1");
+});
+
+// placesOf, placesNamed, metersBetween
+const point = (id, name, [lon, lat], removed = false) =>
+  ({ properties: { id, message: name, removed }, geometry: { type: "Point", coordinates: [lon, lat] } });
+const features = [
+  point("p-1", "Plaza", [-58.3800, -34.6000]),
+  point("p-2", "Acceso norte", [-58.3820, -34.5990]),
+  point("p-3", "Hospital viejo", [-58.3700, -34.6100], true),
+];
+
+it('measures meters between two places near enough', () => {
+  expect(metersBetween([-34.6, -58.38], [-34.6, -58.38])).toBe(0);
+  // A thousandth of a degree of latitude is about 111 meters
+  expect(metersBetween([-34.6, -58.38], [-34.601, -58.38])).toBe(111);
+});
+
+it('lists the places a message can be linked to, nearest first when it says where it was sent from', () => {
+  expect(placesOf(features, [-34.5991, -58.3819]).map((place) => place.id)).toEqual(["p-2", "p-1"]);
+  expect(placesOf(features, [-34.5991, -58.3819])[0].meters).toBeLessThan(20);
+});
+
+it('lists them by name, without a removed one, when the message says nothing of where', () => {
+  expect(placesOf(features, null)).toEqual([
+    { id: "p-2", name: "Acceso norte", meters: null }, { id: "p-1", name: "Plaza", meters: null },
+  ]);
+});
+
+it('finds places by name without minding case nor accents', () => {
+  const places = [{ id: "p-1", name: "Estación Norte" }, { id: "p-2", name: "Plaza" }];
+  expect(placesNamed(places, "  estacion ").map((place) => place.id)).toEqual(["p-1"]);
+  expect(placesNamed(places, "")).toBe(places);
+});
+
+// liveLinks, withMessage
+it('keeps the links of a message that were not undone', () => {
+  const links = [{ change_id: 2, undone: false }, { change_id: 1, undone: true }];
+  expect(liveLinks({ links })).toEqual([{ change_id: 2, undone: false }]);
+  expect(liveLinks({})).toEqual([]);
+});
+
+it('puts a message as it is now in its place', () => {
+  const shown = [{ id: "m-2", text: "a" }, { id: "m-1", text: "b" }];
+  expect(withMessage(shown, { id: "m-1", text: "c" })).toEqual([{ id: "m-2", text: "a" }, { id: "m-1", text: "c" }]);
 });

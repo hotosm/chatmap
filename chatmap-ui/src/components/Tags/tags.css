@@ -69,7 +69,7 @@
 }
 
 .pointTags__menu .tags__dot,
-.pointTags__panel .tags__dot {
+.popoverPanel .tags__dot {
     width: 12px;
     height: 12px;
     margin-right: var(--hot-spacing-x-small);
@@ -83,32 +83,6 @@
     max-height: 320px;
     overflow: auto;
     padding: var(--hot-spacing-x-small);
-}
-
-.pointTags__panelTitle {
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-small) var(--hot-spacing-2x-small);
-    color: var(--hot-color-gray-600);
-    font-size: var(--hot-font-size-x-small);
-    font-weight: var(--hot-font-weight-bold);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-}
-
-.pointTags__option {
-    display: flex;
-    align-items: center;
-    min-height: 36px;
-    padding: 0 var(--hot-spacing-x-small);
-    border: 0;
-    border-radius: var(--hot-border-radius-small);
-    background: none;
-    font-size: var(--hot-font-size-small);
-    text-align: left;
-    cursor: pointer;
-}
-
-.pointTags__option:hover {
-    background-color: var(--hot-color-gray-50);
 }
 
 .pointTags__suggestions {

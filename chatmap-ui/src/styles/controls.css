@@ -100,3 +100,34 @@ button.pill--danger:hover:not(:disabled) {
     background-color: var(--hot-color-neutral-0);
     box-shadow: var(--sl-shadow-x-large);
 }
+
+/* In a panel: the title of a section, small and gray, and the options to pick, one per row */
+.popoverPanel__title {
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-small) var(--hot-spacing-2x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.popoverPanel__option {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--hot-spacing-x-small);
+    border: 0;
+    border-radius: var(--hot-border-radius-small);
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    text-align: left;
+    cursor: pointer;
+}
+
+.popoverPanel__option:hover,
+.popoverPanel__option:focus-visible {
+    background-color: var(--hot-color-gray-50);
+    outline: none;
+}
