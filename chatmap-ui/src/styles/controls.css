@@ -24,7 +24,13 @@ button.pill {
     cursor: pointer;
 }
 
-button.pill:focus-visible {
+button.pill:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+button.pill:focus-visible,
+.pill:has(select:focus-visible) {
     outline: 2px solid var(--hot-color-neutral-950);
     outline-offset: 2px;
 }
@@ -34,6 +40,26 @@ button.pill:focus-visible {
     border-color: var(--hot-color-gray-400);
     background-color: var(--hot-color-neutral-0);
     color: var(--hot-color-gray-900);
+}
+
+button.pill--outline:hover:not(:disabled),
+.pill--outline:has(select:hover) {
+    border-color: var(--hot-color-neutral-950);
+}
+
+/* What is on, filled */
+.pill--on {
+    border-color: var(--hot-color-neutral-950);
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+}
+
+.pill--danger {
+    color: var(--hot-color-danger-600);
+}
+
+button.pill--danger:hover:not(:disabled) {
+    border-color: var(--hot-color-danger-600);
 }
 
 /* A thin chevron after the text tells it opens: in the color of the text, on any pill */
@@ -47,6 +73,23 @@ button.pill:focus-visible {
     border-bottom: 1.5px solid currentColor;
     transform: rotate(45deg);
     pointer-events: none;
+}
+
+/* A native select inside a pill: the pill draws it, the select keeps the keyboard and the phone's picker */
+.pill__select {
+    margin: 0 calc(-10px - 9px) 0 -10px;
+    padding: 0 calc(10px + 9px) 0 10px;
+    min-height: 26px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    appearance: none;
+    cursor: pointer;
+}
+
+.pill__select:focus {
+    outline: none;
 }
 
 /* The white panel a pill opens: a light border and shadow over the page */

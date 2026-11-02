@@ -19,3 +19,5 @@ export { default as PointTags } from "./PointTags.jsx";
 export { TagFilterItems, tagFilterName } from "./TagFilter.jsx";
 // Setting up its tags, for its owner (mapView)
 export { default as MapTagsOptions } from "./MapTagsOptions.jsx";
+// The messages of its groups, linked to its tags (Messages)
+export { usesKeys } from "./tags.js";
