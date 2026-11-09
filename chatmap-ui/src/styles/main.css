@@ -9,6 +9,11 @@
 @import url('@hotosm/ui-design/dist/hot.css');
 @import url('@hotosm/ui-design/dist/hot-sl.css');
 @import url('@hotosm/ui-design/dist/hot-font-face.css');
+/* Arabic letters only: Latin text keeps the fonts of the design system */
+@import url('@fontsource/ibm-plex-sans-arabic/arabic-400.css');
+@import url('@fontsource/ibm-plex-sans-arabic/arabic-500.css');
+@import url('@fontsource/ibm-plex-sans-arabic/arabic-600.css');
+@import url('@fontsource/ibm-plex-sans-arabic/arabic-700.css');
 @import url('./controls.css');
 
 
@@ -121,7 +126,7 @@ a {
     display: flex;
     align-items: center;
     gap: var(--hot-spacing-large);
-    padding-left: var(--hot-spacing-small);;
+    padding-inline-start: var(--hot-spacing-small);;
 }
 
 .header__title {
@@ -139,10 +144,10 @@ ul.header__nav {
     display: flex;
     font-family: var(--hot-font-sans-variant);
     text-transform: uppercase;
-    border-left: 1px solid var(--hot-color-neutral-300);
+    border-inline-start: 1px solid var(--hot-color-neutral-300);
     height: var(--hot-spacing-medium);
     margin: var(--hot-spacing-x-small) 0;
-    padding-left: calc(var(--hot-spacing-large) / 2);
+    padding-inline-start: calc(var(--hot-spacing-large) / 2);
 }
 
 ul.header__nav li {
@@ -226,7 +231,7 @@ ul.header__nav li {
 
 .footer__top-left li::after {
     content: ">";
-    margin-left: var(--hot-spacing-2x-small);
+    margin-inline-start: var(--hot-spacing-2x-small);
 }
 
 .footer__top-left a:link,
@@ -237,7 +242,7 @@ ul.header__nav li {
 }
 
 .footer__top-right {
-    text-align: right;
+    text-align: end;
     max-width: 20rem;
 }
 
@@ -250,7 +255,7 @@ ul.header__nav li {
 
 .footer__top-right a::after {
     content: ">";
-    margin-left: var(--hot-spacing-2x-small);
+    margin-inline-start: var(--hot-spacing-2x-small);
 }
 
 .footer__top-right a span {
@@ -267,7 +272,7 @@ ul.header__nav li {
     display: block;
     position: absolute;
     bottom: 4px;
-    left: 0;
+    inset-inline-start: 0;
 }
 
 .footer__top-right a:link,
@@ -291,7 +296,7 @@ ul.header__nav li {
 
 .footer__copy {
     max-width: 25rem;
-    text-align: right;
+    text-align: end;
     font-size: var(--hot-font-size-small);
     color: var(--hot-color-gray-800);
     line-height: var(--hot-line-height-dense);
@@ -361,8 +366,8 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .userinfo {
     font-size: var(--hot-font-size-small);
-    text-align: left;
-    padding-left: var(--hot-spacing-medium);
+    text-align: start;
+    padding-inline-start: var(--hot-spacing-medium);
     margin-top: var(--hot-spacing-small);
     display: flex;
     max-width: 85%;
@@ -370,7 +375,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .msgUsername {
     font-weight: var(--hot-font-weight-bold);
-    padding-right: var(--hot-spacing-small);
+    padding-inline-end: var(--hot-spacing-small);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -414,7 +419,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
     box-shadow: 0 0 10px rgba(0, 0, 0, .3);
     border-radius: var(--hot-border-radius-medium);
-    margin-right: var(--hot-spacing-small);
+    margin-inline-end: var(--hot-spacing-small);
 }
 
 .map__options_live {
@@ -496,9 +501,9 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 }
 
 .message .text {
-    text-align: left;
-    padding-left: var(--hot-spacing-small);
-    padding-right: var(--hot-spacing-small);
+    text-align: start;
+    padding-inline-start: var(--hot-spacing-small);
+    padding-inline-end: var(--hot-spacing-small);
     font-size: var(--hot-font-size-small);
 }
 
@@ -530,7 +535,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 
 .message.removed .removeIcon {
     color: var(--hot-color-primary-400);
-    margin-right: 10px;
+    margin-inline-end: 10px;
 }
 
 .removeIcon::part(base),
@@ -539,7 +544,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 }
 
 .copyIcon {
-    margin-left: 10px;
+    margin-inline-start: 10px;
 }
 
 .message .removedLabel {
@@ -554,7 +559,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 /* Survey answers */
 
 .surveyAnswers {
-    text-align: left;
+    text-align: start;
     margin: 0;
     padding: 0 var(--hot-spacing-small) var(--hot-spacing-x-small);
     max-height: 40vh;
@@ -584,7 +589,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
     z-index: 600;
     left: 50%;
     transform: translateX(-50%);
-    text-align: left;
+    text-align: start;
     border-radius: var(--hot-border-radius-small);
     box-shadow: var(--hot-shadow-small);
     width: 790px;
@@ -599,7 +604,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 }
 
 .connectForm ol {
-    padding-left: var(--hot-spacing-large);
+    padding-inline-start: var(--hot-spacing-large);
     font-size: var(--hot-font-size-large);
     line-height: var(--hot-line-height-loose);
 }
@@ -621,7 +626,7 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
 }
 
 .connectForm__warning span {
-    padding-left: var(--hot-spacing-x-small);
+    padding-inline-start: var(--hot-spacing-x-small);
 }
 
 .connectForm__warning sl-icon {
@@ -772,4 +777,37 @@ https://github.com/KarimMokhtar/react-drag-drop-files/issues/121 */
         padding: var(--hot-spacing-medium);
         top: 200px;
     }
+}
+
+/* Right to left */
+
+/*
+ * Arabic text in IBM Plex Sans Arabic. It goes after the fonts of the
+ * design system, which have no Arabic letters, so Latin words and numbers
+ * in an Arabic sentence keep looking as in the other languages.
+ */
+:root:lang(ar) {
+    --chatmap-font-arabic: 'IBM Plex Sans Arabic';
+    --hot-font-sans: Archivo, var(--chatmap-font-arabic), -apple-system, Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --hot-font-sans-variant: 'Barlow', var(--chatmap-font-arabic);
+    --hot-font-sans-variant-condensed: 'Barlow Condensed', var(--chatmap-font-arabic);
+    --sl-font-sans: var(--hot-font-sans);
+    --sl-font-sans-variant: var(--hot-font-sans-variant);
+    --sl-font-sans-variant-condensed: var(--hot-font-sans-variant-condensed);
+}
+
+html:lang(ar),
+html:lang(ar) body {
+    font-family: Helvetica, arial, var(--chatmap-font-arabic), sans-serif;
+}
+
+/* Icons that point to a side point to the other one */
+sl-icon:dir(rtl):is([name*="arrow-left"], [name*="arrow-right"], [name*="chevron-left"], [name*="chevron-right"], [name*="caret-left"], [name*="caret-right"]) {
+    transform: scaleX(-1);
+}
+
+.footer__top-left li:dir(rtl)::after,
+.footer__top-right a:dir(rtl)::after {
+    content: "<";
 }

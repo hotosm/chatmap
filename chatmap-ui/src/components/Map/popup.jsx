@@ -9,6 +9,7 @@ import { PointTags } from '../Tags';
 import { mediaType } from '../Media';
 import {useIntl} from 'react-intl';
 import {useLanguage} from "../../context/LanguageContext";
+import {dirOf} from "../../lang";
 
 // It manages popups, creating  maplibregl.Popup objects when necessary.
 const PopupGLWrapper = ({
@@ -104,7 +105,8 @@ export default function Popup({
             closeButton={true}
         >
             <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
-                <div className={`activePopupFeatureContent ${pointTags ? "activePopupFeatureContent--tags" : ""}`}>
+                {/* The map is left to right, what the popup says goes in the direction of the language */}
+                <div dir={dirOf(lang)} className={`activePopupFeatureContent ${pointTags ? "activePopupFeatureContent--tags" : ""}`}>
                     <Message
                         coordinates={feature.geometry.coordinates}
                         message={feature.properties}

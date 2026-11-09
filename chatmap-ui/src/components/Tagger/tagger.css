@@ -1,7 +1,7 @@
 
 .tagger {
     margin: 0 var(--hot-spacing-x-small) var(--hot-spacing-x-small);
-    text-align: left;
+    text-align: start;
 }
 
 .tagger .textInput {

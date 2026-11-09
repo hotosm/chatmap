@@ -20,8 +20,8 @@
 }
 
 .messagesInbox__groups {
-    padding-right: var(--hot-spacing-x-large);
-    border-right: 1px solid var(--hot-color-neutral-950);
+    padding-inline-end: var(--hot-spacing-x-large);
+    border-inline-end: 1px solid var(--hot-color-neutral-950);
     overflow-y: auto;
 }
 
@@ -45,7 +45,7 @@
     color: var(--hot-color-neutral-950);
     font: inherit;
     font-size: var(--hot-font-size-x-large);
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -115,14 +115,14 @@
 .messageCard__dismiss {
     position: absolute;
     top: var(--hot-spacing-x-small);
-    right: var(--hot-spacing-x-small);
+    inset-inline-end: var(--hot-spacing-x-small);
     color: var(--hot-color-gray-600);
     font-size: var(--hot-font-size-small);
 }
 
 .messageCard:has(.messageCard__dismiss) .messageCard__text,
 .messageCard:has(.messageCard__dismiss) .messageCard__location {
-    padding-right: var(--hot-spacing-x-large);
+    padding-inline-end: var(--hot-spacing-x-large);
 }
 
 .messageCard__text {
@@ -237,6 +237,11 @@
     font-size: var(--hot-font-size-small);
 }
 
+/* The arrow goes the way the text is read */
+[dir="rtl"] .messageLinks__arrow {
+    transform: scaleX(-1);
+}
+
 .messageLinks__undo {
     padding: 0;
     border: 0;
@@ -265,7 +270,7 @@
 }
 
 .messageCard__meta {
-    margin-left: auto;
+    margin-inline-start: auto;
     color: var(--hot-color-neutral-950);
     font-size: var(--hot-font-size-x-small);
 }
@@ -282,7 +287,7 @@
 
     .messagesInbox__groups {
         padding: 0 0 var(--hot-spacing-small);
-        border-right: 0;
+        border-inline-end: 0;
         border-bottom: 1px solid var(--hot-color-neutral-950);
         overflow: auto hidden;
     }
@@ -305,7 +310,7 @@
     .messagesInbox__states {
         padding: 0 0 0 var(--hot-spacing-large);
         border-top: 0;
-        border-left: 1px solid var(--hot-color-gray-200);
+        border-inline-start: 1px solid var(--hot-color-gray-200);
         align-self: auto;
     }
 }

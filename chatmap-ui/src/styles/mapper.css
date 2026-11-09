@@ -48,7 +48,7 @@
     margin-bottom: 10px;
     background-color: white;
     border-radius: var(--hot-border-radius-small);
-    padding-right: var(--hot-spacing-2x-small);
+    padding-inline-end: var(--hot-spacing-2x-small);
     padding-top: var(--hot-spacing-2x-small);
     box-shadow: 1px 1px 0px rgba(0,0,0,.05);
 }

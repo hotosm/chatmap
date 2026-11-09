@@ -261,7 +261,8 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
 
     return (
         <div className="map-wrap">
-            <div ref={mapContainer} className={["map", className].join(" ")}/>
+            {/* The map and its controls are not mirrored in right to left languages */}
+            <div ref={mapContainer} dir="ltr" className={["map", className].join(" ")}/>
             <MapTools map={map} adding={addingPoint} show={showMessageOptions} onAdd={handleAddPoint}/>
             {map.current && activePopupFeature &&
                 <Popup

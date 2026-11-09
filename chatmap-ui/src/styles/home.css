@@ -81,7 +81,7 @@ sl-switch[checked]::part(control) {
 .dialog__switchtext {
     font-weight: var(--hot-font-weight-bold);
     font-size: var(--hot-font-size-medium);
-    margin-left: var(--hot-spacing-small);
+    margin-inline-start: var(--hot-spacing-small);
 }
 
 .dialog__switchcontainer {

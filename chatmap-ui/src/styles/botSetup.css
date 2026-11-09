@@ -9,7 +9,7 @@
 }
 
 .botSetup__header-left {
-  padding-left: var(--hot-spacing-medium);
+  padding-inline-start: var(--hot-spacing-medium);
 }
 
 .botSetup__header-left h1,
@@ -28,7 +28,7 @@
 }
 
 .botSetup__header-right {
-  padding-right: var(--hot-spacing-medium);
+  padding-inline-end: var(--hot-spacing-medium);
   display: flex;
   gap: var(--hot-spacing-medium);
 }
@@ -87,7 +87,7 @@
   border-radius: var(--hot-border-radius-large, 0.5rem);
   background: var(--hot-color-neutral-0, #fff);
   font-weight: bold;
-  text-align: left;
+  text-align: start;
 }
 
 /* The "Incorrect answer" companion sits alongside its step, quieter */

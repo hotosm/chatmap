@@ -8,6 +8,7 @@
   "dependencies": {
     "@babel/core": "^7.26.10",
     "@floating-ui/utils": "^0.2.10",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
     "@hotosm/hanko-auth": "^0.5.2",
     "@hotosm/ui": "^1.0.0",
     "@hotosm/ui-design": "^1.4.0",

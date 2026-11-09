@@ -134,7 +134,7 @@ export default function AddPoint({ map, mapId, colorKey, adding, show, onAdd }) 
           <FormattedMessage
             id="app.tags.addPoint.withoutValue"
             defaultMessage="The point was added without {key}. Give it from its popup."
-            values={{ key: withoutValue }}
+            values={{ key: <bdi>{withoutValue}</bdi> }}
           />
         </span>
       }
