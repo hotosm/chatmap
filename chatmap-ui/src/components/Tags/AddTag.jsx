@@ -4,31 +4,8 @@ import { FormattedMessage, useIntl } from "react-intl";
 import SlInput from "@shoelace-style/shoelace/dist/react/input/index.js";
 import "@shoelace-style/shoelace/dist/components/divider/divider.js";
 
+import KeyValues from "./KeyValues.jsx";
 import { freeTags, selectable, tagsOf } from "./tags.js";
-
-// A text field that gives its text on Enter
-function TextField({ placeholder, onText }) {
-    const [text, setText] = useState("");
-
-    const handleKeyDown = (event) => {
-        if (event.key === "Enter" && text.trim()) {
-            event.preventDefault();
-            onText(text.trim());
-            setText("");
-        }
-    };
-
-    return (
-        <SlInput
-            size="small"
-            value={text}
-            autocomplete="off"
-            placeholder={placeholder}
-            onSlInput={(event) => setText(event.target.value)}
-            onKeyDown={handleKeyDown}
-        />
-    );
-}
 
 /**
  * The "+" at the end of the tags of a point. It floats over the map, so the
@@ -87,32 +64,9 @@ export default function AddTag({ keys, properties, allTags, onSetTag, onAddTag }
                 +
             </button>
             <div className="popoverPanel pointTags__panel">
-                { open.map(({ key, options }) => {
-                    return (
-                        <section key={key.id} className="pointTags__panelKey">
-                            <div className="pointTags__panelTitle">{key.key}</div>
-                            { key.closed ?
-                                options.map(value =>
-                                    <button
-                                        key={value.id}
-                                        className="pointTags__option"
-                                        onClick={() => give(key.id, { action: "set", value_id: value.id })}
-                                    >
-                                        <span className="tags__dot" style={{ backgroundColor: value.color || undefined }} />
-                                        {value.value}
-                                    </button>
-                                )
-                            :
-                                <TextField
-                                    placeholder={intl.formatMessage({ id: "app.tags.write", defaultMessage: "Write and press Enter" })}
-                                    onText={(value) => give(key.id, { action: "set", value })}
-                                />
-                            }
-                        </section>
-                    );
-                })}
+                <KeyValues keys={open} onPick={give} />
                 { open.length > 0 && <sl-divider /> }
-                <div className="pointTags__panelTitle">
+                <div className="popoverPanel__title">
                     <FormattedMessage id="app.tags.newFreeTag" defaultMessage="New tag" />
                 </div>
                 <SlInput
@@ -125,12 +79,12 @@ export default function AddTag({ keys, properties, allTags, onSetTag, onAddTag }
                 />
                 <div className="pointTags__suggestions">
                     { suggestions.map(tag =>
-                        <button key={tag} className="pointTags__option" onClick={() => addTag(tag)}>
+                        <button key={tag} className="popoverPanel__option" onClick={() => addTag(tag)}>
                             {tag}
                         </button>
                     )}
                     { isNew &&
-                        <button className="pointTags__option" onClick={() => addTag(typed)}>
+                        <button className="popoverPanel__option" onClick={() => addTag(typed)}>
                             <FormattedMessage id="app.tags.create" defaultMessage="Create “{tag}”" values={{ tag: typed }} />
                         </button>
                     }

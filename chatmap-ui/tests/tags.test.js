@@ -1,8 +1,8 @@
 import { expect, test as it} from 'vitest'
 
 import {
-  colorKeyOf, colorKeys, expiresAt, freeTags, freeTagsInUse, keyFilter, keyFilterOf, keysOn, newPoint, shownValue,
-  shownValueCounts, textOn, UNKNOWN, usesKeys, valuesInUse, withKeyTags, withShownValues, withTags,
+  colorKeyOf, colorKeys, expiresAt, freeTags, freeTagsInUse, keyFilter, keyFilterOf, keysOn, linkableKeys, newPoint,
+  shownValue, shownValueCounts, textOn, UNKNOWN, usesKeys, valuesInUse, withKeyTags, withShownValues, withTags,
 } from '../src/components/Tags/tags';
 
 const OPEN = { id: "v-open", value: "Open", color: "#3E9E47", expires_after: 4 };
@@ -165,4 +165,17 @@ it('should replace what a point has for a key with what the API answers, keeping
 
   expect(changed.point_tags).toEqual([{ key_id: "k-notes", value: "Gate" }, { key_id: "k-status", value_id: "v-closed" }]);
   expect(properties.point_tags[0].value_id).toBe("v-open");
+});
+
+// linkableKeys
+it('offers a message the keys not archived, with their values not archived, and free keys to write one', () => {
+  const keys = [
+    { id: "k-1", key: "Status", closed: true, values: [{ id: "v-1" }, { id: "v-2", archived: true }] },
+    { id: "k-2", key: "Old", closed: true, archived: true, values: [{ id: "v-3" }] },
+    { id: "k-3", key: "Empty", closed: true, values: [{ id: "v-4", archived: true }] },
+    { id: "k-4", key: "Notes", closed: false, values: [] },
+  ];
+  expect(linkableKeys(keys).map(({ key, options }) => [key.id, options.map((value) => value.id)])).toEqual([
+    ["k-1", ["v-1"]], ["k-4", []],
+  ]);
 });

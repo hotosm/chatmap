@@ -29,7 +29,7 @@ export default function MessagesPage() {
           <FormattedMessage id="app.messages.backToMap" defaultMessage="Back to the map" />
         </SlButton>
       </Header>
-      { shown && <MessagesInbox mapId={id} live={mapData.is_live} /> }
+      { shown && <MessagesInbox mapData={mapData} /> }
     </div>
   );
 }

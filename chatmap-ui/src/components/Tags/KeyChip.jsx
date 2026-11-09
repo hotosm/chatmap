@@ -19,6 +19,21 @@ const useTitle = (key, value, tag) => {
 };
 
 /**
+ * A value as a pill with its color, or white when it has none (a written value: { value }).
+ */
+export function ValueChip({ value, className = "", title }) {
+    return (
+        <span
+            className={`pill ${value.color ? "" : "pill--outline"} ${className}`}
+            style={value.color ? { backgroundColor: value.color, color: textOn(value.color) } : {}}
+            title={title}
+        >
+            {value.value}
+        </span>
+    );
+}
+
+/**
  * A value of a key with a list, as a chip with its color. When its value
  * expired it shows as unknown. Who can edit the point opens it to confirm
  * the value, change it or take it out.
@@ -35,13 +50,7 @@ export default function KeyChip({ keyItem, tag, now, onSetTag, showEditOptions }
         <span className={`pill pill--outline pointTags__chip--unknown ${caret}`} title={title}>
             <FormattedMessage id="app.tags.unknown" defaultMessage="Unknown" />
         </span> :
-        <span
-            className={`pill ${value.color ? "" : "pill--outline"} ${caret}`}
-            style={value.color ? { backgroundColor: value.color, color: textOn(value.color) } : {}}
-            title={title}
-        >
-            {value.value}
-        </span>;
+        <ValueChip value={value} className={caret} title={title} />;
 
     if (!showEditOptions) return chip;
 

@@ -69,3 +69,45 @@ export const coordsOf = (location) => {
 
 // The name of each group by its id, to show it on its messages
 export const groupNames = (groups) => Object.fromEntries((groups || []).map((group) => [group.id, group.name]));
+
+// Meters between two [lat, lon], near enough for places of a map
+export const metersBetween = ([lat1, lon1], [lat2, lon2]) => {
+    const rad = Math.PI / 180;
+    const x = (lon2 - lon1) * rad * Math.cos(((lat1 + lat2) / 2) * rad);
+    const y = (lat2 - lat1) * rad;
+    return Math.round(Math.sqrt(x * x + y * y) * 6371000);
+};
+
+/**
+ * The places of a map a message can be linked to: its points not removed,
+ * with their name. Nearest first when the message says where it was sent
+ * from (coords), by name when it does not.
+ *
+ * @returns {array} [{ id, name, meters }]; meters is null without coords
+ */
+export const placesOf = (features, coords) => {
+    const places = (features || [])
+        .filter((feature) => feature.properties && !feature.properties.removed && feature.geometry)
+        .map((feature) => {
+            const [lon, lat] = feature.geometry.coordinates;
+            return {
+                id: feature.properties.id,
+                name: feature.properties.message || "",
+                meters: coords ? metersBetween(coords, [lat, lon]) : null,
+            };
+        });
+    return places.sort((a, b) => coords ? a.meters - b.meters : a.name.localeCompare(b.name));
+};
+
+// The places whose name has the text, without minding case nor accents
+export const placesNamed = (places, text) => {
+    const plain = (value) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    const asked = plain(text.trim());
+    return asked ? places.filter((place) => plain(place.name).includes(asked)) : places;
+};
+
+// The links of a message that are not undone: what it gave to points now
+export const liveLinks = (message) => (message.links || []).filter((link) => !link.undone);
+
+// The messages with one of them as it is now
+export const withMessage = (messages, message) => messages.map((item) => item.id === message.id ? message : item);

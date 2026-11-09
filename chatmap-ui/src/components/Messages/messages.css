@@ -57,6 +57,19 @@
     font-weight: var(--hot-font-weight-bold);
 }
 
+/* Which messages: all, not reviewed, linked, dismissed. Smaller than the groups, under them */
+.messagesInbox__states {
+    margin: 0;
+    padding: var(--hot-spacing-medium) 0 0;
+    border-top: 1px solid var(--hot-color-gray-200);
+    list-style: none;
+    align-self: stretch;
+}
+
+.messagesInbox__states .messagesInbox__group {
+    font-size: var(--hot-font-size-medium);
+}
+
 .messagesInbox__messages {
     display: flex;
     flex-direction: column;
@@ -89,12 +102,27 @@
 
 /* A message: what it says on top; what can be done with it, and when and where it was said, below */
 .messageCard {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--hot-spacing-small);
     padding: var(--hot-spacing-large) var(--hot-spacing-x-large);
     border-radius: var(--hot-border-radius-x-large);
     background-color: var(--hot-color-gray-50);
+}
+
+/* The ✕ to dismiss it, at the top right; the text keeps clear of it */
+.messageCard__dismiss {
+    position: absolute;
+    top: var(--hot-spacing-x-small);
+    right: var(--hot-spacing-x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+}
+
+.messageCard:has(.messageCard__dismiss) .messageCard__text,
+.messageCard:has(.messageCard__dismiss) .messageCard__location {
+    padding-right: var(--hot-spacing-x-large);
 }
 
 .messageCard__text {
@@ -124,8 +152,116 @@
 
 .messageCard__actions {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hot-spacing-x-small);
+}
+
+/* Choose place, choose status, and what they say after linking */
+.messageLinker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.messageLinker__pickers {
+    display: flex;
     flex-wrap: wrap;
     gap: var(--hot-spacing-x-small);
+}
+
+.messageLinker__notice {
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.messageLinker__notice--error {
+    color: var(--hot-color-danger-600);
+}
+
+/* The panels to choose a place or a status: the field stays on top, only the list scrolls */
+.messagePicker__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    width: min(18rem, calc(100vw - 2 * var(--hot-spacing-medium)));
+    max-height: 22rem;
+    overflow: auto;
+    padding: var(--hot-spacing-x-small);
+}
+
+.messagePicker__panel:has(.messagePicker__options) {
+    overflow: hidden;
+}
+
+.messagePicker__options {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+}
+
+.messagePicker__place {
+    justify-content: space-between;
+    gap: var(--hot-spacing-small);
+}
+
+.messagePicker__distance,
+.messagePicker__empty {
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    white-space: nowrap;
+}
+
+.messagePicker__empty {
+    margin: var(--hot-spacing-x-small);
+    white-space: normal;
+}
+
+/* What a message gave to places: "→ North access · Closed · Undo" */
+.messageLinks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.messageLinks__link {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    font-size: var(--hot-font-size-small);
+}
+
+.messageLinks__undo {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--hot-color-gray-600);
+    font: inherit;
+    font-size: var(--hot-font-size-x-small);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.messageLinks__undo:hover:not(:disabled) {
+    color: var(--hot-color-neutral-950);
+}
+
+/* A message just dismissed, in its place, to bring it back */
+.messagesInbox__dismissed {
+    display: flex;
+    gap: var(--hot-spacing-small);
+    margin: 0;
+    padding: var(--hot-spacing-small) var(--hot-spacing-x-large);
+    border: 1px dashed var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-x-large);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
 }
 
 .messageCard__meta {
@@ -164,6 +300,13 @@
     .messagesInbox__group {
         font-size: var(--hot-font-size-medium);
         white-space: nowrap;
+    }
+
+    .messagesInbox__states {
+        padding: 0 0 0 var(--hot-spacing-large);
+        border-top: 0;
+        border-left: 1px solid var(--hot-color-gray-200);
+        align-self: auto;
     }
 }
 

@@ -44,6 +44,11 @@ export const activeKeys = (keys) => (keys || []).filter((key) => !key.archived);
 // The values of a key that can be picked: the ones not archived
 export const selectable = (key) => ((key && key.values) || []).filter((value) => !value.archived);
 
+// The keys a message can give a point, each with the values to pick: the ones not archived, or a text
+export const linkableKeys = (keys) => activeKeys(keys)
+    .map((key) => ({ key, options: selectable(key) }))
+    .filter(({ key, options }) => !key.closed || options.length > 0);
+
 // Keys that can color the map: one value per point, picked from a list
 export const colorKeys = (keys) => activeKeys(keys).filter((key) => key.single && key.closed);
 

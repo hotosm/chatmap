@@ -32,10 +32,21 @@ function MessageLocation({ location }) {
  * with how long ago and in which group below.
  *
  * @param {node} children What can be done with it, at the bottom left
+ * @param {function} onDismiss Dismisses it, from the ✕ at the top right; without it there is no ✕
  */
-export default function MessageCard({ message, groupName, children }) {
+export default function MessageCard({ message, groupName, onDismiss, children }) {
+    const intl = useIntl();
+
     return (
         <article className="messageCard">
+            { onDismiss &&
+                <SlIconButton
+                    className="messageCard__dismiss"
+                    name="x-lg"
+                    label={intl.formatMessage({ id: "app.messages.dismiss", defaultMessage: "Dismiss: it says nothing about the places" })}
+                    onClick={onDismiss}
+                />
+            }
             { message.text && <p className="messageCard__text">{message.text}</p> }
             { message.location && <MessageLocation location={message.location} /> }
             <footer className="messageCard__footer">
