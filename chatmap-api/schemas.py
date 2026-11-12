@@ -34,6 +34,8 @@ class FeatureProperties(BaseModel):
     file: str | None
     file_embedded: str | None
     removed: bool = False
+    # A place made by the owner on the dashboard; a point from a location shared in a chat is a report
+    place: bool = False
     tags: str = ""
     survey: List[SurveyAnswer] = []
 

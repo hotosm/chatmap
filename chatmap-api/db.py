@@ -15,7 +15,7 @@ from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
     Enum as SqlEnum, Boolean, Integer, BigInteger, Identity, Interval,
-    ForeignKeyConstraint, UniqueConstraint, true
+    ForeignKeyConstraint, UniqueConstraint, false, true
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.pool import NullPool
@@ -258,6 +258,9 @@ class Point(Base):
     file = Column(String)
     tags = Column(String)
     removed = Column(Boolean, nullable=False, default=False)
+    # A place of the map, made by its owner on the dashboard; a point from a
+    # location shared in a chat is a report, not a place to link messages to
+    place = Column(Boolean, nullable=False, default=False, server_default=false())
 
     map_id = Column(String, ForeignKey("maps.id"), index=True, nullable=False)
     map = relationship("Map", back_populates="points")

@@ -48,11 +48,11 @@ class HistoryPage:
 
 
 def _save(db, sender: str, map_id: str, username: str | None, contributor_id: str | None, latitude: float,
-          longitude: float, time: datetime, message: str | None) -> PointCreation:
+          longitude: float, time: datetime, message: str | None, place: bool = False) -> PointCreation:
     point_id = point_id_of(sender, map_id, latitude, longitude, time, message)
 
     try:
-        created = insert_if_new(db, point_id, map_id, username, contributor_id, latitude, longitude, time, message)
+        created = insert_if_new(db, point_id, map_id, username, contributor_id, latitude, longitude, time, message, place)
         db.commit()
     except SQLAlchemyError as error:
         db.rollback()
@@ -86,9 +86,10 @@ class PointStore:
     async def create_point(cls, map_id: str, author: Owner | Contributor, latitude: float, longitude: float,
                            time: datetime, message: str | None) -> PointCreation:
         with session_scope() as db:
+            # What the owner makes is a place of the map; what a contributor sends, a report
             if isinstance(author, Owner):
                 return _save(db, f"owner:{author.user_id}", map_id, author.username, None, latitude, longitude,
-                             time, message)
+                             time, message, place=True)
 
             return _save(db, f"contributor:{author.id}", map_id, author.nickname, author.id, latitude, longitude,
                          time, message)

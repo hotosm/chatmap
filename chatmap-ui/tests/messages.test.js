@@ -103,12 +103,14 @@ it('should go without parameters when the current page has none', () => {
 });
 
 // placesOf, placesNamed, metersBetween
-const point = (id, name, [lon, lat], removed = false) =>
-  ({ properties: { id, message: name, removed }, geometry: { type: "Point", coordinates: [lon, lat] } });
+const point = (id, name, [lon, lat], removed = false, place = true) =>
+  ({ properties: { id, message: name, removed, place }, geometry: { type: "Point", coordinates: [lon, lat] } });
 const features = [
   point("p-1", "Plaza", [-58.3800, -34.6000]),
   point("p-2", "Acceso norte", [-58.3820, -34.5990]),
   point("p-3", "Hospital viejo", [-58.3700, -34.6100], true),
+  // A report from a location shared in a chat: not a place to link messages to
+  point("r-1", "Cortado el acceso, pasen por el otro lado", [-58.3821, -34.5991], false, false),
 ];
 
 it('measures meters between two places near enough', () => {
@@ -122,7 +124,7 @@ it('lists the places a message can be linked to, nearest first when it says wher
   expect(placesOf(features, [-34.5991, -58.3819])[0].meters).toBeLessThan(20);
 });
 
-it('lists them by name, without a removed one, when the message says nothing of where', () => {
+it('lists them by name, without a removed one nor a report, when the message says nothing of where', () => {
   expect(placesOf(features, null)).toEqual([
     { id: "p-2", name: "Acceso norte", meters: null }, { id: "p-1", name: "Plaza", meters: null },
   ]);

@@ -9,7 +9,7 @@ from store.points.model import as_utc
 
 
 def insert_if_new(db, point_id: str, map_id: str, username: str | None, contributor_id: str | None,
-                  latitude: float, longitude: float, time: datetime, message: str | None) -> bool:
+                  latitude: float, longitude: float, time: datetime, message: str | None, place: bool = False) -> bool:
     query = (
         insert(Point)
         .values(
@@ -20,6 +20,7 @@ def insert_if_new(db, point_id: str, map_id: str, username: str | None, contribu
             message=message,
             username=username,
             contributor_id=contributor_id,
+            place=place,
         )
         .on_conflict_do_nothing(index_elements=["id"])
         .returning(Point.id)

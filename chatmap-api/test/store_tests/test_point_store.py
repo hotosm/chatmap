@@ -97,6 +97,8 @@ async def test_create_maps_the_fields_to_the_point_columns():
     assert params["message"] == "Calle inundada"
     assert params["username"] == "joaco"
     assert params["contributor_id"] is None
+    # What the owner makes is a place of the map
+    assert params["place"] is True
 
 
 async def test_create_stores_the_time_in_utc_without_timezone():
@@ -188,6 +190,8 @@ async def test_contributor_create_saves_the_point_with_the_contributor_and_their
     assert params["contributor_id"] == "c-1"
     assert params["username"] == "Ana"
     assert params["map_id"] == "map-1"
+    # What a contributor sends is a report, not a place
+    assert params["place"] is False
     db.commit.assert_called_once()
 
 

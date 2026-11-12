@@ -462,6 +462,7 @@ async def map_response(db, map_obj, owner):
             Point.time,
             Point.file,
             Point.removed,
+            Point.place,
             Point.tags,
         )
         .filter(base_filter)
@@ -491,6 +492,7 @@ async def map_response(db, map_obj, owner):
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
+                    "place": point.place,
                     "survey": survey_by_point.get(point.id, []),
                 },
                 "geometry": {

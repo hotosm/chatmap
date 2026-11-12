@@ -79,15 +79,16 @@ export const metersBetween = ([lat1, lon1], [lat2, lon2]) => {
 };
 
 /**
- * The places of a map a message can be linked to: its points not removed,
- * with their name. Nearest first when the message says where it was sent
+ * The places of a map a message can be linked to: the points its owner made
+ * on the dashboard (not the reports from locations shared in chats), not
+ * removed, with their name. Nearest first when the message says where it was sent
  * from (coords), by name when it does not.
  *
  * @returns {array} [{ id, name, meters }]; meters is null without coords
  */
 export const placesOf = (features, coords) => {
     const places = (features || [])
-        .filter((feature) => feature.properties && !feature.properties.removed && feature.geometry)
+        .filter((feature) => feature.properties && feature.properties.place && !feature.properties.removed && feature.geometry)
         .map((feature) => {
             const [lon, lat] = feature.geometry.coordinates;
             return {

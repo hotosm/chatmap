@@ -191,8 +191,8 @@ export const shownValueCounts = (features, key, now = Date.now()) => {
 };
 
 /**
- * A point added by hand, as the API takes it and, once the API gives it its
- * id, as the map shows it.
+ * A point added by hand by the owner of the map, as the API takes it and, once
+ * the API gives it its id, as the map shows it: a place of the map.
  *
  * @param {object} point Its name, coordinates ([longitude, latitude]) and time
  * @returns {object} { request, featureOf(id) }
@@ -213,6 +213,7 @@ export const newPoint = ({ name, coordinates, time }) => ({
             file: null,
             tags: "",
             removed: false,
+            place: true,
             survey: [],
             point_tags: [],
         },
