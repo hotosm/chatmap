@@ -133,3 +133,8 @@ class AlreadyLinked(Exception):
 class PointIdAlreadyTaken(Exception):
     def __init__(self, point_id):
         self.point_id = point_id
+
+
+class TooManyPlaces(Exception):
+    def __init__(self, max_places):
+        self.max_places = max_places

@@ -7,7 +7,7 @@ export default function useMessagesApi() {
     const { config } = useConfigContext();
     const api = apiV2(config.API_URL);
 
-    // The groups of the phone of a live map: { groups: [{ id, name, enabled }], kept_days, max_kept_days }
+    // The groups of the phone of a live map: { groups: [{ id, name, enabled, point_ids }], kept_days, max_kept_days }
     const readGroups = useCallback((mapId) => request(`${api}/maps/${mapId}/groups`), [api]);
 
     // Listen to a group or stop: { enabled, delete_messages }
@@ -15,12 +15,18 @@ export default function useMessagesApi() {
         (mapId, groupId, change) => send('PUT', `${api}/maps/${mapId}/groups/${groupId}`, change), [api]
     );
 
+    // The places a group is always about, replacing the ones it had: { point_ids }
+    const updateGroupPlaces = useCallback(
+        (mapId, groupId, pointIds) => send('PUT', `${api}/maps/${mapId}/groups/${groupId}/points`, { point_ids: pointIds }), [api]
+    );
+
     // How many days the map keeps the messages of its groups
     const updateKeptDays = useCallback(
         (mapId, days) => send('PUT', `${api}/maps/${mapId}/messages/kept-days`, { days }), [api]
     );
 
-    // A page of messages, newest first: { group_id, state, before, before_id } narrow it or ask for the next one
+    // A page of messages, in order (see order.js): { group_id, state } narrow it, and
+    // { before, before_id, before_rank, as_of } ask for the next one. It answers { messages, as_of }
     const readMessages = useCallback((mapId, params = {}) => {
         const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value));
         return request(`${api}/maps/${mapId}/messages?${query}`);
@@ -46,6 +52,7 @@ export default function useMessagesApi() {
     );
 
     return {
-        readGroups, updateGroup, updateKeptDays, readMessages, linkMessage, setLinkUndone, setDismissed, readPointHistory,
+        readGroups, updateGroup, updateGroupPlaces, updateKeptDays, readMessages, linkMessage, setLinkUndone, setDismissed,
+        readPointHistory,
     };
 }

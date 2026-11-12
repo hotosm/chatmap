@@ -24,7 +24,7 @@ def test_enable_makes_the_live_map_listen_to_the_group_as_if_picked_from_the_pho
 
     result, store = _invoke(
         "enable", "--device", "demo", "--chat", "group-north", "--name", "Test group",
-        set_group={"return_value": group},
+        set_group={"return_value": (group, [])},
     )
 
     assert result.exit_code == 0
@@ -37,7 +37,7 @@ def test_enable_makes_the_live_map_listen_to_the_group_as_if_picked_from_the_pho
 def test_disable_can_also_remove_the_messages_of_the_group():
     result, store = _invoke(
         "disable", "--device", "demo", "--chat", "group-north", "--delete-messages",
-        set_group={"return_value": SimpleNamespace(name="Test group", chat="c-1")},
+        set_group={"return_value": (SimpleNamespace(name="Test group", chat="c-1"), [])},
     )
 
     assert result.exit_code == 0
@@ -62,7 +62,7 @@ def test_a_device_without_live_map():
 def test_list_shows_the_groups_the_map_keeps():
     groups = [SimpleNamespace(chat="c-1", name="Test group", enabled=True)]
 
-    result, _ = _invoke("list", "--device", "demo", groups={"return_value": (groups, 30)})
+    result, _ = _invoke("list", "--device", "demo", groups={"return_value": (groups, {}, 30)})
 
     assert result.exit_code == 0
     assert "30 days" in result.output

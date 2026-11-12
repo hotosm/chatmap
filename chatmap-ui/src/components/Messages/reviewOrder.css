@@ -1,0 +1,24 @@
+/* The order of review of the messages: the line between its two stretches */
+
+.reviewOrder__separator {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+    margin: var(--hot-spacing-medium) 0 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+/* A rule on both sides of the text, so it reads the same left to right and right to left */
+.reviewOrder__separator::before,
+.reviewOrder__separator::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--hot-color-gray-200);
+}
+
+.reviewOrder__separator span {
+    flex: 0 1 auto;
+    text-align: center;
+}

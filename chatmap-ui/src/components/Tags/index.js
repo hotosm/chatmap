@@ -23,3 +23,5 @@ export { default as MapTagsOptions } from "./MapTagsOptions.jsx";
 export { isExpired, linkableKeys, usesKeys } from "./tags.js";
 export { default as KeyValues } from "./KeyValues.jsx";
 export { ValueChip } from "./KeyChip.jsx";
+// Adding a place from a message (Messages)
+export { default as useTagsApi } from "./useTagsApi.js";

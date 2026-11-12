@@ -107,6 +107,24 @@ export const placesNamed = (places, text) => {
     return asked ? places.filter((place) => plain(place.name).includes(asked)) : places;
 };
 
+// How many places a chat group can be about, as the API takes them
+export const MAX_GROUP_PLACES = 2;
+
+// The places a chat group is always about, of the ones of the map, in the order of its point ids
+export const groupPlaces = (group, places) =>
+    (group.point_ids || []).map((id) => places.find((place) => place.id === id)).filter(Boolean);
+
+// The places that can still be added to a group, found by name: none once it has as many as it can
+export const placesToAdd = (places, chosen, text, shown = 5) => {
+    if (chosen.length >= MAX_GROUP_PLACES) return [];
+    const taken = new Set(chosen);
+    return placesNamed(places, text).filter((place) => !taken.has(place.id)).slice(0, shown);
+};
+
+// The ids of the places the group of each message always speaks of, by the id of the group
+export const groupPointsOf = (groups) =>
+    Object.fromEntries((groups || []).map((group) => [group.id, group.point_ids || []]));
+
 // The links of a message that are not undone: what it gave to points now
 export const liveLinks = (message) => (message.links || []).filter((link) => !link.undone);
 
@@ -127,4 +145,31 @@ export const linksOfPoint = (history) =>
 export const pointPanelCover = (shown, width = window.innerWidth, height = window.innerHeight) => {
     if (!shown) return null;
     return width <= 720 ? { bottom: Math.round(height * 0.45) + 16 } : { right: Math.min(384, width - 32) + 16 };
+};
+
+/**
+ * Who sent a message, told apart without saying who: the start of its
+ * pseudonym, as "Person 3fa1", and a color of its own, the same in every message.
+ *
+ * @returns {object} { code, hue }
+ */
+export const senderOf = (sender) => {
+    const pseudonym = sender || "";
+    const hash = [...pseudonym].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 100003, 7);
+    // Steps of the golden angle around the circle of colors, so close pseudonyms get far colors
+    return { code: pseudonym.slice(0, 4), hue: Math.round((hash * 137.508) % 360) };
+};
+
+// The day a message was sent, where the page is read: "2026-10-27"
+export const dayOf = (sentAt) => {
+    const date = new Date(sentAt);
+    const two = (number) => String(number).padStart(2, "0");
+    return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
+};
+
+// The place of the map nearest to where a message was sent from, up to a distance; null without one
+export const nearestPlace = (features, coords, within = 2000) => {
+    if (!coords) return null;
+    const [nearest] = placesOf(features, coords);
+    return nearest && nearest.meters <= within ? nearest : null;
 };

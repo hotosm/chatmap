@@ -1,8 +1,9 @@
 import { expect, test as it } from 'vitest'
 
 import {
-  PAGE_SIZE, coordsOf, groupMessagesOn, groupNames, linksOfPoint, liveLinks, messagesOn, metersBetween, nextPage, pageOf,
-  placesNamed, placesOf, startsOver, withMessage, withNewer, withOlder,
+  MAX_GROUP_PLACES, PAGE_SIZE, coordsOf, dayOf, groupMessagesOn, groupNames, groupPlaces, linksOfPoint,
+  liveLinks, messagesOn, metersBetween, nearestPlace, nextPage, pageOf, placesNamed, placesOf, placesToAdd, senderOf, startsOver,
+  withMessage, withNewer, withOlder,
 } from '../src/components/Messages/messages';
 
 const message = (id, sent_at) => ({ id, sent_at, group_id: "g-1", text: id });
@@ -157,4 +158,41 @@ it('keeps the changes of a point that came from messages and were not undone', (
   ];
   expect(linksOfPoint({ changes }).map((change) => change.id)).toEqual([3]);
   expect(linksOfPoint(null)).toEqual([]);
+});
+
+// senderOf, dayOf, nearestPlace
+it('tells senders apart with the start of their pseudonym and a color of their own, always the same', () => {
+  expect(senderOf("3fa1b2c3d4e5")).toEqual(senderOf("3fa1b2c3d4e5"));
+  expect(senderOf("3fa1b2c3d4e5").code).toBe("3fa1");
+  expect(senderOf("3fa1b2c3d4e5").hue).not.toBe(senderOf("9c0d11aa22bb").hue);
+  expect(senderOf(undefined).code).toBe("");
+});
+
+it('gives the day a message was sent where the page is read', () => {
+  expect(dayOf(new Date(2026, 9, 27, 23, 59))).toBe("2026-10-27");
+  expect(dayOf(new Date(2026, 0, 5, 0, 1))).toBe("2026-01-05");
+});
+
+it('finds the place nearest to a location, within a distance', () => {
+  expect(nearestPlace(features, [-34.5991, -58.3819]).name).toBe("Acceso norte");
+  expect(nearestPlace(features, [-34.70, -58.50])).toBeNull();
+  expect(nearestPlace(features, null)).toBeNull();
+});
+
+// groupPlaces, placesToAdd
+const mapPlaces = [{ id: "p-1", name: "Acceso norte" }, { id: "p-2", name: "Acceso sur" }, { id: "p-3", name: "Plaza" }];
+
+it('gives the places a group always speaks of, leaving out the ones the map no longer has', () => {
+  expect(groupPlaces({ point_ids: ["p-2", "gone"] }, mapPlaces)).toEqual([{ id: "p-2", name: "Acceso sur" }]);
+  expect(groupPlaces({}, mapPlaces)).toEqual([]);
+});
+
+it('offers the places a group can still have, found by name and without the chosen ones', () => {
+  expect(placesToAdd(mapPlaces, ["p-1"], "acceso").map((place) => place.id)).toEqual(["p-2"]);
+  expect(placesToAdd(mapPlaces, [], "").map((place) => place.id)).toEqual(["p-1", "p-2", "p-3"]);
+});
+
+it('offers none once a group has as many places as it can', () => {
+  const full = mapPlaces.slice(0, MAX_GROUP_PLACES).map((place) => place.id);
+  expect(placesToAdd(mapPlaces, full, "")).toEqual([]);
 });

@@ -1,14 +1,16 @@
-import { useMemo } from "react";
-import { FormattedMessage } from "react-intl";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 
 import SlSpinner from "@shoelace-style/shoelace/dist/react/spinner/index.js";
 
 import { linkableKeys } from "../Tags";
 import GroupsPicker from "./GroupsPicker.jsx";
-import MessageCard from "./MessageCard.jsx";
-import MessageLinker from "./MessageLinker.jsx";
-import MessageLinks from "./MessageLinks.jsx";
-import { liveLinks } from "./messages.js";
+import InboxCard from "./InboxCard.jsx";
+import { DismissedToast, KeptNote } from "./LinkStates.jsx";
+import { dayOf, groupPointsOf, placesOf } from "./messages.js";
+import { startsBeforeReviewed } from "./order.js";
+import { BeforeReviewed } from "./ReviewOrder.jsx";
+import useAddedPlaces from "./useAddedPlaces.js";
 import useGroupName from "./useGroupName.js";
 import useMessageActions from "./useMessageActions.js";
 import useMessages from "./useMessages.js";
@@ -20,6 +22,40 @@ const STATES = [
     { state: "linked", label: <FormattedMessage id="app.messages.stateLinked" defaultMessage="Linked" /> },
     { state: "dismissed", label: <FormattedMessage id="app.messages.stateDismissed" defaultMessage="Dismissed" /> },
 ];
+
+// What each tab says when it has no messages
+const EMPTY = {
+    new: <FormattedMessage id="app.messages.noneNew" defaultMessage="Every message was reviewed: linked or dismissed." />,
+    linked: <FormattedMessage id="app.messages.noneLinkedTab" defaultMessage="No message was linked to a place yet." />,
+    dismissed: <FormattedMessage id="app.messages.noneDismissed" defaultMessage="No message was dismissed." />,
+};
+
+// The day of the messages under it: "Today", "Yesterday", or its date
+function Day({ sentAt }) {
+    const intl = useIntl();
+    const day = new Date(sentAt);
+    const daysAgo = Math.round((new Date(dayOf(new Date())) - new Date(dayOf(day))) / 86400000);
+    const name = daysAgo === 0 ? intl.formatMessage({ id: "app.messages.today", defaultMessage: "Today" }) :
+        daysAgo === 1 ? intl.formatMessage({ id: "app.messages.yesterday", defaultMessage: "Yesterday" }) :
+        intl.formatDate(day, { weekday: "long", day: "numeric", month: "long" });
+    return <h3 className="messagesInbox__day">{name}</h3>;
+}
+
+// The way to the older messages: they are read as it comes into sight, or with a click
+function OlderMessages({ onReach }) {
+    const button = useRef();
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => entries.some((entry) => entry.isIntersecting) && onReach());
+        observer.observe(button.current);
+        return () => observer.disconnect();
+    }, [onReach]);
+
+    return (
+        <button ref={button} type="button" className="pill pill--outline messagesInbox__more" onClick={onReach}>
+            <FormattedMessage id="app.messages.more" defaultMessage="Load older messages" />
+        </button>
+    );
+}
 
 // A message dismissed right now, in its place, to bring it back
 function Dismissed({ message, onBack }) {
@@ -41,55 +77,73 @@ function Dismissed({ message, onBack }) {
  *
  * @param {object} mapData The map, with its points and keys
  */
-export default function MessagesInbox({ mapData }) {
+export default function MessagesInbox({ mapData: read }) {
+    // With the places added from the messages while the page is open
+    const [mapData, addPlace] = useAddedPlaces(read);
     const mapId = mapData.id;
     const {
         phone, changed, groups, names, groupId, setGroupId, state, setState,
-        messages, more, loading, error, loadMore, replace,
+        messages, more, loading, error, loadMore, reload, replace, readNewer,
     } = useMessages(mapId);
     const { link, undoLink, dismiss } = useMessageActions(replace);
     const keys = useMemo(() => linkableKeys(mapData.keys), [mapData.keys]);
+    const places = useMemo(() => placesOf(mapData.features, null), [mapData.features]);
+    const groupPoints = useMemo(() => groupPointsOf(groups), [groups]);
+    const actions = { link, undoLink, dismiss, onReload: reload, onCreatePlace: addPlace };
     const enabled = (groups || []).filter((group) => group.enabled);
     const groupName = useGroupName();
     const nameOf = (id) => groupName(names[id]);
 
-    const choice = (id, name, chosen, choose) =>
+    // The message just dismissed, with a notice to undo it
+    const [dismissedNow, setDismissedNow] = useState(null);
+    const closeToast = useCallback(() => setDismissedNow(null), []);
+
+    const group = (id, name) =>
         <li key={id || "all"}>
             <button
                 type="button"
                 className="messagesInbox__group"
-                aria-current={chosen === id ? "true" : undefined}
-                onClick={() => choose(id)}
+                aria-current={groupId === id ? "true" : undefined}
+                onClick={() => setGroupId(id)}
             >
                 {name}
             </button>
         </li>;
-    const group = (id, name) => choice(id, name, groupId, setGroupId);
 
     const card = (message) => {
         // Dismissed here, it waits in its place to be brought back
         if (message.dismissed_at && state !== "dismissed") {
             return <Dismissed key={message.id} message={message} onBack={(item) => dismiss(item, false)} />;
         }
-        // A linked message is not dismissed: its links are undone first
-        const dismissable = !message.dismissed_at && liveLinks(message).length === 0;
         return (
-            <MessageCard
+            <InboxCard
                 key={message.id}
                 message={message}
-                groupName={nameOf(message.group_id)}
-                onDismiss={dismissable ? () => dismiss(message, true) : null}
-            >
-                <MessageLinks message={message} mapData={mapData} onUndo={undoLink} />
-                { message.dismissed_at ?
-                    <button type="button" className="pill pill--outline" onClick={() => dismiss(message, false)}>
-                        <FormattedMessage id="app.messages.bringBack" defaultMessage="Bring back" />
-                    </button> :
-                    <MessageLinker message={message} mapData={mapData} keys={keys} onLink={link} />
-                }
-            </MessageCard>
+                mapData={mapData}
+                keys={keys}
+                groupName={groupId ? null : nameOf(message.group_id)}
+                groupPointIds={groupPoints[message.group_id]}
+                actions={actions}
+                onDismiss={async () => setDismissedNow(await dismiss(message, true))}
+            />
         );
     };
+
+    // Back at the top of the list, the newest are read again: what just arrived shows
+    const backAtTop = (event) => event.currentTarget.scrollTop === 0 && readNewer();
+
+    // The messages to read, as tabs over them
+    const tab = (item) =>
+        <button
+            key={item.state || "all"}
+            type="button"
+            role="tab"
+            className="messagesInbox__tab"
+            aria-selected={state === item.state}
+            onClick={() => setState(item.state)}
+        >
+            {item.label}
+        </button>;
 
     return (
         <div className="messagesInbox">
@@ -99,41 +153,57 @@ export default function MessagesInbox({ mapData }) {
                         { group(null, <FormattedMessage id="app.messages.allGroups" defaultMessage="All groups" />) }
                         { enabled.map((item) => group(item.id, nameOf(item.id))) }
                     </ul>
-                    { mapData.is_live && phone && <GroupsPicker mapId={mapId} phone={phone} onChange={changed} /> }
-                    <ul className="messagesInbox__states">
-                        { STATES.map((item) => choice(item.state, item.label, state, setState)) }
-                    </ul>
+                    { mapData.is_live && phone && <GroupsPicker mapId={mapId} phone={phone} places={places} onChange={changed} /> }
                 </div>
             </nav>
 
-            <section className="messagesInbox__messages" aria-busy={loading}>
-                { messages.map(card) }
+            <div className="messagesInbox__main">
+                <div className="messagesInbox__toolbar">
+                    <div className="messagesInbox__tabs" role="tablist">{ STATES.map(tab) }</div>
+                </div>
 
-                { !loading && !error && messages.length === 0 && groups &&
-                    <p className="messagesInbox__empty">
-                        { enabled.length === 0 ?
-                            <FormattedMessage
-                                id="app.messages.noGroups"
-                                defaultMessage="Choose the groups this map listens to, and their messages will show here."
-                            /> :
-                            state ?
-                                <FormattedMessage id="app.messages.noneHere" defaultMessage="There are no messages here." /> :
-                                <FormattedMessage id="app.messages.none" defaultMessage="There are no messages yet." />
-                        }
-                    </p>
-                }
-                { error &&
-                    <p className="messagesInbox__error" role="alert">
-                        <FormattedMessage id="app.messages.notRead" defaultMessage="The messages could not be read. Try again." />
-                    </p>
-                }
-                { loading && <SlSpinner className="messagesInbox__loading" /> }
-                { more && !loading &&
-                    <button type="button" className="pill pill--outline messagesInbox__more" onClick={loadMore}>
-                        <FormattedMessage id="app.messages.more" defaultMessage="Older messages" />
-                    </button>
-                }
-            </section>
+                <section className="messagesInbox__messages" aria-busy={loading} onScroll={backAtTop}>
+                    { messages.map((message, index) =>
+                        <Fragment key={message.id}>
+                            { startsBeforeReviewed(messages, index) && <BeforeReviewed /> }
+                            { (index === 0 || startsBeforeReviewed(messages, index) ||
+                                dayOf(messages[index - 1].sent_at) !== dayOf(message.sent_at)) &&
+                                <Day sentAt={message.sent_at} />
+                            }
+                            {card(message)}
+                        </Fragment>
+                    )}
+
+                    { !loading && !error && messages.length === 0 && groups &&
+                        <p className="messagesInbox__empty">
+                            { enabled.length === 0 ?
+                                <FormattedMessage
+                                    id="app.messages.noGroups"
+                                    defaultMessage="Choose the groups this map listens to, and their messages will show here."
+                                /> :
+                                state ?
+                                    EMPTY[state] :
+                                    <FormattedMessage id="app.messages.none" defaultMessage="There are no messages yet." />
+                            }
+                        </p>
+                    }
+                    { error &&
+                        <p className="messagesInbox__error" role="alert">
+                            <FormattedMessage id="app.messages.notRead" defaultMessage="The messages could not be read. Try again." />
+                        </p>
+                    }
+                    { loading && <SlSpinner className="messagesInbox__loading" /> }
+                    { more && !loading &&
+                        <OlderMessages onReach={loadMore} />
+                    }
+                    { !more && !loading && !error && messages.length > 0 && phone && phone.kept_days > 0 &&
+                        <KeptNote days={phone.kept_days} oneGroup={Boolean(groupId)} />
+                    }
+                </section>
+            </div>
+            { dismissedNow &&
+                <DismissedToast message={dismissedNow} onUndo={(item) => dismiss(item, false)} onClose={closeToast} />
+            }
         </div>
     );
 }

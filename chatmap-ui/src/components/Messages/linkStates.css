@@ -1,0 +1,343 @@
+/**
+ * The small states of the messages: what a link did, as a bar inside the
+ * card; the ✕ of a linked message, disabled; the notice to undo a
+ * dismissal; how long the messages are kept; and the panel to choose a
+ * place, with its small map. Logical properties only, so it reads the same
+ * from the right.
+ */
+
+/* Read by screen readers only */
+.linkStates__hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* What a link did: an icon, the text, and what can be done, in a white bar with a border of its color */
+.linkOutcome {
+    --linkOutcome-color: var(--hot-color-gray-600);
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+    align-self: stretch;
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-small);
+    border: 1px solid var(--linkOutcome-color);
+    border-radius: var(--hot-border-radius-large);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-neutral-950);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.linkOutcome--expired {
+    --linkOutcome-color: var(--hot-color-warning-500);
+}
+
+.linkOutcome--failed {
+    --linkOutcome-color: var(--hot-color-danger-600);
+}
+
+.linkOutcome__icon {
+    flex: none;
+    color: var(--linkOutcome-color);
+    font-size: var(--hot-font-size-medium);
+}
+
+.linkOutcome__text {
+    flex: 1;
+    margin: 0;
+    text-align: start;
+}
+
+.linkOutcome__error {
+    color: var(--hot-color-danger-600);
+}
+
+.linkOutcome__action,
+.dismissedToast__undo,
+.placePicker__createButton {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    padding: var(--hot-spacing-2x-small);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: var(--hot-font-weight-bold);
+    cursor: pointer;
+}
+
+.linkOutcome__action:hover,
+.dismissedToast__undo:hover,
+.placePicker__createButton:hover {
+    text-decoration: underline;
+}
+
+.linkOutcome__action:disabled,
+.placePicker__createButton:disabled {
+    cursor: default;
+    opacity: .6;
+}
+
+/* The ✕ of a linked message: in its place, lighter, and it does nothing */
+.messageCard__dismissBlocked {
+    display: inline-flex;
+    padding: 6px 10px;
+    border: 0;
+    background: none;
+    color: var(--hot-color-gray-300);
+    font-size: var(--hot-font-size-small);
+    cursor: not-allowed;
+}
+
+.messageCard__dismissBlocked:focus-visible {
+    outline: 2px solid var(--hot-color-neutral-950);
+    outline-offset: -2px;
+}
+
+/* After dismissing a message, at the bottom of the window: what happened and Undo */
+.dismissedToast {
+    position: fixed;
+    z-index: 10;
+    inset-block-end: var(--hot-spacing-x-large);
+    inset-inline-start: 50%;
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-medium);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    border-radius: var(--hot-border-radius-large);
+    background-color: var(--hot-color-neutral-950);
+    box-shadow: var(--sl-shadow-large);
+    color: var(--hot-color-neutral-0);
+    font-size: var(--hot-font-size-small);
+    transform: translateX(-50%);
+}
+
+[dir="rtl"] .dismissedToast {
+    transform: translateX(50%);
+}
+
+/* Under the last message: how long they are kept */
+.keptNote {
+    align-self: center;
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    text-align: center;
+}
+
+/* The panel to choose a place: the title, the list at one side and the small map at the other */
+.placePicker.messagePicker__panel {
+    width: min(22rem, calc(100vw - 2 * var(--hot-spacing-medium)));
+    max-height: min(30rem, 70vh);
+    overflow: hidden;
+}
+
+.placePicker--withMap.messagePicker__panel {
+    width: min(38rem, calc(100vw - 2 * var(--hot-spacing-medium)));
+}
+
+.placePicker__title {
+    margin: 0;
+    padding: var(--hot-spacing-2x-small) var(--hot-spacing-x-small) 0;
+    font-size: var(--hot-font-size-medium);
+}
+
+.placePicker__body {
+    display: flex;
+    gap: var(--hot-spacing-small);
+    min-height: 0;
+}
+
+.placePicker__list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    min-width: 0;
+}
+
+/* One row per place, as in the design: its name, what it shows now, and how far it is */
+.placePicker .messagePicker__place {
+    display: flex;
+    align-items: center;
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-small);
+    border-radius: var(--hot-border-radius-medium);
+}
+
+.placePicker__name {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    min-width: 0;
+    text-align: start;
+}
+
+.placePicker__name > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* What a place shows now: a small chip, not the pill of the tags */
+.pill.placePicker__status {
+    flex: none;
+    min-height: 0;
+    padding: 3px 6px;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.pill.placePicker__status.pointTags__chip--unknown {
+    border-color: transparent;
+    background-color: var(--hot-color-gray-500);
+    color: var(--hot-color-neutral-0);
+}
+
+.placePicker__create .placePicker__createButton {
+    width: 100%;
+    justify-content: flex-start;
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-small);
+    text-align: start;
+}
+
+.placePicker__create {
+    padding-top: var(--hot-spacing-2x-small);
+    border-top: 1px solid var(--hot-color-gray-100);
+    font-size: var(--hot-font-size-small);
+}
+
+.placePicker__naming {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-x-small);
+    padding-top: var(--hot-spacing-x-small);
+    border-top: 1px solid var(--hot-color-gray-100);
+}
+
+.placePicker__namingButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--hot-spacing-x-small);
+}
+
+.placePicker__map {
+    display: flex;
+    flex: 0 0 15rem;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    margin: 0;
+}
+
+.placeMap {
+    flex: 1;
+    min-height: 12rem;
+    overflow: hidden;
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-gray-50);
+}
+
+.placePicker__caption {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+/* Where the message was sent from, and the place in sight */
+.placeMap__from,
+.placeMap__place {
+    box-sizing: border-box;
+    width: 16px;
+    height: 16px;
+    border: 3px solid var(--hot-color-neutral-0);
+    border-radius: 50%;
+    background-color: var(--hot-color-neutral-900);
+    box-shadow: 0 0 3px color-mix(in srgb, var(--hot-color-neutral-1000) 50%, transparent);
+}
+
+.placeMap__place {
+    background-color: var(--hot-color-red-600);
+}
+
+/*
+ * On a phone the panel takes the width of the screen, with the small map on
+ * top of the list. The bottom sheet (BottomSheet) will take its place here.
+ */
+@media (max-width: 720px) {
+    .placePicker.messagePicker__panel,
+    .placePicker--withMap.messagePicker__panel {
+        width: calc(100vw - 2 * var(--hot-spacing-medium));
+        max-height: 80vh;
+    }
+
+    .placePicker__body {
+        flex-direction: column-reverse;
+        overflow-y: auto;
+    }
+
+    .placePicker__map {
+        flex-basis: auto;
+    }
+
+    .placeMap {
+        min-height: 8rem;
+    }
+
+    .placePicker .messagePicker__options {
+        overflow: visible;
+    }
+}
+
+/* Pointing where a new place goes, for a message that does not say where it was sent from */
+.placeMap--choosing {
+    cursor: crosshair;
+}
+
+/* In the sheet of a phone the panel is the sheet: no box of its own */
+.placePicker--sheet .messagePicker__panel {
+    width: auto;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+/* A place that comes from the group of the message, said so next to it */
+.messageLinker__ofGroup {
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.messageLinker__shortcut {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+}
+
+/* An expired value: what it was, faded, and the word that says it no longer holds */
+.placePicker__expired {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.pill.placePicker__status--faded {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
+.placePicker__expiredLabel,
+.pill.placePicker__status--expired {
+    color: var(--hot-color-gray-600);
+    font-size: 11px;
+    font-weight: var(--hot-font-weight-normal);
+}
