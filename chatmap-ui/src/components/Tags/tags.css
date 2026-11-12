@@ -263,6 +263,26 @@ button.tags__value:hover {
     margin-top: var(--hot-spacing-medium);
 }
 
+/* The words that say an option, as pills (the ones of the rules, messages.css) */
+.tags__words {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    margin-top: var(--hot-spacing-medium);
+}
+
+/* As the labels and help texts of the fields above it */
+.tags__wordsLabel {
+    margin-bottom: var(--hot-spacing-x-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.tags__wordsHelp {
+    margin-top: var(--hot-spacing-x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+}
+
 .tags__buttons {
     display: flex;
     justify-content: flex-end;

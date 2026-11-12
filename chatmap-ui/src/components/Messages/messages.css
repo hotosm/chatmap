@@ -104,6 +104,7 @@
     outline-offset: 2px;
 }
 
+
 /* Today, Yesterday or the date, over the messages of that day */
 .messagesInbox__day {
     margin: var(--hot-spacing-small) 0 0;
@@ -306,11 +307,174 @@
     min-height: 1lh;
 }
 
+/* What a rule looked for, marked in the text */
+.messageCard__mark {
+    padding: 0 2px;
+    border-radius: var(--hot-border-radius-small);
+    background-color: var(--hot-color-warning-100);
+    color: inherit;
+}
+
 .messageCard__dismissedBy {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--hot-spacing-small);
+}
+
+/* A message as rows (MessageLines): each line once, on its left; what it suggests on its right */
+.messageLines {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    margin: 0 calc(-1 * var(--hot-spacing-x-large));
+    border-top: 1px solid var(--hot-color-gray-200);
+}
+
+.messageLines__row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: var(--hot-spacing-medium);
+    align-items: center;
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-large);
+    border-bottom: 1px solid var(--hot-color-gray-200);
+}
+
+.messageLines__text {
+    margin: 0;
+    font-size: var(--hot-font-size-small);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* A line nothing was read in, quieter */
+.messageLines__row--quiet .messageLines__text {
+    color: var(--hot-color-gray-600);
+}
+
+.messageLines__suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.messageLines__suggestion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
+}
+
+.messageLines__suggestion--rejected .messageLines__said {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
+.messageLines__said,
+.messageLines__answers,
+.messageLines__was,
+.messageLines__note {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    min-width: 0;
+}
+
+.messageLines__was,
+.messageLines__note,
+.messageLines__doubt {
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.messageLines__doubt {
+    flex-basis: 100%;
+    color: var(--hot-color-warning-700);
+}
+
+/* The place, as the chip of the design: dark, small, bold; a long name breaks inside it */
+.placeChip {
+    padding: 3px 10px;
+    border-radius: var(--hot-border-radius-pill);
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+    font-size: 11px;
+    font-weight: var(--hot-font-weight-bold);
+    overflow-wrap: anywhere;
+}
+
+/* A value, small and in capitals, as the chips of the design */
+.pill.valueChip--small {
+    min-height: 0;
+    padding: 3px 10px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.messageLines__confirm,
+.messageLines__choose {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    padding: 5px 12px;
+    border: 1px solid var(--hot-color-neutral-950);
+    border-radius: var(--hot-border-radius-pill);
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+    font: inherit;
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    cursor: pointer;
+}
+
+.messageLines__choose {
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-neutral-950);
+}
+
+.messageLines__no {
+    display: inline-flex;
+    padding: 6px;
+    border: 0;
+    border-radius: var(--hot-border-radius-pill);
+    background: none;
+    color: var(--hot-color-gray-600);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.messageLines__no:hover {
+    background-color: var(--hot-color-gray-100);
+    color: var(--hot-color-neutral-950);
+}
+
+.messageLines__confirm:disabled,
+.messageLines__choose:disabled,
+.messageLines__no:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* One bar to renew what places already show */
+.messageLines__renew {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hot-spacing-medium);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-large);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+/* A phone: what a line suggests goes under it */
+@media (max-width: 720px) {
+    .messageLines__row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--hot-spacing-2x-small);
+    }
 }
 
 /* What a message gave to places: "→ North access · Closed · Undo" */
@@ -467,6 +631,491 @@
 
 .pointMessages__more sl-icon {
     font-size: var(--hot-font-size-small);
+}
+
+/* The rules, in the place of the messages: "← Messages" and "New rule" on top, a title and what they do */
+.rulesPanel__back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--hot-color-neutral-950);
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+    cursor: pointer;
+}
+
+.rulesPanel__back:hover {
+    text-decoration: underline;
+}
+
+.rulesPanel__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.rulesPanel__title {
+    margin: 0;
+    font-size: var(--hot-font-size-x-large);
+}
+
+.rulesPanel__help {
+    max-width: 38rem;
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+}
+
+/* Without rules: examples to start from, as cards to pick */
+.rulesPanel__start {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-small);
+    padding: var(--hot-spacing-large) var(--hot-spacing-x-large);
+    border: 1px dashed var(--hot-color-gray-400);
+    border-radius: var(--hot-border-radius-x-large);
+}
+
+.rulesPanel__startTitle {
+    margin: 0;
+    font-size: var(--hot-font-size-medium);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.rulesPanel__examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: var(--hot-spacing-small);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rulesPanel__example {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-2x-small);
+    width: 100%;
+    height: 100%;
+    padding: var(--hot-spacing-medium);
+    box-sizing: border-box;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-large);
+    background-color: var(--hot-color-gray-50);
+    color: var(--hot-color-neutral-950);
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    text-align: start;
+    cursor: pointer;
+}
+
+.rulesPanel__example:hover,
+.rulesPanel__example:focus-visible {
+    border-color: var(--hot-color-neutral-950);
+    outline: none;
+}
+
+.rulesPanel__example span {
+    color: var(--hot-color-gray-600);
+}
+
+.ruleCard__header {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+}
+
+.ruleCard__title {
+    flex: 1;
+    margin: 0;
+    font-size: var(--hot-font-size-medium);
+}
+
+.ruleCard__tools {
+    display: flex;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-medium);
+}
+
+/* On or off: a small switch, dark when on */
+.ruleCard__switch {
+    position: relative;
+    flex: none;
+    width: 32px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--hot-border-radius-pill);
+    background-color: var(--hot-color-gray-400);
+    cursor: pointer;
+    transition: background-color .15s;
+}
+
+.ruleCard__switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--hot-color-neutral-0);
+    transition: transform .15s;
+}
+
+.ruleCard__switch[aria-checked="true"] {
+    background-color: var(--hot-color-neutral-950);
+}
+
+.ruleCard__switch[aria-checked="true"]::after {
+    transform: translateX(14px);
+}
+
+[dir="rtl"] .ruleCard__switch[aria-checked="true"]::after {
+    transform: translateX(-14px);
+}
+
+.ruleCard__switch:focus-visible {
+    outline: 2px solid var(--hot-color-neutral-950);
+    outline-offset: 2px;
+}
+
+/* A rule turned off reads faded; turning it on does not */
+.ruleCard--off .ruleCard__title,
+.ruleCard--off .ruleCard__body {
+    opacity: .55;
+}
+
+/* IF and THEN, each with its label at the left */
+.ruleCard__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-small);
+}
+
+.ruleCard__part {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--hot-spacing-small);
+    align-items: start;
+}
+
+.ruleCard__label {
+    padding-top: 8px;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+/* The conditions as a table: what it looks at, how and its values, each in its column */
+.ruleCard__conditions {
+    display: grid;
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    gap: var(--hot-spacing-2x-small) var(--hot-spacing-medium);
+    align-items: center;
+}
+
+.ruleCard__condition {
+    display: contents;
+    font-size: var(--hot-font-size-small);
+}
+
+.ruleCard__field {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    font-weight: var(--hot-font-weight-bold);
+}
+
+.ruleCard__how {
+    color: var(--hot-color-gray-600);
+}
+
+.ruleCard__values,
+.ruleCard__action {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+}
+
+/* One action per row, with what it looks for of its own after it */
+.ruleCard__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hot-spacing-x-small);
+    padding-top: 2px;
+    font-size: var(--hot-font-size-small);
+}
+
+.ruleCard__action .ruleCard__how {
+    margin: 0 var(--hot-spacing-2x-small);
+}
+
+/* "OR" / "AND" between two conditions: a row of its own, over a hairline */
+.ruleCard__join {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.ruleCard__join::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--hot-color-gray-200);
+}
+
+/* A group of conditions inside: across the table, set in under a line at its start */
+.ruleCard__conditions--group {
+    grid-column: 1 / -1;
+    padding-inline-start: var(--hot-spacing-medium);
+    border-inline-start: 2px solid var(--hot-color-gray-400);
+}
+
+.ruleCard__groupOf {
+    grid-column: 1 / -1;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.ruleCard__value {
+    font-weight: var(--hot-font-weight-normal, normal);
+}
+
+/* A rule that takes more than it seems: a line of its own under a hairline, dark text, the warning color only on its icon */
+.ruleCard__warning {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--hot-spacing-x-small);
+    margin: var(--hot-spacing-x-small) 0 0;
+    padding-top: var(--hot-spacing-small);
+    border-top: 1px solid var(--hot-color-gray-200);
+    color: var(--hot-color-gray-900);
+    font-size: var(--hot-font-size-small);
+    line-height: 1.4;
+}
+
+.ruleCard__warning sl-icon {
+    flex: none;
+    margin-top: 1px;
+    color: var(--hot-color-warning-600);
+    font-size: var(--hot-font-size-medium);
+}
+
+.ruleForm__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+}
+
+/* Writing a rule, in its card */
+.ruleForm {
+    gap: var(--hot-spacing-medium);
+}
+
+.ruleForm__section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hot-spacing-x-small);
+}
+
+.ruleForm__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    margin: 0;
+    font-size: var(--hot-font-size-small);
+}
+
+/* The conditions of a rule, and a group of them inside it, framed */
+.conditionGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hot-spacing-x-small);
+    align-self: stretch;
+}
+
+.conditionGroup--inner {
+    padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-large);
+    background-color: var(--hot-color-neutral-0);
+}
+
+.conditionGroup__items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-x-small);
+    align-self: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.conditionGroup__add {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--hot-spacing-medium);
+}
+
+.conditionGroup__remove {
+    margin-inline-start: auto;
+}
+
+/* The values of a condition: pills, and the field to write another one */
+.ruleValues {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    min-width: 12rem;
+    min-height: 32px;
+    padding: 2px var(--hot-spacing-x-small);
+    box-sizing: border-box;
+    border: 1px solid var(--hot-color-gray-400);
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-neutral-0);
+}
+
+.ruleValues:focus-within {
+    border-color: var(--hot-color-neutral-950);
+}
+
+.ruleValues__value {
+    gap: 2px;
+    padding-inline-end: 4px;
+}
+
+.ruleValues__input {
+    flex: 1;
+    min-width: 4rem;
+    border: 0;
+    outline: none;
+    background: none;
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+}
+
+.ruleForm__condition,
+.ruleForm__action {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+}
+
+.ruleForm__condition {
+    align-self: stretch;
+}
+
+/* What a suggestion looks for of its own: a line under it, set in */
+.ruleForm__when {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    padding-inline-start: var(--hot-spacing-medium);
+    font-size: var(--hot-font-size-small);
+}
+
+.ruleForm__whenLabel {
+    color: var(--hot-color-gray-600);
+}
+
+.ruleForm__whenHelp {
+    flex-basis: 100%;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.ruleForm__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-x-small);
+}
+
+/* Inside the editor of a rule, controls as the fields of the design (29): square, quiet, small */
+.ruleForm .pill {
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-small);
+    background-color: var(--hot-color-gray-100);
+    color: var(--hot-color-neutral-950);
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-semibold);
+}
+
+.ruleForm .pill--on {
+    border-color: var(--hot-color-neutral-950);
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+}
+
+.ruleForm .ruleValues {
+    flex: 1 1 14rem;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 34px;
+    border-color: var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-small);
+}
+
+.ruleForm .ruleValues .pill {
+    min-height: 24px;
+    padding: 0 8px;
+    background-color: var(--hot-color-neutral-0);
+    font-size: var(--hot-font-size-x-small);
+}
+
+/* Each condition and each action, a row with a thin border */
+.ruleForm .ruleForm__condition,
+.ruleForm .ruleForm__action {
+    align-self: stretch;
+    padding: 6px;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: 6px;
+    background-color: var(--hot-color-neutral-0);
+}
+
+.ruleForm__actions {
+    align-self: stretch;
+}
+
+/* Saving the rule: the black button of the design */
+.ruleForm__footer button[type="submit"] {
+    min-height: 38px;
+    padding: 0 22px;
+    border-radius: var(--hot-border-radius-small);
+}
+
+/* In the list of rules, what each one says in small chips */
+.ruleCard .pill {
+    min-height: 24px;
+    padding: 0 8px;
+    font-size: var(--hot-font-size-x-small);
 }
 
 /* On a phone the groups go on top, in a row that scrolls */

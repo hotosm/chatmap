@@ -11,6 +11,7 @@ import { timeAgo } from "../TimeAgo";
 import { ValueChip, usesKeys } from "../Tags";
 import { groupMessagesOn, messagesOn, pageOf } from "./messages.js";
 import { EXPIRED, ON_MAP, TAKEN_OUT, UNDONE, noteOf, placeHistory, valuesInForce } from "./placeHistory.js";
+import PlaceNames from "./PlaceNames.jsx";
 import useGroupName from "./useGroupName.js";
 import useMessagesApi from "./useMessagesApi.js";
 import "./placeHistory.css";
@@ -32,6 +33,7 @@ const NOTES = {
     other: { id: "app.placeHistory.other", defaultMessage: "Brought with the place from another map" },
     older: { id: "app.placeHistory.older", defaultMessage: "Older: a newer report rules" },
     takenOut: { id: "app.placeHistory.takenOutNote", defaultMessage: "It took the value out of the place" },
+    byRule: { id: "app.placeHistory.byRule", defaultMessage: "Suggested, and linked by you" },
     linked: { id: "app.placeHistory.linked", defaultMessage: "Linked by you" },
 };
 
@@ -234,6 +236,8 @@ export default function PointMessages({ mapData, data, point, onChange, onClose 
                 { !phone && <h2 className="pointMessages__title">{point.properties.message}</h2> }
                 { inForce.length > 0 && <InForce rows={inForce} now={now} /> }
             </header>
+
+            <PlaceNames pointId={pointId} />
 
             { entries === null && <SlSpinner className="pointMessages__loading" /> }
             { empty &&

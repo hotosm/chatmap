@@ -3,9 +3,12 @@ import { nextPage, withNewer, withOlder } from "./messages.js";
 /**
  * The order of all the messages and the new ones, in two stretches, as the
  * API gives it (see rank in GroupMessageItem): first the ones sent after the
- * last one a person reviewed in their group; then the older ones. Within a rank, newest first. The other reads have
+ * last one a person reviewed in their group, the ones a rule marked on top;
+ * then the older ones. Within a rank, newest first. The other reads have
  * no rank and go newest first.
  */
+// Sent after the last message reviewed in its group, and marked by a rule
+export const MARKED = 2;
 // Sent before it, or when it was: the second stretch
 export const BEFORE_REVIEWED = 0;
 

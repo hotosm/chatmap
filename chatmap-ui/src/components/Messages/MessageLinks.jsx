@@ -10,11 +10,12 @@ import { liveLinks } from "./messages.js";
  *
  * @param {object} mapData The map, to name the places and their values
  * @param {function} onUndo Gets the message and the link; answers null when it is not undone
+ * @param {array} shown The ids of links its rows already show (see MessageLines), left out here
  */
-export default function MessageLinks({ message, mapData, onUndo }) {
+export default function MessageLinks({ message, mapData, onUndo, shown = [] }) {
     const [busy, setBusy] = useState(null);
     const [failed, setFailed] = useState(false);
-    const links = liveLinks(message);
+    const links = liveLinks(message).filter((link) => !shown.includes(link.change_id));
     if (links.length === 0) return null;
 
     const placeName = (pointId) => {

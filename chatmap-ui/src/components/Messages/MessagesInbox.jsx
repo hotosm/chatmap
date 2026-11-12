@@ -5,8 +5,9 @@ import SlSpinner from "@shoelace-style/shoelace/dist/react/spinner/index.js";
 
 import { linkableKeys } from "../Tags";
 import GroupsPicker from "./GroupsPicker.jsx";
-import InboxCard from "./InboxCard.jsx";
+import InboxCard, { DismissedBy } from "./InboxCard.jsx";
 import { DismissedToast, KeptNote } from "./LinkStates.jsx";
+import RulesPanel from "./RulesPanel.jsx";
 import { dayOf, groupPointsOf, placesOf } from "./messages.js";
 import { startsBeforeReviewed } from "./order.js";
 import { BeforeReviewed } from "./ReviewOrder.jsx";
@@ -18,6 +19,7 @@ import useMessages from "./useMessages.js";
 // The messages to read: all the ones not dismissed, or only some
 const STATES = [
     { state: null, label: <FormattedMessage id="app.messages.stateAll" defaultMessage="All" /> },
+    { state: "suggested", label: <FormattedMessage id="app.messages.stateSuggested" defaultMessage="Suggested" /> },
     { state: "new", label: <FormattedMessage id="app.messages.stateNew" defaultMessage="Not reviewed" /> },
     { state: "linked", label: <FormattedMessage id="app.messages.stateLinked" defaultMessage="Linked" /> },
     { state: "dismissed", label: <FormattedMessage id="app.messages.stateDismissed" defaultMessage="Dismissed" /> },
@@ -25,6 +27,10 @@ const STATES = [
 
 // What each tab says when it has no messages
 const EMPTY = {
+    suggested: <FormattedMessage
+        id="app.messages.noneSuggested"
+        defaultMessage="Nothing to confirm. The rules suggest a place or a status for the messages that arrive."
+    />,
     new: <FormattedMessage id="app.messages.noneNew" defaultMessage="Every message was reviewed: linked or dismissed." />,
     linked: <FormattedMessage id="app.messages.noneLinkedTab" defaultMessage="No message was linked to a place yet." />,
     dismissed: <FormattedMessage id="app.messages.noneDismissed" defaultMessage="No message was dismissed." />,
@@ -61,7 +67,7 @@ function OlderMessages({ onReach }) {
 function Dismissed({ message, onBack }) {
     return (
         <p className="messagesInbox__dismissed">
-            <FormattedMessage id="app.messages.dismissed" defaultMessage="Dismissed" />
+            <DismissedBy message={message} />
             <button type="button" className="messageLinks__undo" onClick={() => onBack(message)}>
                 <FormattedMessage id="app.messages.undo" defaultMessage="Undo" />
             </button>
@@ -85,11 +91,11 @@ export default function MessagesInbox({ mapData: read }) {
         phone, changed, groups, names, groupId, setGroupId, state, setState,
         messages, more, loading, error, loadMore, reload, replace, readNewer,
     } = useMessages(mapId);
-    const { link, undoLink, dismiss } = useMessageActions(replace);
+    const { link, undoLink, dismiss, answerLine, renew } = useMessageActions(replace);
     const keys = useMemo(() => linkableKeys(mapData.keys), [mapData.keys]);
     const places = useMemo(() => placesOf(mapData.features, null), [mapData.features]);
     const groupPoints = useMemo(() => groupPointsOf(groups), [groups]);
-    const actions = { link, undoLink, dismiss, onReload: reload, onCreatePlace: addPlace };
+    const actions = { link, undoLink, dismiss, answerLine, renew, onReload: reload, onCreatePlace: addPlace };
     const enabled = (groups || []).filter((group) => group.enabled);
     const groupName = useGroupName();
     const nameOf = (id) => groupName(names[id]);
@@ -98,13 +104,16 @@ export default function MessagesInbox({ mapData: read }) {
     const [dismissedNow, setDismissedNow] = useState(null);
     const closeToast = useCallback(() => setDismissedNow(null), []);
 
+    // The rules show in the place of the messages; choosing a group goes back to them
+    const [showRules, setShowRules] = useState(false);
+
     const group = (id, name) =>
         <li key={id || "all"}>
             <button
                 type="button"
                 className="messagesInbox__group"
-                aria-current={groupId === id ? "true" : undefined}
-                onClick={() => setGroupId(id)}
+                aria-current={!showRules && groupId === id ? "true" : undefined}
+                onClick={() => { setShowRules(false); setGroupId(id); }}
             >
                 {name}
             </button>
@@ -158,48 +167,56 @@ export default function MessagesInbox({ mapData: read }) {
             </nav>
 
             <div className="messagesInbox__main">
-                <div className="messagesInbox__toolbar">
-                    <div className="messagesInbox__tabs" role="tablist">{ STATES.map(tab) }</div>
-                </div>
+                { showRules ?
+                    <RulesPanel mapData={mapData} groups={enabled} onBack={() => setShowRules(false)} /> :
+                    <>
+                        <div className="messagesInbox__toolbar">
+                            <div className="messagesInbox__tabs" role="tablist">{ STATES.map(tab) }</div>
+                            <button type="button" className="pill pill--outline" onClick={() => setShowRules(true)}>
+                                <FormattedMessage id="app.rules.title" defaultMessage="Rules" />
+                            </button>
+                        </div>
 
-                <section className="messagesInbox__messages" aria-busy={loading} onScroll={backAtTop}>
-                    { messages.map((message, index) =>
-                        <Fragment key={message.id}>
-                            { startsBeforeReviewed(messages, index) && <BeforeReviewed /> }
-                            { (index === 0 || startsBeforeReviewed(messages, index) ||
-                                dayOf(messages[index - 1].sent_at) !== dayOf(message.sent_at)) &&
-                                <Day sentAt={message.sent_at} />
-                            }
-                            {card(message)}
-                        </Fragment>
-                    )}
+                        <section className="messagesInbox__messages" aria-busy={loading} onScroll={backAtTop}>
+                            { messages.map((message, index) =>
+                                <Fragment key={message.id}>
+                                    { startsBeforeReviewed(messages, index) && <BeforeReviewed /> }
+                                    { (index === 0 || startsBeforeReviewed(messages, index) ||
+                                        dayOf(messages[index - 1].sent_at) !== dayOf(message.sent_at)) &&
+                                        <Day sentAt={message.sent_at} />
+                                    }
+                                    {card(message)}
+                                </Fragment>
+                            )}
 
-                    { !loading && !error && messages.length === 0 && groups &&
-                        <p className="messagesInbox__empty">
-                            { enabled.length === 0 ?
-                                <FormattedMessage
-                                    id="app.messages.noGroups"
-                                    defaultMessage="Choose the groups this map listens to, and their messages will show here."
-                                /> :
-                                state ?
-                                    EMPTY[state] :
-                                    <FormattedMessage id="app.messages.none" defaultMessage="There are no messages yet." />
+                            { !loading && !error && messages.length === 0 && groups &&
+                                <p className="messagesInbox__empty">
+                                    { enabled.length === 0 ?
+                                        <FormattedMessage
+                                            id="app.messages.noGroups"
+                                            defaultMessage="Choose the groups this map listens to, and their messages will show here."
+                                        /> :
+                                        state ?
+                                            EMPTY[state] :
+                                            <FormattedMessage id="app.messages.none" defaultMessage="There are no messages yet." />
+                                    }
+                                </p>
                             }
-                        </p>
-                    }
-                    { error &&
-                        <p className="messagesInbox__error" role="alert">
-                            <FormattedMessage id="app.messages.notRead" defaultMessage="The messages could not be read. Try again." />
-                        </p>
-                    }
-                    { loading && <SlSpinner className="messagesInbox__loading" /> }
-                    { more && !loading &&
-                        <OlderMessages onReach={loadMore} />
-                    }
-                    { !more && !loading && !error && messages.length > 0 && phone && phone.kept_days > 0 &&
-                        <KeptNote days={phone.kept_days} oneGroup={Boolean(groupId)} />
-                    }
-                </section>
+                            { error &&
+                                <p className="messagesInbox__error" role="alert">
+                                    <FormattedMessage id="app.messages.notRead" defaultMessage="The messages could not be read. Try again." />
+                                </p>
+                            }
+                            { loading && <SlSpinner className="messagesInbox__loading" /> }
+                            { more && !loading &&
+                                <OlderMessages onReach={loadMore} />
+                            }
+                            { !more && !loading && !error && messages.length > 0 && phone && phone.kept_days > 0 &&
+                                <KeptNote days={phone.kept_days} oneGroup={Boolean(groupId)} />
+                            }
+                        </section>
+                    </>
+                }
             </div>
             { dismissedNow &&
                 <DismissedToast message={dismissedNow} onUndo={(item) => dismiss(item, false)} onClose={closeToast} />

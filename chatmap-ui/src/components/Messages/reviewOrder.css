@@ -1,4 +1,4 @@
-/* The order of review of the messages: the line between its two stretches */
+/* The order of review of the messages: the line between its two stretches, and the mark of the ones a rule marked */
 
 .reviewOrder__separator {
     display: flex;
@@ -21,4 +21,14 @@
 .reviewOrder__separator span {
     flex: 0 1 auto;
     text-align: center;
+}
+
+.reviewOrder__marked {
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 4px;
+    border-radius: var(--hot-border-radius-small);
+    background-color: var(--hot-color-warning-100);
+    color: var(--hot-color-warning-700);
+    line-height: 1.4;
 }

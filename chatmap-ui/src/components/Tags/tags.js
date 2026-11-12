@@ -1,5 +1,8 @@
 // What a point shows for a key when nobody confirmed its value for too long
 export const UNKNOWN = "unknown";
+// The words that say an option in the chats, as the API takes them
+export const MAX_VALUE_WORDS = 50;
+export const MAX_VALUE_WORD_LENGTH = 60;
 
 /**
  * Whether the keys of the maps are shown: today, with "?dashboard" in the

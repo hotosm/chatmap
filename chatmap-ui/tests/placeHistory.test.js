@@ -104,8 +104,9 @@ it('says first that a change was undone, then that its message is gone, then how
   const notes = Object.fromEntries(placeHistory(CHANGES, TAGS, KEYS, NOW).map((entry) => [entry.change.id, noteOf(entry)]));
   expect(notes).toEqual({ 1: "linked", 3: "manual", 4: "older", 5: "undone", 6: "gone" });
 });
-it('tells a value taken out and a change the system made', () => {
+it('tells a link a rule suggested, a value taken out and a change the system made', () => {
   const entry = (extra, state = ON_MAP) => ({ change: change(1, "k-status", "v-open", 1, extra), state, gone: false });
+  expect(noteOf(entry({ source: "rule" }))).toBe("byRule");
   expect(noteOf(entry({ action: "remove" }, TAKEN_OUT))).toBe("takenOut");
   expect(noteOf(entry({ source: "system", message_id: null }))).toBe("other");
 });

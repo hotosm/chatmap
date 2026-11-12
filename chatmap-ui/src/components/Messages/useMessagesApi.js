@@ -38,6 +38,24 @@ export default function useMessagesApi() {
         (messageId, link) => sendWithStatus('POST', `${api}/messages/${messageId}/links`, link), [api]
     );
 
+
+    // No to what a message suggests, or that taken back: { message_id, suggestions }
+    const setLineSuggestionRejected = useCallback(
+        (suggestionId, rejected) => send('PUT', `${api}/suggestions/${suggestionId}`, { rejected }), [api]
+    );
+
+    // Confirm at once the suggestions of a message whose places still show what they say: { message_id, suggestions, renewed }
+    const renewSuggestions = useCallback(
+        (messageId, suggestionIds) =>
+            send('POST', `${api}/messages/${messageId}/suggestions/renew`, { suggestion_ids: suggestionIds }), [api]
+    );
+
+    // The other names of a place, as the chats write it: { names }
+    const readPlaceNames = useCallback((pointId) => request(`${api}/points/${pointId}/names`), [api]);
+    const updatePlaceNames = useCallback(
+        (pointId, names) => send('PUT', `${api}/points/${pointId}/names`, { names }), [api]
+    );
+
     // The changes of the tags of a point, newest first; the ones from messages carry message_id and message_text
     const readPointHistory = useCallback((pointId) => request(`${api}/points/${pointId}/history`), [api]);
 
@@ -53,6 +71,6 @@ export default function useMessagesApi() {
 
     return {
         readGroups, updateGroup, updateGroupPlaces, updateKeptDays, readMessages, linkMessage, setLinkUndone, setDismissed,
-        readPointHistory,
+        readPointHistory, setLineSuggestionRejected, renewSuggestions, readPlaceNames, updatePlaceNames,
     };
 }
