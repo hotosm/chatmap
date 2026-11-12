@@ -77,8 +77,10 @@ button.pill--danger:hover:not(:disabled) {
 
 /* A native select inside a pill: the pill draws it, the select keeps the keyboard and the phone's picker */
 .pill__select {
-    margin: 0 calc(-10px - 9px) 0 -10px;
-    padding: 0 calc(10px + 9px) 0 10px;
+    margin-block: 0;
+    margin-inline: -10px calc(-10px - 9px);
+    padding-block: 0;
+    padding-inline: 10px calc(10px + 9px);
     min-height: 26px;
     border: 0;
     background: none;
@@ -122,7 +124,7 @@ button.pill--danger:hover:not(:disabled) {
     color: inherit;
     font: inherit;
     font-size: var(--hot-font-size-small);
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 

@@ -3,7 +3,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--hot-spacing-2x-small);
-    text-align: left;
+    text-align: start;
 }
 
 .pointTags__row {
@@ -15,7 +15,7 @@
 
 /* The chips are pills (styles/controls.css); these are what tags add to them */
 .pointTags__chip--free {
-    padding-right: 2px;
+    padding-inline-end: 2px;
     background-color: var(--hot-color-gray-100);
     color: var(--hot-color-gray-900);
     font-weight: var(--hot-font-weight-normal);
@@ -72,7 +72,7 @@
 .popoverPanel .tags__dot {
     width: 12px;
     height: 12px;
-    margin-right: var(--hot-spacing-x-small);
+    margin-inline-end: var(--hot-spacing-x-small);
 }
 
 /* The panel of the "+": floats over the map, the popup keeps its size */
@@ -133,7 +133,7 @@
 }
 
 .tags__keyActions {
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .tags__badge {
@@ -163,7 +163,7 @@
     background: none;
     font: inherit;
     font-size: var(--hot-font-size-small);
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -207,7 +207,7 @@ button.tags__value:hover {
 }
 
 .tags__inUseTag {
-    padding-right: 10px;
+    padding-inline-end: 10px;
 }
 
 .tags__dot {
@@ -271,7 +271,7 @@ button.tags__value:hover {
 }
 
 .tags__aside {
-    margin-right: auto;
+    margin-inline-end: auto;
 }
 
 .tags__danger::part(base) {
@@ -325,7 +325,7 @@ sl-dialog.tags__dialog::part(body) {
 
 .mapTools sl-button::part(label) {
     flex: 1;
-    text-align: left;
+    text-align: start;
 }
 
 .addPoint__hint {
@@ -372,18 +372,18 @@ sl-dialog.tags__dialog::part(body) {
 .tags__dialog sl-select .tags__dot {
     width: 12px;
     height: 12px;
-    margin-right: var(--hot-spacing-x-small);
+    margin-inline-end: var(--hot-spacing-x-small);
 }
 
 .tags__dialog sl-select > .tags__dot {
-    margin-left: var(--hot-spacing-small);
+    margin-inline-start: var(--hot-spacing-small);
 }
 
 /* The options of the keys in the filter of the map */
 .tagFilter__dot {
     width: 12px;
     height: 12px;
-    margin-right: var(--hot-spacing-x-small);
+    margin-inline-end: var(--hot-spacing-x-small);
 }
 
 .tagFilter__dot--unknown {
@@ -395,7 +395,8 @@ sl-dialog.tags__dialog::part(body) {
 /* A value of a key with many: its chip and a × to take it out */
 .pointTags__chip--many {
     gap: 0;
-    padding: 0 2px 0 0;
+    padding-block: 0;
+    padding-inline: 0 2px;
     background: none;
 }
 

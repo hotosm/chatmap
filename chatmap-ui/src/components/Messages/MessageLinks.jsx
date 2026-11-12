@@ -37,7 +37,7 @@ export default function MessageLinks({ message, mapData, onUndo }) {
         <ul className="messageLinks">
             { links.map((link) =>
                 <li key={link.change_id} className="messageLinks__link">
-                    <span aria-hidden="true">→</span>
+                    <span aria-hidden="true" className="messageLinks__arrow">→</span>
                     <strong>{placeName(link.point_id)}</strong>
                     <ValueChip value={valueOf(link)} />
                     <button

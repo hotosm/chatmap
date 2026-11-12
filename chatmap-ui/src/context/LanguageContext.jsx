@@ -1,11 +1,16 @@
-import { createContext, useContext, useState } from 'react';
-import { getLocalCode, locales } from '../lang';
+import { createContext, useContext, useLayoutEffect, useState } from 'react';
+import { applyLang, getLocalCode, locales } from '../lang';
 
 const LanguageContext = createContext();
 
 export function LanguageProvider(props) {
   const [lang, setLang] = useState(getLocalCode());
   const messages = locales[lang];
+
+  // Before painting, so a right to left language is never shown left to right
+  useLayoutEffect(() => {
+    applyLang(lang);
+  }, [lang]);
 
   return (
     <LanguageContext value={{lang, messages, setLang}}>
