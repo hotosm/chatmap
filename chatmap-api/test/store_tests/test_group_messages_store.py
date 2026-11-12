@@ -6,7 +6,16 @@ import pytest
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import DataError, MultipleResultsFound, OperationalError
 
-from db import ChatGroup, GroupMessage, Map, MapKey, Point, PointTag, PointTagChange
+from db import (
+    ChatGroup,
+    GroupMessage,
+    Map,
+    MapKey,
+    MessageSuggestion,
+    Point,
+    PointTag,
+    PointTagChange,
+)
 from results.error import (
     AlreadyLinked,
     MapNotFound,
@@ -80,6 +89,20 @@ def _patch_thread():
     return patch("store.group_messages_store.asyncio.to_thread", run)
 
 
+def _rules_result(*rules):
+    """The enabled rules of the map, in order."""
+    result = MagicMock()
+    result.scalars.return_value = list(rules)
+    return result
+
+
+def _words_result(*values):
+    """The values of the map with words: (id, key_id, words). None, by default: the map suggests nothing from words."""
+    result = MagicMock()
+    result.all.return_value = [SimpleNamespace(id=v[0], key_id=v[1], words=v[2]) for v in values]
+    return result
+
+
 def _insert_result(kept):
     result = MagicMock()
     result.all.return_value = [(f"m-{i}",) for i in range(kept)]
@@ -111,7 +134,7 @@ async def test_messages_without_text_nor_location_are_not_kept():
 async def test_a_message_that_cannot_be_read_is_skipped_without_holding_back_the_others():
     db = MagicMock()
     db.execute.side_effect = [
-        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _insert_result(1),
+        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _rules_result(), _words_result(), _insert_result(1),
     ]
     unreadable_date = _message(location="-34.6,-58.4")
     unreadable_date.date = "not a date"
@@ -120,7 +143,17 @@ async def test_a_message_that_cannot_be_read_is_skipped_without_holding_back_the
         kept = await GroupMessagesStore.save("device-1", [unreadable_date, _message(location="-34.6,-58.4")])
 
     assert kept == 1
-    assert len(db.execute.call_args_list[2].args[0].compile().params) > 0
+    assert len(db.execute.call_args_list[4].args[0].compile().params) > 0
+
+
+async def test_messages_are_kept_even_when_what_they_suggest_cannot_be_made():
+    db = MagicMock()
+    db.execute.side_effect = [_result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _insert_result(1)]
+    # The savepoint lets the error through, as the database does
+    db.begin_nested.return_value.__exit__.return_value = False
+
+    with _patch_scope(db), _patch_thread(), patch("store.group_messages_store.suggest", side_effect=OperationalError("select", {}, Exception())):
+        assert await GroupMessagesStore.save("device-1", [_message(location="-34.6,-58.4")]) == 1
 
 
 async def test_nothing_is_kept_without_a_live_map():
@@ -134,17 +167,17 @@ async def test_nothing_is_kept_without_a_live_map():
 
 async def test_a_batch_is_kept_in_one_insert_only_for_the_groups_the_map_listens_to():
     db = MagicMock()
-    # The live map, the enabled groups among the chats of the batch, the insert
+    # The live map, the enabled groups among the chats of the batch, its rules, the words of its values, the insert
     db.execute.side_effect = [
-        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _insert_result(2),
+        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _rules_result(), _words_result(), _insert_result(2),
     ]
     batch = [_message(text="a"), _message(text="b"), _message(text="c", chat="chat-2")]
 
     with _patch_scope(db), _patch_thread(), patch("store.group_messages_store.decrypt_message", side_effect=str.upper):
         assert await GroupMessagesStore.save("device-1", batch) == 2
 
-    assert db.execute.call_count == 3
-    rows = db.execute.call_args_list[2].args[0].compile().params
+    assert db.execute.call_count == 5
+    rows = db.execute.call_args_list[4].args[0].compile().params
     assert [rows[f"text_m{i}"] for i in range(2)] == ["A", "B"]
     assert rows["group_id_m0"] == "group-1"
     assert rows["sender_m0"] == pseudonym("map-1", "sender-1")
@@ -162,6 +195,7 @@ async def test_nothing_said_before_a_group_was_enabled_is_kept():
             (pseudonym("map-1", "chat-1"), "group-1", enabled_at),
             (pseudonym("map-1", "chat-2"), "group-2", datetime(2026, 10, 22, 12, 0, 1, tzinfo=UTC)),
         ]),
+        _rules_result(), _words_result(),
         _insert_result(1),
     ]
     batch = [_message(text="a"), _message(text="b", chat="chat-2")]
@@ -169,7 +203,7 @@ async def test_nothing_said_before_a_group_was_enabled_is_kept():
     with _patch_scope(db), _patch_thread(), patch("store.group_messages_store.decrypt_message", side_effect=str.upper):
         assert await GroupMessagesStore.save("device-1", batch) == 1
 
-    rows = db.execute.call_args_list[2].args[0].compile().params
+    rows = db.execute.call_args_list[4].args[0].compile().params
     assert rows["group_id_m0"] == "group-1"
     assert "group_id_m1" not in rows
 
@@ -186,20 +220,20 @@ async def test_the_messages_of_an_owner_with_more_than_one_live_map_are_kept_in_
 async def test_nul_characters_are_taken_out_since_postgres_does_not_take_them():
     db = MagicMock()
     db.execute.side_effect = [
-        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _insert_result(1),
+        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _rules_result(), _words_result(), _insert_result(1),
     ]
 
     with _patch_scope(db), _patch_thread(), patch("store.group_messages_store.decrypt_message", return_value="clo\x00sed"):
         await GroupMessagesStore.save("device-1", [_message(text="x", location="1\x00,2")])
 
-    params = db.execute.call_args_list[2].args[0].compile().params
+    params = db.execute.call_args_list[4].args[0].compile().params
     assert (params["text_m0"], params["location_m0"]) == ("closed", "1,2")
 
 
 async def test_a_batch_the_database_does_not_take_is_kept_one_by_one_skipping_the_bad_message():
     db = MagicMock()
     db.execute.side_effect = [
-        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]),
+        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _rules_result(), _words_result(),
         DataError("insert", {}, Exception()),            # the whole batch
         _insert_result(1), DataError("insert", {}, Exception()), _insert_result(1),  # one by one
     ]
@@ -212,7 +246,7 @@ async def test_a_batch_the_database_does_not_take_is_kept_one_by_one_skipping_th
 async def test_a_database_that_does_not_answer_is_tried_again_later():
     db = MagicMock()
     db.execute.side_effect = [
-        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]),
+        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _rules_result(), _words_result(),
         OperationalError("insert", {}, Exception()),
     ]
 
@@ -224,10 +258,30 @@ def test_a_batch_is_one_insert_that_skips_messages_already_kept():
     from store.group_messages_store import _insert
     db = MagicMock()
 
-    _insert(db, [{"map_id": "map-1", "stream_id": "1-0"}])
+    _insert(db, [{"map_id": "map-1", "stream_id": "1-0"}], {})
 
     sql = str(db.execute.call_args.args[0].compile(dialect=postgresql.dialect()))
     assert "ON CONFLICT (map_id, stream_id) DO NOTHING" in sql
+
+
+def test_what_the_words_suggest_is_kept_only_for_the_messages_kept():
+    from store.group_messages_store import _insert
+    db = MagicMock()
+    db.execute.side_effect = [MagicMock(all=MagicMock(return_value=[("m-1",)])), MagicMock()]
+    suggestions = {
+        "m-1": [{"id": "s-1", "message_id": "m-1", "line": 0, "point_id": "p-1", "key_id": "k-1", "value_id": "v-1",
+                 "words": ["Puente", "cerrado"], "doubt": None, "state": "pending"}],
+        "m-2": [{"id": "s-2", "message_id": "m-2", "line": 0, "point_id": "p-1", "key_id": "k-1", "value_id": "v-1",
+                 "words": ["Puente", "cerrado"], "doubt": None, "state": "pending"}],
+    }
+
+    assert _insert(db, [{"id": "m-1", "map_id": "map-1", "stream_id": "1-0"},
+                        {"id": "m-2", "map_id": "map-1", "stream_id": "1-1"}], suggestions) == 1
+
+    inserted = db.execute.call_args_list[1].args[0].compile(dialect=postgresql.dialect())
+    assert "INSERT INTO message_suggestions" in str(inserted)
+    assert [value for name, value in inserted.params.items() if name.startswith("id_")] == ["s-1"]
+    db.commit.assert_called_once()
 
 
 def test_old_messages_go_a_chunk_at_a_time():
@@ -245,13 +299,13 @@ def test_old_messages_go_a_chunk_at_a_time():
 async def test_a_long_text_is_cut():
     db = MagicMock()
     db.execute.side_effect = [
-        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _insert_result(1),
+        _result(scalar="map-1"), _groups_result([(pseudonym("map-1", "chat-1"), "group-1")]), _rules_result(), _words_result(), _insert_result(1),
     ]
 
     with _patch_scope(db), _patch_thread(), patch("store.group_messages_store.decrypt_message", return_value="x" * 5000):
         await GroupMessagesStore.save("device-1", [_message(text="long")])
 
-    assert len(db.execute.call_args_list[2].args[0].compile().params["text_m0"]) == MAX_TEXT_LENGTH
+    assert len(db.execute.call_args_list[4].args[0].compile().params["text_m0"]) == MAX_TEXT_LENGTH
 
 
 # ---- groups ----
@@ -498,7 +552,7 @@ async def test_the_messages_of_a_map_are_only_for_its_owner():
         await GroupMessagesStore.messages("map-1", "user-1")
 
 
-@pytest.mark.parametrize("state", ["linked", "dismissed"])
+@pytest.mark.parametrize("state", ["linked", "dismissed", "suggested"])
 async def test_the_messages_of_a_map_are_the_ones_of_the_groups_it_listens_to_newest_first(state):
     db = MagicMock()
     db.get.return_value = _map()
@@ -576,7 +630,7 @@ async def test_what_was_reviewed_is_taken_as_it_was_at_the_time_asked():
     assert as_of == AS_OF
     assert "point_tag_changes.recorded_at <= " in sql
     assert "point_tag_changes.undone_at IS NULL OR point_tag_changes.undone_at > " in sql
-    assert "group_messages_1.dismissed_at <= " in sql
+    assert "group_messages_1.dismissed_at <= " in sql and "group_messages_1.dismissed_by_rule IS false" in sql
     assert [value for value in compiled.params.values() if value == AS_OF]
 
 
@@ -731,3 +785,32 @@ async def test_a_message_of_another_user_or_of_a_group_not_listened_to_does_not_
     for _ in range(3):
         with _patch_scope(db), pytest.raises(UnknownMessage):
             await GroupMessagesStore.set_dismissed("m-1", "user-1", True)
+
+
+# ---- a message kept ----
+
+
+def test_a_message_without_highlights_keeps_no_value_rather_than_a_json_null():
+    # A JSON null is not SQL NULL: "highlights IS NOT NULL" would hold for every message
+    assert GroupMessage.__table__.c.highlights.type.none_as_null
+
+
+# ---- a link answers what a message suggests ----
+
+def _suggestion(suggestion_id="s-1", value_id="v-1", state="pending", point_id="p-1"):
+    return MessageSuggestion(
+        id=suggestion_id, message_id="m-1", line=0, point_id=point_id, key_id="k-1", value_id=value_id,
+        words=["Puente", "cerrado"], doubt=None, state=state,
+    )
+
+
+async def test_a_link_confirms_what_a_line_suggested_for_its_point_and_key_and_the_other_values_are_wrong():
+    right, wrong = _suggestion(), _suggestion("s-2", "v-2")
+    db, patches = _patch_link()
+    db.execute.return_value.scalars.return_value.all.return_value = [right, wrong]
+
+    _, give = await _link(patches)
+
+    assert (right.state, wrong.state) == ("accepted", "rejected")
+    # What the words of a line suggested is the message's, not a rule's
+    assert give.call_args.kwargs["source"] == "message"

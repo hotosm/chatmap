@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -63,15 +64,63 @@ class MessageLink(BaseModel):
     undone: bool
 
 
+class LineSuggestion(BaseModel):
+    """
+    What a message suggests: a place, a value of a key, or both. From the
+    words of the map, for a line (`line` counts from 0); from a rule, for the
+    whole message (`line` None, `rule` the description the rule had). `words`
+    are the ones that made it, as the message writes them, to highlight them.
+    `doubt` says why a person should look at it closely ("question": it asks;
+    "two_values": it gives one key of the place two values); None when it is
+    plain. `unchanged`: the place has that value now, so confirming it renews
+    it. Pending until a person confirms it (linking the message as it says, or
+    renewing it) or says no.
+    """
+    id: str
+    line: int | None = None
+    point_id: str | None = None
+    key_id: str | None = None
+    value_id: str | None = None
+    rule: str | None = None
+    words: list[str] = []
+    doubt: Literal["question", "two_values"] | None = None
+    state: Literal["pending", "accepted", "rejected"]
+    unchanged: bool = False
+
+
+# How many suggestions are renewed at once: a bulletin has about one per place of the map
+MAX_RENEWED = 500
+
+
+class RenewRequest(BaseModel):
+    """The suggestions of a message a person chose to renew: the ones whose points still have what they say."""
+    suggestion_ids: list[str] = Field(min_length=1, max_length=MAX_RENEWED)
+
+
+class MessageSuggestions(BaseModel):
+    """
+    The suggestions of a message after an answer; `links`: the ones a renewal
+    made (a change of each point renewed, from the message), newest first.
+    """
+    message_id: str
+    suggestions: list[LineSuggestion] = []
+    links: list[MessageLink] = []
+
+
+class SuggestionAnswer(BaseModel):
+    """No to what a message suggests (rejected), or that taken back."""
+    rejected: bool
+
+
 class GroupMessageItem(BaseModel):
     """
     A message of a chat group the map listens to. `group_id` and `sender`
     are pseudonyms: the same group or person always has the same one within
     a map. `location` is "latitude,longitude". `links`: the values it gave
     to points, newest first. `rank`: where it goes in a read in two
-    stretches (all of them, or the new ones): 1 sent after the last message
-    reviewed in its group, 0 before it; None in the other reads and outside
-    of them.
+    stretches (all of them, or the new ones): 2 sent after the last message
+    reviewed in its group and marked by a rule, 1 sent after it, 0 before
+    it; None in the other reads and outside of them.
     """
     id: str
     group_id: str
@@ -80,7 +129,13 @@ class GroupMessageItem(BaseModel):
     location: str | None
     sent_at: datetime
     dismissed_at: datetime | None = None
+    # Dismissed by a rule that hides it, not by a person
+    dismissed_by_rule: bool = False
     links: list[MessageLink] = []
+    # What the rules it meets look for that it says, to highlight it
+    highlights: list[str] = []
+    # What it suggests: the whole message first (rules), then in the order of its lines (words)
+    suggestions: list[LineSuggestion] = []
     rank: int | None = None
 
 
@@ -109,6 +164,8 @@ class LinkResponse(BaseModel):
     link: MessageLink
     tags: list[PointTagItem] = []
     applied: bool
+    # The suggestions of the message after it: the link answers the ones for its point and key
+    suggestions: list[LineSuggestion] = []
 
 
 class MessageChange(BaseModel):

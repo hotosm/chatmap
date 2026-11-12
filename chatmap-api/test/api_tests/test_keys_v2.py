@@ -20,9 +20,10 @@ def _key(key_id="k-1", key="Fuel", single=True, closed=True, archived_at=None, c
     )
 
 
-def _value(value_id="v-1", name="There is", color="#3E9E47", expires_after=None):
+def _value(value_id="v-1", name="There is", color="#3E9E47", expires_after=None, words=()):
     return SimpleNamespace(
         id=value_id, value=name, description="", color=color, expires_after=expires_after, archived_at=None,
+        words=list(words),
     )
 
 
@@ -35,7 +36,7 @@ def _patch_store(method, **kwargs):
 
 async def test_read_keys_returns_each_key_with_its_values():
     keys = [
-        (_key("k-0", "Status", colors_map=True), [_value("v-0", "Open")]),
+        (_key("k-0", "Status", colors_map=True), [_value("v-0", "Open", words=["abierto", "✅"])]),
         (_key(), [_value(expires_after=timedelta(hours=6)), _value("v-2", "None", color=None)]),
     ]
 
@@ -70,7 +71,7 @@ async def test_create_key_passes_the_key_and_its_options():
     store.assert_awaited_once_with("map-1", "user-1", {
         "key": "Fuel", "single": True, "closed": True, "colors_map": False,
         "values": [{"id": None, "value": "There is", "description": "", "color": None, "expires_after": 6,
-                    "archived": False}],
+                    "archived": False, "words": None}],
     }, 10)
     assert (result.id, result.key) == ("k-1", "Fuel")
 
@@ -99,3 +100,14 @@ def test_a_key_takes_a_limited_number_of_values():
     with pytest.raises(ValidationError):
         NewKey(key="Category", values=[KeyValueItem(value=f"Option {i}") for i in range(MAX_KEY_VALUES + 1)])
 
+
+def test_the_words_of_a_value_are_each_once_without_spaces_around():
+    assert KeyValueItem(value="Closed", words=[" cerrado ", "مسكر", "cerrado", "", "🔴"]).words == ["cerrado", "مسكر", "🔴"]
+    # Left out, they are not given: the words a value has are kept
+    assert KeyValueItem(value="Closed").words is None
+
+
+@pytest.mark.parametrize("words", [[f"word {i}" for i in range(51)], ["x" * 61]])
+def test_a_value_takes_a_limited_number_of_words_of_a_limited_length(words):
+    with pytest.raises(ValidationError):
+        KeyValueItem(value="Closed", words=words)

@@ -11,6 +11,9 @@ MAX_LIST_VALUE_LENGTH = 40
 MAX_VALUE_DESCRIPTION_LENGTH = 200
 # An option lasts up to 30 days without being confirmed
 MAX_EXPIRES_AFTER_HOURS = 720
+# The words that say a value in the chats, and how long each one is
+MAX_VALUE_WORDS = 50
+MAX_VALUE_WORD_LENGTH = 60
 
 
 class KeyValueItem(BaseModel):
@@ -20,7 +23,10 @@ class KeyValueItem(BaseModel):
     edits because points refer to it. An archived value cannot be given, but
     the points having it keep it. Its color is optional: without one it shows
     gray. A point nobody confirmed for expires_after hours shows as unknown;
-    None: it does not expire.
+    None: it does not expire. `words`: the words and emojis that say it in
+    the chats ("مسكر", 🔴), each once; a line of a message that names a place
+    and says one of them suggests this value for it. Left out (None) when
+    saving, the words it has are kept.
     """
     id: str | None = None
     value: str
@@ -28,6 +34,7 @@ class KeyValueItem(BaseModel):
     color: str | None = None
     expires_after: int | None = None
     archived: bool = False
+    words: list[str] | None = None
 
     @field_validator("value")
     @classmethod
@@ -44,6 +51,19 @@ class KeyValueItem(BaseModel):
         if len(description) > MAX_VALUE_DESCRIPTION_LENGTH:
             raise ValueError(f"a value description takes up to {MAX_VALUE_DESCRIPTION_LENGTH} characters")
         return description
+
+    @field_validator("words")
+    @classmethod
+    def check_words(cls, words: list[str] | None) -> list[str] | None:
+        if words is None:
+            return None
+        # Each word once, as it was first written, without spaces around it
+        kept = list(dict.fromkeys(word.strip() for word in words if word.strip()))
+        if len(kept) > MAX_VALUE_WORDS:
+            raise ValueError(f"a value has up to {MAX_VALUE_WORDS} words")
+        if any(len(word) > MAX_VALUE_WORD_LENGTH for word in kept):
+            raise ValueError(f"a word takes up to {MAX_VALUE_WORD_LENGTH} characters")
+        return kept
 
     @field_validator("color")
     @classmethod

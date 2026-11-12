@@ -35,6 +35,8 @@ REMOVE = "remove"
 # Sources of a change
 MANUAL = "manual"
 MESSAGE = "message"
+# A message linked as a rule suggested it, once a person confirmed it
+RULE = "rule"
 SYSTEM = "system"
 
 

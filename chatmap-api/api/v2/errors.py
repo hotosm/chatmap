@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from results.error import (
     AlreadyLinked,
     ArchivedValue,
+    InvalidRule,
     InvalidTagValue,
     KeyInUse,
     KeyNameTaken,
@@ -14,10 +15,13 @@ from results.error import (
     StoreUnavailable,
     TooManyKeys,
     TooManyPlaces,
+    TooManyRules,
     UnknownGroup,
     UnknownKey,
     UnknownMessage,
     UnknownPoint,
+    UnknownRule,
+    UnknownSuggestion,
     UnknownTagChange,
     UnknownValue,
     ValueInUse,
@@ -35,6 +39,9 @@ ERRORS = {
     MessageDismissed: (409, "The message is dismissed."),
     MessageLinked: (409, "A message linked to a point cannot be dismissed: its links are undone first."),
     AlreadyLinked: (409, "The message already gives that value to the point."),
+    UnknownRule: (404, "Rule not found."),
+    UnknownSuggestion: (404, "The message has no suggestion."),
+    TooManyRules: (409, "The map has as many rules as it can take."),
     UnknownKey: (404, "Key not found."),
     UnknownValue: (404, "Value not found."),
     UnknownTagChange: (404, "Change not found."),
@@ -52,7 +59,7 @@ async def call_store(store_call):
     """Await a call to a tag or message store, telling its errors over HTTP."""
     try:
         return await store_call
-    except InvalidTagValue as error:
+    except (InvalidTagValue, InvalidRule) as error:
         raise HTTPException(status_code=422, detail=error.reason)
     except tuple(ERRORS) as error:
         status_code, detail = ERRORS[type(error)]

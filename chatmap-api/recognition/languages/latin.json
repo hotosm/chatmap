@@ -1,0 +1,9 @@
+{
+  "name": "Latin letters (Spanish, English, Arabizi)",
+  "letters": [["0041", "005A"], ["0061", "007A"], ["00C0", "024F"]],
+  "prefixes": [],
+  "prefixes_together": 0,
+  "endings": ["adas", "ados", "idas", "idos", "ada", "ado", "ida", "ido", "ing", "es", "os", "as", "ed", "s", "o", "a"],
+  "question_marks": ["?", "¿"],
+  "question_words": ["alguien sabe", "como esta", "anyone know", "is it", "7ada"]
+}

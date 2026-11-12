@@ -1,0 +1,9 @@
+{
+  "name": "Hebrew",
+  "letters": [["0590", "05FF"], ["FB1D", "FB4F"]],
+  "prefixes": ["ו", "ה", "ב", "ל", "מ", "ש", "כ"],
+  "prefixes_together": 2,
+  "endings": ["ים", "ות", "ה", "ת"],
+  "question_marks": ["?"],
+  "question_words": ["האם", "מישהו יודע", "מה המצב"]
+}

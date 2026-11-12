@@ -16,11 +16,13 @@ from api.v2.routes.messages import (
     update_message,
 )
 from api.v2.schemas.messages import (
+    MAX_RENEWED,
     ChatGroupChange,
     GroupPlaces,
     KeptDays,
     LinkRequest,
     MessageChange,
+    RenewRequest,
 )
 from results.error import (
     AlreadyLinked,
@@ -40,6 +42,17 @@ def _user(user_id="user-1"):
 
 def _patch_store(method, **kwargs):
     return patch(f"api.v2.routes.messages.GroupMessagesStore.{method}", AsyncMock(**kwargs))
+
+
+def _patch_suggestions(method, **kwargs):
+    return patch(f"api.v2.routes.messages.MessageSuggestionsStore.{method}", AsyncMock(**kwargs))
+
+
+@pytest.fixture(autouse=True)
+def _no_line_suggestions():
+    """By default the messages of a test suggest nothing, and reading them again does nothing."""
+    with _patch_suggestions("suggestions", return_value={}) as store, _patch_suggestions("reread", return_value=0):
+        yield store
 
 
 def _patch_phone(groups):
@@ -221,7 +234,8 @@ async def test_read_messages_gives_each_one_with_the_pseudonym_of_its_group():
 def _message(dismissed_at=None, **changes):
     return SimpleNamespace(**{
         "id": "m-1", "sender": "s-1", "text": "closed", "location": None,
-        "sent_at": datetime(2026, 10, 22, 12, tzinfo=UTC), "dismissed_at": dismissed_at, **changes,
+        "sent_at": datetime(2026, 10, 22, 12, tzinfo=UTC), "dismissed_at": dismissed_at, "dismissed_by_rule": False,
+        "highlights": None, **changes,
     })
 
 
@@ -305,3 +319,35 @@ def test_messages_are_kept_between_one_day_and_the_maximum():
     for days in (0, 91):
         with pytest.raises(ValidationError):
             KeptDays(days=days)
+
+
+# ---- what a message suggests ----
+
+def _line(suggestion_id="s-1", line=1, value_id="v-closed", state="pending", doubt=None, rule=None):
+    return SimpleNamespace(
+        id=suggestion_id, line=line, point_id="p-1", key_id="k-1", value_id=value_id, rule=rule,
+        words=["Puente", "cerrado"], doubt=doubt, state=state,
+    )
+
+
+async def test_read_messages_gives_what_each_one_suggests_and_whether_the_place_has_it_already(_no_line_suggestions):
+    _no_line_suggestions.return_value = {"m-1": [
+        (_line("s-0", None, rule="North closed"), False), (_line(), False), (_line("s-2", 2, "v-open", doubt="question"), True),
+    ]}
+    rows = [(_message(), "c-1", None), (_message(id="m-2"), "c-1", None)]
+
+    with _patch_store("messages", return_value=(rows, {}, AS_OF)):
+        result = await read_messages(map_id="map-1", user=_user())
+
+    _no_line_suggestions.assert_awaited_once_with("user-1", ["m-1", "m-2"])
+    first, second = result.messages
+    assert [(s.id, s.line, s.rule, s.doubt, s.unchanged) for s in first.suggestions] == [
+        ("s-0", None, "North closed", None, False), ("s-1", 1, None, None, False), ("s-2", 2, None, "question", True),
+    ]
+    assert second.suggestions == []
+
+
+@pytest.mark.parametrize("ids", [[], [f"s-{i}" for i in range(MAX_RENEWED + 1)]])
+def test_a_renewal_names_at_least_one_suggestion_and_not_too_many(ids):
+    with pytest.raises(ValidationError):
+        RenewRequest(suggestion_ids=ids)
