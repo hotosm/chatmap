@@ -95,6 +95,10 @@ MEDIA_TYPE = defaultdict(lambda: "application/octet-stream", {
 })
 
 
+# How long a QR code is waited for, in seconds
+QR_TIMEOUT = 30
+
+
 # QR Code Endpoint
 @api_router.get("/qr", response_class=StreamingResponse)
 async def qr(user: CurrentUser):
@@ -107,7 +111,8 @@ async def qr(user: CurrentUser):
     Returns:
         StreamingResponse: Streamed image response.
     """
-    async with httpx.AsyncClient() as client:
+    # The connector logs out the session it had before making a new one: it can take over 5 seconds
+    async with httpx.AsyncClient(timeout=QR_TIMEOUT) as client:
         response = await client.get(f'{SERVER_URL}/start-qr?session={user.id}')
         if response.status_code != 200:
             logger.warning(f'Failed to get QR code: {user.id}')
