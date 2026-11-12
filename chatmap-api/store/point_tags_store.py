@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from db import GroupMessage, Map, MapKey, MapKeyValue, Point, PointTag, PointTagChange, session_scope
+from db import ChatGroup, GroupMessage, Map, MapKey, MapKeyValue, Point, PointTag, PointTagChange, session_scope
 from results.error import (
     ArchivedValue,
     InvalidTagValue,
@@ -197,12 +197,12 @@ def give_tag(
 class PointTagsStore:
 
     @classmethod
-    async def history(cls, point_id: str, user_id: str) -> list[tuple[PointTagChange, str, str | None]]:
+    async def history(cls, point_id: str, user_id: str) -> list[tuple[PointTagChange, str, str | None, str | None]]:
         """
         The changes of the tags of a point, newest first, with the name of
-        their key and the text of the message they come from (None when they
-        come from none, or it is gone). It tells who did what, so only the
-        owner of the map sees it.
+        their key, and the text of the message they come from and the name of
+        its group (None when they come from none, or it is gone). It tells
+        who did what, so only the owner of the map sees it.
         """
         with session_scope() as db:
             try:
@@ -215,10 +215,11 @@ class PointTagsStore:
 
                 # Changes of the keys of a map the point was in before are not this map's
                 return list(db.execute(
-                    select(PointTagChange, MapKey.key, GroupMessage.text)
+                    select(PointTagChange, MapKey.key, GroupMessage.text, ChatGroup.name)
                     .join(MapKey, MapKey.id == PointTagChange.key_id)
                     .join(Point, Point.id == PointTagChange.point_id)
                     .outerjoin(GroupMessage, GroupMessage.id == PointTagChange.message_id)
+                    .outerjoin(ChatGroup, ChatGroup.id == GroupMessage.group_id)
                     .where(PointTagChange.point_id == point_id, MapKey.map_id == Point.map_id)
                     .order_by(PointTagChange.happened_at.desc(), PointTagChange.id.desc())
                 ).tuples())

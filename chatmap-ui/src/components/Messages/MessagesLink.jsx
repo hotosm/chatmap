@@ -13,7 +13,7 @@ export default function MessagesLink({ mapData, data }) {
     if (!groupMessagesOn(config) || !messagesOn(mapData, usesKeys(data))) return null;
 
     return (
-        <SlButton size="small" href={pageOf(`/map/${mapData.id}/messages`)}>
+        <SlButton className="messagesLink" size="small" href={pageOf(`/map/${mapData.id}/messages`)}>
             <SlIcon name="chat-square-text" slot="prefix" />
             <FormattedMessage id="app.messages.title" defaultMessage="Messages" />
         </SlButton>

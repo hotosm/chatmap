@@ -18,6 +18,15 @@
     font-weight: var(--hot-font-weight-bold);
     line-height: 1;
     white-space: nowrap;
+    /* The text is centered by its capitals and baseline, not by the room each font leaves above and below */
+    text-box: trim-both cap alphabetic;
+}
+
+/* Where text-box is not there yet (Firefox), most fonts leave more room above: the text goes 1px down */
+@supports not (text-box: trim-both cap alphabetic) {
+    .pill {
+        padding-top: 2px;
+    }
 }
 
 button.pill {
