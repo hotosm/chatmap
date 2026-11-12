@@ -383,7 +383,8 @@ class GroupMessagesStore:
                     raise MessageDismissed(message_id)
 
                 row = lock_point(db, point_id)
-                if row is None or row.Point.map_id != message.map_id or row.Point.removed:
+                # Messages tell about places, not about the reports of other messages
+                if row is None or row.Point.map_id != message.map_id or row.Point.removed or not row.Point.place:
                     raise UnknownPoint(point_id)
                 key = db.get(MapKey, key_id)
                 if key is None or key.map_id != message.map_id:

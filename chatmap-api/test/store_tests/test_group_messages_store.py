@@ -426,8 +426,8 @@ def _group_message(dismissed_at=None):
     return GroupMessage(id="m-1", map_id="map-1", group_id="g-1", sent_at=SENT_AT, dismissed_at=dismissed_at)
 
 
-def _point(map_id="map-1", removed=False):
-    return SimpleNamespace(Point=Point(id="p-1", map_id=map_id, removed=removed), owner_id="user-1")
+def _point(map_id="map-1", removed=False, place=True):
+    return SimpleNamespace(Point=Point(id="p-1", map_id=map_id, removed=removed, place=place), owner_id="user-1")
 
 
 def _patch_link(message=None, point=None, key=STATUS, twice=None, given=None):
@@ -479,7 +479,7 @@ async def test_a_message_older_than_what_the_point_has_only_goes_to_its_history(
     assert ([tag.value_id for tag in tags], applied) == (["v-2"], False)
 
 
-@pytest.mark.parametrize("point", [_point(map_id="map-2"), _point(removed=True)])
+@pytest.mark.parametrize("point", [_point(map_id="map-2"), _point(removed=True), _point(place=False)])
 async def test_a_message_only_links_to_points_of_its_map_that_are_not_removed(point):
     _, patches = _patch_link(point=point)
 

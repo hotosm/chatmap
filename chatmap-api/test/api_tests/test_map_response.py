@@ -11,10 +11,10 @@ os.environ.setdefault("COOKIE_SECRET", "dev-secret-key-min-32-bytes-long!")
 from main import map_response
 
 
-def _point(point_id="p-1", file=None):
+def _point(point_id="p-1", file=None, place=False):
     return SimpleNamespace(
         id=point_id, message="a note", lat=1.0, lon=2.0, username="mapper",
-        time=datetime(2026, 8, 21, 9, 48), file=file, removed=False, tags="",
+        time=datetime(2026, 8, 21, 9, 48), file=file, removed=False, place=place, tags="",
     )
 
 
@@ -65,3 +65,14 @@ async def test_a_map_without_points_asks_for_no_survey_responses():
 
     fetch.assert_awaited_once_with(map_id="map-1", point_ids=[])
     assert result["features"] == []
+
+
+async def test_each_feature_says_whether_it_is_a_place_of_the_map_and_the_answer_keeps_it():
+    from schemas import FeatureCollection
+    db = _db_with_points([_point("p-1", place=True), _point("p-2")])
+
+    with patch("main.SurveyResponsesStore.responses_for_points", AsyncMock(return_value={})):
+        result = await map_response(db, _map(), owner=True)
+
+    answer = FeatureCollection(**result).model_dump()
+    assert [feature["properties"]["place"] for feature in answer["features"]] == [True, False]

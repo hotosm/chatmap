@@ -133,13 +133,13 @@ it('should split the free tags of a point and count them, the most used first', 
 });
 
 // newPoint
-it('should make a point added by hand, as the API takes it and, with the id the API gives it, as the map shows it', () => {
+it('should make a point added by hand, as the API takes it and, with the id the API gives it, as a place of the map', () => {
   const { request, featureOf } = newPoint({ name: "South access", coordinates: [35.2, 31.9], time: "2026-10-13T12:00:00.000Z" });
   const feature = featureOf("p-9");
 
   expect(request).toEqual({ longitude: 35.2, latitude: 31.9, time: "2026-10-13T12:00:00.000Z", message: "South access" });
   expect(feature.geometry.coordinates).toEqual([35.2, 31.9]);
-  expect(feature.properties).toMatchObject({ id: "p-9", point_tags: [] });
+  expect(feature.properties).toMatchObject({ id: "p-9", place: true, point_tags: [] });
 });
 
 // keysOn, usesKeys
