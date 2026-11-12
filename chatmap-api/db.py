@@ -15,9 +15,9 @@ from enum import Enum
 from sqlalchemy import (
     create_engine, Column, String, select, DateTime, ForeignKey, func,
     Enum as SqlEnum, Boolean, Integer, BigInteger, Identity, Interval,
-    ForeignKeyConstraint, UniqueConstraint, false, true
+    ForeignKeyConstraint, UniqueConstraint, false, text, true
 )
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from geoalchemy2 import Geometry
@@ -165,6 +165,8 @@ class MapKeyValue(Base):
     expires_after = Column(Interval, nullable=True)
     # An archived value cannot be given to a point; the points having it keep it
     archived_at = Column(DateTime(timezone=True), nullable=True)
+    # The words and emojis that say it in the chats ("مسكر", 🔴): a line that names a place and says one suggests it
+    words = Column(JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb"))
 
 
 # Model representing what a point has now: one row per value. It is always
@@ -253,6 +255,65 @@ class GroupMessage(Base):
     sent_at = Column(DateTime(timezone=True), nullable=False)
     received_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     dismissed_at = Column(DateTime(timezone=True), nullable=True)
+    # Dismissed by a rule that hides, not by a person
+    dismissed_by_rule = Column(Boolean, nullable=False, default=False, server_default=false())
+    # The texts the rules it meets look for that it says, to highlight them. None is kept
+    # as no value (SQL NULL), not as the JSON null, so a message without them is told apart
+    highlights = Column(JSONB(none_as_null=True), nullable=True)
+
+
+# Model representing another name of a point, as the chats write it ("Ein
+# Rihan", "عين الريحان", "the spring"): a line that says it names the point.
+class PlaceName(Base):
+    __tablename__ = "place_names"
+    __table_args__ = (UniqueConstraint("point_id", "name"),)
+    id = Column(BigInteger, Identity(), primary_key=True)
+    point_id = Column(String, ForeignKey("points.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = Column(String, nullable=False)
+    position = Column(Integer, nullable=False, default=0)
+
+
+# Model representing what a group message suggests, from the words of its map
+# (a line of it) or from a rule (the whole message): a place, a value of a key,
+# or both. A message may have many (a bulletin has a line per place); each one
+# is pending until a person confirms it or says no.
+class MessageSuggestion(Base):
+    __tablename__ = "message_suggestions"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    message_id = Column(String, ForeignKey("group_messages.id", ondelete="CASCADE"), nullable=False, index=True)
+    # The line of the message that says it, counted from 0; None for the whole message, as a rule reads it
+    line = Column(Integer, nullable=True)
+    point_id = Column(String, ForeignKey("points.id", ondelete="CASCADE"), nullable=True, index=True)
+    key_id = Column(String, ForeignKey("map_keys.id", ondelete="CASCADE"), nullable=True, index=True)
+    value_id = Column(String, ForeignKey("map_key_values.id", ondelete="CASCADE"), nullable=True, index=True)
+    # The rule that made it, and its description then, which stays if the rule goes
+    rule_id = Column(String, ForeignKey("message_rules.id", ondelete="SET NULL"), nullable=True)
+    rule = Column(String, nullable=True)
+    # The words that made it, as the message writes them, to show them
+    words = Column(JSONB, nullable=False, default=list)
+    # Why a person should look at it closely: "question", "two_values"; None when it is plain
+    doubt = Column(String, nullable=True)
+    # "pending", "accepted" (a person confirmed it) or "rejected"
+    state = Column(String, nullable=False, default="pending", server_default="pending")
+    answered_at = Column(DateTime(timezone=True), nullable=True)
+
+
+# Model representing a rule of a map over the messages of its groups: when
+# its conditions are met, its actions suggest a place or a value, highlight
+# what matched, or hide the message. Every rule a message meets applies, in no
+# order. A person confirms what they suggest.
+class MessageRule(Base):
+    __tablename__ = "message_rules"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    map_id = Column(String, ForeignKey("maps.id", ondelete="CASCADE"), nullable=False, index=True)
+    description = Column(String, nullable=False)
+    enabled = Column(Boolean, nullable=False, default=True, server_default=true())
+    # A group: {match: "all" | "any", items: [{field, operator, values} or a group, one level down]}
+    conditions = Column(JSONB, nullable=False)
+    # [{type: "highlight" | "suggest_place" | "suggest_status" | "hide", point_id, key_id, value_id}]
+    actions = Column(JSONB, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 # Model representing a geographic point in a map

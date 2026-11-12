@@ -115,3 +115,21 @@ def test_a_value_some_point_has_is_not_removed():
         save_values(db, MapKey(id="k-1"), [])
 
     assert raised.value.value_ids == ["v-1"]
+
+
+def test_saving_values_writes_their_words_and_keeps_them_when_left_out():
+    closed = MapKeyValue(id="v-1", key_id="k-1", value="Closed", position=0, words=["مسكر"])
+    open_value = MapKeyValue(id="v-2", key_id="k-1", value="Open", position=1, words=["سالك"])
+    db = MagicMock()
+    db.execute.return_value = _result(scalars=[closed, open_value])
+
+    save_values(db, MapKey(id="k-1"), [
+        {"id": "v-1", "value": "Closed", "words": ["مسكر", "🔴"]},
+        {"id": "v-2", "value": "Open"},
+        {"value": "Delayed"},
+    ])
+
+    assert closed.words == ["مسكر", "🔴"]
+    assert open_value.words == ["سالك"]
+    [new] = [call.args[0] for call in db.add.call_args_list]
+    assert new.words == []

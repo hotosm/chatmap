@@ -125,6 +125,26 @@ class MessageLinked(Exception):
         self.message_id = message_id
 
 
+class UnknownRule(Exception):
+    def __init__(self, rule_id):
+        self.rule_id = rule_id
+
+
+class InvalidRule(Exception):
+    def __init__(self, reason):
+        self.reason = reason
+
+
+class TooManyRules(Exception):
+    def __init__(self, max_rules):
+        self.max_rules = max_rules
+
+
+class UnknownSuggestion(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
 class AlreadyLinked(Exception):
     def __init__(self, change_id):
         self.change_id = change_id

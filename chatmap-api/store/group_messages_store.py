@@ -8,6 +8,7 @@ import asyncio
 import hashlib
 import hmac
 import logging
+import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import case, delete, exists, func, or_, select, tuple_
@@ -27,6 +28,7 @@ from db import (
     GroupMessage,
     Map,
     MapKey,
+    MessageSuggestion,
     Point,
     PointTag,
     PointTagChange,
@@ -46,7 +48,8 @@ from results.error import (
     UnknownPoint,
 )
 from settings import CHATMAP_ENC_KEY
-from store.point_tags_store import MESSAGE, SET, give_tag, lock_point
+from store.point_tags_store import MESSAGE, RULE, SET, give_tag, lock_point
+from store.suggestions import PENDING, ROW_DEFAULTS, answer_on_link, suggest
 from store.received_messages_store import ReceivedMessage
 
 logger = logging.getLogger(__name__)
@@ -57,6 +60,7 @@ PAGE_SIZE = 100
 NEW = "new"
 LINKED = "linked"
 DISMISSED = "dismissed"
+SUGGESTED = "suggested"
 # What is read in two stretches, by when each group was last reviewed (see _rank); the rest, newest first
 BY_REVIEW = (None, NEW)
 # How many days a map can keep the messages of its groups
@@ -118,11 +122,11 @@ def _owned_message(db, message_id: str, user_id: str) -> GroupMessage:
     return row.GroupMessage
 
 
-# The changes a message made that are not undone, to points still in its map: what links it to them
+# The changes a message made, by a person or as a rule suggested, that are not undone, to points still in its map: what links it to them
 def _live_links(message_id, map_id):
     return (
         (PointTagChange.message_id == message_id)
-        & (PointTagChange.source == MESSAGE)
+        & PointTagChange.source.in_((MESSAGE, RULE))
         & PointTagChange.undone_at.is_(None)
         & PointTagChange.point_id.in_(select(Point.id).where(Point.map_id == map_id))
     )
@@ -145,23 +149,31 @@ def _readable(message: ReceivedMessage) -> tuple[ReceivedMessage, str, str | Non
     return (message, text, location, sent_at) if text or location else None
 
 
-def _insert(db, rows: list[dict]) -> int:
+def _insert(db, rows: list[dict], suggestions: dict[str, list[dict]]) -> int:
+    """
+    The messages of a batch, and what the words of the map suggest for each,
+    in one go. A message the map already has is not kept again, nor are its
+    suggestions.
+    """
     kept = db.execute(
         insert(GroupMessage)
         .values(rows)
         .on_conflict_do_nothing(index_elements=["map_id", "stream_id"])
         .returning(GroupMessage.id)
     ).all()
+    suggested = [suggestion for (message_id,) in kept for suggestion in suggestions.get(message_id, [])]
+    if suggested:
+        db.execute(insert(MessageSuggestion).values(suggested))
     db.commit()
     return len(kept)
 
 
-def _insert_one_by_one(db, rows: list[dict]) -> int:
+def _insert_one_by_one(db, rows: list[dict], suggestions: dict[str, list[dict]]) -> int:
     """After a batch the database did not take: each message on its own, skipping the ones it does not take."""
     kept = 0
     for row in rows:
         try:
-            kept += _insert(db, [row])
+            kept += _insert(db, [row], suggestions)
         except NOT_ANSWERING:
             raise
         except (SQLAlchemyError, ValueError) as error:
@@ -191,6 +203,8 @@ def _keep(device: str, messages: list[tuple[ReceivedMessage, str, str | None, da
                 ).all()
             }
             rows = []
+            # The pseudonym of the group of each message, by its id, for the rules
+            chat_of = {}
             for message, text, location, sent_at in messages:
                 group = groups.get(chats[message.chat])
                 # Nothing said in a group before it was enabled is kept. Messages give
@@ -198,6 +212,8 @@ def _keep(device: str, messages: list[tuple[ReceivedMessage, str, str | None, da
                 if group is None or sent_at < group.enabled_at.replace(microsecond=0):
                     continue
                 rows.append({
+                    # Given here, so what the words suggest can point to it
+                    "id": str(uuid.uuid4()),
                     "map_id": map_id,
                     "group_id": group.id,
                     "stream_id": message.id,
@@ -205,17 +221,20 @@ def _keep(device: str, messages: list[tuple[ReceivedMessage, str, str | None, da
                     "text": text,
                     "location": location,
                     "sent_at": sent_at,
+                    **ROW_DEFAULTS,
                 })
+                chat_of[rows[-1]["id"]] = chats[message.chat]
             if not rows:
                 return 0
+            suggestions = _suggestions_or_none(db, map_id, rows, chat_of)
             try:
-                return _insert(db, rows)
+                return _insert(db, rows, suggestions)
             except NOT_ANSWERING:
                 raise
             except (SQLAlchemyError, ValueError):
                 # One message the database does not take must not hold back the others
                 db.rollback()
-                return _insert_one_by_one(db, rows)
+                return _insert_one_by_one(db, rows, suggestions)
         except SQLAlchemyError as error:
             # The error says nothing more: its text would carry the messages
             db.rollback()
@@ -223,7 +242,25 @@ def _keep(device: str, messages: list[tuple[ReceivedMessage, str, str | None, da
             raise StoreUnavailable
 
 
-# The ranks of a message in the order of review: sent after the last one reviewed in its group; before it
+def _suggestions_or_none(db, map_id: str, rows: list[dict], chat_of: dict[str, str]) -> dict[str, list[dict]]:
+    """
+    What the rules and words of the map make of new messages. They are a help
+    to whoever reviews them: when they cannot be made, the messages are kept
+    all the same, as if no rule read them (nothing highlighted nor hidden).
+    """
+    try:
+        with db.begin_nested():
+            return suggest(db, map_id, rows, chat_of)
+    # Whatever fails in them, from the database or reading a text
+    except Exception as error:  # noqa: BLE001
+        logger.error(f"Suggest for group messages of map '{map_id}' failed with: {type(error).__name__}")
+        for row in rows:
+            row.update(ROW_DEFAULTS)
+        return {}
+
+
+# The ranks of a message in the order of review: sent after the last one reviewed in its group, and marked by a rule; after it; before it
+MARKED = 2
 AFTER_REVIEWED = 1
 BEFORE_REVIEWED = 0
 
@@ -232,17 +269,17 @@ def _cutoffs(map_id: str, as_of: datetime):
     """
     When each group of a map was last reviewed, as it was at a time: the
     newest sent_at of its messages a person linked to a point (and did not
-    undo) or dismissed by then. A message brought back loses when it was
-    dismissed: it stops counting.
+    undo) or dismissed by then. What a rule hid was not reviewed by anyone.
+    A message brought back loses when it was dismissed: it stops counting.
     """
     reviewed = aliased(GroupMessage)
     linked_then = exists().where(
         PointTagChange.message_id == reviewed.id,
-        PointTagChange.source == MESSAGE,
+        PointTagChange.source.in_((MESSAGE, RULE)),
         PointTagChange.recorded_at <= as_of,
         or_(PointTagChange.undone_at.is_(None), PointTagChange.undone_at > as_of),
     )
-    dismissed_then = reviewed.dismissed_at <= as_of
+    dismissed_then = (reviewed.dismissed_at <= as_of) & reviewed.dismissed_by_rule.is_(False)
     return (
         select(reviewed.group_id, func.max(reviewed.sent_at).label("sent_at"))
         .where(reviewed.map_id == map_id, or_(linked_then, dismissed_then))
@@ -254,11 +291,22 @@ def _cutoffs(map_id: str, as_of: datetime):
 def _rank(map_id: str, as_of: datetime):
     """
     When each group was last reviewed (to join to its messages), and the
-    rank of a message by it: AFTER_REVIEWED or BEFORE_REVIEWED. A group
-    nobody reviewed has all its messages after.
+    rank of a message by it: MARKED, AFTER_REVIEWED or BEFORE_REVIEWED. A
+    group nobody reviewed has all its messages after. Marked is what the rules
+    or the words of the map left on it (what to highlight, or a place or value
+    it suggests), which does not change when a person answers.
     """
     cutoffs = _cutoffs(map_id, as_of)
-    rank = case((GroupMessage.sent_at <= cutoffs.c.sent_at, BEFORE_REVIEWED), else_=AFTER_REVIEWED).label("rank")
+    marked = or_(
+        # A message without highlights may keep them as a JSON null
+        func.jsonb_typeof(GroupMessage.highlights) == "array",
+        exists().where(MessageSuggestion.message_id == GroupMessage.id),
+    )
+    rank = case(
+        (GroupMessage.sent_at <= cutoffs.c.sent_at, BEFORE_REVIEWED),
+        (marked, MARKED),
+        else_=AFTER_REVIEWED,
+    ).label("rank")
     return cutoffs, rank
 
 
@@ -436,13 +484,15 @@ class GroupMessagesStore:
         asks for the next ones.
 
         By default the ones not dismissed; `state` asks for the NEW ones (not
-        linked to any point nor dismissed), the LINKED or the DISMISSED. Also
+        linked to any point nor dismissed), the LINKED, the DISMISSED, or the
+        SUGGESTED (the rules or the words of the map suggest something a
+        person has not answered yet). Also
         the changes each message of the page made to points (its links),
         undone ones too, newest first.
 
         All of them and the NEW ones go in two stretches, each with its rank
         (see _rank): first the ones sent after the last one a person reviewed
-        in their group; then the older ones.
+        in their group, the ones a rule marked on top; then the older ones.
         Within a rank, newest first. `before` is then (rank, sent_at, id);
         for the other states, which go newest first, (sent_at, id). Both
         times and ids go, since many messages can be sent in the same second.
@@ -472,6 +522,11 @@ class GroupMessagesStore:
                     query = query.where(~linked)
                 elif state == LINKED:
                     query = query.where(linked)
+                elif state == SUGGESTED:
+                    # A bulletin stays while something it suggests waits, even if other lines were linked
+                    query = query.where(exists().where(
+                        MessageSuggestion.message_id == GroupMessage.id, MessageSuggestion.state == PENDING,
+                    ))
                 if chat is not None:
                     query = query.where(ChatGroup.chat == chat)
                 order = [GroupMessage.sent_at, GroupMessage.id]
@@ -527,9 +582,12 @@ class GroupMessagesStore:
                 if twice is not None:
                     raise AlreadyLinked(twice)
 
+                # What the message suggested for this place and key: confirmed when it is what the
+                # link gives, wrong when not; about another place or key, still to be answered
+                by_rule = answer_on_link(db, message.id, point_id, key_id, value_id)
                 change, current = give_tag(
                     db, point_id, key, SET, value_id, value, message.sent_at, user_id,
-                    source=MESSAGE, message_id=message.id,
+                    source=RULE if by_rule else MESSAGE, message_id=message.id,
                 )
                 db.commit()
                 db.refresh(change)
@@ -564,6 +622,8 @@ class GroupMessagesStore:
                     message.dismissed_at = func.now()
                 elif not dismissed:
                     message.dismissed_at = None
+                # From now on it is what a person did
+                message.dismissed_by_rule = False
                 db.commit()
                 db.refresh(message)
                 chat = db.get(ChatGroup, message.group_id).chat
@@ -612,7 +672,7 @@ def _links_of(db, map_id: str, message_ids: list[str]) -> dict[str, list[PointTa
         .join(Point, Point.id == PointTagChange.point_id)
         # Neither the changes of the keys of a map a point was in before, nor the ones of points that left this map
         .where(
-            PointTagChange.message_id.in_(message_ids), PointTagChange.source == MESSAGE,
+            PointTagChange.message_id.in_(message_ids), PointTagChange.source.in_((MESSAGE, RULE)),
             MapKey.map_id == map_id, Point.map_id == map_id,
         )
         .order_by(PointTagChange.happened_at.desc(), PointTagChange.id.desc())

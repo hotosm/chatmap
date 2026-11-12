@@ -56,6 +56,11 @@ def save_values(db, key: MapKey, values: list[dict]) -> None:
         row.color = value.get("color")
         hours = value.get("expires_after")
         row.expires_after = timedelta(hours=hours) if hours else None
+        # Words left out are kept, so a screen that does not show them does not take them away
+        if value.get("words") is not None:
+            row.words = value["words"]
+        elif row.words is None:
+            row.words = []
         # The date of an option already archived is kept
         if not value.get("archived"):
             row.archived_at = None
