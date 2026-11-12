@@ -9,6 +9,8 @@ import "./messages.css";
 
 // The way to them from the map, for its owner (the header of mapView)
 export { default as MessagesLink } from "./MessagesLink.jsx";
+// The messages linked to the point chosen on the map (mapView)
+export { default as PointMessages } from "./PointMessages.jsx";
 // Reading them (the page of the messages of a map)
 export { default as MessagesInbox } from "./MessagesInbox.jsx";
-export { groupMessagesOn, messagesOn, pageOf } from "./messages.js";
+export { groupMessagesOn, messagesOn, pageOf, pointPanelCover } from "./messages.js";

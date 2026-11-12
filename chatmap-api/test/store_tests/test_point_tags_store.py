@@ -119,6 +119,21 @@ async def test_only_the_owner_sees_the_history():
         await PointTagsStore.history("p-1", "user-1")
 
 
+async def test_the_history_tells_the_group_of_each_message():
+    db = MagicMock()
+    db.execute.return_value.scalar_one_or_none.return_value = "user-1"
+    rows = [(SimpleNamespace(id=1), "Status", "the north access is open", "Neighbours")]
+    db.execute.return_value.tuples.return_value = rows
+
+    with _patch_scope(db):
+        assert await PointTagsStore.history("p-1", "user-1") == rows
+
+    # A change whose message is gone keeps coming, without its group
+    query = str(db.execute.call_args_list[1].args[0])
+    assert "chat_groups.name" in query
+    assert "LEFT OUTER JOIN chat_groups" in query
+
+
 async def test_undoing_an_unknown_change_fails():
     db = MagicMock()
     db.get.return_value = None

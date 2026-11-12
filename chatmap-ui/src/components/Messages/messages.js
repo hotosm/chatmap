@@ -112,3 +112,19 @@ export const liveLinks = (message) => (message.links || []).filter((link) => !li
 
 // The messages with one of them as it is now
 export const withMessage = (messages, message) => messages.map((item) => item.id === message.id ? message : item);
+
+// The changes a point got from messages, linked by a person
+export const FROM_MESSAGES = ["message"];
+
+// The changes a point got from messages that are not undone, newest first, as its history gives them
+export const linksOfPoint = (history) =>
+    ((history && history.changes) || []).filter((change) => FROM_MESSAGES.includes(change.source) && !change.undone_at);
+
+/**
+ * What the panel of the messages of a point covers over the map, { right }
+ * or { bottom } on a phone, as messages.css draws it; null when it is not shown.
+ */
+export const pointPanelCover = (shown, width = window.innerWidth, height = window.innerHeight) => {
+    if (!shown) return null;
+    return width <= 720 ? { bottom: Math.round(height * 0.45) + 16 } : { right: Math.min(384, width - 32) + 16 };
+};

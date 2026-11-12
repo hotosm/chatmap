@@ -1,0 +1,41 @@
+/**
+ * The header of the dashboard of a map on a phone, as the top bar of the
+ * design: one solid row, a smaller logo and title, and a line under it. The
+ * tab bar (components/TabBar) takes the place of the links between the map
+ * and its messages, so they are hidden while it is there. "My Maps" stays,
+ * smaller, as the only way back to the other maps.
+ */
+@media (max-width: 720px) {
+    :root:has(.tabBar) .header {
+        box-sizing: border-box;
+        width: 100vw;
+        min-block-size: 3.5rem;
+        padding-block: env(safe-area-inset-top, 0px) 0;
+        padding-inline: var(--hot-spacing-large);
+        border-block-end: 1px solid var(--hot-color-gray-200);
+        background-color: var(--hot-color-neutral-0, #fff);
+    }
+
+    :root:has(.tabBar) .header__logo {
+        block-size: 1.5rem;
+    }
+
+    :root:has(.tabBar) .header__title-text {
+        font-size: var(--hot-font-size-large);
+    }
+
+    :root:has(.tabBar) .header__rest {
+        gap: var(--hot-spacing-small);
+    }
+
+    :root:has(.tabBar) .header__nav {
+        margin: 0;
+        font-size: var(--hot-font-size-small);
+        white-space: nowrap;
+    }
+
+    :root:has(.tabBar) .messagesLink,
+    :root:has(.tabBar) .messagesPage__back {
+        display: none;
+    }
+}

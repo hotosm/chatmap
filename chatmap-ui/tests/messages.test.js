@@ -1,7 +1,7 @@
 import { expect, test as it } from 'vitest'
 
 import {
-  PAGE_SIZE, coordsOf, groupMessagesOn, groupNames, liveLinks, messagesOn, metersBetween, nextPage, pageOf,
+  PAGE_SIZE, coordsOf, groupMessagesOn, groupNames, linksOfPoint, liveLinks, messagesOn, metersBetween, nextPage, pageOf,
   placesNamed, placesOf, startsOver, withMessage, withNewer, withOlder,
 } from '../src/components/Messages/messages';
 
@@ -146,4 +146,15 @@ it('keeps the links of a message that were not undone', () => {
 it('puts a message as it is now in its place', () => {
   const shown = [{ id: "m-2", text: "a" }, { id: "m-1", text: "b" }];
   expect(withMessage(shown, { id: "m-1", text: "c" })).toEqual([{ id: "m-2", text: "a" }, { id: "m-1", text: "c" }]);
+});
+
+// linksOfPoint
+it('keeps the changes of a point that came from messages and were not undone', () => {
+  const changes = [
+    { id: 3, source: "message", undone_at: null },
+    { id: 2, source: "manual", undone_at: null },
+    { id: 1, source: "message", undone_at: "2026-10-26T10:00:00Z" },
+  ];
+  expect(linksOfPoint({ changes }).map((change) => change.id)).toEqual([3]);
+  expect(linksOfPoint(null)).toEqual([]);
 });

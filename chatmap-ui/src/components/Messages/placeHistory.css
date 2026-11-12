@@ -1,0 +1,127 @@
+/* The history of a place, in the panel of the point chosen on the map (.pointMessages in messages.css) */
+
+/* What the map shows today: a quiet box with one row per key, "Status [Closed] since 10 min ago · lasts 24 h" */
+.placeHistory__inForce {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-small);
+    margin: var(--hot-spacing-x-small) 0 0;
+    padding: var(--hot-spacing-medium);
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-large);
+}
+
+.placeHistory__keyRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small) var(--hot-spacing-small);
+}
+
+.placeHistory__keyRow dd {
+    margin: 0;
+}
+
+.placeHistory__values {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+}
+
+.placeHistory__meta {
+    font-size: var(--hot-font-size-x-small);
+}
+
+.placeHistory {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-small);
+}
+
+/* One change: its message, then "Status [Closed] [On the map] · 10 min ago in Group", then a note and Undo */
+.placeHistory__entry {
+    padding: var(--hot-spacing-medium) var(--hot-spacing-large);
+}
+
+.placeHistory__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    font-size: var(--hot-font-size-small);
+}
+
+/* The time goes to the end of the row, on whichever side the language writes it */
+.placeHistory__when {
+    margin-inline-start: auto;
+    color: var(--hot-color-gray-600);
+}
+
+.placeHistory__when b {
+    color: var(--hot-color-neutral-950);
+}
+
+/* "On the map": dark, the one that rules */
+.placeHistory__state {
+    min-height: 22px;
+    padding-inline: 8px;
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.pill.placeHistory__state:not(.pill--outline) {
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+}
+
+.placeHistory__note {
+    flex: 1;
+    font-size: var(--hot-font-size-x-small);
+}
+
+.placeHistory__action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    margin-inline-start: auto;
+    color: var(--hot-color-neutral-950);
+    font-weight: var(--hot-font-weight-bold);
+    text-decoration: none;
+}
+
+.placeHistory__action:hover:not(:disabled) {
+    text-decoration: underline;
+}
+
+/* What no longer rules fades: older changes and undone ones */
+.placeHistory__entry--older .messageCard__text,
+.placeHistory__entry--older .pill,
+.placeHistory__entry--undone .messageCard__text,
+.placeHistory__entry--undone .pill {
+    opacity: .6;
+}
+
+.placeHistory__entry--undone .messageCard__text {
+    color: var(--hot-color-gray-600);
+}
+
+.placeHistory__takenOut {
+    text-decoration: line-through;
+}
+
+/* In the sheet of a phone, the name of the place is the title of the sheet */
+.pointMessages--sheet .pointMessages__header {
+    padding-block-start: 0;
+}
+
+/* A message in the history of a place, up to a few lines: a bulletin speaks of many places */
+.placeHistory__entry .messageCard__text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+}

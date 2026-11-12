@@ -6,6 +6,7 @@ import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 
 import Header from "../header.jsx";
+import TabBar from '../../components/TabBar';
 import useAPI from '../../components/ChatMap/useApi.js';
 import { usesKeys } from '../../components/Tags';
 import { MessagesInbox, messagesOn, pageOf } from '../../components/Messages';
@@ -24,12 +25,13 @@ export default function MessagesPage() {
   return (
     <div className="app messages-view">
       <Header title={mapData.name} pageTitle={mapData.name}>
-        <SlButton size="small" href={pageOf(`/map/${id}`)}>
+        <SlButton className="messagesPage__back" size="small" href={pageOf(`/map/${id}`)}>
           <SlIcon name="arrow-left" slot="prefix" />
           <FormattedMessage id="app.messages.backToMap" defaultMessage="Back to the map" />
         </SlButton>
       </Header>
       { shown && <MessagesInbox mapData={mapData} /> }
+      <TabBar mapData={mapData} data={mapData} />
     </div>
   );
 }

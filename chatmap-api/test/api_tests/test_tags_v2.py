@@ -26,7 +26,7 @@ def _tag(point_id="p-1", key_id="k-1", value_id="v-1", value=None):
 
 def _change(change_id=1, action="set", value_id="v-1", value="Open", undone_at=None, undone_by=None):
     return SimpleNamespace(
-        id=change_id, action=action, value_id=value_id, value=value, happened_at=HAPPENED_AT,
+        id=change_id, key_id="k-1", action=action, value_id=value_id, value=value, happened_at=HAPPENED_AT,
         recorded_at=RECORDED_AT, source="manual", message_id=None, user_id="user-1",
         undone_at=undone_at, undone_by=undone_by,
     )
@@ -63,14 +63,14 @@ async def test_set_point_tag_passes_the_change():
 # ---- GET /v2/points/{point_id}/history, POST /v2/tag-changes/{change_id}/undo ----
 
 async def test_history_returns_the_changes_with_their_key():
-    rows = [(_change(2, "remove", None, None), "Status", None), (_change(1), "Status", None)]
+    rows = [(_change(2, "remove", None, None), "Status", None, None), (_change(1), "Status", None, None)]
 
     with _patch_store("history", return_value=rows) as store:
         result = await read_history(point_id="p-1", user=_user())
 
     store.assert_awaited_once_with("p-1", "user-1")
-    assert [(change.id, change.key, change.action, change.value) for change in result.changes] == [
-        (2, "Status", "remove", None), (1, "Status", "set", "Open"),
+    assert [(change.id, change.key_id, change.key, change.action, change.value) for change in result.changes] == [
+        (2, "k-1", "Status", "remove", None), (1, "k-1", "Status", "set", "Open"),
     ]
     assert (result.changes[1].happened_at, result.changes[1].recorded_at) == (HAPPENED_AT, RECORDED_AT)
 
@@ -78,13 +78,13 @@ async def test_history_returns_the_changes_with_their_key():
 async def test_history_tells_the_message_a_change_comes_from():
     change = _change(1)
     change.source, change.message_id = "message", "m-1"
-    rows = [(change, "Status", "the north access is open"), (_change(2), "Status", None)]
+    rows = [(change, "Status", "the north access is open", "Neighbours"), (_change(2), "Status", None, None)]
 
     with _patch_store("history", return_value=rows):
         result = await read_history(point_id="p-1", user=_user())
 
-    assert [(item.source, item.message_id, item.message_text) for item in result.changes] == [
-        ("message", "m-1", "the north access is open"), ("manual", None, None),
+    assert [(item.source, item.message_id, item.message_text, item.group_name) for item in result.changes] == [
+        ("message", "m-1", "the north access is open", "Neighbours"), ("manual", None, None, None),
     ]
 
 

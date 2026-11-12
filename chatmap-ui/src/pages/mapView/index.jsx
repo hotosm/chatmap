@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from 'react-router';
 import { FormattedMessage } from "react-intl";
 
@@ -20,7 +20,9 @@ import useContentMerger from "../../components/ChatMap/useContentMerger.js";
 import UpdateButton from "../../components/UpdateButton/index.jsx";
 import EditMapDialog from '../../components/EditMapDialog/index.jsx';
 import { MapTagsOptions } from '../../components/Tags';
-import { MessagesLink } from '../../components/Messages';
+import { MessagesLink, PointMessages, groupMessagesOn, messagesOn, pointPanelCover } from '../../components/Messages';
+import TabBar from '../../components/TabBar';
+import { usesKeys } from '../../components/Tags';
 import InfoMapDialog from '../../components/InfoMapDialog/index.jsx';
 import Progress from "../../components/Progress/index.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog/index.jsx";
@@ -65,6 +67,10 @@ function MapView() {
   const [beingSaved, setBeingSaved] = useState(false);
 
   const [mapName, setMapName] = useState(null);
+  // The point whose popup is open: its linked messages show at the side, and the map keeps it out from under them
+  const [point, setPoint] = useState(null);
+  const pointPanelShown = Boolean(point) && groupMessagesOn(config) && messagesOn(mapData, usesKeys(data));
+  const panelCover = useMemo(() => pointPanelCover(pointPanelShown), [pointPanelShown]);
   const [mapDescription, setMapDescription] = useState(null);
 
   const { id } = useParams();
@@ -277,6 +283,15 @@ function MapView() {
             <Map
               showMessageOptions={mapData.owner}
               dataFiles={dataFiles}
+              onSelect={setPoint}
+              cover={panelCover}
+            />
+            <PointMessages
+              mapData={mapData}
+              data={data}
+              point={point}
+              onChange={() => fetchMapData(id)}
+              onClose={() => setPoint(null)}
             />
             <EditMapDialog
               mapData={{
@@ -302,6 +317,7 @@ function MapView() {
             />
           </>
         }
+        <TabBar mapData={mapData} data={data} />
       </div>
 
       <SettingsDialog

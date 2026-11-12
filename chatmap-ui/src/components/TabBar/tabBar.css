@@ -1,0 +1,77 @@
+/**
+ * The tabs of the dashboard of a map, at the bottom of a phone, above the
+ * safe area of the screen. Hidden on wider screens, which keep the header.
+ * Only logical properties: right to left the tabs go the other way round.
+ */
+.tabBar {
+    display: none;
+}
+
+@media (max-width: 720px) {
+    /* While there is a tab bar, what goes at the bottom of the page stays above it */
+    :root:has(.tabBar) {
+        --tabBar-height: calc(4rem + env(safe-area-inset-bottom, 0px));
+        --bottomSheet-bottom: var(--tabBar-height);
+    }
+
+    .tabBar {
+        display: block;
+        position: fixed;
+        inset-inline: 0;
+        inset-block-end: 0;
+        z-index: 650;
+        box-sizing: border-box;
+        min-block-size: var(--tabBar-height);
+        padding: var(--hot-spacing-x-small) var(--hot-spacing-x-large)
+            calc(var(--hot-spacing-small) + env(safe-area-inset-bottom, 0px));
+        border-block-start: 1px solid var(--hot-color-gray-200);
+        background: var(--hot-color-neutral-0, #fff);
+    }
+
+    .tabBar__tabs {
+        display: flex;
+        justify-content: space-around;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .tabBar__tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        min-inline-size: 4rem;
+        padding-block: var(--hot-spacing-2x-small);
+        color: var(--hot-color-gray-600);
+        font-size: 11px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .tabBar__tab sl-icon {
+        font-size: 1.25rem;
+    }
+
+    .tabBar__tab[aria-current="page"] {
+        color: var(--hot-color-neutral-950);
+        font-weight: var(--hot-font-weight-bold);
+    }
+
+    .tabBar__tab:focus-visible {
+        outline: 2px solid var(--hot-color-blue-500);
+        outline-offset: 2px;
+        border-radius: var(--hot-border-radius-medium);
+    }
+
+    /* The controls at the bottom of the map */
+    :root:has(.tabBar) .maplibregl-ctrl-bottom-left,
+    :root:has(.tabBar) .maplibregl-ctrl-bottom-right {
+        inset-block-end: var(--tabBar-height);
+    }
+
+    /* The messages end above it */
+    :root:has(.tabBar) .messagesInbox {
+        block-size: calc(100dvh - var(--messagesInbox-top) - var(--tabBar-height));
+    }
+}

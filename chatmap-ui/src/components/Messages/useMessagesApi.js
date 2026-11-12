@@ -32,6 +32,9 @@ export default function useMessagesApi() {
         (messageId, link) => sendWithStatus('POST', `${api}/messages/${messageId}/links`, link), [api]
     );
 
+    // The changes of the tags of a point, newest first; the ones from messages carry message_id and message_text
+    const readPointHistory = useCallback((pointId) => request(`${api}/points/${pointId}/history`), [api]);
+
     // Undo a link (the change it made), or bring it back
     const setLinkUndone = useCallback(
         (changeId, undone) => send('POST', `${api}/tag-changes/${changeId}/${undone ? "undo" : "restore"}`), [api]
@@ -42,5 +45,7 @@ export default function useMessagesApi() {
         (messageId, dismissed) => send('PUT', `${api}/messages/${messageId}`, { dismissed }), [api]
     );
 
-    return { readGroups, updateGroup, updateKeptDays, readMessages, linkMessage, setLinkUndone, setDismissed };
+    return {
+        readGroups, updateGroup, updateKeptDays, readMessages, linkMessage, setLinkUndone, setDismissed, readPointHistory,
+    };
 }

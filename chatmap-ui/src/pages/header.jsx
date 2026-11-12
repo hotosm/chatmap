@@ -14,6 +14,7 @@ import { locales, localeNames } from '../lang';
 import { useAuth } from './../context/AuthContext';
 import { useConfigContext } from '../context/ConfigContext.jsx';
 import { useLanguage } from '../context/LanguageContext';
+import './header.css';
 
 export default function Header({
   title,

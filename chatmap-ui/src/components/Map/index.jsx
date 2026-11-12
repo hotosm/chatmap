@@ -9,12 +9,17 @@ import useAPI from '../../components/ChatMap/useApi.js'
 import {MapTools, useMapTags} from '../Tags';
 import {BackgroundControl} from "./controls.jsx";
 
+// The room a popup takes at the right of its point, and half its height
+const POPUP_ROOM = { width: 330, height: 160, margin: 16 };
+
 /**
  *
  * @param {object} dataFiles Files data
+ * @param {function} onSelect Gets the point whose popup is open, or null when it closes
+ * @param {object} cover Pixels a panel covers over the map, { right, bottom }: the point chosen is kept out of them
  * @returns {React.ReactElement} Map component
  */
-export default function Map({dataFiles, center, zoom, className, onInteract, showMessageOptions}) {
+export default function Map({dataFiles, center, zoom, className, onInteract, showMessageOptions, onSelect, cover}) {
     // A div for the map
     const mapContainer = useRef(null);
     // The Map obejct
@@ -57,19 +62,19 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
     useEffect(() => {
         if (map.current) return;
 
-        // Creates a MapLibreGL object
+        // Creates a MapLibreGL object, already showing all the points: it does not
+        // open close to one of them and then fly out to the rest
+        const points = data.features && data.features.length > 0;
         map.current = new MapGL({
             container: mapContainer.current,
-            center: center || [0, 0],
-            zoom: zoom || 17,
+            ...(points ?
+                { bounds: extent(data), fitBoundsOptions: { padding: 50, maxZoom: 14 } } :
+                { center: center || [0, 0], zoom: zoom || 17 }),
             style: osm,
             minZoom: 2,
         });
 
         map.current.on("load", async () => {
-
-            // Center the map on the first feature
-            map.current.setCenter(data.features[0].geometry.coordinates)
 
             // Add background control
             map.current.addControl(new BackgroundControl());
@@ -88,13 +93,6 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
             map.current.addSource('locations', {
                 data: mapTags.shown(data),
                 type: "geojson"
-            });
-
-            // Fit map bounds on data extent
-            const bbox = extent(data);
-            map.current.fitBounds(bbox, {
-                padding: 50,
-                maxZoom: 14
             });
 
             // Change cursor on marker hover
@@ -138,7 +136,7 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
                 showFeature(dataRef.current.features.find((feature) => feature.properties.id === clickedId));
             });
 
-            map.current.on("click", (e) => {
+            map.current.on("click", () => {
                 onInteract && onInteract();
             });
 
@@ -201,6 +199,35 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
         if (!map.current || !activePopupFeature) return;
         setActivePopupFeature(activePopupFeature);
         popupRef.current.addTo(map.current);
+    }, [activePopupFeature]);
+
+    // The popup shows its point as the map has it now, after the map is read again
+    useEffect(() => {
+        if (!activePopupFeature) return;
+        const now = data.features.find((feature) => feature.properties.id === activePopupFeature.properties.id);
+        if (now && now !== activePopupFeature) setActivePopupFeature(now);
+    }, [data]);
+
+    // A point chosen under a panel moves out of it, with room for its popup at its right
+    useEffect(() => {
+        if (!map.current || !activePopupFeature || !cover) return;
+        const {x, y} = map.current.project(activePopupFeature.geometry.coordinates);
+        const {width, height} = map.current.getContainer().getBoundingClientRect();
+        const dx = Math.min(Math.max(0, x - (width - (cover.right || 0) - POPUP_ROOM.width)), x - POPUP_ROOM.margin);
+        const dy = Math.min(Math.max(0, y - (height - (cover.bottom || 0) - POPUP_ROOM.height)), y - POPUP_ROOM.margin);
+        if (dx > 0 || dy > 0) map.current.panBy([Math.max(dx, 0), Math.max(dy, 0)]);
+    }, [activePopupFeature, cover]);
+
+    // Tell which point is chosen; when its popup closes, none is
+    const onSelectRef = useRef(onSelect);
+    onSelectRef.current = onSelect;
+    useEffect(() => {
+        onSelectRef.current && onSelectRef.current(activePopupFeature);
+        const popup = popupRef.current;
+        if (!popup || !activePopupFeature) return;
+        const closed = () => setActivePopupFeature(null);
+        popup.on("close", closed);
+        return () => popup.off("close", closed);
     }, [activePopupFeature]);
 
     // Filter by tag

@@ -72,10 +72,11 @@ class TagChangeItem(BaseModel):
     One change of a tag of a point, or its confirmation: what was set or
     removed, when it happened, when it was written down, how and by whom.
     value is the name the value had then. One from a group message (source
-    "message") tells which, and its text while the map keeps it. An undone
-    change stays, marked.
+    "message") tells which, and its text and the name of its group while
+    the map keeps it. An undone change stays, marked.
     """
     id: int
+    key_id: str
     key: str
     action: str
     value_id: str | None
@@ -85,6 +86,7 @@ class TagChangeItem(BaseModel):
     source: str
     message_id: str | None = None
     message_text: str | None = None
+    group_name: str | None = None
     user_id: str | None
     undone_at: datetime | None
     undone_by: str | None

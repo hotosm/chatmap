@@ -409,3 +409,113 @@
     border-top: 1px solid var(--hot-color-gray-200);
     font-size: var(--hot-font-size-small);
 }
+
+/* The messages linked to the point chosen on the map, in a white panel at its right, under the header */
+.pointMessages {
+    position: fixed;
+    z-index: 10;
+    top: 5rem;
+    right: var(--hot-spacing-medium);
+    bottom: var(--hot-spacing-medium);
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-medium);
+    width: min(24rem, calc(100vw - 2 * var(--hot-spacing-medium)));
+    overflow: auto;
+    padding: var(--hot-spacing-large);
+    box-sizing: border-box;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-x-large);
+    background-color: var(--hot-color-neutral-0);
+    box-shadow: var(--sl-shadow-x-large);
+}
+
+/* Its name, and under it what the panel lists, over a hairline */
+.pointMessages__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-x-small);
+    padding-bottom: var(--hot-spacing-medium);
+    border-bottom: 1px solid var(--hot-color-gray-200);
+}
+
+.pointMessages__title {
+    margin: 0;
+    font-size: var(--hot-font-size-x-large);
+    line-height: 1.2;
+}
+
+.pointMessages__subtitle {
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.pointMessages__muted {
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+}
+
+/* Nothing linked yet: a quiet block with the way to link them */
+.pointMessages__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+    padding: var(--hot-spacing-x-large) var(--hot-spacing-medium);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-small);
+    line-height: 1.5;
+    text-align: center;
+}
+
+.pointMessages__empty sl-icon {
+    color: var(--hot-color-gray-400);
+    font-size: var(--hot-font-size-2x-large);
+}
+
+.pointMessages__empty p {
+    max-width: 18rem;
+    margin: 0 0 var(--hot-spacing-x-small);
+}
+
+.pointMessages__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-small);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pointMessages__loading {
+    align-self: center;
+}
+
+.pointMessages__more {
+    align-self: flex-start;
+    gap: var(--hot-spacing-x-small);
+    text-decoration: none;
+}
+
+.pointMessages__empty .pointMessages__more {
+    align-self: center;
+}
+
+.pointMessages__more sl-icon {
+    font-size: var(--hot-font-size-small);
+}
+
+/* On a phone the panel of a point goes at the bottom, over half the map at most */
+@media (max-width: 720px) {
+    .pointMessages {
+        top: auto;
+        left: var(--hot-spacing-medium);
+        max-height: 45vh;
+        width: auto;
+    }
+}
