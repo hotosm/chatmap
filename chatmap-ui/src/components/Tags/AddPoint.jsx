@@ -83,8 +83,7 @@ export default function AddPoint({ map, mapId, colorKey, adding, show, onAdd }) 
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    const { request, feature } = newPoint({
-      id: crypto.randomUUID(),
+    const { request, featureOf } = newPoint({
       name: trimmed,
       coordinates: place,
       time: new Date().toISOString(),
@@ -94,7 +93,7 @@ export default function AddPoint({ map, mapId, colorKey, adding, show, onAdd }) 
     const created = await createPoint(mapId, request);
     // The point is already on the map when its value cannot be saved
     const saved = created && valueId ?
-      await setPointTag(request.id, colorKey.id, { action: "set", value_id: valueId }) : null;
+      await setPointTag(created.id, colorKey.id, { action: "set", value_id: valueId }) : null;
     setLoading(false);
 
     if (!created) {
@@ -104,6 +103,8 @@ export default function AddPoint({ map, mapId, colorKey, adding, show, onAdd }) 
       }));
       return;
     }
+    // The API names the point
+    const feature = featureOf(created.id);
     if (saved) {
       feature.properties.point_tags = saved.tags;
     }
