@@ -18,6 +18,26 @@ from settings import CHATMAP_ENC_KEY, API_VERSION, MEDIA_FOLDER, API_URL, SERVER
 # Logs
 logger = logging.getLogger(__name__)
 
+
+def has_valid_location(entry: Dict[str, str]) -> bool:
+    """
+    Whether an entry of the stream can go to the parser: one without a
+    location, or with one of two numbers, "latitude,longitude". The connector
+    always sends them so; anything else would stop the parser for the whole batch.
+    """
+    location = entry.get("location") or ""
+    if not location:
+        return True
+    parts = location.split(",")
+    if len(parts) != 2:
+        return False
+    try:
+        float(parts[0])
+        float(parts[1])
+    except ValueError:
+        return False
+    return True
+
 # Prefix for media files
 prefix = f"v{API_VERSION}"
 
@@ -102,16 +122,21 @@ async def process_chat_entries(
     data = [{ **{bytes.decode(k): bytes.decode(v) \
         if isinstance(v, bytes) else v for k, v in entry[1].items()}} for (_, entry) in enumerate(entries)]
 
+    # An entry whose location is not two numbers is left out, so it does not stop the others
+    readable = [entry for entry in data if has_valid_location(entry)]
+    if len(readable) < len(data):
+        logger.warning(f"process_chat_entries: {len(data) - len(readable)} entries of session {user} left out: their location is not two numbers")
+
     # Parse chat data into GeoJSON format using ChatMap
     geoJSON = {}
     try:
-        geoJSON = chatmap_parser.streamParser(data)
+        geoJSON = chatmap_parser.streamParser(readable)
     except Exception as e:
-        print(f"Error parsing chat: {e}")
+        logger.error(f"process_chat_entries: the chat of session {user} could not be parsed: {type(e).__name__}")
 
     # Create Points from Features in GeoJSON
     points = []
-    for feature in geoJSON.get('features'):
+    for feature in geoJSON.get('features') or []:
         logging.debug("Processing feature ...")
         coords = feature.get("geometry").get("coordinates")
         props = feature.get("properties")
