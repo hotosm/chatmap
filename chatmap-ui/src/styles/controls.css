@@ -1,0 +1,133 @@
+/**
+ * Controls shared by the modules of the app, so all of them look the same:
+ * pills and the white panels that open under them.
+ */
+
+/* A pill: a tag, a status, or a small button */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    box-sizing: border-box;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: var(--hot-border-radius-pill);
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+button.pill {
+    cursor: pointer;
+}
+
+button.pill:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+button.pill:focus-visible,
+.pill:has(select:focus-visible) {
+    outline: 2px solid var(--hot-color-neutral-950);
+    outline-offset: 2px;
+}
+
+/* White with a thin gray border: a button, or a value with no color */
+.pill--outline {
+    border-color: var(--hot-color-gray-400);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-gray-900);
+}
+
+button.pill--outline:hover:not(:disabled),
+.pill--outline:has(select:hover) {
+    border-color: var(--hot-color-neutral-950);
+}
+
+/* What is on, filled */
+.pill--on {
+    border-color: var(--hot-color-neutral-950);
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+}
+
+.pill--danger {
+    color: var(--hot-color-danger-600);
+}
+
+button.pill--danger:hover:not(:disabled) {
+    border-color: var(--hot-color-danger-600);
+}
+
+/* A thin chevron after the text tells it opens: in the color of the text, on any pill */
+.pill--caret::after {
+    content: "";
+    flex: none;
+    width: 5px;
+    height: 5px;
+    margin: -3px 2px 0 2px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
+/* A native select inside a pill: the pill draws it, the select keeps the keyboard and the phone's picker */
+.pill__select {
+    margin: 0 calc(-10px - 9px) 0 -10px;
+    padding: 0 calc(10px + 9px) 0 10px;
+    min-height: 26px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    appearance: none;
+    cursor: pointer;
+}
+
+.pill__select:focus {
+    outline: none;
+}
+
+/* The white panel a pill opens: a light border and shadow over the page */
+.popoverPanel {
+    box-sizing: border-box;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: var(--hot-border-radius-medium);
+    background-color: var(--hot-color-neutral-0);
+    box-shadow: var(--sl-shadow-x-large);
+}
+
+/* In a panel: the title of a section, small and gray, and the options to pick, one per row */
+.popoverPanel__title {
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-small) var(--hot-spacing-2x-small);
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.popoverPanel__option {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--hot-spacing-x-small);
+    border: 0;
+    border-radius: var(--hot-border-radius-small);
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    text-align: left;
+    cursor: pointer;
+}
+
+.popoverPanel__option:hover,
+.popoverPanel__option:focus-visible {
+    background-color: var(--hot-color-gray-50);
+    outline: none;
+}

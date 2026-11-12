@@ -5,6 +5,8 @@ import {createRoot} from "react-dom/client";
 import {Popup as PopupGL} from "maplibre-gl";
 import Tagger from '../Tagger';
 import Message from '../Message';
+import { PointTags } from '../Tags';
+import { mediaType } from '../Media';
 import {useIntl} from 'react-intl';
 import {useLanguage} from "../../context/LanguageContext";
 
@@ -60,12 +62,18 @@ export default function Popup({
                                   onRemoveTag,
                                   onRemoveMessage,
                                   allTags,
+                                  pointTags,
+                                  onChange,
                                   showMessageOptions,
                               }) {
     const intl = useIntl();
     const {lang, messages} = useLanguage();
 
     const getMsgType = (message) => {
+        // The media of the API v2 goes before the one of the API v1
+        if (message.media) {
+            return mediaType(message.media.content_type);
+        }
         if (message.file) {
             if (message.file.endsWith("jpg") || message.file.endsWith("jpeg")) {
                 return "image";
@@ -96,7 +104,7 @@ export default function Popup({
             closeButton={true}
         >
             <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
-                <div className="activePopupFeatureContent">
+                <div className={`activePopupFeatureContent ${pointTags ? "activePopupFeatureContent--tags" : ""}`}>
                     <Message
                         coordinates={feature.geometry.coordinates}
                         message={feature.properties}
@@ -105,6 +113,19 @@ export default function Popup({
                         onRemove={tag => onRemoveMessage(feature)}
                         showMessageOptions={showMessageOptions}
                     />
+                    {/* When the map has keys, their values and the free tags go in one row */}
+                    {pointTags && !feature.properties.removed &&
+                        <PointTags
+                            key={feature.properties.id}
+                            {...pointTags}
+                            properties={feature.properties}
+                            allTags={allTags}
+                            onChange={properties => onChange({...feature, properties})}
+                            onAddTag={tag => onAddTag(tag, feature)}
+                            onRemoveTag={tag => onRemoveTag(tag, feature)}
+                            showEditOptions={showMessageOptions}
+                        />
+                    }
                     {survey.length > 0 &&
                         <dl className="surveyAnswers">
                             {survey.map((entry, index) => (
@@ -115,7 +136,7 @@ export default function Popup({
                             ))}
                         </dl>
                     }
-                    {!feature.properties.removed ?
+                    {!feature.properties.removed && !pointTags ?
                         <Tagger
                             placeholder={
                                 intl.formatMessage({

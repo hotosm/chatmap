@@ -48,6 +48,7 @@ from settings import (
     DEBUG, API_VERSION, MEDIA_FOLDER, SERVER_URL, CORS_ORIGINS,
     S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_NAME, S3_ENDPOINT_URL, API_URL,
     ENABLE_OUTBOUND,
+    ENABLE_GROUP_MESSAGES,
 )
 from sqlalchemy import func, or_, select
 from geoalchemy2.shape import to_shape
@@ -1173,6 +1174,7 @@ app.include_router(v2_router)
 
 from redis import asyncio as async_redis
 from consumers.listener import ConversationsStateListener
+from consumers.group_messages_listener import GroupMessagesListener, prune_group_messages
 
 
 # On API startup
@@ -1188,11 +1190,17 @@ async def startup_event():
         os.mkdir("media")
     asyncio.create_task(stream_listener())
 
-    if ENABLE_OUTBOUND:
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", 6379))
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = int(os.getenv("REDIS_PORT", 6379))
+    client = async_redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
 
-        client = async_redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
+    # Messages of the chat groups live maps listen to, with or without their bot.
+    # Old ones are removed even with the switch off
+    asyncio.create_task(prune_group_messages())
+    if ENABLE_GROUP_MESSAGES:
+        asyncio.create_task(GroupMessagesListener(client=client).start())
+
+    if ENABLE_OUTBOUND:
         listener = ConversationsStateListener(client=client)
         asyncio.create_task(listener.start())
 

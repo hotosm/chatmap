@@ -9,11 +9,14 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from redis import asyncio as async_redis
 from sqlalchemy import delete, select
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 from bot.flows.first_time_mapping.flow import FirstTimeMappingFlow
 from consumers.listener import ConversationsStateListener
-from db import session_scope
+from db import get_live_map_id, session_scope
+from results.error import UnknownGroup
 from settings import CHATMAP_ENC_KEY
+from store.group_messages_store import GroupMessagesStore, pseudonym
 from store.message_to_send_store import MessageToSendStore
 from store.survey_responses_store import SurveyResponse
 
@@ -28,11 +31,13 @@ received_message_app = typer.Typer(help="Manage entries on the messages stream (
 message_to_send_app = typer.Typer(help="Manage entries on the to_send stream (chatmap-im-connector delivery queue)")
 survey_response_app = typer.Typer(help="Inspect entries in the survey_responses table")
 bot_state_app = typer.Typer(help="Inspect/clear the first_time_mapping bot state hash in Redis")
+chat_group_app = typer.Typer(help="Choose the chat groups the live map of a device listens to, as its owner would")
 
 app.add_typer(received_message_app, name="received-message")
 app.add_typer(message_to_send_app, name="message-to-send")
 app.add_typer(survey_response_app, name="survey-response")
 app.add_typer(bot_state_app, name="bot-state")
+app.add_typer(chat_group_app, name="chat-group")
 
 redis_host = "localhost"
 redis_port = 6380
@@ -324,6 +329,55 @@ def bot_state_delete(peer: str = typer.Option("sim-peer", help="Peer used when s
         await client.aclose()
 
     asyncio.run(run())
+
+
+def _live_map(device: str) -> str:
+    """The live map of the owner of a device; the command stops when there is none."""
+    with session_scope() as db:
+        try:
+            return get_live_map_id(db, device)
+        except (NoResultFound, MultipleResultsFound):
+            typer.echo(f"device '{device}' has no live map, or has more than one")
+            raise typer.Exit(code=1)
+
+
+@chat_group_app.command("enable")
+def chat_group_enable(
+        device: str = typer.Option(..., help="Session id whose live map listens to the group"),
+        chat: str = typer.Option(..., help="Chat id of the group, as `received-message send --chat` writes it"),
+        name: str = typer.Option(None, help="Name of the group (default: the chat id)"),
+):
+    """Make the live map of a device listen to a group, as if its owner picked it from the phone."""
+    map_id = _live_map(device)
+    phone = [{"chat": chat, "name": name or chat}]
+    group = asyncio.run(GroupMessagesStore.set_group(map_id, device, pseudonym(map_id, chat), True, False, phone))
+    typer.echo(f"map '{map_id}' listens to '{group.name}' (id {group.chat})")
+
+
+@chat_group_app.command("disable")
+def chat_group_disable(
+        device: str = typer.Option(..., help="Session id whose live map stops listening to the group"),
+        chat: str = typer.Option(..., help="Chat id of the group, as `received-message send --chat` writes it"),
+        delete_messages: bool = typer.Option(False, "--delete-messages", help="Also remove the messages kept from it"),
+):
+    """Make the live map of a device stop listening to a group."""
+    map_id = _live_map(device)
+    try:
+        group = asyncio.run(GroupMessagesStore.set_group(map_id, device, pseudonym(map_id, chat), False, delete_messages, []))
+    except UnknownGroup:
+        typer.echo(f"map '{map_id}' does not have the group '{chat}'")
+        raise typer.Exit(code=1)
+    typer.echo(f"map '{map_id}' no longer listens to '{group.name}'")
+
+
+@chat_group_app.command("list")
+def chat_group_list(device: str = typer.Option(..., help="Session id whose live map is listed")):
+    """List the groups the live map of a device keeps, and how many days it keeps their messages."""
+    map_id = _live_map(device)
+    groups, kept_days = asyncio.run(GroupMessagesStore.groups(map_id, device, []))
+    typer.echo(f"map '{map_id}' keeps messages for {kept_days} days")
+    for group in groups:
+        typer.echo({"id": group.chat, "name": group.name, "enabled": group.enabled})
 
 
 @app.command("conversation-reset")

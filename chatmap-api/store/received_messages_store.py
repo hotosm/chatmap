@@ -42,11 +42,19 @@ class ReceivedMessage:
 
 
 class ReceivedMessagesStore:
-    def __init__(self, client: RedisClient):
+    # Each reader of the streams has its own consumer group, so each one reads every message once
+    def __init__(
+            self, client: RedisClient,
+            group_name: str = "received-messages-store-group",
+            consumer_name: str = "received-messages-store-consumer",
+            batch_size: int | None = None,
+    ):
         self.client = client
         self.stream_key = "messages"
-        self.group_name = "received-messages-store-group"
-        self.consumer_name = "received-messages-store-consumer"
+        self.group_name = group_name
+        self.consumer_name = consumer_name
+        # How many messages a read returns at most; None: all of them
+        self.batch_size = batch_size
 
     def _stream_name(self, device) -> str:
         return f"{self.stream_key}:{device}"
@@ -77,7 +85,8 @@ class ReceivedMessagesStore:
             result = await self.client.xreadgroup(
                 groupname=self.group_name,
                 consumername=self.consumer_name,
-                streams={self._stream_name(device): ">" if new_messages else "0"}
+                streams={self._stream_name(device): ">" if new_messages else "0"},
+                count=self.batch_size,
             )
 
             messages = []
@@ -94,7 +103,14 @@ class ReceivedMessagesStore:
                         )
                         await self.mark_message_as_processed(message_id=entry_id, device=device)
                         continue
-                    messages.append(ReceivedMessage.from_dict({**fields, "id": entry_id}))
+                    try:
+                        messages.append(ReceivedMessage.from_dict({**fields, "id": entry_id}))
+                    except TypeError:
+                        # Read again it would fail again, holding back every message after it
+                        logger.warning(
+                            f"Message '{entry_id}' for device '{device}' lacks fields; acking it without processing"
+                        )
+                        await self.mark_message_as_processed(message_id=entry_id, device=device)
 
             return messages
         except RedisError as error:

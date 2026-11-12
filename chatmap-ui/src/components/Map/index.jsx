@@ -1,11 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Map as MapGL, GeolocateControl } from 'maplibre-gl';
+import React, {useRef, useEffect, useState} from 'react';
+import {Map as MapGL, GeolocateControl} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {osm} from './source';
 import Popup from './popup';
 import extent from 'turf-extent';
 import {useMapDataContext} from '../../context/MapDataContext';
 import useAPI from '../../components/ChatMap/useApi.js'
+import {MapTools, useMapTags} from '../Tags';
 import {BackgroundControl} from "./controls.jsx";
 
 /**
@@ -28,13 +29,30 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
     } = useAPI();
 
     const {data, tags, mapDataDispatch} = useMapDataContext();
+    // The values of the keys of the map, when it has them; it changes every minute, as values expire
+    const mapTags = useMapTags(data);
 
     const dataRef = useRef(data);
     dataRef.current = data;
+    // True while a point is being added by hand
+    const addingPoint = useRef(false);
 
     const showFeature = (feature) => {
         if (feature) setActivePopupFeature(feature);
     };
+
+    // Color of a point: by kind of message, gray when removed
+    const pointColor = [
+        "case",
+        ["boolean", ["get", "removed"], false],
+        '#9A969B', // --hot-color-neutral-400
+        [
+            "case",
+            ["any", ["to-boolean", ["get", "file"]], ["to-boolean", ["get", "media"]]],
+            '#D73F3F',  // --hot-color-red-600
+            '#2E4873', // --hot-color-blue-600
+        ]
+    ];
 
     useEffect(() => {
         if (map.current) return;
@@ -50,26 +68,26 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
 
         map.current.on("load", async () => {
 
-           // Center the map on the first feature
-           map.current.setCenter(data.features[0].geometry.coordinates)
+            // Center the map on the first feature
+            map.current.setCenter(data.features[0].geometry.coordinates)
 
-           // Add background control
-           map.current.addControl(new BackgroundControl());
+            // Add background control
+            map.current.addControl(new BackgroundControl());
 
-           // Add location control
-           let geolocate = new GeolocateControl({
-              positionOptions: {
-                  enableHighAccuracy: true
-              },
-              trackUserLocation: true
+            // Add location control
+            let geolocate = new GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: true
             });
             // Add the control to the map.
             map.current.addControl(geolocate);
 
             // Add geojson data source
             map.current.addSource('locations', {
-              data: data,
-              type: "geojson"
+                data: mapTags.shown(data),
+                type: "geojson"
             });
 
             // Fit map bounds on data extent
@@ -94,20 +112,12 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
                 'source': 'locations',
                 'layout': {},
                 'paint': {
-                    'circle-color': [
-                        "case",
-                        ["boolean", ["get", "removed"], false],
-                        '#9A969B', // --hot-color-neutral-400
-                        [
-                            "case",
-                            ["to-boolean", ["get", "file"]],
-                            '#D73F3F',  // --hot-color-red-600
-                            '#2E4873', // --hot-color-blue-600
-                        ]
-                    ],
+                    'circle-color': pointColor,
                     'circle-radius': 10
                 }
             });
+
+            mapTags.paint(map.current, 'pois', pointColor);
 
             // Invisible layer for with a buffer for better click
             map.current.addLayer({
@@ -123,6 +133,7 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
 
             // On feature click
             map.current.on("click", "pois-clickable", (e) => {
+                if (addingPoint.current) return;
                 const clickedId = e.features[0].properties.id;
                 showFeature(dataRef.current.features.find((feature) => feature.properties.id === clickedId));
             });
@@ -163,22 +174,27 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
 
             // Add geojson data source
             if (data.filterTag !== null) {
+                // The filter can also be a value of a key of the map
+                const byValue = mapTags.filter(data.filterTag);
                 {
-                    map.current.getSource('locations').setData({
+                    map.current.getSource('locations').setData(mapTags.shown({
                         ...data,
                         features: data.features.filter(feature =>
-                            data.filterTag !== undefined ?
-                                feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
-                                : !feature.properties.tags
+                            byValue ? byValue(feature)
+                                : data.filterTag !== undefined ?
+                                    feature.properties.tags && feature.properties.tags.split(",").indexOf(data.filterTag) > -1
+                                    : !feature.properties.tags
                         )
-                    });
+                    }));
                 }
             } else {
-                map.current.getSource('locations').setData(data);
+                map.current.getSource('locations').setData(mapTags.shown(data));
             }
 
+            mapTags.paint(map.current, 'pois', pointColor);
+
         }
-    }, [data]);
+    }, [data, mapTags]);
 
     // Show popup
     useEffect(() => {
@@ -217,6 +233,14 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
         setEditingTags(false);
     }
 
+    const handleAddPoint = (feature) => {
+        mapDataDispatch({
+            type: "set",
+            payload: {features: [...dataRef.current.features, feature]}
+        });
+        showFeature(feature);
+    }
+
     const handleRemoveMessage = async (feature) => {
         await removePoint(feature.properties.id);
         feature.properties.removed = !feature.properties.removed;
@@ -238,6 +262,7 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
     return (
         <div className="map-wrap">
             <div ref={mapContainer} className={["map", className].join(" ")}/>
+            <MapTools map={map} adding={addingPoint} show={showMessageOptions} onAdd={handleAddPoint}/>
             {map.current && activePopupFeature &&
                 <Popup
                     popupRef={popupRef}
@@ -247,6 +272,8 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
                     onRemoveTag={handleRemoveTag}
                     onRemoveMessage={handleRemoveMessage}
                     allTags={Object.keys(tags)}
+                    pointTags={mapTags.point}
+                    onChange={handleChange}
                     showMessageOptions={showMessageOptions}
                 />
             }

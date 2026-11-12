@@ -9,6 +9,7 @@
 @import url('@hotosm/ui-design/dist/hot.css');
 @import url('@hotosm/ui-design/dist/hot-sl.css');
 @import url('@hotosm/ui-design/dist/hot-font-face.css');
+@import url('./controls.css');
 
 
 /* Theme layer - semantic color mappings (must be in wa-theme layer, not wa-color-palette) */

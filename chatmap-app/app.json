@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "chatmap-app",
+    "slug": "chatmap",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "hot-chatmap",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.chatmapapp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#2C3038"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.anonymous.chatmapapp"
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to access your location"
+        }
+      ],
+      "expo-image",
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-audio",
+      "expo-video",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1822b39a-34b2-4ff2-899e-138778bf140a"
+      }
+    },
+    "owner": "lawal-coop"
+  }
+}

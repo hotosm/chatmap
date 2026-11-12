@@ -33,3 +33,103 @@ class UnsupportedMediaType(Exception):
 class PointAlreadyHasMedia(Exception):
     def __init__(self, point_id):
         self.point_id = point_id
+
+
+class UnknownTagChange(Exception):
+    def __init__(self, change_id):
+        self.change_id = change_id
+
+
+class UnknownKey(Exception):
+    def __init__(self, key_id):
+        self.key_id = key_id
+
+
+class KeyNameTaken(Exception):
+    def __init__(self, name):
+        self.name = name
+
+
+class KeyInUse(Exception):
+    def __init__(self, key_id):
+        self.key_id = key_id
+
+
+class UnknownValue(Exception):
+    def __init__(self, value_id):
+        self.value_id = value_id
+
+
+class ArchivedValue(Exception):
+    def __init__(self, value_id):
+        self.value_id = value_id
+
+
+class ValueInUse(Exception):
+    def __init__(self, value_ids):
+        self.value_ids = value_ids
+
+
+class InvalidTagValue(Exception):
+    def __init__(self, reason):
+        self.reason = reason
+
+
+class TooManyKeys(Exception):
+    def __init__(self, max_keys):
+        self.max_keys = max_keys
+
+
+class MapNotFound(Exception):
+    ...
+
+
+class InvalidCursor(Exception):
+    ...
+
+
+class InvitationNotFound(Exception):
+    ...
+
+
+class ContributorRemoved(Exception):
+    ...
+
+
+class MapNotLive(Exception):
+    ...
+
+
+class UnknownGroup(Exception):
+    def __init__(self, chat):
+        self.chat = chat
+
+
+class UnknownMessage(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
+class UnknownPoint(Exception):
+    def __init__(self, point_id):
+        self.point_id = point_id
+
+
+class MessageDismissed(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
+class MessageLinked(Exception):
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+
+class AlreadyLinked(Exception):
+    def __init__(self, change_id):
+        self.change_id = change_id
+
+
+class PointIdAlreadyTaken(Exception):
+    def __init__(self, point_id):
+        self.point_id = point_id

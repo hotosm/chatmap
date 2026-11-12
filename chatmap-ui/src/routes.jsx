@@ -5,6 +5,8 @@ import BotSetup from './pages/botSetup';
 import Linked from './pages/linked';
 import LoginPage from './pages/login';
 import MapView from './pages/mapView';
+import MessagesPage from './pages/messages';
+import { groupMessagesOn } from './components/Messages';
 import MapList from './pages/mapList';
 import Mapper from './pages/mapper'
 import { useConfigContext } from './context/ConfigContext.jsx';
@@ -68,6 +70,9 @@ const AppRoutes = () => {
           <Route path="/bot-setup/:id" element={<PrivateRoute><BotSetup /></PrivateRoute>} />
           <Route path="/maps" element={<MapList />} />
           <Route path="/map/:id" element={<MapView />} />
+          { groupMessagesOn(config) &&
+            <Route path="/map/:id/messages" element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
+          }
           { config.ENABLE_LIVE && <Route
             path="/linked"
             element={<PrivateRoute><Linked /></PrivateRoute>}

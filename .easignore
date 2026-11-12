@@ -1,0 +1,27 @@
+# EAS solo sube la app móvil. Este archivo reemplaza a todos los .gitignore para EAS.
+/*
+!/chatmap-app
+
+# Copia de chatmap-app/.gitignore (/android y /ios ahora con la ruta completa)
+/chatmap-app/android
+/chatmap-app/ios
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+.env*.local
+*.tsbuildinfo
+example

@@ -1,10 +1,13 @@
 import { FormattedMessage } from 'react-intl';
+import { TagFilterItems, tagFilterName } from '../Tags';
 
-export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
+export default function TagsOptions({ tags, onSelectTag, selectedTag, keys, features }) {
+    // With the tags module on, it also filters by the values the points show
+    const valueName = tagFilterName(keys, selectedTag);
     return (
         <sl-dropdown>
             <sl-button size="small" slot="trigger" caret>
-                { selectedTag ? selectedTag :
+                { valueName ? valueName : selectedTag ? selectedTag :
                     <FormattedMessage
                         id = "app.all"
                         defaultMessage="Tags"
@@ -41,6 +44,12 @@ export default function TagsOptions({ tags, onSelectTag, selectedTag }) {
                         /> ({tags["__undefined"]})</>
                     }
                 </sl-menu-item>
+                <TagFilterItems
+                    keys={keys}
+                    features={features}
+                    selected={selectedTag}
+                    onSelect={onSelectTag}
+                />
                 {Object.keys(tags).map(key =>
                     key !== "__all" && key !== "__undefined" &&
                     <sl-menu-item key={key} onClick={() => onSelectTag(key)}>

@@ -8,6 +8,8 @@ DEBUG = (os.getenv('CHATMAP_API_DEBUG', 'false').lower() == 'true')
 
 # Feature flags
 ENABLE_OUTBOUND = (os.getenv('CHATMAP_ENABLE_OUTBOUND', 'false').lower() == 'true')
+# Keep the messages of the chat groups live maps listen to; off until a server is meant to keep them
+ENABLE_GROUP_MESSAGES = (os.getenv('CHATMAP_ENABLE_GROUP_MESSAGES', 'false').lower() == 'true')
 
 # API
 API_URL = os.getenv("CHATMAP_API_URL", "http://localhost:8000")
