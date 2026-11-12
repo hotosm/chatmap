@@ -229,6 +229,14 @@ class ChatGroup(Base):
     enabled_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
+# Model representing a place a chat group is about: its messages most likely
+# tell about that point of its map. A group has one or two of them.
+class ChatGroupPoint(Base):
+    __tablename__ = "chat_group_points"
+    group_id = Column(String, ForeignKey("chat_groups.id", ondelete="CASCADE"), primary_key=True)
+    point_id = Column(String, ForeignKey("points.id", ondelete="CASCADE"), primary_key=True, index=True)
+
+
 # Model representing a message of a chat group, kept so the owner of the map
 # can link it to a place. Text and location only; who sent it, as a pseudonym.
 class GroupMessage(Base):

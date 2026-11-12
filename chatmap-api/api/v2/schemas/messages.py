@@ -18,11 +18,12 @@ class ChatGroupItem(BaseModel):
     """
     A chat group of the phone of a live map. `id` is a pseudonym: the same
     group always has the same one within a map. `enabled`: the map listens
-    to it and keeps its messages.
+    to it and keeps its messages. `point_ids`: the places it is about.
     """
     id: str
     name: str
     enabled: bool
+    point_ids: list[str] = []
 
 
 class ChatGroupsResponse(BaseModel):
@@ -36,6 +37,11 @@ class ChatGroupChange(BaseModel):
     """Listen to a group or stop; when stopping, its messages can go now instead of when they expire."""
     enabled: bool
     delete_messages: bool = False
+
+
+class GroupPlaces(BaseModel):
+    """The places a group is about, instead of the ones it had: points of the map. An empty list leaves it without any."""
+    point_ids: list[str]
 
 
 class KeptDays(BaseModel):
@@ -62,7 +68,10 @@ class GroupMessageItem(BaseModel):
     A message of a chat group the map listens to. `group_id` and `sender`
     are pseudonyms: the same group or person always has the same one within
     a map. `location` is "latitude,longitude". `links`: the values it gave
-    to points, newest first.
+    to points, newest first. `rank`: where it goes in a read in two
+    stretches (all of them, or the new ones): 1 sent after the last message
+    reviewed in its group, 0 before it; None in the other reads and outside
+    of them.
     """
     id: str
     group_id: str
@@ -72,6 +81,7 @@ class GroupMessageItem(BaseModel):
     sent_at: datetime
     dismissed_at: datetime | None = None
     links: list[MessageLink] = []
+    rank: int | None = None
 
 
 class LinkRequest(BaseModel):
@@ -107,5 +117,9 @@ class MessageChange(BaseModel):
 
 
 class GroupMessagesResponse(BaseModel):
-    """The messages of the groups a map listens to, newest first."""
+    """
+    The messages of the groups a map listens to, in the order of the read,
+    and the time what was reviewed is taken at: the next pages ask with it.
+    """
     messages: list[GroupMessageItem] = []
+    as_of: datetime

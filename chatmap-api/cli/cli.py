@@ -350,7 +350,7 @@ def chat_group_enable(
     """Make the live map of a device listen to a group, as if its owner picked it from the phone."""
     map_id = _live_map(device)
     phone = [{"chat": chat, "name": name or chat}]
-    group = asyncio.run(GroupMessagesStore.set_group(map_id, device, pseudonym(map_id, chat), True, False, phone))
+    group, _ = asyncio.run(GroupMessagesStore.set_group(map_id, device, pseudonym(map_id, chat), True, False, phone))
     typer.echo(f"map '{map_id}' listens to '{group.name}' (id {group.chat})")
 
 
@@ -363,7 +363,9 @@ def chat_group_disable(
     """Make the live map of a device stop listening to a group."""
     map_id = _live_map(device)
     try:
-        group = asyncio.run(GroupMessagesStore.set_group(map_id, device, pseudonym(map_id, chat), False, delete_messages, []))
+        group, _ = asyncio.run(GroupMessagesStore.set_group(
+            map_id, device, pseudonym(map_id, chat), False, delete_messages, [],
+        ))
     except UnknownGroup:
         typer.echo(f"map '{map_id}' does not have the group '{chat}'")
         raise typer.Exit(code=1)
@@ -374,7 +376,7 @@ def chat_group_disable(
 def chat_group_list(device: str = typer.Option(..., help="Session id whose live map is listed")):
     """List the groups the live map of a device keeps, and how many days it keeps their messages."""
     map_id = _live_map(device)
-    groups, kept_days = asyncio.run(GroupMessagesStore.groups(map_id, device, []))
+    groups, _, kept_days = asyncio.run(GroupMessagesStore.groups(map_id, device, []))
     typer.echo(f"map '{map_id}' keeps messages for {kept_days} days")
     for group in groups:
         typer.echo({"id": group.chat, "name": group.name, "enabled": group.enabled})

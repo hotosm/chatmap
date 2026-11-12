@@ -14,15 +14,18 @@ from results.error import (
     MessageDismissed,
     MessageLinked,
     StoreUnavailable,
+    TooManyPlaces,
     UnknownGroup,
     UnknownKey,
     UnknownMessage,
     UnknownPoint,
 )
 from store.group_messages_store import (
+    MAX_GROUP_PLACES,
     MAX_TEXT_LENGTH,
     PRUNE_CHUNK,
     GroupMessagesStore,
+    _places_of,
     _prune,
     pseudonym,
 )
@@ -253,16 +256,23 @@ async def test_a_long_text_is_cut():
 
 # ---- groups ----
 
-async def test_only_the_owner_of_a_live_map_sees_its_groups():
+@pytest.mark.parametrize("call", [
+    lambda: GroupMessagesStore.groups("map-1", "user-1", []),
+    lambda: GroupMessagesStore.set_group("map-1", "user-1", "c-1", True, False, []),
+    lambda: GroupMessagesStore.set_group_points("map-1", "user-1", "c-1", ["p-1"]),
+    lambda: GroupMessagesStore.set_kept_days("map-1", "user-1", 30),
+])
+async def test_only_the_owner_of_a_live_map_sees_and_sets_its_groups(call):
     db = MagicMock()
 
     db.get.return_value = _map(owner_id="someone-else")
     with _patch_scope(db), pytest.raises(MapNotFound):
-        await GroupMessagesStore.groups("map-1", "user-1", [])
+        await call()
 
     db.get.return_value = _map(is_live=False)
     with _patch_scope(db), pytest.raises(MapNotLive):
-        await GroupMessagesStore.groups("map-1", "user-1", [])
+        await call()
+    db.commit.assert_not_called()
 
 
 async def test_the_groups_of_the_phone_say_which_ones_the_map_listens_to():
@@ -273,7 +283,7 @@ async def test_the_groups_of_the_phone_say_which_ones_the_map_listens_to():
     db.execute.return_value = _result(scalars=[listened, left])
 
     with _patch_scope(db):
-        groups, kept_days = await GroupMessagesStore.groups(
+        groups, _, kept_days = await GroupMessagesStore.groups(
             "map-1", "user-1", _phone(("chat-1", "North"), ("chat-2", "South")),
         )
 
@@ -291,11 +301,11 @@ async def test_enabling_a_group_keeps_its_name_from_the_phone():
     created = ChatGroup(map_id="map-1", chat=pseudonym("map-1", "chat-1"), name="North", enabled=True)
     created_result = MagicMock()
     created_result.scalar_one.return_value = created
-    # Not there yet, the insert (nothing if two enables race), then the group
-    db.execute.side_effect = [_result(scalar=None), MagicMock(), created_result]
+    # Not there yet, the insert (nothing if two enables race), the group, then its places
+    db.execute.side_effect = [_result(scalar=None), MagicMock(), created_result, MagicMock()]
 
     with _patch_scope(db):
-        group = await GroupMessagesStore.set_group(
+        group, _ = await GroupMessagesStore.set_group(
             "map-1", "user-1", pseudonym("map-1", "chat-1"), True, False, _phone(("chat-1", "North")),
         )
 
@@ -346,13 +356,124 @@ async def test_disabling_a_group_keeps_its_messages_unless_asked():
     with _patch_scope(db):
         await GroupMessagesStore.set_group("map-1", "user-1", "c-1", False, False, [])
     assert group.enabled is False
-    assert db.execute.call_count == 1
+    # The group, then its places: no messages removed
+    assert db.execute.call_count == 2
 
     group.enabled = True
     with _patch_scope(db):
         await GroupMessagesStore.set_group("map-1", "user-1", "c-1", False, True, [])
-    deleted = db.execute.call_args_list[-1].args[0]
+    deleted = db.execute.call_args_list[-2].args[0]
     assert str(deleted).startswith("DELETE FROM group_messages")
+
+
+# ---- set_group_points ----
+
+def _places_result(rows):
+    """The places of groups as the database gives them: (group id, point id)."""
+    result = MagicMock()
+    result.all.return_value = [SimpleNamespace(group_id=group_id, point_id=point_id) for group_id, point_id in rows]
+    return result
+
+
+def _patch_places(group=None, found=(), places=()):
+    """A live map of the user, its group, the points found of the ones asked, and the places read after."""
+    db = MagicMock()
+    db.get.return_value = _map()
+    found_result = MagicMock()
+    found_result.scalars.return_value = list(found)
+    db.execute.side_effect = [
+        _result(scalar=group), found_result, MagicMock(), MagicMock(), _places_result(places),
+    ]
+    return db
+
+
+def _north():
+    return ChatGroup(id="g-1", map_id="map-1", chat="c-1", name="North", enabled=True)
+
+
+async def test_a_group_is_about_the_points_given_instead_of_the_ones_it_had():
+    db = _patch_places(group=_north(), found=["p-2", "p-1"], places=[("g-1", "p-1"), ("g-1", "p-2")])
+
+    with _patch_scope(db):
+        group, point_ids = await GroupMessagesStore.set_group_points("map-1", "user-1", "c-1", ["p-2", "p-1"])
+
+    deleted = db.execute.call_args_list[2].args[0]
+    inserted = db.execute.call_args_list[3].args[0].compile(dialect=postgresql.dialect())
+    assert str(deleted).startswith("DELETE FROM chat_group_points")
+    assert deleted.compile().params == {"group_id_1": "g-1"}
+    assert [(inserted.params[f"group_id_m{i}"], inserted.params[f"point_id_m{i}"]) for i in range(2)] == [
+        ("g-1", "p-2"), ("g-1", "p-1"),
+    ]
+    db.commit.assert_called_once()
+    assert (group.chat, point_ids) == ("c-1", ["p-1", "p-2"])
+
+
+async def test_a_point_given_twice_counts_once():
+    db = _patch_places(group=_north(), found=["p-1", "p-2"], places=[("g-1", "p-1"), ("g-1", "p-2")])
+
+    with _patch_scope(db):
+        await GroupMessagesStore.set_group_points("map-1", "user-1", "c-1", ["p-1", "p-2", "p-1", "p-2"])
+
+    asked = db.execute.call_args_list[1].args[0].compile(dialect=postgresql.dialect())
+    assert asked.params["id_1"] == ["p-1", "p-2"]
+    assert len(db.execute.call_args_list[3].args[0].compile().params) == 4
+
+
+async def test_a_group_left_without_places():
+    db = MagicMock()
+    db.get.return_value = _map()
+    db.execute.side_effect = [_result(scalar=_north()), MagicMock(), _places_result([])]
+
+    with _patch_scope(db):
+        _, point_ids = await GroupMessagesStore.set_group_points("map-1", "user-1", "c-1", [])
+
+    # Nothing to look for nor to add: its places only go
+    assert str(db.execute.call_args_list[1].args[0]).startswith("DELETE FROM chat_group_points")
+    assert point_ids == []
+
+
+async def test_a_group_is_about_two_places_at_most():
+    db = _patch_places(group=_north())
+    over = [f"p-{i}" for i in range(MAX_GROUP_PLACES + 1)]
+
+    with _patch_scope(db), pytest.raises(TooManyPlaces):
+        await GroupMessagesStore.set_group_points("map-1", "user-1", "c-1", over)
+    db.commit.assert_not_called()
+
+
+async def test_a_group_is_only_about_points_of_its_map_that_are_not_removed():
+    # p-9 is of another map, or removed: the database does not find it among the ones of the map
+    db = _patch_places(group=_north(), found=["p-1"])
+
+    with _patch_scope(db), pytest.raises(UnknownPoint) as raised:
+        await GroupMessagesStore.set_group_points("map-1", "user-1", "c-1", ["p-1", "p-9"])
+
+    asked = str(db.execute.call_args_list[1].args[0].compile(dialect=postgresql.dialect()))
+    assert "points.map_id = %(map_id_1)s" in asked and "points.removed IS false" in asked
+    assert raised.value.point_id == "p-9"
+    db.commit.assert_not_called()
+
+
+async def test_only_a_group_the_map_keeps_has_places():
+    db = _patch_places(group=None)
+
+    with _patch_scope(db), pytest.raises(UnknownGroup):
+        await GroupMessagesStore.set_group_points("map-1", "user-1", "c-9", ["p-1"])
+
+    asked = db.execute.call_args_list[0].args[0].compile(dialect=postgresql.dialect())
+    assert asked.params == {"map_id_1": "map-1", "chat_1": "c-9"}
+
+
+def test_the_places_of_groups_leave_out_points_removed_or_moved_to_another_map():
+    db = MagicMock()
+    db.execute.return_value = _places_result([("g-1", "p-1"), ("g-1", "p-2"), ("g-2", "p-3")])
+
+    assert _places_of(db, "map-1", ["g-1", "g-2"]) == {"g-1": ["p-1", "p-2"], "g-2": ["p-3"]}
+
+    query = str(db.execute.call_args.args[0].compile(dialect=postgresql.dialect()))
+    assert "points.map_id = %(map_id_1)s" in query and "points.removed IS false" in query
+    assert _places_of(db, "map-1", []) == {}
+    db.execute.assert_called_once()
 
 
 # ---- set_kept_days ----
@@ -377,19 +498,20 @@ async def test_the_messages_of_a_map_are_only_for_its_owner():
         await GroupMessagesStore.messages("map-1", "user-1")
 
 
-async def test_the_messages_of_a_map_are_the_ones_of_the_groups_it_listens_to_newest_first():
+@pytest.mark.parametrize("state", ["linked", "dismissed"])
+async def test_the_messages_of_a_map_are_the_ones_of_the_groups_it_listens_to_newest_first(state):
     db = MagicMock()
     db.get.return_value = _map()
     db.execute.return_value = []
 
     with _patch_scope(db):
-        await GroupMessagesStore.messages("map-1", "user-1", chat="c-1")
+        await GroupMessagesStore.messages("map-1", "user-1", chat="c-1", state=state, as_of=AS_OF)
 
     query = str(db.execute.call_args.args[0])
     assert "chat_groups.enabled" in query
-    assert "group_messages.dismissed_at IS NULL" in query
     assert "chat_groups.chat = " in query
     assert "ORDER BY group_messages.sent_at DESC, group_messages.id DESC" in query
+    assert "cutoffs" not in query
 
 
 async def test_a_message_is_linked_only_to_points_still_in_its_map():
@@ -398,7 +520,7 @@ async def test_a_message_is_linked_only_to_points_still_in_its_map():
     db.execute.return_value = []
 
     with _patch_scope(db):
-        await GroupMessagesStore.messages("map-1", "user-1", state="linked")
+        await GroupMessagesStore.messages("map-1", "user-1", state="linked", as_of=AS_OF)
 
     query = str(db.execute.call_args.args[0])
     assert "point_tag_changes.undone_at IS NULL" in query
@@ -411,9 +533,66 @@ async def test_the_next_page_goes_after_the_time_and_id_of_the_last_message():
     db.execute.return_value = []
 
     with _patch_scope(db):
-        await GroupMessagesStore.messages("map-1", "user-1", before=(datetime(2026, 10, 22, tzinfo=UTC), "m-9"))
+        await GroupMessagesStore.messages(
+            "map-1", "user-1", before=(datetime(2026, 10, 22, tzinfo=UTC), "m-9"), state="linked", as_of=AS_OF,
+        )
 
     assert "(group_messages.sent_at, group_messages.id) < (" in str(db.execute.call_args.args[0])
+
+
+# When what was reviewed is taken
+AS_OF = datetime(2026, 10, 22, 13, tzinfo=UTC)
+
+
+@pytest.mark.parametrize("state", [None, "new"])
+async def test_all_the_messages_and_the_new_ones_go_by_rank_then_newest_first(state):
+    db = MagicMock()
+    db.get.return_value = _map()
+    db.execute.return_value = []
+
+    with _patch_scope(db):
+        await GroupMessagesStore.messages(
+            "map-1", "user-1", before=(1, datetime(2026, 10, 22, tzinfo=UTC), "m-9"), state=state, as_of=AS_OF,
+        )
+
+    query = str(db.execute.call_args.args[0])
+    assert "group_messages.dismissed_at IS NULL" in query
+    assert "LEFT OUTER JOIN (SELECT group_messages_1.group_id" in query
+    assert "ORDER BY rank DESC, group_messages.sent_at DESC, group_messages.id DESC" in query
+    assert "(CASE WHEN (group_messages.sent_at <= cutoffs.sent_at)" in query
+    assert "group_messages.id) < (" in query
+
+
+async def test_what_was_reviewed_is_taken_as_it_was_at_the_time_asked():
+    db = MagicMock()
+    db.get.return_value = _map()
+    db.execute.return_value = []
+
+    with _patch_scope(db):
+        _, _, as_of = await GroupMessagesStore.messages("map-1", "user-1", as_of=AS_OF)
+
+    compiled = db.execute.call_args.args[0].compile(dialect=postgresql.dialect())
+    sql = str(compiled)
+    assert as_of == AS_OF
+    assert "point_tag_changes.recorded_at <= " in sql
+    assert "point_tag_changes.undone_at IS NULL OR point_tag_changes.undone_at > " in sql
+    assert "group_messages_1.dismissed_at <= " in sql
+    assert [value for value in compiled.params.values() if value == AS_OF]
+
+
+async def test_the_first_page_takes_what_was_reviewed_now_by_the_database():
+    now = datetime(2026, 10, 22, 14, tzinfo=UTC)
+    db = MagicMock()
+    db.get.return_value = _map()
+    clock = MagicMock()
+    clock.scalar_one.return_value = now
+    db.execute.side_effect = [clock, []]
+
+    with _patch_scope(db):
+        _, _, as_of = await GroupMessagesStore.messages("map-1", "user-1", state="new")
+
+    assert as_of == now
+    assert "now()" in str(db.execute.call_args_list[0].args[0])
 
 
 # ---- link, set_dismissed ----

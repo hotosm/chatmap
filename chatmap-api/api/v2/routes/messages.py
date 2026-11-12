@@ -14,6 +14,7 @@ from api.v2.schemas.messages import (
     ChatGroupsResponse,
     GroupMessageItem,
     GroupMessagesResponse,
+    GroupPlaces,
     KeptDays,
     LinkRequest,
     LinkResponse,
@@ -23,7 +24,7 @@ from api.v2.schemas.messages import (
 )
 from api.v2.routes.tags import _tag_item
 from settings import SERVER_URL
-from store.group_messages_store import GroupMessagesStore
+from store.group_messages_store import BY_REVIEW, GroupMessagesStore
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -56,24 +57,40 @@ async def _phone_groups(session: str) -> list[dict]:
     return [group.model_dump() for group in groups]
 
 
-def _group_item(group) -> ChatGroupItem:
-    return ChatGroupItem(id=group.chat, name=group.name, enabled=group.enabled)
+def _group_item(group, point_ids=()) -> ChatGroupItem:
+    return ChatGroupItem(id=group.chat, name=group.name, enabled=group.enabled, point_ids=list(point_ids))
 
 
 @router.get("/maps/{map_id}/groups")
 async def read_groups(map_id: str, user: CurrentUser) -> ChatGroupsResponse:
-    groups, kept_days = await call_store(GroupMessagesStore.groups(map_id, user.id, await _phone_groups(user.id)))
-    return ChatGroupsResponse(groups=[_group_item(group) for group in groups], kept_days=kept_days)
+    groups, places, kept_days = await call_store(
+        GroupMessagesStore.groups(map_id, user.id, await _phone_groups(user.id))
+    )
+    return ChatGroupsResponse(
+        groups=[_group_item(group, places.get(group.id, [])) for group in groups], kept_days=kept_days,
+    )
 
 
 @router.put("/maps/{map_id}/groups/{group_id}")
 async def update_group(map_id: str, group_id: str, change: ChatGroupChange, user: CurrentUser) -> ChatGroupItem:
     # The phone is asked only to take the name of a group the map starts listening to
     phone_groups = await _phone_groups(user.id) if change.enabled else []
-    group = await call_store(GroupMessagesStore.set_group(
+    group, point_ids = await call_store(GroupMessagesStore.set_group(
         map_id, user.id, group_id, change.enabled, change.delete_messages, phone_groups,
     ))
-    return _group_item(group)
+    return _group_item(group, point_ids)
+
+
+@router.put("/maps/{map_id}/groups/{group_id}/points")
+async def update_group_points(map_id: str, group_id: str, places: GroupPlaces, user: CurrentUser) -> ChatGroupItem:
+    """
+    The places a group is about, instead of the ones it had. Apart from
+    update_group: enabling or disabling a group does more than this.
+    """
+    group, point_ids = await call_store(GroupMessagesStore.set_group_points(
+        map_id, user.id, group_id, places.point_ids,
+    ))
+    return _group_item(group, point_ids)
 
 
 @router.put("/maps/{map_id}/messages/kept-days")
@@ -92,7 +109,7 @@ def _link_item(change) -> MessageLink:
     )
 
 
-def _message_item(message, chat: str, links=()) -> GroupMessageItem:
+def _message_item(message, chat: str, links=(), rank: int | None = None) -> GroupMessageItem:
     return GroupMessageItem(
         id=message.id,
         group_id=chat,
@@ -102,29 +119,46 @@ def _message_item(message, chat: str, links=()) -> GroupMessageItem:
         sent_at=message.sent_at,
         dismissed_at=message.dismissed_at,
         links=[_link_item(change) for change in links],
+        rank=rank,
     )
+
+
+def _utc(time: datetime | None) -> datetime | None:
+    # A time without zone is taken as UTC, as the messages give it
+    return time.replace(tzinfo=UTC) if time is not None and time.tzinfo is None else time
 
 
 @router.get("/maps/{map_id}/messages")
 async def read_messages(
         map_id: str, user: CurrentUser, group_id: str | None = None,
-        before: datetime | None = None, before_id: str | None = None,
+        before: datetime | None = None, before_id: str | None = None, before_rank: int | None = None,
         state: Literal["new", "linked", "dismissed"] | None = None,
+        as_of: datetime | None = None,
 ) -> GroupMessagesResponse:
     """
     The next page goes after the last message of the previous one: its
-    sent_at and id. Without `state`, the messages not dismissed.
+    sent_at and id, and its rank when the read goes in two stretches (all
+    of them, or the new ones), with the as_of the first page gave. Without
+    `state`, the messages not dismissed.
     """
     if (before is None) != (before_id is None):
         raise HTTPException(status_code=422, detail="before and before_id go together.")
-    # A time without zone is taken as UTC, as the messages give it
-    if before is not None and before.tzinfo is None:
-        before = before.replace(tzinfo=UTC)
-    cursor = (before, before_id) if before is not None else None
-    rows, links = await call_store(GroupMessagesStore.messages(map_id, user.id, group_id, cursor, state))
-    return GroupMessagesResponse(messages=[
-        _message_item(message, chat, links.get(message.id, [])) for message, chat in rows
-    ])
+    by_review = state in BY_REVIEW
+    if before_rank is not None and not by_review:
+        raise HTTPException(status_code=422, detail="before_rank goes only with all the messages or the new ones.")
+    if by_review and (before is None) != (before_rank is None):
+        raise HTTPException(status_code=422, detail="before, before_id and before_rank go together.")
+    before = _utc(before)
+    cursor = None
+    if before is not None:
+        cursor = (before_rank, before, before_id) if by_review else (before, before_id)
+    rows, links, as_of = await call_store(
+        GroupMessagesStore.messages(map_id, user.id, group_id, cursor, state, _utc(as_of))
+    )
+    return GroupMessagesResponse(
+        messages=[_message_item(message, chat, links.get(message.id, []), rank) for message, chat, rank in rows],
+        as_of=as_of,
+    )
 
 
 @router.post("/messages/{message_id}/links")

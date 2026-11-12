@@ -13,6 +13,7 @@ from results.error import (
     NotAuthorized,
     StoreUnavailable,
     TooManyKeys,
+    TooManyPlaces,
     UnknownGroup,
     UnknownKey,
     UnknownMessage,
@@ -21,6 +22,7 @@ from results.error import (
     UnknownValue,
     ValueInUse,
 )
+from store.group_messages_store import MAX_GROUP_PLACES
 
 # What each error of the tag and message stores means over HTTP
 ERRORS = {
@@ -41,6 +43,7 @@ ERRORS = {
     ValueInUse: (409, "A value some points have cannot be removed, only archived."),
     ArchivedValue: (409, "The value is archived."),
     TooManyKeys: (409, "The map has as many keys as it can take."),
+    TooManyPlaces: (422, f"A chat group is about {MAX_GROUP_PLACES} places at most."),
     StoreUnavailable: (503, "Storage unavailable."),
 }
 

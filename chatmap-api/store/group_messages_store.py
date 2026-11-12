@@ -10,7 +10,7 @@ import hmac
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import delete, exists, func, select, tuple_
+from sqlalchemy import case, delete, exists, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import (
     InterfaceError,
@@ -18,9 +18,20 @@ from sqlalchemy.exc import (
     OperationalError,
     SQLAlchemyError,
 )
+from sqlalchemy.orm import aliased
 
 from data import decrypt_message
-from db import ChatGroup, GroupMessage, Map, MapKey, Point, PointTag, PointTagChange, session_scope
+from db import (
+    ChatGroup,
+    ChatGroupPoint,
+    GroupMessage,
+    Map,
+    MapKey,
+    Point,
+    PointTag,
+    PointTagChange,
+    session_scope,
+)
 from results.error import (
     AlreadyLinked,
     MapNotFound,
@@ -28,6 +39,7 @@ from results.error import (
     MessageDismissed,
     MessageLinked,
     StoreUnavailable,
+    TooManyPlaces,
     UnknownGroup,
     UnknownKey,
     UnknownMessage,
@@ -45,8 +57,12 @@ PAGE_SIZE = 100
 NEW = "new"
 LINKED = "linked"
 DISMISSED = "dismissed"
+# What is read in two stretches, by when each group was last reviewed (see _rank); the rest, newest first
+BY_REVIEW = (None, NEW)
 # How many days a map can keep the messages of its groups
 MAX_KEPT_DAYS = 90
+# How many places a group can be about
+MAX_GROUP_PLACES = 2
 # Longer texts are cut, so a message cannot fill the database
 MAX_TEXT_LENGTH = 4000
 # How many old messages a prune removes at a time, so it never holds the table long
@@ -207,6 +223,45 @@ def _keep(device: str, messages: list[tuple[ReceivedMessage, str, str | None, da
             raise StoreUnavailable
 
 
+# The ranks of a message in the order of review: sent after the last one reviewed in its group; before it
+AFTER_REVIEWED = 1
+BEFORE_REVIEWED = 0
+
+
+def _cutoffs(map_id: str, as_of: datetime):
+    """
+    When each group of a map was last reviewed, as it was at a time: the
+    newest sent_at of its messages a person linked to a point (and did not
+    undo) or dismissed by then. A message brought back loses when it was
+    dismissed: it stops counting.
+    """
+    reviewed = aliased(GroupMessage)
+    linked_then = exists().where(
+        PointTagChange.message_id == reviewed.id,
+        PointTagChange.source == MESSAGE,
+        PointTagChange.recorded_at <= as_of,
+        or_(PointTagChange.undone_at.is_(None), PointTagChange.undone_at > as_of),
+    )
+    dismissed_then = reviewed.dismissed_at <= as_of
+    return (
+        select(reviewed.group_id, func.max(reviewed.sent_at).label("sent_at"))
+        .where(reviewed.map_id == map_id, or_(linked_then, dismissed_then))
+        .group_by(reviewed.group_id)
+        .subquery("cutoffs")
+    )
+
+
+def _rank(map_id: str, as_of: datetime):
+    """
+    When each group was last reviewed (to join to its messages), and the
+    rank of a message by it: AFTER_REVIEWED or BEFORE_REVIEWED. A group
+    nobody reviewed has all its messages after.
+    """
+    cutoffs = _cutoffs(map_id, as_of)
+    rank = case((GroupMessage.sent_at <= cutoffs.c.sent_at, BEFORE_REVIEWED), else_=AFTER_REVIEWED).label("rank")
+    return cutoffs, rank
+
+
 class GroupMessagesStore:
 
     @classmethod
@@ -224,12 +279,15 @@ class GroupMessagesStore:
         return await asyncio.to_thread(_keep, device, readable)
 
     @classmethod
-    async def groups(cls, map_id: str, user_id: str, phone_groups: list[dict]) -> tuple[list[ChatGroup], int]:
+    async def groups(
+            cls, map_id: str, user_id: str, phone_groups: list[dict],
+    ) -> tuple[list[ChatGroup], dict[str, list[str]], int]:
         """
         The groups of the phone of the owner of a live map ([{chat, name}],
         as the connector lists them), each with whether the map listens to
-        it, and the groups it keeps that the phone no longer has. Also how
-        many days the map keeps their messages.
+        it, and the groups it keeps that the phone no longer has. Also the
+        places of the groups it keeps (the ids of their points, by group id)
+        and how many days the map keeps their messages.
         """
         with session_scope() as db:
             try:
@@ -238,11 +296,12 @@ class GroupMessagesStore:
                     group.chat: group
                     for group in db.execute(select(ChatGroup).where(ChatGroup.map_id == map_id)).scalars()
                 }
+                places = _places_of(db, map_id, [group.id for group in kept.values()])
                 groups = []
                 for phone_group in phone_groups:
                     chat = pseudonym(map_id, phone_group["chat"])
                     groups.append(kept.pop(chat, None) or ChatGroup(chat=chat, name=phone_group["name"], enabled=False))
-                return groups + list(kept.values()), map_obj.messages_kept_days
+                return groups + list(kept.values()), places, map_obj.messages_kept_days
             except SQLAlchemyError as error:
                 logger.error(f"Fetch chat groups of map '{map_id}' failed with: {type(error).__name__}")
                 raise StoreUnavailable
@@ -251,11 +310,12 @@ class GroupMessagesStore:
     async def set_group(
             cls, map_id: str, user_id: str, chat: str, enabled: bool, delete_messages: bool,
             phone_groups: list[dict],
-    ) -> ChatGroup:
+    ) -> tuple[ChatGroup, list[str]]:
         """
         Makes a live map listen to a group of the phone (by its pseudonym) or
         stop listening to it. A group stopped keeps its messages until they
-        expire, unless delete_messages asks to remove them now.
+        expire, unless delete_messages asks to remove them now. Returns it
+        with its places, which stay either way.
         """
         with session_scope() as db:
             try:
@@ -297,10 +357,57 @@ class GroupMessagesStore:
 
                 db.commit()
                 db.refresh(group)
-                return group
+                return group, _places_of(db, map_id, [group.id]).get(group.id, [])
             except SQLAlchemyError as error:
                 db.rollback()
                 logger.error(f"Save chat group of map '{map_id}' failed with: {type(error).__name__}")
+                raise StoreUnavailable
+
+    @classmethod
+    async def set_group_points(
+            cls, map_id: str, user_id: str, chat: str, point_ids: list[str],
+    ) -> tuple[ChatGroup, list[str]]:
+        """
+        The places a group a live map keeps (by its pseudonym) is about,
+        instead of the ones it had: up to MAX_GROUP_PLACES points of the map,
+        not removed. A point given twice counts once. Returns the group with
+        its places.
+        """
+        with session_scope() as db:
+            try:
+                _owned_live_map(db, map_id, user_id)
+                # Locked, so two changes at once do not mix their places
+                group = db.execute(
+                    select(ChatGroup).where(ChatGroup.map_id == map_id, ChatGroup.chat == chat).with_for_update()
+                ).scalar_one_or_none()
+                if group is None:
+                    raise UnknownGroup(chat)
+
+                wanted = list(dict.fromkeys(point_ids))
+                if len(wanted) > MAX_GROUP_PLACES:
+                    raise TooManyPlaces(MAX_GROUP_PLACES)
+                if wanted:
+                    # Shared locks, so none of them goes before the group has it
+                    found = set(db.execute(
+                        select(Point.id)
+                        .where(Point.id.in_(wanted), Point.map_id == map_id, Point.place, Point.removed.is_(False))
+                        .with_for_update(read=True)
+                    ).scalars())
+                    missing = next((point_id for point_id in wanted if point_id not in found), None)
+                    if missing is not None:
+                        raise UnknownPoint(missing)
+
+                db.execute(delete(ChatGroupPoint).where(ChatGroupPoint.group_id == group.id))
+                if wanted:
+                    db.execute(insert(ChatGroupPoint).values([
+                        {"group_id": group.id, "point_id": point_id} for point_id in wanted
+                    ]))
+                db.commit()
+                db.refresh(group)
+                return group, _places_of(db, map_id, [group.id]).get(group.id, [])
+            except SQLAlchemyError as error:
+                db.rollback()
+                logger.error(f"Save places of chat group of map '{map_id}' failed with: {type(error).__name__}")
                 raise StoreUnavailable
 
     @classmethod
@@ -319,25 +426,39 @@ class GroupMessagesStore:
 
     @classmethod
     async def messages(
-            cls, map_id: str, user_id: str, chat: str | None = None, before: tuple[datetime, str] | None = None,
-            state: str | None = None,
-    ) -> tuple[list[tuple[GroupMessage, str]], dict[str, list[PointTagChange]]]:
+            cls, map_id: str, user_id: str, chat: str | None = None, before: tuple | None = None,
+            state: str | None = None, as_of: datetime | None = None,
+    ) -> tuple[list[tuple[GroupMessage, str, int | None]], dict[str, list[PointTagChange]], datetime]:
         """
-        The messages of the groups a map listens to, newest first, each with
-        the pseudonym of its group; one group with `chat`. A page holds up to
-        PAGE_SIZE messages; `before` (the time and id of the last message of
-        a page) asks for the next ones. Both go, since many messages can be
-        sent in the same second.
+        The messages of the groups a map listens to, each with the pseudonym
+        of its group; one group with `chat`. A page holds up to PAGE_SIZE
+        messages; `before` (where the last message of a page is in the order)
+        asks for the next ones.
 
         By default the ones not dismissed; `state` asks for the NEW ones (not
         linked to any point nor dismissed), the LINKED or the DISMISSED. Also
         the changes each message of the page made to points (its links),
         undone ones too, newest first.
+
+        All of them and the NEW ones go in two stretches, each with its rank
+        (see _rank): first the ones sent after the last one a person reviewed
+        in their group; then the older ones.
+        Within a rank, newest first. `before` is then (rank, sent_at, id);
+        for the other states, which go newest first, (sent_at, id). Both
+        times and ids go, since many messages can be sent in the same second.
+
+        What was reviewed is taken as it was at `as_of`, so a review between
+        two pages does not move messages from one stretch to the other: the
+        first page gives the time (now, by the database), and the next ones
+        ask with it. Returns the rows, their links and that time.
         """
         with session_scope() as db:
             try:
                 _owned_map(db, map_id, user_id)
+                if as_of is None:
+                    as_of = db.execute(select(func.now())).scalar_one()
                 linked = exists().where(_live_links(GroupMessage.id, GroupMessage.map_id))
+                ranked = state in BY_REVIEW
                 query = (
                     select(GroupMessage, ChatGroup.chat)
                     .join(ChatGroup, GroupMessage.group_id == ChatGroup.id)
@@ -353,11 +474,16 @@ class GroupMessagesStore:
                     query = query.where(linked)
                 if chat is not None:
                     query = query.where(ChatGroup.chat == chat)
+                order = [GroupMessage.sent_at, GroupMessage.id]
+                if ranked:
+                    cutoffs, rank = _rank(map_id, as_of)
+                    query = query.outerjoin(cutoffs, cutoffs.c.group_id == GroupMessage.group_id).add_columns(rank)
+                    order = [rank, *order]
                 if before is not None:
-                    query = query.where(tuple_(GroupMessage.sent_at, GroupMessage.id) < tuple_(*before))
-                query = query.order_by(GroupMessage.sent_at.desc(), GroupMessage.id.desc()).limit(PAGE_SIZE)
-                rows = [(row.GroupMessage, row.chat) for row in db.execute(query)]
-                return rows, _links_of(db, map_id, [message.id for message, _ in rows])
+                    query = query.where(tuple_(*order) < tuple_(*before))
+                query = query.order_by(*(column.desc() for column in order)).limit(PAGE_SIZE)
+                rows = [(row.GroupMessage, row.chat, row.rank if ranked else None) for row in db.execute(query)]
+                return rows, _links_of(db, map_id, [message.id for message, *_ in rows]), as_of
             except SQLAlchemyError as error:
                 logger.error(f"Fetch group messages of map '{map_id}' failed with: {type(error).__name__}")
                 raise StoreUnavailable
@@ -451,6 +577,25 @@ class GroupMessagesStore:
     async def prune(cls) -> int:
         """Removes the messages each map keeps for longer than it says. Answers how many."""
         return await asyncio.to_thread(_prune)
+
+
+def _places_of(db, map_id: str, group_ids: list[str]) -> dict[str, list[str]]:
+    """
+    The points these groups are about, by group. Points removed or moved to
+    another map since are left out.
+    """
+    if not group_ids:
+        return {}
+    places = {}
+    rows = db.execute(
+        select(ChatGroupPoint.group_id, ChatGroupPoint.point_id)
+        .join(Point, Point.id == ChatGroupPoint.point_id)
+        .where(ChatGroupPoint.group_id.in_(group_ids), Point.map_id == map_id, Point.removed.is_(False))
+        .order_by(ChatGroupPoint.group_id, ChatGroupPoint.point_id)
+    ).all()
+    for row in rows:
+        places.setdefault(row.group_id, []).append(row.point_id)
+    return places
 
 
 def _links_of(db, map_id: str, message_ids: list[str]) -> dict[str, list[PointTagChange]]:

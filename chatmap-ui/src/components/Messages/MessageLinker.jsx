@@ -1,79 +1,109 @@
 import { useMemo, useRef, useState } from "react";
 import { FormattedMessage } from "react-intl";
 
-import { KeyValues, isExpired } from "../Tags";
+import { KeyValues } from "../Tags";
+import { LinkOutcome } from "./LinkStates.jsx";
 import PlacePicker from "./PlacePicker.jsx";
+import { FAILED, TWICE, linkOutcome, statusKeyOf } from "./linkStates.js";
 import { coordsOf, liveLinks, placesOf } from "./messages.js";
-
-// Why a link did not change what the place shows now, or was not made
-const OLDER = "older";
-const EXPIRED = "expired";
-const TWICE = "twice";
-
-// Why the API did not take a link, by its status
-const NOT_TAKEN = {
-    404: <FormattedMessage id="app.messages.linkGone" defaultMessage="That place or this message is no longer there. Reload the page." />,
-    409: <FormattedMessage
-        id="app.messages.linkConflict"
-        defaultMessage="It is already linked that way, or the message was dismissed. Reload the page."
-    />,
-};
-const NOT_LINKED = <FormattedMessage id="app.messages.notLinked" defaultMessage="It could not be linked. Try again." />;
 
 /**
  * Links a message to a place of the map: "Choose place", then "Choose
  * status" with the values of its keys. Picking a value gives it to the
- * place at the time of the message, and says when that does not change
- * what the place shows: it had something newer, or the value already expired.
+ * place at the time of the message and, when that does not change what the
+ * place shows (it had something newer, the value already expired, the
+ * message already gave it) or it could not be done, says so in a bar
+ * inside the card (see LinkOutcome).
  *
  * @param {object} mapData The map, with its points (features) and keys
  * @param {function} onLink Gets the message and the change; answers { status, answer } (see useMessageActions)
+ * @param {function} onUndo Gets the message and a link; answers null when it is not undone
+ * @param {function} onReload Reads the messages again, after a link the API did not take
+ * @param {function} onCreatePlace Gets a name and [lat, lon]; answers the new place, or null (see useAddedPlaces)
+ * @param {array} groupPointIds The places the group of the message always speaks of, if its owner said so:
+ *   one comes chosen, two come as shortcuts, always saying they come from the group
  */
-export default function MessageLinker({ message, mapData, keys, onLink }) {
+export default function MessageLinker({
+    message, mapData, keys, onLink, onUndo, onReload, onCreatePlace, groupPointIds = [],
+}) {
     const dropdown = useRef();
     const [place, setPlace] = useState(null);
     const [busy, setBusy] = useState(false);
-    // The status of a link the API did not take, or null
-    const [failed, setFailed] = useState(null);
-    const [notice, setNotice] = useState(null);
-    const places = useMemo(
-        () => placesOf(mapData.features, coordsOf(message.location)), [mapData.features, message.location],
+    // What the last link did, with the name of its place, or null
+    const [outcome, setOutcome] = useState(null);
+    const coords = useMemo(() => coordsOf(message.location), [message.location]);
+    const places = useMemo(() => placesOf(mapData.features, coords), [mapData.features, coords]);
+    const statusKey = useMemo(() => statusKeyOf(mapData.keys), [mapData.keys]);
+    // The places of the group, when its owner said it always speaks of them
+    const ofGroup = useMemo(
+        () => groupPointIds.map((id) => places.find((item) => item.id === id)).filter(Boolean), [groupPointIds, places],
     );
+    const byGroup = !place && ofGroup.length === 1;
+    const chosen = place || (byGroup ? ofGroup[0] : null);
 
     const pick = async (keyId, change) => {
-        setNotice(null);
-        setFailed(null);
+        setOutcome(null);
+        const key = keys.find((item) => item.key.id === keyId).key;
+        const value = (key.values || []).find((item) => item.id === change.value_id) || null;
+        const said = { place: chosen.name };
         // The same message giving the same value to the same place says nothing new
         const twice = liveLinks(message).some((link) =>
-            link.point_id === place.id && link.key_id === keyId &&
+            link.point_id === chosen.id && link.key_id === keyId &&
             (change.value_id ? link.value_id === change.value_id : link.value === change.value)
         );
         if (twice) {
             dropdown.current && dropdown.current.hide();
-            setNotice(TWICE);
+            setOutcome({ ...said, kind: TWICE, value: value ? value.value : change.value });
             return;
         }
         setBusy(true);
-        const { status, answer } = await onLink(message, { point_id: place.id, key_id: keyId, ...change });
+        const { status, answer } = await onLink(message, { point_id: chosen.id, key_id: keyId, ...change });
         setBusy(false);
         if (!answer) {
-            setFailed(status);
+            setOutcome({ ...said, kind: FAILED, status });
             return;
         }
         dropdown.current && dropdown.current.hide();
-        const key = keys.find((item) => item.key.id === keyId).key;
-        const value = (key.values || []).find((item) => item.id === change.value_id);
-        if (!answer.applied) setNotice(OLDER);
-        else if (value && isExpired(value, { confirmed_at: message.sent_at })) setNotice(EXPIRED);
+        const done = linkOutcome({ answer, key, value, sentAt: message.sent_at });
+        setOutcome(done && { ...said, ...done });
         setPlace(null);
+    };
+
+    // Undone from its bar, the bar goes away with it
+    const undo = async (link) => {
+        const undone = await onUndo(message, link);
+        if (undone) setOutcome(null);
+        return undone;
     };
 
     return (
         <div className="messageLinker">
             <div className="messageLinker__pickers">
-                <PlacePicker places={places} place={place} onPick={setPlace} disabled={busy} />
+                <PlacePicker
+                    places={places}
+                    place={chosen}
+                    onPick={setPlace}
+                    disabled={busy}
+                    coords={coords}
+                    features={mapData.features}
+                    statusKey={statusKey}
+                    onCreate={onCreatePlace || null}
+                />
+                { byGroup &&
+                    <span className="messageLinker__ofGroup">
+                        <FormattedMessage id="app.messages.ofGroup" defaultMessage="(of the group)" />
+                    </span>
+                }
+                { !place && ofGroup.length > 1 && ofGroup.map((item) =>
+                    <button key={item.id} type="button" className="pill pill--outline messageLinker__shortcut" disabled={busy} onClick={() => setPlace(item)}>
+                        {item.name}
+                        <span className="messageLinker__ofGroup">
+                            <FormattedMessage id="app.messages.ofGroup" defaultMessage="(of the group)" />
+                        </span>
+                    </button>
+                )}
                 <sl-dropdown ref={dropdown} placement="bottom-start" hoist>
-                    <button slot="trigger" type="button" className="pill pill--outline pill--caret" disabled={!place || busy}>
+                    <button slot="trigger" type="button" className="pill pill--outline pill--caret" disabled={!chosen || busy}>
                         <FormattedMessage id="app.messages.chooseStatus" defaultMessage="Choose status" />
                     </button>
                     <div className="popoverPanel messagePicker__panel">
@@ -81,34 +111,8 @@ export default function MessageLinker({ message, mapData, keys, onLink }) {
                     </div>
                 </sl-dropdown>
             </div>
-            { failed !== null &&
-                <p className="messageLinker__notice messageLinker__notice--error" role="alert">
-                    {NOT_TAKEN[failed] || NOT_LINKED}
-                </p>
-            }
-            { notice === OLDER &&
-                <p className="messageLinker__notice" role="status">
-                    <FormattedMessage
-                        id="app.messages.linkedOlder"
-                        defaultMessage="It went to the history of the place: it has something newer, which it keeps showing."
-                    />
-                </p>
-            }
-            { notice === TWICE &&
-                <p className="messageLinker__notice" role="status">
-                    <FormattedMessage
-                        id="app.messages.linkedTwice"
-                        defaultMessage="This message already gives that value to that place."
-                    />
-                </p>
-            }
-            { notice === EXPIRED &&
-                <p className="messageLinker__notice" role="status">
-                    <FormattedMessage
-                        id="app.messages.linkedExpired"
-                        defaultMessage="The message is older than that value lasts: the place shows it as unknown."
-                    />
-                </p>
+            { outcome &&
+                <LinkOutcome outcome={outcome} place={outcome.place} onUndo={onUndo && undo} onReload={onReload} />
             }
         </div>
     );

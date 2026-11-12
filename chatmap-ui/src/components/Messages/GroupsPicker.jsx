@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from "react-intl";
 
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 
+import GroupPlaces from "./GroupPlaces.jsx";
 import useGroupName from "./useGroupName.js";
 import useMessagesApi from "./useMessagesApi.js";
 
@@ -15,12 +16,15 @@ const DAYS = [7, 15, 30, 60, 90];
  * then on, and only for as many days as it says. Stopping one is confirmed
  * right there, keeping its messages until they expire or removing them now.
  *
+ * A group listened to can also say the places it always speaks of (see GroupPlaces).
+ *
  * @param {object} phone The groups and days as the API answers them
+ * @param {array} places The places of the map (see placesOf)
  * @param {function} onChange Gets the groups and days after a change
  */
-export default function GroupsPicker({ mapId, phone, onChange }) {
+export default function GroupsPicker({ mapId, phone, places, onChange }) {
     const intl = useIntl();
-    const { updateGroup, updateKeptDays } = useMessagesApi();
+    const { updateGroup, updateGroupPlaces, updateKeptDays } = useMessagesApi();
     const [stopping, setStopping] = useState(null);
     const [busy, setBusy] = useState(false);
     const [failed, setFailed] = useState(false);
@@ -38,6 +42,11 @@ export default function GroupsPicker({ mapId, phone, onChange }) {
         () => updateGroup(mapId, group.id, change),
         (saved) => ({ ...phone, groups: phone.groups.map((item) => item.id === saved.id ? saved : item) }),
     ).then((saved) => saved && setStopping(null));
+
+    const setPlaces = (group, pointIds) => run(
+        () => updateGroupPlaces(mapId, group.id, pointIds),
+        (saved) => ({ ...phone, groups: phone.groups.map((item) => item.id === saved.id ? saved : item) }),
+    );
 
     const setDays = (days) => run(() => updateKeptDays(mapId, days), (saved) => ({ ...phone, kept_days: saved.days }));
 
@@ -95,6 +104,10 @@ export default function GroupsPicker({ mapId, phone, onChange }) {
                                     </button>
                                 }
                             </div>
+
+                            { group.enabled && stopping !== group.id &&
+                                <GroupPlaces group={group} places={places} busy={busy} onSave={(pointIds) => setPlaces(group, pointIds)} />
+                            }
 
                             { stopping === group.id &&
                                 <div className="groupsPicker__stop">
