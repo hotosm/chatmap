@@ -1,32 +1,30 @@
 import { useState } from "react";
-import { FormattedMessage, useIntl } from "react-intl";
+import { FormattedMessage } from "react-intl";
 
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 
 import { ValueChip } from "../Tags";
 import { tagsOf } from "../Tags/tags.js";
-import { highlighted, linkOf, messageRows, renewable } from "./messages.js";
+import { linkOf, renewable } from "./messages.js";
 
 /**
- * A message in its card as rows: what rules suggest for the whole of it,
- * then each line with what it suggests, each line once and in its own
- * direction. Every suggestion says in its row what it would do (the value a
- * place has and the one it would get), why a person should look closely, or
- * that it was answered. What places already show is renewed with one click
- * at the bottom. Nothing changes a place without a person.
+ * What a message suggests, under it: a row per suggestion, in the order of
+ * the message (what rules say of the whole of it first, then its lines).
+ * Each row says the place, the value it has and the one it would get, and
+ * how to answer it; a person answers each one. What places already show is
+ * renewed with one click at the bottom. Nothing changes a place without a person.
  *
  * @param {function} onConfirm Links the message as a suggestion says: (message, { point_id, key_id, value_id }); answers { answer } or null
  * @param {function} onAnswer Says no to a suggestion, or takes it back: (message, suggestion, rejected)
  * @param {function} onRenew Confirms at once what places already show: (message, suggestions)
  * @param {function} onChoose A suggestion lacks its place or its value: the pickers below take it, with its place if it has one
  * @param {function} onUndo Undoes the link a confirmed suggestion made: (message, link)
+ * @param {function} onPoint Gets the line of the row pointed at, to mark it in the message; null when none is
  */
-export default function MessageLines({ message, mapData, onConfirm, onAnswer, onRenew, onChoose, onUndo }) {
-    const intl = useIntl();
+export default function MessageLines({ message, mapData, onConfirm, onAnswer, onRenew, onChoose, onUndo, onPoint }) {
     const [busy, setBusy] = useState(false);
     const [failed, setFailed] = useState(false);
     const suggestions = message.suggestions || [];
-    const rows = messageRows(message.text, suggestions);
     const same = renewable(suggestions);
 
     const featureOf = (id) => (mapData.features || []).find((item) => item.properties.id === id && !item.properties.removed);
@@ -43,129 +41,113 @@ export default function MessageLines({ message, mapData, onConfirm, onAnswer, on
         return result && result.answer;
     });
     const no = (item) =>
-        <button
-            type="button"
-            className="messageLines__no"
-            disabled={busy}
-            aria-label={intl.formatMessage({ id: "app.lines.no", defaultMessage: "No, it does not say this" })}
-            title={intl.formatMessage({ id: "app.lines.no", defaultMessage: "No, it does not say this" })}
-            onClick={() => run(() => onAnswer(message, item, true))}
-        >
-            <SlIcon name="x-lg" />
+        <button type="button" className="messageLines__no" disabled={busy} onClick={() => run(() => onAnswer(message, item, true))}>
+            <FormattedMessage id="app.lines.no" defaultMessage="Not right" />
+        </button>;
+    const undo = (call) =>
+        <button type="button" className="messageLinks__undo" disabled={busy} onClick={() => run(call)}>
+            <FormattedMessage id="app.messages.undo" defaultMessage="Undo" />
         </button>;
 
-    // What a suggestion would do, as chips: the place, the value it has and the one it would get
+    // The place, and the value it has and the one it would get (the one it had, once answered)
     const said = (item) => {
         const feature = item.point_id && featureOf(item.point_id);
         const key = item.key_id && keyOf(item.key_id);
         const value = key && key.values.find((option) => option.id === item.value_id);
         const [now] = feature && key ? tagsOf(feature.properties, key.id) : [];
-        // What it would change, while it waits for an answer
         const was = item.state === "pending" && now && value && now.value_id !== value.id ?
             key.values.find((option) => option.id === now.value_id) : null;
-        return (
-            <span className="messageLines__said">
+        return <>
+            <span className="messageLines__place">
                 { feature && <span className="placeChip">{feature.properties.message}</span> }
-                { was && <span className="messageLines__was"><ValueChip value={was} className="valueChip--small" /> →</span> }
+            </span>
+            <span className="messageLines__values">
+                { was && <><ValueChip value={was} className="valueChip--small" /><span aria-hidden="true" className="messageLines__arrow">→</span></> }
                 { value && <ValueChip value={value} className="valueChip--small" /> }
             </span>
-        );
+        </>;
     };
 
     const answer = (item) => {
-        const complete = item.point_id && item.value_id;
         if (item.state === "accepted") {
             const link = linkOf(message, item);
-            return (
-                <span className="messageLines__note">
-                    <SlIcon name="check" />
-                    <FormattedMessage id="app.lines.linked" defaultMessage="Linked" />
-                    { link &&
-                        <button type="button" className="messageLinks__undo" disabled={busy} onClick={() => run(() => onUndo(message, link))}>
-                            <FormattedMessage id="app.messages.undo" defaultMessage="Undo" />
-                        </button>
-                    }
-                </span>
-            );
+            return <>
+                <SlIcon name="check" />
+                <FormattedMessage id="app.lines.linked" defaultMessage="Linked" />
+                { link && <><span aria-hidden="true">·</span>{undo(() => onUndo(message, link))}</> }
+            </>;
         }
         if (item.state === "rejected") {
-            return (
-                <span className="messageLines__note">
-                    <FormattedMessage id="app.lines.saidNo" defaultMessage="You said no" />
-                    <button type="button" className="messageLinks__undo" disabled={busy} onClick={() => run(() => onAnswer(message, item, false))}>
-                        <FormattedMessage id="app.messages.undo" defaultMessage="Undo" />
-                    </button>
-                </span>
-            );
+            return <>
+                <FormattedMessage id="app.lines.saidNo" defaultMessage="You said no" />
+                <span aria-hidden="true">·</span>
+                {undo(() => onAnswer(message, item, false))}
+            </>;
         }
-        if (!complete) {
-            return (
-                <span className="messageLines__answers">
-                    <button type="button" className="messageLines__choose" disabled={busy} onClick={() => onChoose(item)}>
-                        { item.point_id ?
-                            <FormattedMessage id="app.lines.chooseStatus" defaultMessage="Choose its status" /> :
-                            <FormattedMessage id="app.lines.choosePlace" defaultMessage="Choose the place" />
-                        }
-                    </button>
-                    {no(item)}
-                </span>
-            );
+        if (!item.point_id || !item.value_id) {
+            return <>
+                {no(item)}
+                <button type="button" className="messageLines__confirm" disabled={busy} onClick={() => onChoose(item)}>
+                    { item.point_id ?
+                        <FormattedMessage id="app.lines.chooseStatus" defaultMessage="Choose its status" /> :
+                        <FormattedMessage id="app.lines.choosePlace" defaultMessage="Choose the place" />
+                    }
+                </button>
+            </>;
         }
         if (item.unchanged && !item.doubt) {
             // Many go together in the bar at the bottom; one alone is renewed here
-            return (
-                <span className="messageLines__answers">
-                    { same.length > 1 ?
-                        <span className="messageLines__note"><FormattedMessage id="app.lines.noChange" defaultMessage="no change" /></span> :
-                        <button type="button" className="messageLines__confirm" disabled={busy} onClick={() => run(() => onRenew(message, [item]))}>
-                            <SlIcon name="arrow-clockwise" />
-                            <FormattedMessage id="app.lines.renewOne" defaultMessage="Renew" />
-                        </button>
-                    }
+            return same.length > 1 ?
+                <FormattedMessage id="app.lines.noChange" defaultMessage="the map shows it already" /> :
+                <>
                     {no(item)}
-                </span>
-            );
+                    <button type="button" className="messageLines__confirm" disabled={busy} onClick={() => run(() => onRenew(message, [item]))}>
+                        <SlIcon name="arrow-clockwise" />
+                        <FormattedMessage id="app.lines.renewOne" defaultMessage="Renew" />
+                    </button>
+                </>;
         }
-        return (
-            <span className="messageLines__answers">
-                {no(item)}
-                <button type="button" className="messageLines__confirm" disabled={busy} onClick={() => confirm(item)}>
-                    <SlIcon name="check" />
-                    <FormattedMessage id="app.lines.confirm" defaultMessage="Confirm" />
-                </button>
-            </span>
-        );
+        return <>
+            {no(item)}
+            <button type="button" className="messageLines__confirm" disabled={busy} onClick={() => confirm(item)}>
+                <SlIcon name="check" />
+                <FormattedMessage id="app.lines.confirm" defaultMessage="Confirm" />
+            </button>
+        </>;
     };
 
-    const doubt = (item) => item.state === "pending" && item.doubt &&
-        <span className="messageLines__doubt">
-            { item.doubt === "question" ?
-                <FormattedMessage id="app.lines.question" defaultMessage="It asks, it does not say so: confirm only if you know it" /> :
-                <FormattedMessage id="app.lines.twoValues" defaultMessage="It says two values: confirm the right one" />
-            }
-        </span>;
+    // Why to look at it closely, or which rule said it
+    const note = (item) => {
+        if (item.state === "pending" && item.doubt) {
+            return <p className="messageLines__note messageLines__note--doubt">
+                <SlIcon name="info-circle" />
+                { item.doubt === "question" ?
+                    <FormattedMessage id="app.lines.question" defaultMessage="It asks, it does not say so: confirm only if you know it" /> :
+                    <FormattedMessage id="app.lines.twoValues" defaultMessage="It says two values: confirm the right one" />
+                }
+            </p>;
+        }
+        return item.line === null && item.rule ?
+            <p className="messageLines__note">
+                <FormattedMessage id="app.lines.byRule" defaultMessage="As the rule «{rule}» says" values={{ rule: <bdi>{item.rule}</bdi> }} />
+            </p> : null;
+    };
 
     return (
-        <div className="messageLines">
-            { rows.map((row) =>
-                <div key={row.line ?? "whole"} className={`messageLines__row ${row.suggestions.length ? "" : "messageLines__row--quiet"}`}>
-                    <p className="messageLines__text" dir="auto">
-                        { row.line === null ?
-                            <FormattedMessage id="app.lines.byRule" defaultMessage="As the rule «{rule}» says" values={{ rule: <bdi>{row.suggestions[0].rule}</bdi> }} /> :
-                            highlighted(row.text, row.suggestions.flatMap((item) => item.words || [])).map((piece, index) => piece.match ?
-                                <mark key={index} className="messageCard__mark">{piece.text}</mark> : piece.text
-                            )
-                        }
-                    </p>
-                    <div className="messageLines__suggestions">
-                        { row.suggestions.map((item) =>
-                            <div key={item.id} className={`messageLines__suggestion messageLines__suggestion--${item.state}`}>
-                                {said(item)}
-                                {answer(item)}
-                                {doubt(item)}
-                            </div>
-                        )}
-                    </div>
+        <section className="messageLines" onMouseLeave={() => onPoint(null)}>
+            <h4 className="messageLines__label">
+                <FormattedMessage id="app.lines.suggests" defaultMessage="Suggests" />
+            </h4>
+            { suggestions.map((item) =>
+                <div
+                    key={item.id}
+                    className={`messageLines__row messageLines__row--${item.state}`}
+                    onMouseEnter={() => onPoint(item.line)}
+                    onFocus={() => onPoint(item.line)}
+                >
+                    {said(item)}
+                    <span className="messageLines__answers">{answer(item)}</span>
+                    {note(item)}
                 </div>
             )}
             { same.length > 1 &&
@@ -188,6 +170,6 @@ export default function MessageLines({ message, mapData, onConfirm, onAnswer, on
                     <FormattedMessage id="app.messages.notSaved" defaultMessage="It could not be saved. Try again." />
                 </p>
             }
-        </div>
+        </section>
     );
 }

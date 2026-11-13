@@ -246,19 +246,6 @@ export const nearestPlace = (features, coords, within = 2000) => {
 // The suggestions of a message with the answer of the API to one of them, or to a link
 export const withSuggestions = (message, suggestions) => suggestions ? { ...message, suggestions } : message;
 
-/**
- * The rows of a message in its card: first what rules suggest for the whole
- * message (line null), then each line with text, with what it suggests, in
- * the order of the message. A line keeps its number as the API counts them.
- */
-export const messageRows = (text, suggestions = []) => {
-    const whole = suggestions.filter((item) => item.line === null || item.line === undefined);
-    const lines = (text || "").split("\n")
-        .map((line, index) => ({ line: index, text: line.trim(), suggestions: suggestions.filter((item) => item.line === index) }))
-        .filter((row) => row.text);
-    return [...(whole.length ? [{ line: null, text: null, suggestions: whole }] : []), ...lines];
-};
-
 // What a person renews with one click: pending, plain, with a place and a value, which the place already shows
 export const renewable = (suggestions = []) => suggestions.filter((item) =>
     item.state === "pending" && item.unchanged && !item.doubt && item.point_id && item.value_id

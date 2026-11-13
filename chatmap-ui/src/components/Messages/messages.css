@@ -156,12 +156,12 @@
     align-self: center;
 }
 
-/* A message: what it says on top; what can be done with it, and when and where it was said, below */
+/* A message: who and when on top; what it says, as a bubble; what it suggests and what can be done with it, below */
 .messageCard {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--hot-spacing-small);
+    gap: var(--hot-spacing-medium);
     padding: var(--hot-spacing-large) var(--hot-spacing-x-large);
     border-radius: var(--hot-border-radius-x-large);
     background-color: var(--hot-color-gray-50);
@@ -209,8 +209,14 @@
     font-size: var(--hot-font-size-small);
 }
 
+/* What the person wrote, whole, as a bubble the width of the card: apart from what to do with it */
 .messageCard__text {
     margin: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: 16px;
+    border-start-start-radius: 4px;
+    background-color: var(--hot-color-neutral-0);
     color: var(--hot-color-neutral-950);
     font-size: var(--hot-font-size-medium);
     overflow-wrap: anywhere;
@@ -307,6 +313,45 @@
     min-height: 1lh;
 }
 
+/* The line the suggestion pointed at comes from */
+.messageCard__line--marked {
+    margin-inline: -4px;
+    padding-inline: 4px;
+    border-radius: var(--hot-border-radius-small);
+    background-color: var(--hot-color-warning-100);
+}
+
+/* Linking by hand: folded under what a message suggests, open when it suggests nothing */
+.messageCard__byHand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--hot-color-gray-600);
+    font: inherit;
+    font-size: var(--hot-font-size-small);
+    font-weight: var(--hot-font-weight-bold);
+    cursor: pointer;
+}
+
+.messageCard__byHand:hover,
+.messageCard__byHand[aria-expanded="true"],
+.messageCard__byHand--open {
+    color: var(--hot-color-neutral-950);
+}
+
+.messageCard__byHand--open {
+    cursor: default;
+}
+
+/* The arrow goes the way the text is read */
+[dir="rtl"] .messageCard__byHandIcon {
+    transform: scaleX(-1);
+}
+
 /* What a rule looked for, marked in the text */
 .messageCard__mark {
     padding: 0 2px;
@@ -322,80 +367,96 @@
     gap: var(--hot-spacing-small);
 }
 
-/* A message as rows (MessageLines): each line once, on its left; what it suggests on its right */
+/* What a message suggests (MessageLines): a white panel under the message, a row per suggestion */
 .messageLines {
     display: flex;
     flex-direction: column;
     align-self: stretch;
-    margin: 0 calc(-1 * var(--hot-spacing-x-large));
-    border-top: 1px solid var(--hot-color-gray-200);
+    padding: 4px 0 8px;
+    border: 1px solid var(--hot-color-gray-200);
+    border-radius: 12px;
+    background-color: var(--hot-color-neutral-0);
 }
 
+.messageLines__label {
+    margin: 0;
+    padding: 12px 16px 6px;
+    color: var(--hot-color-gray-600);
+    font-size: 11px;
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* The place in a column of its own, so values and answers line up row by row */
 .messageLines__row {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    gap: var(--hot-spacing-medium);
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) auto;
     align-items: center;
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-large);
-    border-bottom: 1px solid var(--hot-color-gray-200);
+    gap: 6px 12px;
+    padding: 12px 16px;
 }
 
-.messageLines__text {
-    margin: 0;
-    font-size: var(--hot-font-size-small);
-    line-height: 1.4;
-    overflow-wrap: anywhere;
+.messageLines__row:hover,
+.messageLines__row:focus-within {
+    background-color: var(--hot-color-gray-50);
 }
 
-/* A line nothing was read in, quieter */
-.messageLines__row--quiet .messageLines__text {
-    color: var(--hot-color-gray-600);
-}
-
-.messageLines__suggestions {
-    display: flex;
-    flex-direction: column;
-    gap: var(--hot-spacing-2x-small);
-}
-
-.messageLines__suggestion {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--hot-spacing-2x-small) var(--hot-spacing-x-small);
-}
-
-.messageLines__suggestion--rejected .messageLines__said {
-    opacity: 0.45;
-    text-decoration: line-through;
-}
-
-.messageLines__said,
-.messageLines__answers,
-.messageLines__was,
-.messageLines__note {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--hot-spacing-2x-small);
+.messageLines__place {
     min-width: 0;
 }
 
-.messageLines__was,
-.messageLines__note,
-.messageLines__doubt {
+.messageLines__values,
+.messageLines__answers {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.messageLines__values {
+    color: var(--hot-color-gray-600);
+}
+
+/* The arrow goes the way the text is read */
+[dir="rtl"] .messageLines__arrow {
+    transform: scaleX(-1);
+}
+
+.messageLines__answers {
+    justify-content: flex-end;
+    gap: var(--hot-spacing-x-small);
     color: var(--hot-color-gray-600);
     font-size: var(--hot-font-size-x-small);
 }
 
-.messageLines__doubt {
-    flex-basis: 100%;
+/* Said no to: what it said stays, struck through */
+.messageLines__row--rejected .messageLines__place,
+.messageLines__row--rejected .messageLines__values {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
+/* Why to look at it closely, or which rule said it: a line of its own under the row */
+.messageLines__note {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.messageLines__note--doubt {
     color: var(--hot-color-warning-700);
 }
 
 /* The place, as the chip of the design: dark, small, bold; a long name breaks inside it */
 .placeChip {
+    display: inline-block;
+    max-width: 100%;
     padding: 3px 10px;
     border-radius: var(--hot-border-radius-pill);
     background-color: var(--hot-color-neutral-950);
@@ -414,12 +475,13 @@
     text-transform: uppercase;
 }
 
+/* Answers with words: "Not right" outlined, the one that changes the map filled */
 .messageLines__confirm,
-.messageLines__choose {
+.messageLines__no {
     display: inline-flex;
     align-items: center;
     gap: var(--hot-spacing-2x-small);
-    padding: 5px 12px;
+    padding: 6px 14px;
     border: 1px solid var(--hot-color-neutral-950);
     border-radius: var(--hot-border-radius-pill);
     background-color: var(--hot-color-neutral-950);
@@ -427,53 +489,45 @@
     font: inherit;
     font-size: var(--hot-font-size-x-small);
     font-weight: var(--hot-font-weight-bold);
+    white-space: nowrap;
     cursor: pointer;
 }
 
-.messageLines__choose {
+.messageLines__no {
     background-color: var(--hot-color-neutral-0);
     color: var(--hot-color-neutral-950);
 }
 
-.messageLines__no {
-    display: inline-flex;
-    padding: 6px;
-    border: 0;
-    border-radius: var(--hot-border-radius-pill);
-    background: none;
-    color: var(--hot-color-gray-600);
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.messageLines__no:hover {
+.messageLines__no:hover:not(:disabled) {
     background-color: var(--hot-color-gray-100);
-    color: var(--hot-color-neutral-950);
 }
 
 .messageLines__confirm:disabled,
-.messageLines__choose:disabled,
 .messageLines__no:disabled {
     opacity: 0.5;
     cursor: default;
 }
 
-/* One bar to renew what places already show */
+/* One bar, at the bottom of the panel, to renew what places already show */
 .messageLines__renew {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--hot-spacing-medium);
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-x-large);
+    padding: 12px 16px 4px;
+    border-top: 1px solid var(--hot-color-gray-200);
     color: var(--hot-color-gray-600);
     font-size: var(--hot-font-size-x-small);
 }
 
-/* A phone: what a line suggests goes under it */
+.messageLines .messageLinker__notice {
+    padding: 0 16px;
+}
+
+/* A phone: the place and its values on top, the answers under them */
 @media (max-width: 720px) {
     .messageLines__row {
         grid-template-columns: minmax(0, 1fr);
-        gap: var(--hot-spacing-2x-small);
     }
 }
 

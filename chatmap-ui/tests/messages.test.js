@@ -3,7 +3,7 @@ import { expect, test as it } from 'vitest'
 import {
   MAX_GROUP_PLACES, PAGE_SIZE, coordsOf, dayOf, groupMessagesOn, groupNames, groupPlaces, highlighted, linksOfPoint,
   liveLinks, messagesOn, metersBetween, nearestPlace, nextPage, pageOf, placesNamed, placesOf, placesToAdd, senderOf, startsOver,
-  withMessage, withNewer, withOlder, linkOf, messageRows, renewable,
+  withMessage, withNewer, withOlder, linkOf, renewable,
 } from '../src/components/Messages/messages';
 
 const message = (id, sent_at) => ({ id, sent_at, group_id: "g-1", text: id });
@@ -218,7 +218,7 @@ it('offers none once a group has as many places as it can', () => {
   expect(placesToAdd(mapPlaces, full, "")).toEqual([]);
 });
 
-// messageRows, renewable
+// renewable, linkOf
 
 const line = (id, changes = {}) => ({ id, line: 0, point_id: "p-1", key_id: "k-1", value_id: "v-1", words: [], doubt: null, state: "pending", unchanged: false, ...changes });
 
@@ -226,15 +226,6 @@ it("marks the right words after an emoji written with two code units, as 🔴 is
   const marked = (text, values) => highlighted(text, values).filter((piece) => piece.match).map((piece) => piece.text);
   expect(marked("🔴 Azul cerrado", ["Azul", "cerrado"])).toEqual(["Azul", "cerrado"]);
   expect(marked("🔴🔴 Norte\n✅ Puente abierto", ["Puente", "🔴"])).toEqual(["🔴🔴", "Puente"]);
-});
-
-it("gives a message as rows: what rules suggest for the whole of it, then each line with text and what it says", () => {
-  const rule = line("r", { line: null, rule: "North closed" });
-  const rows = messageRows("Buen día\n\n✅ Puente abierto  \n🔴 Norte", [rule, line("a", { line: 2 }), line("b", { line: 2 })]);
-  expect(rows.map((row) => [row.line, row.text, row.suggestions.map((item) => item.id)])).toEqual([
-    [null, null, ["r"]], [0, "Buen día", []], [2, "✅ Puente abierto", ["a", "b"]], [3, "🔴 Norte", []],
-  ]);
-  expect(messageRows("hola", [])).toEqual([{ line: 0, text: "hola", suggestions: [] }]);
 });
 
 it("renews with one click only what is pending, plain, complete and already shown", () => {

@@ -165,14 +165,14 @@
   "app.messages.today": "Hoy",
   "app.lines.question": "Pregunta, no lo afirma: confirma solo si lo sabes",
   "app.lines.twoValues": "Dice dos estados: confirma el correcto",
-  "app.lines.no": "No, no dice esto",
+  "app.lines.no": "No es así",
   "app.lines.confirm": "Confirmar",
   "app.lines.renew": "Renovar {count}",
   "app.lines.byRule": "Según la regla «{rule}»",
   "app.lines.choosePlace": "Elegir el lugar",
   "app.lines.chooseStatus": "Elegir su estado",
   "app.lines.linked": "Vinculado",
-  "app.lines.noChange": "sin cambios",
+  "app.lines.noChange": "ya lo muestra el mapa",
   "app.lines.renewOne": "Renovar",
   "app.lines.saidNo": "Dijiste que no",
   "app.lines.sameCount": "{count, plural, one {# línea dice lo que el mapa ya muestra} other {# líneas dicen lo que el mapa ya muestra}}",
@@ -423,5 +423,8 @@
   "app.messages.groupPlacesFull": "{max, plural, one {Un grupo habla de # lugar como máximo.} other {Un grupo habla de # lugares como máximo.}}",
   "app.messages.ofGroup": "(del grupo)",
   "app.messages.expiredStatus": "Vencido",
-  "app.messages.expiredSince": "{value}, venció {ago}: nadie lo confirmó desde entonces"
+  "app.messages.expiredSince": "{value}, venció {ago}: nadie lo confirmó desde entonces",
+  "app.lines.suggests": "Sugiere",
+  "app.lines.linkOther": "Vincular a otro lugar o estado",
+  "app.lines.linkPlace": "Vincular a un lugar"
 }

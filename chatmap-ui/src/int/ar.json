@@ -165,14 +165,14 @@
   "app.messages.today": "اليوم",
   "app.lines.question": "إنه يسأل ولا يؤكّد: أكّد فقط إن كنت تعرف",
   "app.lines.twoValues": "يذكر حالتين: أكّد الصحيحة",
-  "app.lines.no": "لا، لا يقول هذا",
+  "app.lines.no": "ليس كذلك",
   "app.lines.confirm": "تأكيد",
   "app.lines.renew": "تجديد {count}",
   "app.lines.byRule": "حسب القاعدة «{rule}»",
   "app.lines.choosePlace": "اختر المكان",
   "app.lines.chooseStatus": "اختر حالته",
   "app.lines.linked": "مرتبط",
-  "app.lines.noChange": "بلا تغيير",
+  "app.lines.noChange": "تُظهره الخريطة بالفعل",
   "app.lines.renewOne": "تجديد",
   "app.lines.saidNo": "قلت لا",
   "app.lines.sameCount": "{count, plural, one {سطر واحد يقول ما تعرضه الخريطة} other {# أسطر تقول ما تعرضه الخريطة}}",
@@ -423,5 +423,8 @@
   "app.messages.groupPlacesFull": "{max, plural, zero {لا تتحدث المجموعة عن أي مكان.} one {تتحدث المجموعة عن مكان واحد على الأكثر.} two {تتحدث المجموعة عن مكانين على الأكثر.} few {تتحدث المجموعة عن # أماكن على الأكثر.} many {تتحدث المجموعة عن # مكانًا على الأكثر.} other {تتحدث المجموعة عن # مكان على الأكثر.}}",
   "app.messages.ofGroup": "(من المجموعة)",
   "app.messages.expiredStatus": "منتهية الصلاحية",
-  "app.messages.expiredSince": "{value}، انتهت صلاحيتها {ago}: لم يؤكدها أحد منذ ذلك الحين"
+  "app.messages.expiredSince": "{value}، انتهت صلاحيتها {ago}: لم يؤكدها أحد منذ ذلك الحين",
+  "app.lines.suggests": "يقترح",
+  "app.lines.linkOther": "اربط بمكان أو حالة أخرى",
+  "app.lines.linkPlace": "اربط بمكان"
 }
