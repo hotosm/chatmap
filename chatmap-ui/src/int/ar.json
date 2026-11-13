@@ -428,5 +428,17 @@
   "app.lines.linkOther": "اربط بمكان أو حالة أخرى",
   "app.lines.linkPlace": "اربط بمكان",
   "app.tags.addPoint.nameTaken": "يوجد مكان بهذا الاسم بالفعل. اختر اسمًا آخر لهذا المكان.",
-  "app.messages.nameTaken": "«{name}» مكان موجود بالفعل: اختره من القائمة."
+  "app.messages.nameTaken": "«{name}» مكان موجود بالفعل: اختره من القائمة.",
+  "app.rules.timeBetween": "وصلت بين الساعة",
+  "app.rules.weekdayIs": "وصلت يوم",
+  "app.rules.timeAnd": "و",
+  "app.rules.zone": "بتوقيت {zone}",
+  "app.rules.days": "أيام الأسبوع",
+  "app.rules.from": "من",
+  "app.rules.to": "إلى",
+  "app.rules.fieldTime": "الوقت",
+  "app.rules.fieldWeekday": "اليوم",
+  "app.rules.howBetween": "بين الساعة",
+  "app.rules.howOn": "هو",
+  "app.rules.broadTime": "مع «أيّ منها» تنطبق على كل رسالة تصل في ذلك الوقت مهما قالت. لطلب الأمرين معًا اختر «جميعها»."
 }

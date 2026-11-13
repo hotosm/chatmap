@@ -123,9 +123,9 @@ async def test_reading_again_makes_the_pending_suggestions_again_but_not_what_a_
     db.execute.side_effect = [
         _scalars("m-1", "m-2"),
         _rows(
-            SimpleNamespace(id="m-1", group_id="group-1", text="Puente cerrado", dismissed_at=None, chat="c-1"),
+            SimpleNamespace(id="m-1", group_id="group-1", text="Puente cerrado", sent_at=SENT_AT, dismissed_at=None, chat="c-1"),
             # Hidden by a rule that no longer hides it
-            SimpleNamespace(id="m-2", group_id="group-1", text="Hola a todos", dismissed_at=SENT_AT, chat="c-1"),
+            SimpleNamespace(id="m-2", group_id="group-1", text="Hola a todos", sent_at=SENT_AT, dismissed_at=SENT_AT, chat="c-1"),
         ),
         _scalars(_suggestion(state="rejected")), MagicMock(), MagicMock(), MagicMock(),
     ]

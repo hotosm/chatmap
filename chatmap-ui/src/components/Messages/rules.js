@@ -6,6 +6,11 @@ export const CONTAINS = "contains";
 export const NOT_CONTAINS = "not_contains";
 export const IS = "is";
 export const IS_NOT = "is_not";
+// When a message was sent, in the time zone the rule is written in: the time of day, from-to, and the day of the week
+export const TIME = "time";
+export const WEEKDAY = "weekday";
+export const BETWEEN = "between";
+export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 export const HIGHLIGHT = "highlight";
 export const SUGGEST_PLACE = "suggest_place";
 export const SUGGEST_STATUS = "suggest_status";
@@ -18,6 +23,8 @@ export const KINDS = [
     { field: CONTENT, operator: NOT_CONTAINS },
     { field: GROUP, operator: IS },
     { field: GROUP, operator: IS_NOT },
+    { field: TIME, operator: BETWEEN },
+    { field: WEEKDAY, operator: IS },
 ];
 // As the API takes them
 export const MAX_DESCRIPTION_LENGTH = 100;
@@ -26,7 +33,19 @@ export const MAX_CONDITIONS = 10;
 export const MAX_RULE_CONDITIONS = 20;
 export const MAX_CONDITION_VALUES = 10;
 
-export const newCondition = (field = CONTENT, operator = CONTAINS) => ({ field, operator, values: [] });
+// The time zone of whoever writes the rule, as the browser tells it
+export const localZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
+// A condition to start writing: a time of day starts as a morning, the days of the week to choose
+export const newCondition = (field = CONTENT, operator = CONTAINS) =>
+    field === TIME ? { field, operator, values: ["08:00", "12:00"], timezone: localZone() } :
+    field === WEEKDAY ? { field, operator, values: [], timezone: localZone() } :
+    { field, operator, values: [] };
+
+// Whether a condition says all it needs: a value, and two different times for a time of day
+export const isComplete = (condition) => condition.field === TIME ?
+    condition.values.length === 2 && condition.values.every(Boolean) && condition.values[0] !== condition.values[1] :
+    condition.values.length > 0;
 export const newGroup = (match = "any") => ({ match, items: [newCondition()] });
 export const isGroup = (item) => Array.isArray(item.items);
 
@@ -119,7 +138,7 @@ export const ruleProblems = (rule) => {
     const conditions = [...own, ...words.length ? [{ operator: CONTAINS, values: words }] : []];
     const empty = (group) => group.items.some((item) => isGroup(item) && (item.items.length === 0 || empty(item)));
     if (!rule.description.trim()) problems.push("description");
-    if (empty(rule.conditions) || own.some((condition) => condition.values.length === 0)) problems.push("condition");
+    if (empty(rule.conditions) || own.some((condition) => !isComplete(condition))) problems.push("condition");
     if (own.length === 0 && words.length === 0) problems.push("noCondition");
     if (own.length + rule.actions.filter((action) => actionWords(action).length).length > MAX_RULE_CONDITIONS) {
         problems.push("tooMany");
@@ -139,7 +158,10 @@ const groupToSend = (group) => ({
     match: group.match,
     items: group.items.map((item) => isGroup(item) ?
         groupToSend(item) :
-        { field: item.field, operator: item.operator, values: item.values.map((value) => value.trim()) }
+        {
+            field: item.field, operator: item.operator, values: item.values.map((value) => value.trim()),
+            ...(item.field === TIME || item.field === WEEKDAY ? { timezone: item.timezone || localZone() } : {}),
+        }
     ),
 });
 
@@ -210,13 +232,15 @@ export const ruleExamples = (said) => [
 /**
  * Why a rule would take far more messages than it seems to look for, or
  * null: with "any", a condition on a group takes every message of that
- * group ("group"), and one that says what a text must not have takes
- * almost every message ("negation"). Usually "all" was meant.
+ * group ("group"), one on when it was sent every message sent then
+ * ("time"), and one that says what a text must not have takes almost every
+ * message ("negation"). Usually "all" was meant.
  */
 export const tooBroad = (rule) => {
     if (rule.conditions.match !== "any" || rule.conditions.items.length < 2) return null;
     const items = rule.conditions.items.filter((item) => !isGroup(item));
     if (items.some((item) => item.operator === NOT_CONTAINS || item.operator === IS_NOT)) return "negation";
-    if (items.some((item) => item.operator === IS)) return "group";
+    if (items.some((item) => item.field === GROUP)) return "group";
+    if (items.some((item) => item.field === TIME || item.field === WEEKDAY)) return "time";
     return null;
 };

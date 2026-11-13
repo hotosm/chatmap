@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from api.v2.routes.rules import create_rule
-from api.v2.schemas.rules import RuleAction, RuleFields
+from api.v2.schemas.rules import RuleAction, RuleCondition, RuleFields
 from results.error import MapNotFound, TooManyRules, UnknownPoint
 
 
@@ -118,3 +118,20 @@ async def test_creating_a_rule_tells_what_failed(error, status_code):
         await create_rule(map_id="map-1", rule=_fields(), user=_user())
 
     assert raised.value.status_code == status_code
+
+
+@pytest.mark.parametrize("condition", [
+    # Without the zone it was written in
+    {"field": "time", "operator": "between", "values": ["08:00", "12:00"]},
+    {"field": "time", "operator": "between", "values": ["08:00", "12:00"], "timezone": "Mars/Olympus"},
+    # One time, the same twice, or not a time of the day
+    {"field": "time", "operator": "between", "values": ["08:00"], "timezone": "UTC"},
+    {"field": "time", "operator": "between", "values": ["08:00", "08:00"], "timezone": "UTC"},
+    {"field": "time", "operator": "between", "values": ["8", "25:00"], "timezone": "UTC"},
+    {"field": "weekday", "operator": "is", "values": ["monday"], "timezone": "UTC"},
+    {"field": "weekday", "operator": "is_not", "values": ["mon"], "timezone": "UTC"},
+    {"field": "content", "operator": "contains", "values": ["norte"], "timezone": "UTC"},
+])
+def test_a_condition_on_when_a_message_was_sent_takes_valid_times_days_and_zone(condition):
+    with pytest.raises(ValidationError):
+        RuleCondition(**condition)

@@ -180,7 +180,10 @@ def _reread(map_id: str) -> int:
                 return 0
             # Read again once locked: what a person did while this waited is seen now
             messages = db.execute(
-                select(GroupMessage.id, GroupMessage.group_id, GroupMessage.text, GroupMessage.dismissed_at, ChatGroup.chat)
+                select(
+                    GroupMessage.id, GroupMessage.group_id, GroupMessage.text, GroupMessage.sent_at,
+                    GroupMessage.dismissed_at, ChatGroup.chat,
+                )
                 .join(ChatGroup, ChatGroup.id == GroupMessage.group_id)
                 .where(GroupMessage.id.in_(ids), _waiting(map_id))
             ).all()
@@ -199,7 +202,10 @@ def _reread(map_id: str) -> int:
                 MessageSuggestion.message_id.in_(ids), MessageSuggestion.state == PENDING,
             ))
             rows = [
-                {"id": message.id, "group_id": message.group_id, "text": message.text, **ROW_DEFAULTS}
+                {
+                    "id": message.id, "group_id": message.group_id, "text": message.text, "sent_at": message.sent_at,
+                    **ROW_DEFAULTS,
+                }
                 for message in messages
             ]
             made = suggest(db, map_id, rows, {message.id: message.chat for message in messages})

@@ -1,4 +1,7 @@
+from datetime import UTC, datetime
 from types import SimpleNamespace
+
+import pytest
 
 from recognition.rules import outcomes
 
@@ -152,3 +155,33 @@ def test_a_rule_that_hides_says_so_and_none_matching_gives_none():
     assert outcome([rule], "Hola a todos!", "g-1").hide
     assert outcome([rule], "cerrado", "g-1") is None
     assert outcome([], "cerrado", "g-1") is None
+
+
+# ---- when it was sent ----
+
+def _sent(hour, minute=0, day=13):
+    """A message sent on Friday 13 November 2026, at a time of UTC."""
+    return datetime(2026, 11, day, hour, minute, tzinfo=UTC)
+
+
+BUENOS_AIRES = "America/Argentina/Buenos_Aires"
+
+
+@pytest.mark.parametrize("condition, sent_at, meets", [
+    # 09:00 in Buenos Aires is 12:00 UTC
+    ({"field": "time", "operator": "between", "values": ["08:00", "12:00"]}, _sent(12), True),
+    ({"field": "time", "operator": "between", "values": ["08:00", "12:00"]}, _sent(18), False),
+    # The end is left out: 12:00 in Buenos Aires
+    ({"field": "time", "operator": "between", "values": ["08:00", "12:00"]}, _sent(15), False),
+    # Over midnight: 23:30 and 02:00 in Buenos Aires are in, 12:00 is not
+    ({"field": "time", "operator": "between", "values": ["22:00", "06:00"]}, _sent(2, 30), True),
+    ({"field": "time", "operator": "between", "values": ["22:00", "06:00"]}, _sent(5), True),
+    ({"field": "time", "operator": "between", "values": ["22:00", "06:00"]}, _sent(15), False),
+    # 02:00 UTC on Saturday is still Friday in Buenos Aires
+    ({"field": "weekday", "operator": "is", "values": ["fri"]}, _sent(2, day=14), True),
+    ({"field": "weekday", "operator": "is", "values": ["sat", "sun"]}, _sent(2, day=14), False),
+])
+def test_a_rule_can_ask_when_a_message_was_sent_in_the_zone_it_was_written_in(condition, sent_at, meets):
+    rule = _rule(_all({**condition, "timezone": BUENOS_AIRES}, _contains("norte")), [NORTH])
+
+    assert bool(outcomes([rule], "norte", "g-1", sent_at)) is meets

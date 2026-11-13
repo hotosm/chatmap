@@ -4,8 +4,8 @@ import { FormattedMessage, useIntl } from "react-intl";
 import SlIconButton from "@shoelace-style/shoelace/dist/react/icon-button/index.js";
 
 import {
-    CONTENT, GROUP, KINDS, MAX_CONDITION_LENGTH, MAX_CONDITION_VALUES, MAX_CONDITIONS, isGroup, newCondition,
-    newGroup, withItem, withValue,
+    CONTENT, GROUP, KINDS, MAX_CONDITION_LENGTH, MAX_CONDITION_VALUES, MAX_CONDITIONS, TIME, WEEKDAY, WEEKDAYS, isGroup,
+    localZone, newCondition, newGroup, withItem, withValue,
 } from "./rules.js";
 import useGroupName from "./useGroupName.js";
 
@@ -14,7 +14,62 @@ const KIND_NAMES = {
     "content:not_contains": ["app.rules.notContains", "The text contains none of"],
     "group:is": ["app.rules.groupIs", "The group is one of"],
     "group:is_not": ["app.rules.groupIsNot", "The group is none of"],
+    "time:between": ["app.rules.timeBetween", "It was sent between"],
+    "weekday:is": ["app.rules.weekdayIs", "It was sent on"],
 };
+
+// "Buenos Aires" of "America/Argentina/Buenos_Aires"
+export const zoneName = (zone) => (zone || "").split("/").pop().replace(/_/g, " ");
+
+// A day of the week by its code ("mon"), as the language of the page names it: "L", or "lunes" with long
+export const dayName = (day, locale, long = false) => {
+    // 2 November 2026 is a Monday
+    const date = new Date(Date.UTC(2026, 10, 2 + WEEKDAYS.indexOf(day), 12));
+    return new Intl.DateTimeFormat(locale, { weekday: long ? "long" : "narrow", timeZone: "UTC" }).format(date);
+};
+
+// From and to, as two times of the day, and the time zone they are of
+function TimeOfDay({ condition, onChange }) {
+    const intl = useIntl();
+    const [from, to] = condition.values;
+    const set = (index, value) => onChange({ ...condition, values: index === 0 ? [value, to] : [from, value] });
+    return (
+        <div className="ruleWhen">
+            <input type="time" className="ruleWhen__time" value={from || ""} aria-label={intl.formatMessage({ id: "app.rules.from", defaultMessage: "From" })} onChange={(event) => set(0, event.target.value)} />
+            <FormattedMessage id="app.rules.timeAnd" defaultMessage="and" />
+            <input type="time" className="ruleWhen__time" value={to || ""} aria-label={intl.formatMessage({ id: "app.rules.to", defaultMessage: "To" })} onChange={(event) => set(1, event.target.value)} />
+            <span className="ruleWhen__zone">
+                <FormattedMessage id="app.rules.zone" defaultMessage="{zone} time" values={{ zone: zoneName(condition.timezone || localZone()) }} />
+            </span>
+        </div>
+    );
+}
+
+// The days of the week, each one on or off
+function Days({ condition, onChange }) {
+    const intl = useIntl();
+    const toggle = (day) => onChange({
+        ...condition,
+        values: condition.values.includes(day) ? condition.values.filter((item) => item !== day) : WEEKDAYS.filter((item) => item === day || condition.values.includes(item)),
+    });
+    return (
+        <div className="ruleWhen" role="group" aria-label={intl.formatMessage({ id: "app.rules.days", defaultMessage: "Days of the week" })}>
+            { WEEKDAYS.map((day) =>
+                <button
+                    key={day}
+                    type="button"
+                    className="ruleWhen__day"
+                    aria-pressed={condition.values.includes(day)}
+                    aria-label={dayName(day, intl.locale, true)}
+                    title={dayName(day, intl.locale, true)}
+                    onClick={() => toggle(day)}
+                >
+                    {dayName(day, intl.locale)}
+                </button>
+            )}
+        </div>
+    );
+}
 
 // A native select drawn as a pill (styles/controls.css)
 export function PillSelect({ value, onChange, children, label }) {
@@ -163,8 +218,8 @@ export default function ConditionGroup({ group, groups, top, onChange, onRemove 
                                     label={text("app.rules.conditionField", "What it looks at")}
                                     onChange={(kind) => {
                                         const [field, operator] = kind.split(":");
-                                        // The values of a text are not groups, nor the other way round
-                                        set(index, (condition) => ({ field, operator, values: field === condition.field ? condition.values : [] }));
+                                        // The values of a text are not groups, nor times, nor the other way round
+                                        set(index, (condition) => field === condition.field ? { ...condition, operator } : newCondition(field, operator));
                                     }}
                                 >
                                     { KINDS.map(({ field, operator }) =>
@@ -173,7 +228,12 @@ export default function ConditionGroup({ group, groups, top, onChange, onRemove 
                                         </option>
                                     )}
                                 </PillSelect>
-                                <Values condition={item} groups={groups} onChange={(changed) => set(index, () => changed)} />
+                                { item.field === TIME ?
+                                    <TimeOfDay condition={item} onChange={(changed) => set(index, () => changed)} /> :
+                                item.field === WEEKDAY ?
+                                    <Days condition={item} onChange={(changed) => set(index, () => changed)} /> :
+                                    <Values condition={item} groups={groups} onChange={(changed) => set(index, () => changed)} />
+                                }
                                 { (top || group.items.length > 1) &&
                                     <SlIconButton name="x-lg" label={text("app.rules.removeCondition", "Take out this condition")} onClick={() => set(index, () => null)} />
                                 }

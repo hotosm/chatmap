@@ -1,8 +1,8 @@
 import { expect, test as it } from 'vitest'
 
 import {
-  CONTAINS, HIDE, HIGHLIGHT, IS, MAX_CONDITION_VALUES, NOT_CONTAINS, tooBroad, SUGGEST_PLACE, SUGGEST_STATUS, actionOf, actionWords, conditionsOf,
-  copyOf, newGroup, newRule, ruleProblems, toSend, withAction, withActionValue, withActionWords, withItem,
+  BETWEEN, CONTAINS, HIDE, HIGHLIGHT, IS, MAX_CONDITION_VALUES, NOT_CONTAINS, TIME, WEEKDAY, tooBroad, SUGGEST_PLACE, SUGGEST_STATUS, actionOf, actionWords, conditionsOf,
+  copyOf, newCondition, newGroup, newRule, ruleProblems, toSend, withAction, withActionValue, withActionWords, withItem,
   withNameToLookFor, withValue,
 } from '../src/components/Messages/rules';
 
@@ -118,4 +118,16 @@ it("adds values up to the room a list has, the one of a condition by default", (
   expect(withValue(condition, "c", 3).values).toEqual(["a", "b", "c"]);
   const full = { ...condition, values: Array.from({ length: MAX_CONDITION_VALUES }, (_, i) => `w${i}`) };
   expect(withValue(full, "more").values).toHaveLength(MAX_CONDITION_VALUES);
+});
+
+// When a message was sent
+it('takes a time of day only with two different times, and the zone of whoever writes it', () => {
+  const rule = (condition) => ({ description: "Nights", enabled: true, conditions: { match: "all", items: [condition] }, actions: [{ type: "hide" }] });
+  const night = { ...newCondition(TIME, BETWEEN), values: ["22:00", "06:00"], timezone: "America/Argentina/Buenos_Aires" };
+  expect(ruleProblems(rule(night))).toEqual([]);
+  expect(ruleProblems(rule({ ...night, values: ["22:00", "22:00"] }))).toContain("condition");
+  expect(ruleProblems(rule(newCondition(WEEKDAY, IS)))).toContain("condition");
+  expect(toSend(rule(night)).conditions.items[0]).toEqual({ field: TIME, operator: BETWEEN, values: ["22:00", "06:00"], timezone: "America/Argentina/Buenos_Aires" });
+  // With "any", every message sent then would meet it
+  expect(tooBroad({ ...rule(night), conditions: { match: "any", items: [night, newCondition()] } })).toBe("time");
 });
