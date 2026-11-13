@@ -5,19 +5,24 @@ import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import SlIconButton from "@shoelace-style/shoelace/dist/react/icon-button/index.js";
 
 import { ValueChip } from "../Tags";
-import { CONTENT, HIDE, HIGHLIGHT, SUGGEST_PLACE, SUGGEST_STATUS, actionWords, isGroup, tooBroad } from "./rules.js";
+import { dayName, zoneName } from "./ConditionGroup.jsx";
+import { CONTENT, HIDE, HIGHLIGHT, SUGGEST_PLACE, SUGGEST_STATUS, TIME, WEEKDAY, actionWords, isGroup, tooBroad } from "./rules.js";
 import useGroupName from "./useGroupName.js";
 
 // What each condition looks at, and how
 const FIELDS = {
     content: { icon: "chat-left-text", name: ["app.rules.fieldText", "Text"] },
     group: { icon: "people", name: ["app.rules.fieldGroup", "Group"] },
+    time: { icon: "clock", name: ["app.rules.fieldTime", "Time"] },
+    weekday: { icon: "calendar-range", name: ["app.rules.fieldWeekday", "Day"] },
 };
 const HOW = {
     "content:contains": ["app.rules.howContains", "contains any of"],
     "content:not_contains": ["app.rules.howNotContains", "contains none of"],
     "group:is": ["app.rules.howIs", "is one of"],
     "group:is_not": ["app.rules.howIsNot", "is none of"],
+    "time:between": ["app.rules.howBetween", "between"],
+    "weekday:is": ["app.rules.howOn", "is"],
 };
 
 // "OR" / "AND" in a row of its own between two conditions, over a hairline
@@ -60,11 +65,24 @@ export default function RuleCard({ rule, nameOf, busy, onToggle, onEdit, onCopy,
             </span>
             <span className="ruleCard__how">{text(...HOW[`${item.field}:${item.operator}`])}</span>
             <span className="ruleCard__values">
-                { item.values.map((value) =>
-                    <span key={value} className="pill pill--outline ruleCard__value">
-                        <bdi>{item.field === CONTENT ? value : groupName(nameOf.group(value))}</bdi>
-                    </span>
-                )}
+                { item.field === TIME ?
+                    <>
+                        <span className="pill pill--outline ruleCard__value">{item.values[0]}</span>
+                        <FormattedMessage id="app.rules.timeAnd" defaultMessage="and" />
+                        <span className="pill pill--outline ruleCard__value">{item.values[1]}</span>
+                        <span className="ruleCard__how">
+                            <FormattedMessage id="app.rules.zone" defaultMessage="{zone} time" values={{ zone: zoneName(item.timezone) }} />
+                        </span>
+                    </> :
+                    item.values.map((value) =>
+                        <span key={value} className="pill pill--outline ruleCard__value">
+                            <bdi>
+                                { item.field === CONTENT ? value :
+                                    item.field === WEEKDAY ? dayName(value, intl.locale, true) : groupName(nameOf.group(value)) }
+                            </bdi>
+                        </span>
+                    )
+                }
             </span>
         </div>;
 
@@ -160,6 +178,11 @@ export default function RuleCard({ rule, nameOf, busy, onToggle, onEdit, onCopy,
                         <FormattedMessage
                             id="app.rules.broadGroup"
                             defaultMessage="With “any”, every message of the group meets it, whatever it says. To ask for both, choose “all”."
+                        /> :
+                    broad === "time" ?
+                        <FormattedMessage
+                            id="app.rules.broadTime"
+                            defaultMessage="With “any”, every message sent then meets it, whatever it says. To ask for both, choose “all”."
                         /> :
                         <FormattedMessage
                             id="app.rules.broadNegation"

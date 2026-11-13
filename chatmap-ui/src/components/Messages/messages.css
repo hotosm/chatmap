@@ -1036,6 +1036,59 @@
     margin-inline-start: auto;
 }
 
+/* When a message was sent: two times of the day, or the days of the week, each one on or off */
+.ruleWhen {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hot-spacing-x-small);
+    min-width: 0;
+    font-size: var(--hot-font-size-small);
+}
+
+.ruleWhen__time {
+    min-height: 32px;
+    padding: 0 var(--hot-spacing-x-small);
+    border: 1px solid var(--hot-color-gray-300);
+    border-radius: var(--hot-border-radius-small);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-neutral-950);
+    font: inherit;
+}
+
+.ruleWhen__time:focus-visible {
+    border-color: var(--hot-color-neutral-950);
+    outline: none;
+}
+
+.ruleWhen__zone {
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
+.ruleWhen__day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--hot-color-gray-300);
+    border-radius: var(--hot-border-radius-pill);
+    background-color: var(--hot-color-neutral-0);
+    color: var(--hot-color-neutral-950);
+    font: inherit;
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-bold);
+    cursor: pointer;
+}
+
+.ruleWhen__day[aria-pressed="true"] {
+    border-color: var(--hot-color-neutral-950);
+    background-color: var(--hot-color-neutral-950);
+    color: var(--hot-color-neutral-0);
+}
+
 /* The values of a condition: pills, and the field to write another one */
 .ruleValues {
     display: flex;

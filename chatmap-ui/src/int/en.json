@@ -428,5 +428,17 @@
   "app.lines.linkOther": "Link to another place or status",
   "app.lines.linkPlace": "Link to a place",
   "app.tags.addPoint.nameTaken": "There is a place with that name already. Give this one another name.",
-  "app.messages.nameTaken": "“{name}” is a place already: choose it in the list."
+  "app.messages.nameTaken": "“{name}” is a place already: choose it in the list.",
+  "app.rules.timeBetween": "It was sent between",
+  "app.rules.weekdayIs": "It was sent on",
+  "app.rules.timeAnd": "and",
+  "app.rules.zone": "{zone} time",
+  "app.rules.days": "Days of the week",
+  "app.rules.from": "From",
+  "app.rules.to": "To",
+  "app.rules.fieldTime": "Time",
+  "app.rules.fieldWeekday": "Day",
+  "app.rules.howBetween": "between",
+  "app.rules.howOn": "is",
+  "app.rules.broadTime": "With “any”, every message sent then meets it, whatever it says. To ask for both, choose “all”."
 }

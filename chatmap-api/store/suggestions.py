@@ -113,7 +113,7 @@ def _apply_rules(rules: list[MessageRule], row: dict, chat: str, map_id: str) ->
     (what every rule it meets looks for), and dismissed when one of them hides it.
     """
     try:
-        found = outcomes(rules, row["text"], chat)
+        found = outcomes(rules, row["text"], chat, row.get("sent_at"))
     except (KeyError, TypeError, AttributeError) as error:
         # A rule that cannot be read must not keep the messages from being kept
         logger.warning(f"Rules of map '{map_id}' skipped on a group message: {type(error).__name__}")

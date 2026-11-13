@@ -1,16 +1,23 @@
 """
 What the rules of a map do with a message. A rule has conditions (a text
-the message says or not, the group it comes from or not), in groups of all
-or any of them, and actions: highlight what matched, suggest a place,
+the message says or not, the group it comes from or not, the time of day or
+the day of the week it was sent on), in groups of all or any of them, and actions: highlight what matched, suggest a place,
 suggest a value of a key, or hide the message. Every rule a message meets
 applies; none decides for the others.
 """
 from dataclasses import dataclass, field
+from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from recognition.text import plain
 
 CONTENT = "content"
 GROUP = "group"
+# When it was sent, where the rule was written: the time of day, from-to, and the day of the week
+TIME = "time"
+WEEKDAY = "weekday"
+WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+BETWEEN = "between"
 CONTAINS = "contains"
 NOT_CONTAINS = "not_contains"
 IS = "is"
@@ -22,8 +29,28 @@ SUGGEST_STATUS = "suggest_status"
 HIDE = "hide"
 
 
-def _meets(condition: dict, text: str, group: str) -> bool:
-    """Whether a message meets a condition: any of its values is there (or, negated, none of them)."""
+def _local(sent_at: datetime | None, timezone: str | None) -> datetime | None:
+    """When a message was sent, in the time zone a rule was written in; None when it cannot be told."""
+    try:
+        return sent_at.astimezone(ZoneInfo(timezone)) if sent_at and timezone else None
+    except (ZoneInfoNotFoundError, ValueError):
+        return None
+
+
+def _meets(condition: dict, text: str, group: str, sent_at: datetime | None) -> bool:
+    """
+    Whether a message meets a condition: any of its values is there (or,
+    negated, none of them); or it was sent between two times of the day
+    ("22:00"-"06:00" goes over midnight), or on one of the days given.
+    """
+    if condition["field"] in (TIME, WEEKDAY):
+        local = _local(sent_at, condition.get("timezone"))
+        if local is None:
+            return False
+        if condition["field"] == WEEKDAY:
+            return WEEKDAYS[local.weekday()] in condition["values"]
+        start, end, now = *condition["values"], local.strftime("%H:%M")
+        return start <= now < end if start < end else now >= start or now < end
     if condition["field"] == GROUP:
         found = group in condition["values"]
     else:
@@ -31,12 +58,12 @@ def _meets(condition: dict, text: str, group: str) -> bool:
     return not found if condition["operator"] in (NOT_CONTAINS, IS_NOT) else found
 
 
-def _holds(group: dict, text: str, group_id: str) -> bool:
+def _holds(group: dict, text: str, group_id: str, sent_at: datetime | None) -> bool:
     """Whether a message meets a group of conditions: all of them, or any, groups inside it too. No conditions are met."""
     if not group["items"]:
         return True
     results = (
-        _holds(item, text, group_id) if "items" in item else _meets(item, text, group_id)
+        _holds(item, text, group_id, sent_at) if "items" in item else _meets(item, text, group_id, sent_at)
         for item in group["items"]
     )
     return all(results) if group["match"] == ALL else any(results)
@@ -71,10 +98,10 @@ class Outcome:
     hide: bool = False
 
 
-def outcome_of(rule, said: str, group: str) -> Outcome | None:
+def outcome_of(rule, said: str, group: str, sent_at: datetime | None = None) -> Outcome | None:
     """
-    What a rule does with a message (its text made plain, and the id of its
-    group), or None when it does not match. A disabled rule does nothing. A
+    What a rule does with a message (its text made plain, the id of its
+    group, and when it was sent), or None when it does not match. A disabled rule does nothing. A
     rule matches when the message meets its conditions (none is met by all)
     and it does something: an action with conditions of its own only does
     what it does when the message meets them too. A rule that suggests a
@@ -83,11 +110,11 @@ def outcome_of(rule, said: str, group: str) -> Outcome | None:
     texts the rule, and its actions that apply, look for that the message says.
     """
     # A rule without conditions anywhere takes no message, rather than every one
-    if not rule.enabled or not every_condition(rule.conditions, rule.actions) or not _holds(rule.conditions, said, group):
+    if not rule.enabled or not every_condition(rule.conditions, rule.actions) or not _holds(rule.conditions, said, group, sent_at):
         return None
     actions = {
         action["type"]: action for action in rule.actions
-        if not action.get("conditions") or _holds(action["conditions"], said, group)
+        if not action.get("conditions") or _holds(action["conditions"], said, group, sent_at)
     }
     highlights = [
         value
@@ -113,7 +140,7 @@ def outcome_of(rule, said: str, group: str) -> Outcome | None:
     )
 
 
-def outcomes(rules: list, text: str, group: str) -> list[Outcome]:
+def outcomes(rules: list, text: str, group: str, sent_at: datetime | None = None) -> list[Outcome]:
     """What every rule a message meets does with it: they all apply, in no order, and none decides for the others."""
     said = plain(text or "")
-    return [found for rule in rules if (found := outcome_of(rule, said, group)) is not None]
+    return [found for rule in rules if (found := outcome_of(rule, said, group, sent_at)) is not None]

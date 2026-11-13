@@ -1,8 +1,10 @@
+import re
 from typing import Literal, Union
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from recognition.rules import CONTAINS, CONTENT, GROUP, IS, IS_NOT, NOT_CONTAINS
+from recognition.rules import BETWEEN, CONTAINS, CONTENT, GROUP, IS, IS_NOT, NOT_CONTAINS, TIME, WEEKDAY, WEEKDAYS
 
 MAX_RULES = 50
 # In a group, and in a whole rule
@@ -11,7 +13,9 @@ MAX_RULE_CONDITIONS = 20
 MAX_CONDITION_VALUES = 10
 MAX_CONDITION_LENGTH = 100
 # What each field of a condition can say
-OPERATORS = {CONTENT: (CONTAINS, NOT_CONTAINS), GROUP: (IS, IS_NOT)}
+OPERATORS = {CONTENT: (CONTAINS, NOT_CONTAINS), GROUP: (IS, IS_NOT), TIME: (BETWEEN,), WEEKDAY: (IS,)}
+# A time of the day, as "06:00"
+TIME_OF_DAY = re.compile(r"([01]\d|2[0-3]):[0-5]\d")
 MAX_RULE_DESCRIPTION_LENGTH = 100
 
 
@@ -20,11 +24,16 @@ class RuleCondition(BaseModel):
     One thing a message has to have, or not: a text it says (content, without
     minding case nor accents: contains any of the values, or none of them),
     or the group it comes from (group, by the id the groups of the map have:
-    is one of the values, or none of them).
+    is one of the values, or none of them), or when it was sent: between two
+    times of the day (time: from and to, "22:00" to "06:00" goes over
+    midnight) or on some days of the week (weekday: "mon" to "sun"). A time
+    or a day is the one of `timezone`, the zone it was written in ("America/
+    Argentina/Buenos_Aires").
     """
-    field: Literal[CONTENT, GROUP]
-    operator: Literal[CONTAINS, NOT_CONTAINS, IS, IS_NOT]
+    field: Literal[CONTENT, GROUP, TIME, WEEKDAY]
+    operator: Literal[CONTAINS, NOT_CONTAINS, IS, IS_NOT, BETWEEN]
     values: list[str] = Field(min_length=1, max_length=MAX_CONDITION_VALUES)
+    timezone: str | None = Field(default=None, max_length=64)
 
     @field_validator("values")
     @classmethod
@@ -39,6 +48,20 @@ class RuleCondition(BaseModel):
     def check_operator(self) -> "RuleCondition":
         if self.operator not in OPERATORS[self.field]:
             raise ValueError(f"a {self.field} condition takes {' or '.join(OPERATORS[self.field])}")
+        if self.field not in (TIME, WEEKDAY):
+            if self.timezone is not None:
+                raise ValueError(f"a {self.field} condition takes no timezone")
+            return self
+        try:
+            ZoneInfo(self.timezone or "")
+        except (ZoneInfoNotFoundError, ValueError):
+            raise ValueError(f"a {self.field} condition needs the timezone it was written in")
+        if self.field == TIME and not (
+            len(self.values) == 2 and all(TIME_OF_DAY.fullmatch(value) for value in self.values)
+        ):
+            raise ValueError("a time condition takes two different times of the day, from and to, as 06:00")
+        if self.field == WEEKDAY and not set(self.values) <= set(WEEKDAYS):
+            raise ValueError(f"a weekday condition takes days among {', '.join(WEEKDAYS)}")
         return self
 
 

@@ -70,7 +70,7 @@ it('should format every Arabic text, with the six plural forms of Arabic', () =>
   const intl = createIntl({ locale: "ar", messages: Ar, onError: (error) => errors.push(error.message) });
   const values = { name: "n", type: "t", num: 1, count: 1, chatmapper: "c", key: "k", tag: "t", value: "v", ago: "a",
     since: "s", confirmed: "c", hours: "h", group: "g", days: 1, place: "p", rule: "r", distance: "d", code: "c", what: "w",
-    lasts: "l", age: "a", when: "w", max: 1 };
+    lasts: "l", age: "a", when: "w", max: 1, zone: "z" };
   for (const id of Object.keys(Ar)) intl.formatMessage({ id }, values);
   expect(errors).toEqual([]);
   const days = (days) => intl.formatMessage({ id: "app.messages.days" }, { days });
