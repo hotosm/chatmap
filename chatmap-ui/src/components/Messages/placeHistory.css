@@ -117,6 +117,17 @@
     padding-block-start: 0;
 }
 
+/* The other names of a place, under what it shows: pills as the words of an option */
+.placeNames {
+    margin-bottom: var(--hot-spacing-medium);
+}
+
+.placeNames__help {
+    margin: var(--hot-spacing-x-small) 0 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+}
+
 /* A message in the history of a place, up to a few lines: a bulletin speaks of many places */
 .placeHistory__entry .messageCard__text {
     display: -webkit-box;

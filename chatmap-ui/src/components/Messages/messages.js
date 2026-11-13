@@ -131,8 +131,8 @@ export const liveLinks = (message) => (message.links || []).filter((link) => !li
 // The messages with one of them as it is now
 export const withMessage = (messages, message) => messages.map((item) => item.id === message.id ? message : item);
 
-// The changes a point got from messages, linked by a person
-export const FROM_MESSAGES = ["message"];
+// The changes a point got from messages, linked by a person or as a rule suggested
+export const FROM_MESSAGES = ["message", "rule"];
 
 // The changes a point got from messages that are not undone, newest first, as its history gives them
 export const linksOfPoint = (history) =>
@@ -145,6 +145,75 @@ export const linksOfPoint = (history) =>
 export const pointPanelCover = (shown, width = window.innerWidth, height = window.innerHeight) => {
     if (!shown) return null;
     return width <= 720 ? { bottom: Math.round(height * 0.45) + 16 } : { right: Math.min(384, width - 32) + 16 };
+};
+
+// What is written in more than one way, folded to one way, as the rules of the API compare texts
+const FOLDED = {
+    "ٱ": "ا", "ى": "ي", "ة": "ه", "ی": "ي", "ک": "ك",
+    "׳": "'", "״": '"', "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ",
+    "ـ": "", "‌": "", "‍": "", "‎": "", "‏": "",
+};
+const DIGITS = /[٠-٩۰-۹]/;
+const LETTER = /\p{L}/u;
+
+/**
+ * A text as the rules compare it (see plain in the API), with where each of
+ * its characters comes from in the text: without case nor accents nor the
+ * marks of Arabic and Hebrew, folded, and a letter repeated in a row once.
+ *
+ * @returns {object} { plain, from }: from[i] is the index in text of plain[i]
+ */
+export const plainWithIndex = (text) => {
+    let plain = "";
+    const from = [];
+    [...text].reduce((index, char) => {
+        const decomposed = char.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
+        for (const piece of decomposed) {
+            const code = piece.charCodeAt(0);
+            const folded = piece in FOLDED ? FOLDED[piece] :
+                DIGITS.test(piece) ? String((code >= 0x06F0 ? code - 0x06F0 : code - 0x0660)) : piece;
+            if (!folded) continue;
+            // A letter repeated in a row counts once, as "cerrrrado" and "cerrado" are the same word
+            if (LETTER.test(folded) && plain.endsWith(folded)) {
+                continue;
+            }
+            plain += folded;
+            // One for each unit of it: an emoji like 🔴 is two, and plain is read by units
+            for (let unit = 0; unit < folded.length; unit++) from.push(index);
+        }
+        return index + char.length;
+    }, 0);
+    return { plain, from };
+};
+
+/**
+ * A text cut in pieces, marking the ones where it says one of the values a
+ * rule looked for, found as the rules compare texts.
+ *
+ * @returns {array} [{ text, match }]
+ */
+export const highlighted = (text, values = []) => {
+    if (!text || values.length === 0) return [{ text: text || "", match: false }];
+    const { plain, from } = plainWithIndex(text);
+    const marked = new Array(text.length).fill(false);
+    for (const value of values) {
+        const looked = plainWithIndex(value).plain;
+        if (!looked) continue;
+        for (let at = plain.indexOf(looked); at !== -1; at = plain.indexOf(looked, at + 1)) {
+            const start = from[at];
+            const end = at + looked.length < from.length ? from[at + looked.length] : text.length;
+            marked.fill(true, start, end);
+        }
+    }
+    const pieces = [];
+    [...text].reduce((index, char) => {
+        const match = marked[index];
+        const last = pieces[pieces.length - 1];
+        if (last && last.match === match) last.text += char;
+        else pieces.push({ text: char, match });
+        return index + char.length;
+    }, 0);
+    return pieces;
 };
 
 /**
@@ -173,3 +242,17 @@ export const nearestPlace = (features, coords, within = 2000) => {
     const [nearest] = placesOf(features, coords);
     return nearest && nearest.meters <= within ? nearest : null;
 };
+
+// The suggestions of a message with the answer of the API to one of them, or to a link
+export const withSuggestions = (message, suggestions) => suggestions ? { ...message, suggestions } : message;
+
+// What a person renews with one click: pending, plain, with a place and a value, which the place already shows
+export const renewable = (suggestions = []) => suggestions.filter((item) =>
+    item.state === "pending" && item.unchanged && !item.doubt && item.point_id && item.value_id
+);
+
+// The live link of a message that gives what a suggestion said: the one its confirmation made
+export const linkOf = (message, suggestion) => liveLinks(message).find((link) =>
+    link.point_id === suggestion.point_id && (!suggestion.key_id ||
+        (link.key_id === suggestion.key_id && link.value_id === suggestion.value_id))
+) || null;

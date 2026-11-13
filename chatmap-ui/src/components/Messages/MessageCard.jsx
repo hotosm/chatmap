@@ -7,8 +7,9 @@ import SlTooltip from "@shoelace-style/shoelace/dist/react/tooltip/index.js";
 
 import TimeAgo from "../TimeAgo";
 import { onlyLocation } from "./linkStates.js";
-import { coordsOf, senderOf } from "./messages.js";
+import { coordsOf, highlighted, senderOf } from "./messages.js";
 import "./linkStates.css";
+import { MarkedFirst } from "./ReviewOrder.jsx";
 
 // "350 m", "1.2 km"
 export function Distance({ meters }) {
@@ -95,16 +96,18 @@ function DismissBlocked() {
 
 /**
  * A message of a group. On top, who sent it (as a pseudonym), how long ago,
- * and in which group when the page shows them all; then what it says, and
- * where it was sent from; below, what can be done with it.
+ * and in which group when the page shows them all; then what it says, whole,
+ * as a bubble (with what a rule looked for marked), and where it was sent
+ * from; below, what it suggests and what can be done with it.
  *
  * @param {string} groupName The name of its group; none when the page shows one group
  * @param {object} near The place nearest to where it was sent from, if it says (see nearestPlace)
  * @param {node} children What can be done with it
  * @param {function} onDismiss Dismisses it, from the ✕ at the top right; without it there is no ✕
  * @param {boolean} linked Whether it is linked to a place: without onDismiss, the ✕ shows disabled, saying why
+ * @param {number} markedLine A line to mark, the one a suggestion pointed at comes from; null for none
  */
-export default function MessageCard({ message, groupName, near, onDismiss, linked, children }) {
+export default function MessageCard({ message, groupName, near, onDismiss, linked, markedLine = null, children }) {
     const intl = useIntl();
     const sender = senderOf(message.sender);
 
@@ -123,6 +126,7 @@ export default function MessageCard({ message, groupName, near, onDismiss, linke
                         <FormattedMessage id="app.messages.inGroup" defaultMessage="in {group}" values={{ group: <strong>{groupName}</strong> }} />
                     }
                 </span>
+                <MarkedFirst message={message} />
                 { onDismiss ?
                     <SlIconButton
                         className="messageCard__dismiss"
@@ -137,7 +141,11 @@ export default function MessageCard({ message, groupName, near, onDismiss, linke
                 <p className="messageCard__text">
                     {/* Each line in its own direction: an Arabic line does not turn around the others */}
                     { message.text.split("\n").map((line, number) =>
-                        <span key={number} className="messageCard__line" dir="auto">{line}</span>
+                        <span key={number} className={`messageCard__line ${number === markedLine ? "messageCard__line--marked" : ""}`} dir="auto">
+                            { highlighted(line, message.highlights || []).map((piece, index) => piece.match ?
+                                <mark key={index} className="messageCard__mark">{piece.text}</mark> : piece.text
+                            )}
+                        </span>
                     )}
                 </p>
             }

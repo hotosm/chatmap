@@ -4,6 +4,12 @@ import { FormattedMessage, useIntl } from "react-intl";
 import SlInput from "@shoelace-style/shoelace/dist/react/input/index.js";
 import SlButton from '@shoelace-style/shoelace/dist/react/button/index.js';
 import SlColorPicker from "@shoelace-style/shoelace/dist/react/color-picker/index.js";
+
+import { Values } from "../Messages/ConditionGroup.jsx";
+// The pills of the words are the ones of the rules
+import "../Messages/messages.css";
+import { CONTAINS, CONTENT } from "../Messages/rules.js";
+import { MAX_VALUE_WORD_LENGTH, MAX_VALUE_WORDS } from "./tags.js";
 // The texts of the color picker in the languages of the app that Shoelace has
 import "@shoelace-style/shoelace/dist/translations/de.js";
 import "@shoelace-style/shoelace/dist/translations/es.js";
@@ -16,7 +22,7 @@ import "@shoelace-style/shoelace/dist/translations/pt.js";
 // Colors to pick from; any other can be chosen with the last one
 export const VALUE_COLORS = ["#D9414A", "#4FB3BB", "#E9A23B", "#7A4FB5", "#2E4873", "#9A969B"];
 
-// An option of a key with a list: its text, a description, a color (or none) and how long it lasts
+// An option of a key with a list: its text, a description, a color (or none), how long it lasts, and the words that say it
 export default function ValueForm({ value, loading, onSave, onArchive, onCancel }) {
   const intl = useIntl();
 
@@ -26,6 +32,8 @@ export default function ValueForm({ value, loading, onSave, onArchive, onCancel 
   const [color, setColor] = useState(value.color ?? null);
   // Hours it lasts after it was last confirmed; empty when it does not expire
   const [expiresAfter, setExpiresAfter] = useState(value.expires_after ? String(value.expires_after) : "");
+  // The words and emojis people write in the chats to say it
+  const [words, setWords] = useState(value.words || []);
 
   const customColor = color !== null && !VALUE_COLORS.includes(color);
 
@@ -40,6 +48,7 @@ export default function ValueForm({ value, loading, onSave, onArchive, onCancel 
       description: description.trim(),
       color,
       expires_after: hours > 0 ? hours : null,
+      words,
     });
   }
 
@@ -111,6 +120,25 @@ export default function ValueForm({ value, loading, onSave, onArchive, onCancel 
         })}
         onSlInput={(event) => setExpiresAfter(event.target.value)}
       />
+
+      <div className="tags__words">
+        <span className="tags__wordsLabel">
+          <FormattedMessage id="app.tags.wordsLabel" defaultMessage="Words and emojis that say it" />
+        </span>
+        <Values
+          condition={{ field: CONTENT, operator: CONTAINS, values: words }}
+          groups={[]}
+          max={MAX_VALUE_WORDS}
+          maxLength={MAX_VALUE_WORD_LENGTH}
+          onChange={(condition) => setWords(condition.values)}
+        />
+        <span className="tags__wordsHelp">
+          <FormattedMessage
+            id="app.tags.wordsHelp"
+            defaultMessage="As people write it in the chats, in any language: مسكر, cerrado, 🔴. A line that names a place and says one of them suggests this option for it; a person confirms."
+          />
+        </span>
+      </div>
 
       <div className="tags__buttons">
         { value.id &&

@@ -1,9 +1,9 @@
 import { expect, test as it } from 'vitest'
 
 import {
-  MAX_GROUP_PLACES, PAGE_SIZE, coordsOf, dayOf, groupMessagesOn, groupNames, groupPlaces, linksOfPoint,
+  MAX_GROUP_PLACES, PAGE_SIZE, coordsOf, dayOf, groupMessagesOn, groupNames, groupPlaces, highlighted, linksOfPoint,
   liveLinks, messagesOn, metersBetween, nearestPlace, nextPage, pageOf, placesNamed, placesOf, placesToAdd, senderOf, startsOver,
-  withMessage, withNewer, withOlder,
+  withMessage, withNewer, withOlder, linkOf, renewable,
 } from '../src/components/Messages/messages';
 
 const message = (id, sent_at) => ({ id, sent_at, group_id: "g-1", text: id });
@@ -160,6 +160,27 @@ it('keeps the changes of a point that came from messages and were not undone', (
   expect(linksOfPoint(null)).toEqual([]);
 });
 
+// highlighted
+const marks = (text, values) => highlighted(text, values).filter((piece) => piece.match).map((piece) => piece.text);
+
+it('marks what a rule looked for, without minding case nor accents', () => {
+  expect(marks("Está CERRADA la ruta", ["cerrada"])).toEqual(["CERRADA"]);
+  expect(marks("cerrado el acceso", ["cérrado", "acceso"])).toEqual(["cerrado", "acceso"]);
+  expect(highlighted("todo bien", ["cerrado"])).toEqual([{ text: "todo bien", match: false }]);
+});
+
+it('marks a word stretched to stress it, and Arabic with its marks, as the text says them', () => {
+  expect(marks("está cerrrrrada!", ["cerrada"])).toEqual(["cerrrrrada"]);
+  expect(marks("الحاجز مُسَكَّر اليوم", ["مسكر"])).toEqual(["مُسَكَّر"]);
+  expect(marks("المعبر مسكـــر", ["مسكر"])).toEqual(["مسكـــر"]);
+  expect(marks("طريق ٦٠ مغلق", ["60"])).toEqual(["٦٠"]);
+});
+
+it('keeps the whole text in its pieces', () => {
+  const text = "Ya abrieron, estaba cerrado";
+  expect(highlighted(text, ["cerrado", "abrieron"]).map((piece) => piece.text).join("")).toBe(text);
+});
+
 // senderOf, dayOf, nearestPlace
 it('tells senders apart with the start of their pseudonym and a color of their own, always the same', () => {
   expect(senderOf("3fa1b2c3d4e5")).toEqual(senderOf("3fa1b2c3d4e5"));
@@ -195,4 +216,34 @@ it('offers the places a group can still have, found by name and without the chos
 it('offers none once a group has as many places as it can', () => {
   const full = mapPlaces.slice(0, MAX_GROUP_PLACES).map((place) => place.id);
   expect(placesToAdd(mapPlaces, full, "")).toEqual([]);
+});
+
+// renewable, linkOf
+
+const line = (id, changes = {}) => ({ id, line: 0, point_id: "p-1", key_id: "k-1", value_id: "v-1", words: [], doubt: null, state: "pending", unchanged: false, ...changes });
+
+it("marks the right words after an emoji written with two code units, as 🔴 is", () => {
+  const marked = (text, values) => highlighted(text, values).filter((piece) => piece.match).map((piece) => piece.text);
+  expect(marked("🔴 Azul cerrado", ["Azul", "cerrado"])).toEqual(["Azul", "cerrado"]);
+  expect(marked("🔴🔴 Norte\n✅ Puente abierto", ["Puente", "🔴"])).toEqual(["🔴🔴", "Puente"]);
+});
+
+it("renews with one click only what is pending, plain, complete and already shown", () => {
+  const same = line("same", { unchanged: true });
+  expect(renewable([
+    same, line("change"), line("asks", { unchanged: true, doubt: "question" }),
+    line("answered", { unchanged: true, state: "accepted" }), line("no value", { unchanged: true, value_id: null }),
+  ])).toEqual([same]);
+});
+
+it("finds the link a confirmed suggestion made, not an undone one nor one of another value", () => {
+  const message = { links: [
+    { change_id: 1, point_id: "p-1", key_id: "k-1", value_id: "v-2", undone: false },
+    { change_id: 2, point_id: "p-1", key_id: "k-1", value_id: "v-1", undone: true },
+    { change_id: 3, point_id: "p-1", key_id: "k-1", value_id: "v-1", undone: false },
+  ] };
+  expect(linkOf(message, line("a")).change_id).toBe(3);
+  // A suggestion of only the place, by any link to it
+  expect(linkOf(message, line("b", { key_id: null, value_id: null })).change_id).toBe(1);
+  expect(linkOf(message, line("c", { point_id: "p-9" }))).toBeNull();
 });

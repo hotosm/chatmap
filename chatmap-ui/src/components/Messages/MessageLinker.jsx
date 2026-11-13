@@ -22,9 +22,10 @@ import { coordsOf, liveLinks, placesOf } from "./messages.js";
  * @param {function} onCreatePlace Gets a name and [lat, lon]; answers the new place, or null (see useAddedPlaces)
  * @param {array} groupPointIds The places the group of the message always speaks of, if its owner said so:
  *   one comes chosen, two come as shortcuts, always saying they come from the group
+ * @param {string} presetPointId A place to start from: the one of a suggestion that lacks its value
  */
 export default function MessageLinker({
-    message, mapData, keys, onLink, onUndo, onReload, onCreatePlace, groupPointIds = [],
+    message, mapData, keys, onLink, onUndo, onReload, onCreatePlace, groupPointIds = [], presetPointId = null,
 }) {
     const dropdown = useRef();
     const [place, setPlace] = useState(null);
@@ -34,12 +35,14 @@ export default function MessageLinker({
     const coords = useMemo(() => coordsOf(message.location), [message.location]);
     const places = useMemo(() => placesOf(mapData.features, coords), [mapData.features, coords]);
     const statusKey = useMemo(() => statusKeyOf(mapData.keys), [mapData.keys]);
+    // The place of a suggestion that lacks its value comes chosen
+    const ofSuggestion = presetPointId ? places.find((item) => item.id === presetPointId) || null : null;
     // The places of the group, when its owner said it always speaks of them
     const ofGroup = useMemo(
         () => groupPointIds.map((id) => places.find((item) => item.id === id)).filter(Boolean), [groupPointIds, places],
     );
-    const byGroup = !place && ofGroup.length === 1;
-    const chosen = place || (byGroup ? ofGroup[0] : null);
+    const byGroup = !place && !ofSuggestion && ofGroup.length === 1;
+    const chosen = place || ofSuggestion || (byGroup ? ofGroup[0] : null);
 
     const pick = async (keyId, change) => {
         setOutcome(null);
@@ -94,7 +97,7 @@ export default function MessageLinker({
                         <FormattedMessage id="app.messages.ofGroup" defaultMessage="(of the group)" />
                     </span>
                 }
-                { !place && ofGroup.length > 1 && ofGroup.map((item) =>
+                { !place && !ofSuggestion && ofGroup.length > 1 && ofGroup.map((item) =>
                     <button key={item.id} type="button" className="pill pill--outline messageLinker__shortcut" disabled={busy} onClick={() => setPlace(item)}>
                         {item.name}
                         <span className="messageLinker__ofGroup">

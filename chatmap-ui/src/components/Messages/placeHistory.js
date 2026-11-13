@@ -1,6 +1,6 @@
 /**
  * The history of a place: every change of its tags, of all its keys, from
- * messages or by hand, undone ones too, and which of them put what the
+ * messages, rules or by hand, undone ones too, and which of them put what the
  * map shows today. Pure helpers for PlaceHistory.
  */
 // From tags.js itself, not the index of the module, to stay a pure module that tests can read
@@ -100,5 +100,5 @@ export const noteOf = ({ change, state, gone }) => {
     if (!FROM_MESSAGES.includes(change.source)) return change.source === "manual" ? "manual" : "other";
     if (state === OLDER) return "older";
     if (state === TAKEN_OUT) return "takenOut";
-    return "linked";
+    return change.source === "rule" ? "byRule" : "linked";
 };
