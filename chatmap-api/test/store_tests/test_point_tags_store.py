@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -149,3 +149,27 @@ async def test_a_change_of_a_map_the_point_was_in_before_does_not_come_back():
 
     with _patch_scope(db), pytest.raises(UnknownTagChange):
         await PointTagsStore.set_undone(1, "user-1", True)
+
+
+async def test_an_export_gives_what_each_point_shows_for_each_key_as_text():
+    now = datetime(2026, 11, 13, 12, tzinfo=UTC)
+    day, hours = timedelta(days=1), timedelta(hours=6)
+    db = MagicMock()
+    # (point, key, option, lasts, free text, confirmed at)
+    db.execute.return_value.all.return_value = [
+        ("p-1", "Status", "Closed", day, None, now - hours),
+        ("p-1", "Note", None, None, "a tree fell", now - day),
+        # Nobody confirmed it for longer than it lasts: the map shows it as unknown
+        ("p-2", "Status", "Open", hours, None, now - day),
+        # Many values of a key go together, in order
+        ("p-3", "Services", "Water", None, None, now), ("p-3", "Services", "Fuel", None, None, now),
+    ]
+
+    with _patch_scope(db):
+        shown = await PointTagsStore.shown_tags("map-1", now)
+
+    assert shown == {
+        "p-1": {"Status": "Closed", "Note": "a tree fell"},
+        "p-2": {"Status": "unknown"},
+        "p-3": {"Services": "Water, Fuel"},
+    }

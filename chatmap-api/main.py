@@ -32,6 +32,7 @@ from bot.configured_messages import BotStep
 from store.bot_configured_messages_store import (
     BotMessage, get_configured_messages, update_configured_messages,
 )
+from store.point_tags_store import PointTagsStore
 from store.survey_responses_store import SurveyResponsesStore
 from schemas import (
     FeatureCollection, SaveMapFeatureCollection, SaveMapResult, UpdateMap,
@@ -503,6 +504,20 @@ async def map_response(db, map_obj, owner):
             for point in points
         ]
     }
+
+
+async def with_tags(map_obj, map):
+    """
+    A map with what each point shows now for each key of the map (see
+    PointTagsStore.shown_tags), as one property per key: "Status": "Closed".
+    A property the point already has is not replaced.
+    """
+    shown = await PointTagsStore.shown_tags(map_obj.id)
+    for feature in map["features"]:
+        properties = feature["properties"]
+        for key, value in shown.get(properties["id"], {}).items():
+            properties.setdefault(key, value)
+    return map
 
 
 @api_router.get("/map/new", response_model=FeatureCollection)
@@ -1007,7 +1022,7 @@ async def export(
     map_obj: Map = db.get(Map, map_id)
     owner = (user and map_obj.owner_id == user.id) or False
     if map_obj and owner:
-        map = await map_response(db, map_obj, owner)
+        map = await with_tags(map_obj, await map_response(db, map_obj, owner))
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
             # Get map files
@@ -1166,7 +1181,7 @@ async def export_umap(
             detail="Unauthorized: the requested map is not publicly shared."
         )
 
-    map = await map_response(db, map_obj, owner)
+    map = await with_tags(map_obj, await map_response(db, map_obj, owner))
     for feature in map['features']:
         survey = feature['properties'].pop('survey', [])
         for answer in survey:

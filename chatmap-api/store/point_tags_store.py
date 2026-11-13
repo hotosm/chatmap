@@ -38,6 +38,8 @@ MESSAGE = "message"
 # A message linked as a rule suggested it, once a person confirmed it
 RULE = "rule"
 SYSTEM = "system"
+# What a point shows for a key when nobody confirmed its value for longer than it lasts, as the map says it
+UNKNOWN = "unknown"
 
 
 def lock_point(db, point_id: str):
@@ -265,6 +267,40 @@ class PointTagsStore:
                 db.rollback()
                 logger.error(f"Undo tag change '{change_id}' failed with: '{error}'")
                 raise StoreUnavailable
+
+    @classmethod
+    async def shown_tags(cls, map_id: str, now: datetime | None = None) -> dict[str, dict[str, str]]:
+        """
+        What each point of a map shows now for each of its keys, by point and
+        by the name of the key, as text: the name of an option of a list, or a
+        free text. A value nobody confirmed for longer than it lasts shows as
+        UNKNOWN, as on the map; many values of a key go together, in order.
+        The keys archived are left out. For exports: who can export the map
+        was checked by them.
+        """
+        now = now or datetime.now(UTC)
+        with session_scope() as db:
+            try:
+                rows = db.execute(
+                    select(PointTag.point_id, MapKey.key, MapKeyValue.value, MapKeyValue.expires_after, PointTag.value,
+                           PointTag.confirmed_at)
+                    .join(Point, Point.id == PointTag.point_id)
+                    .join(MapKey, MapKey.id == PointTag.key_id)
+                    .outerjoin(MapKeyValue, MapKeyValue.id == PointTag.value_id)
+                    .where(Point.map_id == map_id, MapKey.map_id == map_id, MapKey.archived_at.is_(None))
+                    .order_by(PointTag.point_id, MapKey.position, MapKeyValue.position, PointTag.id)
+                ).all()
+            except SQLAlchemyError as error:
+                logger.error(f"Fetch shown tags of map '{map_id}' failed with: '{error}'")
+                raise StoreUnavailable
+        shown: dict[str, dict[str, list[str]]] = {}
+        for point_id, key, option, lasts, free, confirmed_at in rows:
+            text = UNKNOWN if lasts is not None and confirmed_at + lasts <= now else (option or free)
+            if text:
+                values = shown.setdefault(point_id, {}).setdefault(key, [])
+                if text not in values:
+                    values.append(text)
+        return {point_id: {key: ", ".join(values) for key, values in keys.items()} for point_id, keys in shown.items()}
 
     @classmethod
     async def read_tags(cls, map_id: str, user_id: str | None) -> list | None:
