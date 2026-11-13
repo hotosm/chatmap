@@ -1,7 +1,7 @@
 import { expect, test as it} from 'vitest'
 
 import {
-  colorKeyOf, colorKeys, expiresAt, freeTags, freeTagsInUse, keyFilter, keyFilterOf, keysOn, linkableKeys, newPoint,
+  colorKeyOf, colorKeys, expiresAt, freeTags, freeTagsInUse, keyFilter, keyFilterOf, keysOn, linkableKeys, newPoint, placeNamed,
   shownValue, shownValueCounts, textOn, UNKNOWN, usesKeys, valuesInUse, withKeyTags, withShownValues, withTags,
 } from '../src/components/Tags/tags';
 
@@ -179,4 +179,15 @@ it('offers a message the keys not archived, with their values not archived, and 
   expect(linkableKeys(keys).map(({ key, options }) => [key.id, options.map((value) => value.id)])).toEqual([
     ["k-1", ["v-1"]], ["k-4", []],
   ]);
+});
+
+// placeNamed
+it('should find the place that has a name already, without minding case, accents nor spaces', () => {
+  const place = (id, message, extra = {}) => ({ properties: { id, message, place: true, removed: false, ...extra } });
+  const features = [place("p-1", "Puente Viejo"), place("p-2", "Acceso Norte", { removed: true }), place("r-1", "Plaza", { place: false })];
+  expect(placeNamed(features, "  puénte   VIEJO ").properties.id).toBe("p-1");
+  // A removed place and a report do not hold their names
+  expect(placeNamed(features, "Acceso Norte")).toBe(null);
+  expect(placeNamed(features, "Plaza")).toBe(null);
+  expect(placeNamed(features, "Puente Viejo Norte")).toBe(null);
 });

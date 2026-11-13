@@ -155,6 +155,11 @@ class PointIdAlreadyTaken(Exception):
         self.point_id = point_id
 
 
+class PlaceNameTaken(Exception):
+    def __init__(self, name):
+        self.name = name
+
+
 class TooManyPlaces(Exception):
     def __init__(self, max_places):
         self.max_places = max_places

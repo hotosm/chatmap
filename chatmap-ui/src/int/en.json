@@ -426,5 +426,7 @@
   "app.messages.expiredSince": "{value}, expired {ago}: nobody confirmed it since",
   "app.lines.suggests": "Suggests",
   "app.lines.linkOther": "Link to another place or status",
-  "app.lines.linkPlace": "Link to a place"
+  "app.lines.linkPlace": "Link to a place",
+  "app.tags.addPoint.nameTaken": "There is a place with that name already. Give this one another name.",
+  "app.messages.nameTaken": "“{name}” is a place already: choose it in the list."
 }

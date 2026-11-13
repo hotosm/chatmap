@@ -1,4 +1,5 @@
 import hashlib
+import unicodedata
 import json
 from datetime import datetime, timezone
 
@@ -24,6 +25,12 @@ def point_id_of(sender: str, map_id: str, latitude: float, longitude: float, tim
     )
 
     return hashlib.sha256(data.encode()).hexdigest()
+
+
+def same_name(name: str | None) -> str:
+    """A name as two places are told apart: without case, accents nor spaces around or doubled."""
+    plain = "".join(char for char in unicodedata.normalize("NFD", name or "") if not unicodedata.combining(char))
+    return " ".join(plain.casefold().split())
 
 
 def as_utc(time: datetime) -> datetime:

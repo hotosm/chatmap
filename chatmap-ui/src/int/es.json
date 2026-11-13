@@ -426,5 +426,7 @@
   "app.messages.expiredSince": "{value}, venció {ago}: nadie lo confirmó desde entonces",
   "app.lines.suggests": "Sugiere",
   "app.lines.linkOther": "Vincular a otro lugar o estado",
-  "app.lines.linkPlace": "Vincular a un lugar"
+  "app.lines.linkPlace": "Vincular a un lugar",
+  "app.tags.addPoint.nameTaken": "Ya hay un lugar con ese nombre. Ponle otro nombre a este.",
+  "app.messages.nameTaken": "«{name}» ya es un lugar: elígelo en la lista."
 }

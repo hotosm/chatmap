@@ -20,7 +20,7 @@ export default function MapTools({ map, adding, show, onAdd }) {
 
     return (
         <div className="mapTools" onKeyDown={keepArrows}>
-            <AddPoint map={map} mapId={data.id} colorKey={colorKey} adding={adding} show={show} onAdd={onAdd} />
+            <AddPoint map={map} mapId={data.id} features={data.features} colorKey={colorKey} adding={adding} show={show} onAdd={onAdd} />
             <ColorBy
                 keys={data.keys}
                 colorKey={colorKey && colorKey.id}
