@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import SQLAlchemyError
 
-from results.error import InvalidCursor, StoreUnavailable
+from results.error import InvalidCursor, PlaceNameTaken, StoreUnavailable
 from store.contributors.authorization import Owner
 from store.points.store import HistoryMedia, HistoryPage, HistoryPoint, PointCreation, PointStore
 
@@ -70,6 +70,13 @@ def _insert_params(db):
 async def _owner_id(**overrides):
     with _patch_scope(_db("p")):
         return (await _create(**overrides)).id
+
+
+@pytest.fixture(autouse=True)
+def _no_other_places():
+    """By default the map has no other place: no name is taken."""
+    with patch("store.points.store.place_names", return_value=[]) as names:
+        yield names
 
 
 # ---- create_point as the owner ----
@@ -394,3 +401,27 @@ async def test_history_reports_the_store_unavailable_when_the_query_fails():
     with _patch_scope(db):
         with pytest.raises(StoreUnavailable):
             await _history()
+
+
+@pytest.mark.parametrize("name, taken", [
+    ("Puente Viejo", True),
+    # Without case, accents nor spaces around or doubled: the same name
+    ("  puente   VIEJO ", True), ("Puénte Viejo", True),
+    ("Puente Viejo Norte", False), ("", False),
+])
+async def test_a_place_takes_a_name_no_other_place_of_its_map_has(_no_other_places, name, taken):
+    _no_other_places.return_value = [("p-other", "Puente Viejo")]
+
+    with _patch_scope(_db("p")):
+        if taken:
+            with pytest.raises(PlaceNameTaken):
+                await _create(message=name)
+        else:
+            await _create(message=name)
+
+
+async def test_the_same_place_asked_for_again_is_not_another_one_with_its_name(_no_other_places):
+    first = await _owner_id(message="Puente Viejo")
+    _no_other_places.return_value = [(first, "Puente Viejo")]
+
+    assert await _owner_id(message="Puente Viejo") == first

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from api.v2.credentials import RequestCredentials, require_contributor_secret, require_credential
 from api.v2.schemas.media import MediaResponse
 from api.v2.schemas.point import CreatePointRequest, CreatePointResponse, HistoryPointResponse, HistoryResponse
-from results.error import InvalidCursor, MapNotFound, NotAuthorized, StoreUnavailable
+from results.error import InvalidCursor, MapNotFound, NotAuthorized, PlaceNameTaken, StoreUnavailable
 from settings import API_URL
 from store.contributors.authorization import Owner
 from store.contributors.model import Contributor
@@ -59,6 +59,8 @@ async def create_point(
         )
     except StoreUnavailable:
         raise HTTPException(status_code=503, detail="Point storage unavailable.")
+    except PlaceNameTaken:
+        raise HTTPException(status_code=409, detail="A place of this map already has that name.")
 
     response.status_code = 201 if creation.created else 200
 

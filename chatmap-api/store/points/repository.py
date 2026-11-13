@@ -52,3 +52,11 @@ def history(db, map_id: str, contributor_id: str, after: tuple[datetime, str] | 
         query = query.where(tuple_(Point.time, Point.id) < tuple_(*after))
 
     return db.execute(query).all()
+
+
+def place_names(db, map_id: str) -> list[tuple[str, str]]:
+    """The places of a map that are not removed, with their names: (id, name)."""
+    query = select(Point.id, Point.message).where(
+        Point.map_id == map_id, Point.place, Point.removed.is_(False), Point.message.is_not(None),
+    )
+    return [(row.id, row.message) for row in db.execute(query)]

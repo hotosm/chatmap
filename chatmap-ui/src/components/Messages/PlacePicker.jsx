@@ -12,6 +12,7 @@ import { Distance } from "./MessageCard.jsx";
 import PlaceMap from "./PlaceMap.jsx";
 import { newPlaceName, placesCoords, statusOf } from "./linkStates.js";
 import { placesNamed } from "./messages.js";
+import { sameName } from "../Tags/tags.js";
 import "./linkStates.css";
 
 // How many places the panel lists at once: the rest are found by name
@@ -75,6 +76,8 @@ export default function PlacePicker({ places, place, onPick, disabled, coords, f
     const [naming, setNaming] = useState(null);
     const [creating, setCreating] = useState(false);
     const [notCreated, setNotCreated] = useState(false);
+    // The place that already has the name asked for a new one
+    const [taken, setTaken] = useState(null);
     // Where a new place goes when the message does not say where it was sent from: pointed on the small map
     const [at, setAt] = useState(null);
     const around = useMemo(() => placesCoords(features), [features]);
@@ -117,8 +120,12 @@ export default function PlacePicker({ places, place, onPick, disabled, coords, f
     const where = coords || at;
     const create = async (name) => {
         if (!name || !where || creating) return;
-        setCreating(true);
         setNotCreated(false);
+        // Each place has a name of its own: the one that has it is in the list, to choose it
+        const named = places.find((item) => sameName(item.name) === sameName(name));
+        setTaken(named || null);
+        if (named) return;
+        setCreating(true);
         const created = await onCreate(name, where);
         setCreating(false);
         if (created) pick(created);
@@ -228,6 +235,15 @@ export default function PlacePicker({ places, place, onPick, disabled, coords, f
                                     </button>
                                 </div>
                             </form>
+                        }
+                        { taken &&
+                            <p className="messageLinker__notice messageLinker__notice--error" role="alert">
+                                <FormattedMessage
+                                    id="app.messages.nameTaken"
+                                    defaultMessage="“{name}” is a place already: choose it in the list."
+                                    values={{ name: <bdi>{taken.name}</bdi> }}
+                                />
+                            </p>
                         }
                         { notCreated &&
                             <p className="messageLinker__notice messageLinker__notice--error" role="alert">

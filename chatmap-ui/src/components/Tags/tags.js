@@ -193,6 +193,15 @@ export const shownValueCounts = (features, key, now = Date.now()) => {
     return counts[UNKNOWN] ? [...values, { id: UNKNOWN, value: null, color: null, count: counts[UNKNOWN] }] : values;
 };
 
+// A name as two places are told apart, as the API does: without case, accents nor spaces around or doubled
+export const sameName = (name) =>
+    (name || "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim().replace(/\s+/g, " ");
+
+// The place of a map, not removed, that already has a name; null when none has it
+export const placeNamed = (features, name) => !sameName(name) ? null :
+    (features || []).find((feature) => feature.properties && feature.properties.place && !feature.properties.removed &&
+        sameName(feature.properties.message) === sameName(name)) || null;
+
 /**
  * A point added by hand by the owner of the map, as the API takes it and, once
  * the API gives it its id, as the map shows it: a place of the map.

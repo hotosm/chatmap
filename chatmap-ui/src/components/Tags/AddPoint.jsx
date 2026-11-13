@@ -10,11 +10,11 @@ import SlSelect from "@shoelace-style/shoelace/dist/react/select/index.js";
 import SlOption from "@shoelace-style/shoelace/dist/react/option/index.js";
 
 import useTagsApi from "./useTagsApi.js";
-import { newPoint, selectable } from "./tags.js";
+import { newPoint, placeNamed, selectable } from "./tags.js";
 
 // Adds a point to the map by hand: a click on the map tells where it is,
 // then it takes a name and, if wanted, a value of the key that colors the map.
-export default function AddPoint({ map, mapId, colorKey, adding, show, onAdd }) {
+export default function AddPoint({ map, mapId, features, colorKey, adding, show, onAdd }) {
   const intl = useIntl();
   const { createPoint, setPointTag } = useTagsApi();
 
@@ -82,6 +82,14 @@ export default function AddPoint({ map, mapId, colorKey, adding, show, onAdd }) 
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
+    // Each place has a name of its own
+    if (placeNamed(features, trimmed)) {
+      setError(intl.formatMessage({
+        id: "app.tags.addPoint.nameTaken",
+        defaultMessage: "There is a place with that name already. Give this one another name.",
+      }));
+      return;
+    }
 
     const { request, featureOf } = newPoint({
       name: trimmed,

@@ -426,5 +426,7 @@
   "app.messages.expiredSince": "{value}، انتهت صلاحيتها {ago}: لم يؤكدها أحد منذ ذلك الحين",
   "app.lines.suggests": "يقترح",
   "app.lines.linkOther": "اربط بمكان أو حالة أخرى",
-  "app.lines.linkPlace": "اربط بمكان"
+  "app.lines.linkPlace": "اربط بمكان",
+  "app.tags.addPoint.nameTaken": "يوجد مكان بهذا الاسم بالفعل. اختر اسمًا آخر لهذا المكان.",
+  "app.messages.nameTaken": "«{name}» مكان موجود بالفعل: اختره من القائمة."
 }

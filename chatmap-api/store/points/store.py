@@ -5,12 +5,12 @@ from datetime import datetime, timezone
 from sqlalchemy.exc import SQLAlchemyError
 
 from db import session_scope
-from results.error import StoreUnavailable
+from results.error import PlaceNameTaken, StoreUnavailable
 from store.contributors.authorization import Owner
 from store.contributors.model import Contributor
 from store.points.cursor import decode_cursor, encode_cursor
-from store.points.model import point_id_of
-from store.points.repository import history, insert_if_new
+from store.points.model import point_id_of, same_name
+from store.points.repository import history, insert_if_new, place_names
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,24 @@ def _history_point(row) -> HistoryPoint:
     )
 
 
+def _check_name_free(db, map_id: str, name: str | None, point_id: str) -> None:
+    """
+    A place has a name no other place of its map has (see same_name). The
+    same place asked for again is not another one: it is answered as it is.
+    """
+    if not same_name(name):
+        return
+    try:
+        taken = any(
+            same_name(other) == same_name(name) and other_id != point_id for other_id, other in place_names(db, map_id)
+        )
+    except SQLAlchemyError as error:
+        logger.error(f"Read the places of map '{map_id}' failed with: '{error}'")
+        raise StoreUnavailable
+    if taken:
+        raise PlaceNameTaken(name)
+
+
 class PointStore:
 
     @classmethod
@@ -88,8 +106,9 @@ class PointStore:
         with session_scope() as db:
             # What the owner makes is a place of the map; what a contributor sends, a report
             if isinstance(author, Owner):
-                return _save(db, f"owner:{author.user_id}", map_id, author.username, None, latitude, longitude,
-                             time, message, place=True)
+                sender = f"owner:{author.user_id}"
+                _check_name_free(db, map_id, message, point_id_of(sender, map_id, latitude, longitude, time, message))
+                return _save(db, sender, map_id, author.username, None, latitude, longitude, time, message, place=True)
 
             return _save(db, f"contributor:{author.id}", map_id, author.nickname, author.id, latitude, longitude,
                          time, message)
