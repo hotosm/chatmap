@@ -56,6 +56,10 @@ class BotTool:
             logger.info(f"Device: '{device}' has an incomplete bot configuration")
             raise BotMessagesNotConfigured(message_id=message.id)
 
+        if not configured_messages.has_keyword():
+            logger.info(f"Device: '{device}' has no keyword configured")
+            raise BotMessagesNotConfigured(message_id=message.id)
+
         bot_state_key = f"bot_state:{FirstTimeMappingFlow.name}:{message.sender}{message.chat}"
 
         flow = await FirstTimeMappingFlow.create(

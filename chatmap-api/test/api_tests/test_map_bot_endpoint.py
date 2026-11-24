@@ -51,6 +51,7 @@ def _stored_attempts(item_id="attempts-1", max_attempts_quantity=3,
 def _complete_messages():
     """The smallest message list that lets the bot be enabled."""
     return [
+        BotConfiguredMessage(bot_step=BotStep.KEYWORD, prompt="TREE"),
         BotConfiguredMessage(bot_step=BotStep.START, prompt="Hi, I'm the ChatMap bot"),
         BotConfiguredMessage(bot_step=BotStep.MEDIA, prompt="Send the content", error_message="That is not a photo"),
         BotConfiguredMessage(bot_step=BotStep.LOCATION, prompt="Now share the location",
@@ -246,11 +247,11 @@ def test_a_complete_configuration_can_enable_the_bot():
 
 
 def test_the_bot_cannot_be_enabled_with_no_messages():
-    with pytest.raises(ValidationError, match="cannot be enabled without a 'start' message"):
+    with pytest.raises(ValidationError, match="cannot be enabled without a 'keyword' message"):
         BotSetup(bot_active=True, messages=[], max_attempts_messages=BotMaxAttemptsMessages())
 
 
-@pytest.mark.parametrize("missing", ["start", "media", "location", "end"])
+@pytest.mark.parametrize("missing", ["keyword", "start", "media", "location", "end"])
 def test_the_bot_cannot_be_enabled_with_a_required_message_missing(missing):
     messages = [message for message in _complete_messages() if message.bot_step.value != missing]
 
@@ -332,10 +333,25 @@ def test_a_question_needs_between_two_and_ten_options(options):
         )
 
 
+def test_a_blank_keyword_cannot_enable_the_bot():
+    messages = _complete_messages()
+    messages[0].prompt = "   "
+
+    with pytest.raises(ValidationError, match="cannot be enabled without a 'keyword' message"):
+        BotSetup(bot_active=True, messages=messages, max_attempts_messages=_complete_max_attempts())
+
+
 def test_a_fixed_kind_cannot_be_configured_twice():
     messages = _complete_messages() + [BotConfiguredMessage(bot_step=BotStep.START, prompt="Hi again")]
 
     with pytest.raises(ValidationError, match="'start' can only be configured once"):
+        BotSetup(bot_active=False, messages=messages, max_attempts_messages=BotMaxAttemptsMessages())
+
+
+def test_the_keyword_cannot_be_configured_twice():
+    messages = _complete_messages() + [BotConfiguredMessage(bot_step=BotStep.KEYWORD, prompt="OTHER")]
+
+    with pytest.raises(ValidationError, match="'keyword' can only be configured once"):
         BotSetup(bot_active=False, messages=messages, max_attempts_messages=BotMaxAttemptsMessages())
 
 
@@ -407,6 +423,7 @@ def _candidate_map(map_id, name="Untitled", owner_id="user-1"):
 def _complete_rows():
     """The rows of a map whose bot would pass validation if enabled."""
     return [
+        _stored_message(BotStep.KEYWORD, prompt="TREE"),
         _stored_message(BotStep.START, prompt="Hi, I'm the ChatMap bot"),
         _stored_message(BotStep.MEDIA, prompt="Send the content", error_message="That is not a photo"),
         _stored_message(BotStep.LOCATION, prompt="Now share the location", error_message="That is not a location"),
@@ -443,6 +460,16 @@ async def test_lists_only_maps_whose_bot_would_be_complete_if_enabled():
     result = await get_bot_templates(user=_user(), db=db)
 
     assert [(template.id, template.name) for template in result] == [("map-2", "Ecuador")]
+
+
+async def test_a_map_without_a_keyword_is_not_a_template():
+    db = _db(None)
+    rows = _tagged("map-2", [row for row in _complete_rows() if row.bot_step != BotStep.KEYWORD])
+    _stub_execute(db, [_candidate_map("map-2")], rows)
+
+    result = await get_bot_templates(user=_user(), db=db)
+
+    assert result == []
 
 
 async def test_a_map_with_no_configuration_is_not_a_template():

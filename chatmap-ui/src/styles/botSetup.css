@@ -69,6 +69,22 @@
   width: 100%;
 }
 
+.botSetup__keyword {
+  display: flex;
+  align-items: center;
+  gap: var(--hot-spacing-small);
+  width: 20rem;
+  max-width: 100%;
+}
+
+.botSetup__keyword sl-input {
+  flex: 1;
+}
+
+.botSetup__keyword-input--invalid::part(base) {
+  border-color: var(--hot-color-danger-600, #c0392b);
+}
+
 .botSetup__row {
   display: flex;
   align-items: center;

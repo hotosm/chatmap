@@ -55,6 +55,13 @@ class FirstTimeMappingFlow(BotFlow):
     async def call(self, current_event: EventName, context: BotFlowContext) -> None:
         logger.info(f"Calling bot flow: '{self.name}' with state: '{self.state}' for event: '{current_event}'")
 
+        if self.state == FirstTimeMappingState.IDLE and not (
+                current_event == EventName.USER_SEND_TEXT
+                and context.configured_messages.matches_keyword(context.answer)
+        ):
+            logger.info("Bot is idle and the keyword was not received, skipping")
+            return
+
         handler = self.transitions.get((self.state, current_event))
 
         if handler:
@@ -66,7 +73,7 @@ class FirstTimeMappingFlow(BotFlow):
     async def on_start(self, ctx: BotFlowContext) -> None:
         logger.info("Handling: on_start")
 
-        if ctx.answer:
+        if ctx.configured_messages.matches_keyword(ctx.answer):
             await self.bot_consumed_messages_store.mark_consumed(
                 device=ctx.sender, message_id=ctx.message_id, occurred_at=ctx.occurred_at
             )

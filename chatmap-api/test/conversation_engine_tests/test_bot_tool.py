@@ -21,6 +21,8 @@ from store.message_to_send_store import MessageToSendStore
 from store.received_messages_store import ReceivedMessage
 from store.survey_responses_store import SurveyResponsesStore
 
+KEYWORD = "TREE"
+
 
 def _encrypt(plaintext: str) -> str:
     key = CHATMAP_ENC_KEY.encode("utf-8")
@@ -58,7 +60,10 @@ def _bot_conversation() -> BotConfiguredMessages:
         max_attempts_messages=BotMaxAttemptsMessages(
             max_attempts_quantity=3, notify_message="", to_restart="", to_cancel="",
         ),
-        messages=[BotMessage(id="start-1", bot_step=BotStep.START, prompt="Hi", error_message="")],
+        messages=[
+            BotMessage(id="keyword-1", bot_step=BotStep.KEYWORD, prompt=KEYWORD, error_message=""),
+            BotMessage(id="start-1", bot_step=BotStep.START, prompt="Hi", error_message=""),
+        ],
     )
 
 
@@ -203,6 +208,30 @@ async def test_call_raises_when_max_attempts_is_not_configured():
     bot_configured_messages_store.get_configured_messages_for.return_value = BotConfiguredMessages(
         max_attempts_messages=None,
         messages=[BotMessage(id="start-1", bot_step=BotStep.START, prompt="Hi", error_message="")],
+    )
+    bot_tool = _make_bot_tool(bot_configured_messages_store=bot_configured_messages_store)
+    event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))
+
+    with patch.object(FirstTimeMappingFlow, "create", AsyncMock()) as mock_create:
+        with pytest.raises(BotMessagesNotConfigured):
+            await bot_tool(event=event, message=_message(text=_encrypt("hi")), device="device-1",
+                           conversation=_conversation())
+
+    mock_create.assert_not_awaited()
+
+
+@pytest.mark.parametrize("keyword", [None, "   "])
+async def test_call_raises_when_the_device_has_no_usable_keyword(keyword):
+    messages = []
+    if keyword is not None:
+        messages.append(BotMessage(id="keyword-1", bot_step=BotStep.KEYWORD, prompt=keyword, error_message=""))
+    messages.append(BotMessage(id="start-1", bot_step=BotStep.START, prompt="Hi", error_message=""))
+    bot_configured_messages_store = AsyncMock(spec=BotConfiguredMessagesStore)
+    bot_configured_messages_store.get_configured_messages_for.return_value = BotConfiguredMessages(
+        max_attempts_messages=BotMaxAttemptsMessages(
+            max_attempts_quantity=3, notify_message="", to_restart="", to_cancel="",
+        ),
+        messages=messages,
     )
     bot_tool = _make_bot_tool(bot_configured_messages_store=bot_configured_messages_store)
     event = Event(name=EventName.USER_SEND_TEXT, occurred_at=datetime.now(timezone.utc))

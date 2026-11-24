@@ -9,6 +9,9 @@ export const FIXED_STEPS = [
 
 export const END_STEP = {bot_step: "end", icon: "chat-square-text", answers: false};
 
+// Not a message the bot sends: the exact text the user must send to start it.
+export const KEYWORD_STEP = {bot_step: "keyword", icon: "hash", answers: false};
+
 export const QUESTION_ICON = "list-ul";
 export const FREE_TEXT_ICON = "chat-square-dots";
 
@@ -19,7 +22,7 @@ export function isQuestion(botStep) {
     return QUESTION_STEPS.includes(botStep);
 }
 
-const REQUIRED_STEPS = ["start", "location", "media", "end"];
+const REQUIRED_STEPS = ["keyword", "start", "location", "media", "end"];
 const STEPS_NEEDING_AN_ERROR = ["location", "media"];
 
 function filled(text) {
@@ -100,7 +103,7 @@ export function maxAttemptsHasProblems(maxAttempts, botActive) {
 
 export function messagesFromSetup(setup) {
     const stored = setup?.messages || [];
-    const fixed = [...FIXED_STEPS, END_STEP].map(
+    const fixed = [KEYWORD_STEP, ...FIXED_STEPS, END_STEP].map(
         ({bot_step}) => stored.find((message) => message.bot_step === bot_step) || emptyMessage(bot_step)
     );
     const questions = questionsOf(stored)

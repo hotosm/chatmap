@@ -10,6 +10,7 @@
   "app.botSetup.incompleteError": "Completa los mensajes resaltados antes de guardar.",
   "app.botSetup.incorrectAnswer": "Respuesta incorrecta",
   "app.botSetup.incorrectAnswerPlaceholder": "Qué responde el bot cuando la respuesta no es válida",
+  "app.botSetup.keyword": "Palabra clave",
   "app.botSetup.location": "Ubicación",
   "app.botSetup.maxAttemptsMessages": "Mensajes de cancelar o reiniciar",
   "app.botSetup.maxAttemptsQuantity": "Intentos fallidos antes de ofrecer cancelar o reiniciar",

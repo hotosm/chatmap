@@ -3,5 +3,6 @@
     "HANKO_API_URL": "http://localhost:8002",
     "LOGIN_URL": "http://localhost:5173/#/app",
     "ENABLE_LIVE": true,
-    "ENABLE_AUTH": true
+    "ENABLE_AUTH": true,
+    "ENABLE_GROUP_MESSAGES": "false"
 }

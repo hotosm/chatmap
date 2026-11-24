@@ -10,6 +10,7 @@
   "app.botSetup.incompleteError": "Fill in the highlighted messages before saving.",
   "app.botSetup.incorrectAnswer": "Incorrect answer",
   "app.botSetup.incorrectAnswerPlaceholder": "What the bot replies when the answer is not valid",
+  "app.botSetup.keyword": "Keyword",
   "app.botSetup.location": "Location",
   "app.botSetup.maxAttemptsMessages": "Cancel or restart messages",
   "app.botSetup.maxAttemptsQuantity": "Failed attempts before offering to cancel or restart",
