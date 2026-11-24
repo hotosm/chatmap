@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FormattedMessage } from "react-intl";
 
-import { ValueChip } from "../Tags";
+import { ValueChip, placeName } from "../Tags";
 import { liveLinks } from "./messages.js";
 
 /**
@@ -20,7 +20,7 @@ export default function MessageLinks({ message, mapData, onUndo, shown = [] }) {
 
     const placeName = (pointId) => {
         const feature = (mapData.features || []).find((item) => item.properties.id === pointId);
-        return feature ? feature.properties.message : "";
+        return placeName(feature);
     };
     const valueOf = (link) => {
         const key = (mapData.keys || []).find((item) => item.id === link.key_id);

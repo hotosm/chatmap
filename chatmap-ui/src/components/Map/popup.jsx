@@ -5,7 +5,7 @@ import {createRoot} from "react-dom/client";
 import {Popup as PopupGL} from "maplibre-gl";
 import Tagger from '../Tagger';
 import Message from '../Message';
-import { PointTags } from '../Tags';
+import { PlaceTitle, PointTags } from '../Tags';
 import { mediaType } from '../Media';
 import {useIntl} from 'react-intl';
 import {useLanguage} from "../../context/LanguageContext";
@@ -57,6 +57,7 @@ const PopupGLWrapper = ({
 
 export default function Popup({
                                   feature,
+                                  features,
                                   popupRef,
                                   dataFiles,
                                   onAddTag,
@@ -94,6 +95,9 @@ export default function Popup({
         }
     }
     const msgType = getMsgType(feature.properties);
+    // On the dashboard the name of a place goes as its title; elsewhere, as its text
+    const shown = pointTags ? feature.properties :
+        { ...feature.properties, message: feature.properties.message || feature.properties.name || "" };
     const survey = feature.properties.survey || [];
 
     return (
@@ -107,9 +111,19 @@ export default function Popup({
             <IntlProvider defaultLocale="en" locale={lang} messages={messages}>
                 {/* The map is left to right, what the popup says goes in the direction of the language */}
                 <div dir={dirOf(lang)} className={`activePopupFeatureContent ${pointTags ? "activePopupFeatureContent--tags" : ""}`}>
+                    {pointTags && !feature.properties.removed &&
+                        <PlaceTitle
+                            key={feature.properties.id}
+                            properties={feature.properties}
+                            features={features}
+                            canEdit={showMessageOptions}
+                            namePoint={pointTags.namePoint}
+                            onNamed={properties => onChange({...feature, properties})}
+                        />
+                    }
                     <Message
                         coordinates={feature.geometry.coordinates}
-                        message={feature.properties}
+                        message={shown}
                         dataFiles={dataFiles}
                         msgType={msgType}
                         onRemove={tag => onRemoveMessage(feature)}

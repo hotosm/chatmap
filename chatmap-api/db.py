@@ -321,7 +321,12 @@ class Point(Base):
     __tablename__ = "points"
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     geom = Column(Geometry(geometry_type="POINT", srid=4326))  # WGS84 coordinate system
+    # What the person who sent it said; a place made on the dashboard has none
     message = Column(String)
+    # The name of a place ("South gate"), one no other place of its map has. A
+    # report has none until someone names it, which makes it a place: its
+    # message stays as it was said, and a chat sending it again does not touch the name
+    name = Column(String, nullable=True)
     username = Column(String)
     time = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     file = Column(String)

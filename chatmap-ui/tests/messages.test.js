@@ -105,7 +105,7 @@ it('should go without parameters when the current page has none', () => {
 
 // placesOf, placesNamed, metersBetween
 const point = (id, name, [lon, lat], removed = false, place = true) =>
-  ({ properties: { id, message: name, removed, place }, geometry: { type: "Point", coordinates: [lon, lat] } });
+  ({ properties: { id, name, removed, place }, geometry: { type: "Point", coordinates: [lon, lat] } });
 const features = [
   point("p-1", "Plaza", [-58.3800, -34.6000]),
   point("p-2", "Acceso norte", [-58.3820, -34.5990]),

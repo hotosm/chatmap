@@ -8,7 +8,8 @@ import { useConfigContext } from "../../context/ConfigContext.jsx";
 import BottomSheet from "../BottomSheet";
 import usePhone from "../BottomSheet/usePhone.js";
 import { timeAgo } from "../TimeAgo";
-import { ValueChip, usesKeys } from "../Tags";
+import { PlaceTitle, ValueChip, placeName, usesKeys } from "../Tags";
+import useTagsApi from "../Tags/useTagsApi.js";
 import { groupMessagesOn, messagesOn, pageOf } from "./messages.js";
 import { EXPIRED, ON_MAP, TAKEN_OUT, UNDONE, noteOf, placeHistory, valuesInForce } from "./placeHistory.js";
 import PlaceNames from "./PlaceNames.jsx";
@@ -181,6 +182,7 @@ export default function PointMessages({ mapData, data, point, onChange, onClose 
     const intl = useIntl();
     const { config } = useConfigContext();
     const { readPointHistory, setLinkUndone } = useMessagesApi();
+    const { namePoint } = useTagsApi();
     const [changes, setChanges] = useState(null);
     const [failed, setFailed] = useState(false);
     const [busy, setBusy] = useState(null);
@@ -233,7 +235,16 @@ export default function PointMessages({ mapData, data, point, onChange, onClose 
     const label = intl.formatMessage({ id: "app.placeHistory.label", defaultMessage: "History of this place" });
     const content = <>
             <header className="pointMessages__header">
-                { !phone && <h2 className="pointMessages__title">{point.properties.message}</h2> }
+                <PlaceTitle
+                    key={pointId}
+                    properties={feature.properties}
+                    features={data.features}
+                    canEdit={Boolean(mapData.owner)}
+                    namePoint={namePoint}
+                    withName={!phone}
+                    heading="h2"
+                    onNamed={() => onChange && onChange()}
+                />
                 { inForce.length > 0 && <InForce rows={inForce} now={now} /> }
             </header>
 
@@ -279,7 +290,7 @@ export default function PointMessages({ mapData, data, point, onChange, onClose 
     </>;
 
     return phone ?
-        <BottomSheet open title={point.properties.message} label={label} onClose={() => onClose && onClose()} className="pointMessages--sheet">
+        <BottomSheet open title={placeName(feature)} label={label} onClose={() => onClose && onClose()} className="pointMessages--sheet">
             {content}
         </BottomSheet> :
         <aside className="pointMessages" aria-label={label}>{content}</aside>;

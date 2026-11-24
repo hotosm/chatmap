@@ -20,7 +20,8 @@ export { TagFilterItems, tagFilterName } from "./TagFilter.jsx";
 // Setting up its tags, for its owner (mapView)
 export { default as MapTagsOptions } from "./MapTagsOptions.jsx";
 // The messages of its groups, linked to its tags (Messages)
-export { isExpired, linkableKeys, usesKeys } from "./tags.js";
+export { isExpired, linkableKeys, placeName, shownUsername, usesKeys } from "./tags.js";
+export { default as PlaceTitle } from "./PlaceTitle.jsx";
 export { default as KeyValues } from "./KeyValues.jsx";
 export { ValueChip } from "./KeyChip.jsx";
 // Adding a place from a message (Messages)

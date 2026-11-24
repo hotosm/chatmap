@@ -1,12 +1,14 @@
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 from pydantic import ValidationError
 
-from api.v2.schemas.places import MAX_PLACE_NAMES, PlaceNames
+from api.v2.routes.places import update_place_name
+from api.v2.schemas.places import MAX_PLACE_NAMES, PlaceName, PlaceNames
 from db import Point
-from results.error import UnknownPoint
+from results.error import PlaceNameTaken, UnknownPoint
 from store.place_names_store import PlaceNamesStore
 
 
@@ -50,3 +52,34 @@ async def test_the_names_of_a_place_are_replaced_in_their_order():
     added = list(db.add_all.call_args.args[0])
     assert [(row.name, row.position) for row in added] == [("el puente", 0), ("الجسر", 1)]
     db.commit.assert_called_once()
+
+
+# ---- the name of a place ----
+
+def test_the_name_of_a_place_is_one_however_spaced_and_not_empty_nor_too_long():
+    assert PlaceName(name="  Puente   Norte ").name == "Puente Norte"
+    for name in ("   ", "x" * 101):
+        with pytest.raises(ValidationError):
+            PlaceName(name=name)
+
+
+@pytest.mark.parametrize("was_report", [True, False])
+async def test_naming_a_point_reads_again_the_messages_nobody_answered(was_report):
+    name_point = AsyncMock(return_value=("map-1", was_report))
+    reread = AsyncMock()
+
+    with patch("api.v2.routes.places.PointStore.name_point", name_point), \
+            patch("api.v2.routes.places.MessageSuggestionsStore.reread", reread):
+        answer = await update_place_name("p-1", PlaceName(name="Puente Norte"), SimpleNamespace(id="user-1"))
+
+    name_point.assert_awaited_once_with("p-1", "user-1", "Puente Norte")
+    # The name says the place: what messages suggest may change
+    reread.assert_awaited_once_with("map-1")
+    assert (answer.name, answer.was_report) == ("Puente Norte", was_report)
+
+
+async def test_a_name_another_place_has_is_told_over_http():
+    with patch("api.v2.routes.places.PointStore.name_point", AsyncMock(side_effect=PlaceNameTaken("x"))), \
+            pytest.raises(HTTPException) as raised:
+        await update_place_name("p-1", PlaceName(name="Puente"), SimpleNamespace(id="user-1"))
+    assert raised.value.status_code == 409

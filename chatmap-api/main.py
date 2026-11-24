@@ -457,6 +457,7 @@ async def map_response(db, map_obj, owner):
         db.query(
             Point.id,
             Point.message,
+            Point.name,
             func.ST_Y(Point.geom).label("lat"),
             func.ST_X(Point.geom).label("lon"),
             Point.username,
@@ -465,6 +466,7 @@ async def map_response(db, map_obj, owner):
             Point.removed,
             Point.place,
             Point.tags,
+            Point.contributor_id,
         )
         .filter(base_filter)
         .all()
@@ -488,12 +490,16 @@ async def map_response(db, map_obj, owner):
                 "properties": {
                     "time": point.time,
                     "message": point.message or "",
+                    # The name of a place; a report has none
+                    "name": point.name,
                     "file": point.file,
                     "file_embedded": html_for_embedded_media(point.file),
                     "tags": point.tags or "",
                     "id": point.id,
                     "removed": point.removed,
                     "place": point.place,
+                    # Sent by a contributor of the app; else made on the dashboard or shared in a chat
+                    "from_app": point.contributor_id is not None,
                     "survey": survey_by_point.get(point.id, []),
                 },
                 "geometry": {

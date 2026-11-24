@@ -11,10 +11,10 @@ os.environ.setdefault("COOKIE_SECRET", "dev-secret-key-min-32-bytes-long!")
 from main import map_response
 
 
-def _point(point_id="p-1", file=None, place=False):
+def _point(point_id="p-1", file=None, place=False, name=None, contributor_id=None):
     return SimpleNamespace(
-        id=point_id, message="a note", lat=1.0, lon=2.0, username="mapper",
-        time=datetime(2026, 8, 21, 9, 48), file=file, removed=False, place=place, tags="",
+        id=point_id, message="a note", name=name, lat=1.0, lon=2.0, username="mapper",
+        time=datetime(2026, 8, 21, 9, 48), file=file, removed=False, place=place, tags="", contributor_id=contributor_id,
     )
 
 
@@ -76,3 +76,16 @@ async def test_each_feature_says_whether_it_is_a_place_of_the_map_and_the_answer
 
     answer = FeatureCollection(**result).model_dump()
     assert [feature["properties"]["place"] for feature in answer["features"]] == [True, False]
+
+
+async def test_each_feature_says_its_name_and_whether_it_came_from_the_app():
+    from schemas import FeatureCollection
+    db = _db_with_points([_point("p-1", place=True, name="Puente Norte", contributor_id="c-1"), _point("p-2")])
+
+    with patch("main.SurveyResponsesStore.responses_for_points", AsyncMock(return_value={})):
+        result = await map_response(db, _map(), owner=True)
+
+    answer = FeatureCollection(**result).model_dump()
+    # A place named from a report of the app keeps what it said
+    assert [(f["properties"]["name"], f["properties"]["from_app"], f["properties"]["message"])
+            for f in answer["features"]] == [("Puente Norte", True, "a note"), (None, False, "a note")]

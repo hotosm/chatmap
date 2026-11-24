@@ -1,7 +1,7 @@
 import { expect, test as it} from 'vitest'
 
 import {
-  colorKeyOf, colorKeys, expiresAt, freeTags, freeTagsInUse, keyFilter, keyFilterOf, keysOn, linkableKeys, newPoint, placeNamed,
+  colorKeyOf, colorKeys, expiresAt, freeTags, freeTagsInUse, keyFilter, keyFilterOf, keysOn, linkableKeys, newPoint, placeName, placeNamed, reportOrigin, shownUsername, cleanName,
   shownValue, shownValueCounts, textOn, UNKNOWN, usesKeys, valuesInUse, withKeyTags, withShownValues, withTags,
 } from '../src/components/Tags/tags';
 
@@ -139,7 +139,8 @@ it('should make a point added by hand, as the API takes it and, with the id the 
 
   expect(request).toEqual({ longitude: 35.2, latitude: 31.9, time: "2026-10-13T12:00:00.000Z", message: "South access" });
   expect(feature.geometry.coordinates).toEqual([35.2, 31.9]);
-  expect(feature.properties).toMatchObject({ id: "p-9", place: true, point_tags: [] });
+  // What the owner writes is the name of the place: it says nothing
+  expect(feature.properties).toMatchObject({ id: "p-9", name: "South access", message: "", place: true, point_tags: [] });
 });
 
 // keysOn, usesKeys
@@ -183,11 +184,40 @@ it('offers a message the keys not archived, with their values not archived, and 
 
 // placeNamed
 it('should find the place that has a name already, without minding case, accents nor spaces', () => {
-  const place = (id, message, extra = {}) => ({ properties: { id, message, place: true, removed: false, ...extra } });
+  const place = (id, name, extra = {}) => ({ properties: { id, name, place: true, removed: false, ...extra } });
   const features = [place("p-1", "Puente Viejo"), place("p-2", "Acceso Norte", { removed: true }), place("r-1", "Plaza", { place: false })];
   expect(placeNamed(features, "  puénte   VIEJO ").properties.id).toBe("p-1");
   // A removed place and a report do not hold their names
   expect(placeNamed(features, "Acceso Norte")).toBe(null);
   expect(placeNamed(features, "Plaza")).toBe(null);
   expect(placeNamed(features, "Puente Viejo Norte")).toBe(null);
+  // A place renamed keeps its own name, written another way
+  expect(placeNamed(features, "PUENTE viejo", "p-1")).toBe(null);
+});
+
+// placeName
+it('should name a place by its name, and a report by none, whatever it said', () => {
+  expect(placeName({ properties: { name: "Puente Viejo", message: "" } })).toBe("Puente Viejo");
+  expect(placeName({ properties: { name: null, message: "se cortó el paso" } })).toBe("");
+  expect(placeName(null)).toBe("");
+});
+
+// reportOrigin, shownUsername, cleanName
+it('should tell where a report comes from, and nothing for a place', () => {
+  expect(reportOrigin({ place: false, from_app: true })).toBe("app");
+  expect(reportOrigin({ place: false, from_app: false })).toBe("chat");
+  // A report named is a place: where it came from is not its title any more
+  expect(reportOrigin({ place: true, from_app: true })).toBe(null);
+});
+
+it('should not show the code a chat hides its sender with, and show a nickname or a name', () => {
+  expect(shownUsername("9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")).toBe("");
+  expect(shownUsername("nube")).toBe("nube");
+  expect(shownUsername("someone@example.org")).toBe("someone");
+  expect(shownUsername(null)).toBe("");
+});
+
+it('should save a name without spaces around nor doubled', () => {
+  expect(cleanName("  Puente   Norte ")).toBe("Puente Norte");
+  expect(cleanName(null)).toBe("");
 });

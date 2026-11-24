@@ -9,7 +9,8 @@ from store.points.model import as_utc
 
 
 def insert_if_new(db, point_id: str, map_id: str, username: str | None, contributor_id: str | None,
-                  latitude: float, longitude: float, time: datetime, message: str | None, place: bool = False) -> bool:
+                  latitude: float, longitude: float, time: datetime, message: str | None, place: bool = False,
+                  name: str | None = None) -> bool:
     query = (
         insert(Point)
         .values(
@@ -18,6 +19,7 @@ def insert_if_new(db, point_id: str, map_id: str, username: str | None, contribu
             geom=f"POINT({longitude} {latitude})",
             time=as_utc(time),
             message=message,
+            name=name,
             username=username,
             contributor_id=contributor_id,
             place=place,
@@ -56,7 +58,7 @@ def history(db, map_id: str, contributor_id: str, after: tuple[datetime, str] | 
 
 def place_names(db, map_id: str) -> list[tuple[str, str]]:
     """The places of a map that are not removed, with their names: (id, name)."""
-    query = select(Point.id, Point.message).where(
-        Point.map_id == map_id, Point.place, Point.removed.is_(False), Point.message.is_not(None),
+    query = select(Point.id, Point.name).where(
+        Point.map_id == map_id, Point.place, Point.removed.is_(False), Point.name.is_not(None),
     )
-    return [(row.id, row.message) for row in db.execute(query)]
+    return [(row.id, row.name) for row in db.execute(query)]

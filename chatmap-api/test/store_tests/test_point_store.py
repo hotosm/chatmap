@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import SQLAlchemyError
 
-from results.error import InvalidCursor, PlaceNameTaken, StoreUnavailable
+from results.error import InvalidCursor, PlaceNameTaken, StoreUnavailable, UnknownPoint
 from store.contributors.authorization import Owner
 from store.points.store import HistoryMedia, HistoryPage, HistoryPoint, PointCreation, PointStore
 
@@ -101,10 +101,11 @@ async def test_create_maps_the_fields_to_the_point_columns():
     assert params["id"] == creation.id
     assert params["map_id"] == "map-1"
     assert params["geom"] == "POINT(-58.38 -34.6)"
-    assert params["message"] == "Calle inundada"
+    # What the owner makes is a place of the map, and what they write is its name, not something said
+    assert params["name"] == "Calle inundada"
+    assert params["message"] is None
     assert params["username"] == "joaco"
     assert params["contributor_id"] is None
-    # What the owner makes is a place of the map
     assert params["place"] is True
 
 
@@ -425,3 +426,87 @@ async def test_the_same_place_asked_for_again_is_not_another_one_with_its_name(_
     _no_other_places.return_value = [(first, "Puente Viejo")]
 
     assert await _owner_id(message="Puente Viejo") == first
+
+
+async def test_a_report_keeps_what_was_said_and_has_no_name():
+    db = _db("p-1")
+
+    with _patch_scope(db):
+        await _create_as_contributor()
+
+    params = _insert_params(db)
+    assert (params["message"], params["name"], params["place"]) == ("Calle inundada", None, False)
+
+
+# ---- name_point ----
+
+def _named_db(point, owner_id="user-1"):
+    """A session with the point and the owner of its map (locked)."""
+    db = MagicMock()
+    db.get.return_value = point
+    db.execute.return_value = _result(owner_id)
+    return db
+
+
+def _report(message="se cortó el paso", place=False, removed=False, name=None):
+    return SimpleNamespace(map_id="map-1", message=message, place=place, removed=removed, name=name)
+
+
+async def test_a_report_from_the_field_named_becomes_a_place_and_keeps_what_it_said():
+    point = _report()
+    db = _named_db(point)
+
+    with _patch_scope(db):
+        assert await PointStore.name_point("p-1", "user-1", "Puente Norte") == ("map-1", True)
+
+    assert (point.name, point.place, point.message) == ("Puente Norte", True, "se cortó el paso")
+    db.commit.assert_called_once()
+    # The map is locked, so two names given at once are not the same one
+    assert "FOR UPDATE" in str(db.execute.call_args.args[0].compile(dialect=postgresql.dialect()))
+
+
+async def test_a_place_takes_another_name():
+    point = _report(message=None, place=True, name="Puente")
+
+    with _patch_scope(_named_db(point)):
+        assert await PointStore.name_point("p-1", "user-1", "Puente Norte") == ("map-1", False)
+
+    assert point.name == "Puente Norte"
+
+
+async def test_a_place_keeps_its_name_written_another_way(_no_other_places):
+    # Its own name is not taken by itself
+    _no_other_places.return_value = [("p-1", "Puente")]
+    point = _report(message=None, place=True, name="Puente")
+
+    with _patch_scope(_named_db(point)):
+        await PointStore.name_point("p-1", "user-1", "PUENTE")
+
+    assert point.name == "PUENTE"
+
+
+async def test_a_name_another_place_has_is_not_given(_no_other_places):
+    _no_other_places.return_value = [("p-2", "Puente Norte")]
+    point = _report()
+    db = _named_db(point)
+
+    with _patch_scope(db), pytest.raises(PlaceNameTaken):
+        await PointStore.name_point("p-1", "user-1", "puente  norte")
+
+    assert (point.name, point.place) == (None, False)
+    db.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("point, owner_id", [
+    (None, "user-1"),
+    (_report(removed=True), "user-1"),
+    # The point of a map someone else owns does not exist to them
+    (_report(), "someone-else"),
+])
+async def test_only_a_point_of_a_map_the_user_owns_that_is_not_removed_is_named(point, owner_id):
+    db = _named_db(point, owner_id)
+
+    with _patch_scope(db), pytest.raises(UnknownPoint):
+        await PointStore.name_point("p-1", "user-1", "Puente Norte")
+
+    db.commit.assert_not_called()

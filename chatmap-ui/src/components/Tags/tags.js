@@ -197,10 +197,22 @@ export const shownValueCounts = (features, key, now = Date.now()) => {
 export const sameName = (name) =>
     (name || "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim().replace(/\s+/g, " ");
 
-// The place of a map, not removed, that already has a name; null when none has it
-export const placeNamed = (features, name) => !sameName(name) ? null :
+// The name of a place of the map; "" for a report, which has none (what it says is its message)
+export const placeName = (feature) => (feature && feature.properties && feature.properties.name) || "";
+
+// Where a report comes from: "app" (a contributor of the mobile app) or "chat" (a location shared in a group); null for a place
+export const reportOrigin = (properties) => properties.place ? null : (properties.from_app ? "app" : "chat");
+
+// Who sent a point, to show: a chat keeps the sender hidden as a long code, which says nothing to anyone
+export const shownUsername = (username) => !username || /^[0-9a-f]{40,}$/i.test(username) ? "" : username.split("@")[0];
+
+// A name as it is saved: without spaces around nor doubled
+export const cleanName = (name) => (name || "").trim().replace(/\s+/g, " ");
+
+// The place of a map, not removed, that already has a name, other than the point except; null when none has it
+export const placeNamed = (features, name, except = null) => !sameName(name) ? null :
     (features || []).find((feature) => feature.properties && feature.properties.place && !feature.properties.removed &&
-        sameName(feature.properties.message) === sameName(name)) || null;
+        feature.properties.id !== except && sameName(placeName(feature)) === sameName(name)) || null;
 
 /**
  * A point added by hand by the owner of the map, as the API takes it and, once
@@ -220,7 +232,8 @@ export const newPoint = ({ name, coordinates, time }) => ({
         type: "Feature",
         properties: {
             id,
-            message: name,
+            message: "",
+            name,
             time,
             file: null,
             tags: "",

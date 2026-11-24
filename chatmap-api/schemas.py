@@ -31,11 +31,15 @@ class FeatureProperties(BaseModel):
     time: datetime
     # username_id: str
     message: str | None = None
+    # The name of a place; a report has none
+    name: str | None = None
     file: str | None
     file_embedded: str | None
     removed: bool = False
     # A place made by the owner on the dashboard; a point from a location shared in a chat is a report
     place: bool = False
+    # Sent by a contributor of the mobile app (from the field)
+    from_app: bool = False
     tags: str = ""
     survey: List[SurveyAnswer] = []
 

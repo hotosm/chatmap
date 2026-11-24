@@ -491,3 +491,89 @@ sl-dialog.tags__dialog::part(body) {
     color: var(--hot-color-red-700);
     font-size: var(--hot-font-size-x-small);
 }
+
+/* The name of a point: the title of a place, or a report without one and the way to name it */
+.placeTitle {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-x-small);
+    text-align: start;
+}
+
+.activePopupFeatureContent--tags .placeTitle {
+    padding: var(--hot-spacing-small) var(--hot-spacing-medium) 0;
+}
+
+.placeTitle__row {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+}
+
+.placeTitle__name {
+    flex: 1;
+    margin: 0;
+    font-size: var(--hot-font-size-large);
+    font-weight: var(--hot-font-weight-bold);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+h2.placeTitle__name {
+    font-size: var(--hot-font-size-x-large);
+}
+
+.placeTitle__name--none {
+    color: var(--hot-color-gray-600);
+}
+
+.placeTitle__kind {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    padding: 2px var(--hot-spacing-x-small);
+    border-radius: 999px;
+    background: var(--hot-color-gray-50);
+    color: var(--hot-color-gray-700);
+    font-size: var(--hot-font-size-2x-small);
+    font-weight: var(--hot-font-weight-bold);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.placeTitle__give {
+    width: 100%;
+}
+
+.placeTitle__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hot-spacing-x-small);
+}
+
+.placeTitle__input--error::part(base) {
+    border-color: var(--hot-color-red-600);
+}
+
+.placeTitle__error {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-2x-small);
+    margin: 0;
+    color: var(--hot-color-red-600);
+    font-size: var(--hot-font-size-x-small);
+    font-weight: var(--hot-font-weight-semibold);
+}
+
+.placeTitle__help {
+    margin: 0;
+    color: var(--hot-color-gray-600);
+    font-size: var(--hot-font-size-x-small);
+    line-height: 1.4;
+}
+
+.placeTitle__buttons {
+    display: flex;
+    gap: var(--hot-spacing-x-small);
+}

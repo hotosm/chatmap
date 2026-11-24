@@ -440,5 +440,16 @@
   "app.rules.fieldWeekday": "Day",
   "app.rules.howBetween": "between",
   "app.rules.howOn": "is",
-  "app.rules.broadTime": "With “any”, every message sent then meets it, whatever it says. To ask for both, choose “all”."
+  "app.rules.broadTime": "With “any”, every message sent then meets it, whatever it says. To ask for both, choose “all”.",
+  "app.placeName.taken": "There is a place with that name already: «{name}».",
+  "app.placeName.error": "The name could not be saved. Try again.",
+  "app.placeName.fromApp": "Report · from the app",
+  "app.placeName.fromChat": "Report · from a chat",
+  "app.placeName.helpRename": "The name also tells the place in the messages.",
+  "app.placeName.helpReport": "It becomes a place of the map: it can have statuses and messages linked. The photo, who sent it and what it said stay.",
+  "app.placeName.save": "Save",
+  "app.placeName.saveAsPlace": "Save as a place",
+  "app.placeName.rename": "Change the name",
+  "app.placeName.none": "No name",
+  "app.placeName.give": "Give it a name"
 }

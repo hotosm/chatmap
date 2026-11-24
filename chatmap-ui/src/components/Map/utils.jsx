@@ -75,7 +75,7 @@ export function GetMessage({message, msgType, dataFiles}) {
     </div>
     {/* Text */}
     { message.message && message.message !== " " ?
-      <p className="text">{message.message}</p> : (!content ?
+      <p className="text">{message.message}</p> : (!content && !message.place ?
         <p className="text location-only">
           <FormattedMessage id="app.map.locationOnly" defaultMessage="Location only" />
         </p>

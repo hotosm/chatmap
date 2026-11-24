@@ -295,6 +295,7 @@ export default function Map({dataFiles, center, zoom, className, onInteract, sho
                 <Popup
                     popupRef={popupRef}
                     feature={activePopupFeature}
+                    features={data.features}
                     dataFiles={dataFiles}
                     onAddTag={handleAddTag}
                     onRemoveTag={handleRemoveTag}

@@ -47,7 +47,7 @@ export const mapTags = (data, now) => {
 export default function useMapTags(data) {
     const on = usesKeys(data);
     const now = useNow(on);
-    const { setPointTag } = useTagsApi();
+    const { setPointTag, namePoint } = useTagsApi();
 
     // The properties of the point with the value saved, or null when the API does not take it
     const setTag = useCallback(async (properties, keyId, change) => {
@@ -57,6 +57,6 @@ export default function useMapTags(data) {
 
     return useMemo(() => {
         const tags = mapTags(data, now);
-        return { ...tags, point: on ? { keys: data.keys, colorKey: tags.colorKey && tags.colorKey.id, setTag } : null };
-    }, [data, now, on, setTag]);
+        return { ...tags, point: on ? { keys: data.keys, colorKey: tags.colorKey && tags.colorKey.id, setTag, namePoint } : null };
+    }, [data, now, on, setTag, namePoint]);
 }
