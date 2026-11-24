@@ -269,7 +269,6 @@ export default function BotSetup() {
                         <div className="botSetup__items">
 
                             <div className="botSetup__keyword">
-                                <SlIcon name={KEYWORD_STEP.icon}/>
                                 <SlInput
                                     className={keywordMarked ? "botSetup__keyword-input--invalid" : ""}
                                     label={labels.keyword}

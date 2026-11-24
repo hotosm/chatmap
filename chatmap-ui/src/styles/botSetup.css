@@ -75,6 +75,9 @@
   gap: var(--hot-spacing-small);
   width: 20rem;
   max-width: 100%;
+  border-bottom: 1px solid var(--hot-color-gray-100);
+  padding-bottom: var(--hot-spacing-small);
+  margin-bottom: var(--hot-spacing-small);
 }
 
 .botSetup__keyword sl-input {
