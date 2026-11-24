@@ -14,6 +14,8 @@
     border: 1px solid transparent;
     border-radius: var(--hot-border-radius-pill);
     font: inherit;
+    /* The font of HOT, whatever the page has: the text is centered by its metrics, and the Helvetica of Linux puts it high */
+    font-family: var(--hot-font-sans);
     font-size: var(--hot-font-size-small);
     font-weight: var(--hot-font-weight-bold);
     line-height: 1;
