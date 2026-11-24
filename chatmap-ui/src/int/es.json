@@ -440,5 +440,16 @@
   "app.rules.fieldWeekday": "Día",
   "app.rules.howBetween": "entre las",
   "app.rules.howOn": "es",
-  "app.rules.broadTime": "Con «cualquiera», la cumple todo mensaje que llegue en ese horario, diga lo que diga. Para pedir las dos cosas, elige «todas»."
+  "app.rules.broadTime": "Con «cualquiera», la cumple todo mensaje que llegue en ese horario, diga lo que diga. Para pedir las dos cosas, elige «todas».",
+  "app.placeName.taken": "Ya hay un lugar con ese nombre: «{name}».",
+  "app.placeName.error": "No se pudo guardar el nombre. Intenta de nuevo.",
+  "app.placeName.fromApp": "Reporte · desde la app",
+  "app.placeName.fromChat": "Reporte · desde un chat",
+  "app.placeName.helpRename": "El nombre también sirve para reconocer el lugar en los mensajes.",
+  "app.placeName.helpReport": "Pasa a ser un lugar del mapa: se le pueden poner estados y vincular mensajes. La foto, quién lo mandó y lo que dijo quedan.",
+  "app.placeName.save": "Guardar",
+  "app.placeName.saveAsPlace": "Guardar como lugar",
+  "app.placeName.rename": "Cambiar el nombre",
+  "app.placeName.none": "Sin nombre",
+  "app.placeName.give": "Ponerle nombre"
 }

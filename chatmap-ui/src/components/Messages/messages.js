@@ -1,3 +1,5 @@
+import { placeName } from "../Tags/tags.js";
+
 // How many messages a page of the API holds at most
 export const PAGE_SIZE = 100;
 
@@ -93,7 +95,7 @@ export const placesOf = (features, coords) => {
             const [lon, lat] = feature.geometry.coordinates;
             return {
                 id: feature.properties.id,
-                name: feature.properties.message || "",
+                name: placeName(feature),
                 meters: coords ? metersBetween(coords, [lat, lon]) : null,
             };
         });

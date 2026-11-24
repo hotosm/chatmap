@@ -25,3 +25,27 @@ class PlaceNames(BaseModel):
         if any(len(name) > MAX_PLACE_NAME_LENGTH for name in kept.values()):
             raise ValueError(f"a name takes up to {MAX_PLACE_NAME_LENGTH} characters")
         return list(kept.values())
+
+
+class PlaceName(BaseModel):
+    """
+    The name of a place on the map, one no other place of its map has. Given
+    to a report, it makes it a place (`was_report` says so in the answer).
+    """
+    name: str
+
+    @field_validator("name")
+    @classmethod
+    def check_name(cls, name: str) -> str:
+        name = " ".join(name.split())
+        if not name:
+            raise ValueError("a place has a name")
+        if len(name) > MAX_PLACE_NAME_LENGTH:
+            raise ValueError(f"a name takes up to {MAX_PLACE_NAME_LENGTH} characters")
+        return name
+
+
+class NamedPlace(BaseModel):
+    id: str
+    name: str
+    was_report: bool

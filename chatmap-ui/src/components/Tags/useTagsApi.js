@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useConfigContext } from "../../context/ConfigContext.jsx";
-import { apiV2, request, send } from "../../utils/apiV2.js";
+import { apiV2, request, send, sendWithStatus } from "../../utils/apiV2.js";
 import { keysOn, withTags } from "./tags.js";
 
 /**
@@ -45,5 +45,10 @@ export default function useTagsApi() {
         (mapId, point) => send('POST', `${api}/points`, { ...point, map_id: mapId }), [api]
     );
 
-    return { createKey, updateKey, removeKey, setPointTag, createPoint };
+    // The name of a place, or of a report, which makes it a place: { status, answer: { id, name, was_report } }
+    const namePoint = useCallback(
+        (pointId, name) => sendWithStatus('PUT', `${api}/points/${pointId}/name`, { name }), [api]
+    );
+
+    return { createKey, updateKey, removeKey, setPointTag, createPoint, namePoint };
 }

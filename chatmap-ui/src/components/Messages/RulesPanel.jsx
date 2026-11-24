@@ -4,7 +4,7 @@ import { FormattedMessage, useIntl } from "react-intl";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import SlSpinner from "@shoelace-style/shoelace/dist/react/spinner/index.js";
 
-import { linkableKeys } from "../Tags";
+import { linkableKeys, placeName } from "../Tags";
 import RuleCard from "./RuleCard.jsx";
 import RuleForm from "./RuleForm.jsx";
 import { copyOf, newRule, ruleExamples, toSend } from "./rules.js";
@@ -40,7 +40,7 @@ export default function RulesPanel({ mapData, groups, onBack }) {
         group: (id) => (groups.find((group) => group.id === id) || {}).name,
         place: (id) => {
             const feature = (mapData.features || []).find((item) => item.properties.id === id);
-            return feature ? feature.properties.message : "";
+            return placeName(feature);
         },
         value: (keyId, valueId) => {
             const key = (mapData.keys || []).find((item) => item.id === keyId);

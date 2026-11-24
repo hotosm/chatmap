@@ -3,7 +3,7 @@ import { FormattedMessage } from "react-intl";
 
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 
-import { ValueChip } from "../Tags";
+import { ValueChip, placeName } from "../Tags";
 import { tagsOf } from "../Tags/tags.js";
 import { linkOf, renewable } from "./messages.js";
 
@@ -59,7 +59,7 @@ export default function MessageLines({ message, mapData, onConfirm, onAnswer, on
             key.values.find((option) => option.id === now.value_id) : null;
         return <>
             <span className="messageLines__place">
-                { feature && <span className="placeChip">{feature.properties.message}</span> }
+                { feature && <span className="placeChip">{placeName(feature)}</span> }
             </span>
             <span className="messageLines__values">
                 { was && <><ValueChip value={was} className="valueChip--small" /><span aria-hidden="true" className="messageLines__arrow">→</span></> }

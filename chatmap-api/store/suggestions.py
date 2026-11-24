@@ -85,13 +85,13 @@ def _reader_of(db, map_id: str) -> vocabulary.Reader | None:
     if not values:
         return None
     points = db.execute(
-        select(Point.id, Point.message).where(
-            Point.map_id == map_id, Point.place, Point.removed.is_(False), Point.message.is_not(None), Point.message != "",
+        select(Point.id, Point.name).where(
+            Point.map_id == map_id, Point.place, Point.removed.is_(False), Point.name.is_not(None), Point.name != "",
         )
     ).all()
     other_names = names_of(db, [point.id for point in points])
     return vocabulary.compile_map(
-        [vocabulary.Place(point.id, (point.message, *other_names.get(point.id, []))) for point in points],
+        [vocabulary.Place(point.id, (point.name, *other_names.get(point.id, []))) for point in points],
         [vocabulary.Value(value.id, value.key_id, tuple(value.words)) for value in values],
     )
 

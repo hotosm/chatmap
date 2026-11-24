@@ -440,5 +440,16 @@
   "app.rules.fieldWeekday": "اليوم",
   "app.rules.howBetween": "بين الساعة",
   "app.rules.howOn": "هو",
-  "app.rules.broadTime": "مع «أيّ منها» تنطبق على كل رسالة تصل في ذلك الوقت مهما قالت. لطلب الأمرين معًا اختر «جميعها»."
+  "app.rules.broadTime": "مع «أيّ منها» تنطبق على كل رسالة تصل في ذلك الوقت مهما قالت. لطلب الأمرين معًا اختر «جميعها».",
+  "app.placeName.taken": "يوجد مكان بهذا الاسم بالفعل: «{name}».",
+  "app.placeName.error": "تعذّر حفظ الاسم. حاول مرة أخرى.",
+  "app.placeName.fromApp": "بلاغ · من التطبيق",
+  "app.placeName.fromChat": "بلاغ · من محادثة",
+  "app.placeName.helpRename": "يُستخدم الاسم أيضًا للتعرّف على المكان في الرسائل.",
+  "app.placeName.helpReport": "يصبح مكانًا على الخريطة: يمكن إعطاؤه حالات وربط رسائل به. تبقى الصورة ومن أرسله وما قاله.",
+  "app.placeName.save": "حفظ",
+  "app.placeName.saveAsPlace": "حفظ كمكان",
+  "app.placeName.rename": "تغيير الاسم",
+  "app.placeName.none": "بلا اسم",
+  "app.placeName.give": "إعطاؤه اسمًا"
 }

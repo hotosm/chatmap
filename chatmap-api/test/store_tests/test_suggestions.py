@@ -26,7 +26,7 @@ def _values(*values):
 
 def _points(*points):
     """The places of the map with a name: (id, name)."""
-    return _rows_result(*(SimpleNamespace(id=p[0], message=p[1]) for p in points))
+    return _rows_result(*(SimpleNamespace(id=p[0], name=p[1]) for p in points))
 
 
 def _rule(conditions, actions, rule_id="r-1", description="North closed"):

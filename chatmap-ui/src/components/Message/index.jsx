@@ -1,4 +1,5 @@
 import { formatDate, GetMessage } from "../Map/utils";
+import { shownUsername } from "../Tags/tags.js";
 
 export default function Message({
   message,
@@ -34,7 +35,7 @@ export default function Message({
       ref={ref}
     >
       <p className="userinfo">
-        { message.username && <span className="msgUsername">{message.username.split("@")[0]}</span> }
+        { shownUsername(message.username) && <span className="msgUsername">{shownUsername(message.username)}</span> }
         <span className="msgDatetime">{formatDate(message.time)}</span>
         <sl-icon-button
           className="copyIcon"
