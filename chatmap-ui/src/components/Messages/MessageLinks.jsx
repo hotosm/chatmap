@@ -18,7 +18,7 @@ export default function MessageLinks({ message, mapData, onUndo, shown = [] }) {
     const links = liveLinks(message).filter((link) => !shown.includes(link.change_id));
     if (links.length === 0) return null;
 
-    const placeName = (pointId) => {
+    const placeNameOf = (pointId) => {
         const feature = (mapData.features || []).find((item) => item.properties.id === pointId);
         return placeName(feature);
     };
@@ -39,7 +39,7 @@ export default function MessageLinks({ message, mapData, onUndo, shown = [] }) {
             { links.map((link) =>
                 <li key={link.change_id} className="messageLinks__link">
                     <span aria-hidden="true" className="messageLinks__arrow">→</span>
-                    <strong>{placeName(link.point_id)}</strong>
+                    <strong>{placeNameOf(link.point_id)}</strong>
                     <ValueChip value={valueOf(link)} />
                     <button
                         type="button"
