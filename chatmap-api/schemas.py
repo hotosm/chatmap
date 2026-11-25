@@ -104,7 +104,7 @@ MIN_OPTIONS = 2
 MAX_OPTIONS = 10
 
 # Steps the bot may send but that expect no answer, so they carry no error message
-REQUIRED_TEXT_STEPS = (BotStep.START, BotStep.END)
+REQUIRED_TEXT_STEPS = (BotStep.KEYWORD, BotStep.START, BotStep.END)
 # Steps the bot asks something with, so they need their "incorrect answer" too
 REQUIRED_ANSWERING_STEPS = (BotStep.MEDIA, BotStep.LOCATION)
 

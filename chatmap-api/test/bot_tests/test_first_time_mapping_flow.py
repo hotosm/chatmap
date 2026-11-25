@@ -12,6 +12,7 @@ from store.bot_consumed_messages_store import BotConsumedMessagesStore
 from store.bot_state_store import BotStateStore
 from store.message_to_send_store import MessageToSendStore
 
+KEYWORD = "TREE"
 START = "Hi, I'm the ChatMap bot"
 MEDIA = "Send the content"
 MEDIA_ERROR = "That is not a photo"
@@ -67,6 +68,7 @@ def _conversation(questions=(), max_attempts_quantity=MAX_ATTEMPTS):
             notify_message=NOTIFY, to_restart=TO_RESTART, to_cancel=TO_CANCEL,
         ),
         messages=[
+                     BotMessage(id="keyword-1", bot_step=BotStep.KEYWORD, prompt=KEYWORD, error_message=""),
                      BotMessage(id="start-1", bot_step=BotStep.START, prompt=START, error_message=""),
                      BotMessage(id="media-1", bot_step=BotStep.MEDIA, prompt=MEDIA, error_message=MEDIA_ERROR),
                      BotMessage(id="location-1", bot_step=BotStep.LOCATION, prompt=LOCATION,
@@ -190,19 +192,71 @@ async def test_start_greets_and_asks_for_the_location_in_one_turn():
     flow = _make_flow(FirstTimeMappingState.IDLE, bot_state_store=bot_state_store,
                       message_to_send_store=message_to_send_store)
 
-    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx())
+    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=KEYWORD))
 
     assert _sent(message_to_send_store) == [START, LOCATION]
     assert _saved_state(bot_state_store)["state"] == FirstTimeMappingState.WAITING_COORDINATES
 
 
-async def test_an_unexpected_first_event_starts_the_conversation_too():
+async def test_an_unexpected_first_event_does_not_start_the_conversation():
     message_to_send_store = AsyncMock(spec=MessageToSendStore)
-    flow = _make_flow(FirstTimeMappingState.IDLE, message_to_send_store=message_to_send_store)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    consumed = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(
+        FirstTimeMappingState.IDLE,
+        message_to_send_store=message_to_send_store,
+        bot_state_store=bot_state_store,
+        bot_consumed_messages_store=consumed,
+    )
 
     await flow.call(current_event=EventName.USER_UPLOAD_PHOTO, context=_ctx())
 
-    assert _sent(message_to_send_store) == [START, LOCATION]
+    assert _sent(message_to_send_store) == []
+    bot_state_store.save_state.assert_not_awaited()
+    consumed.mark_consumed.assert_not_awaited()
+
+
+@pytest.mark.parametrize("answer", ["tree", " TREE ", "TREES", "", "hello"])
+async def test_only_the_exact_keyword_starts_the_conversation(answer):
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    consumed = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(
+        FirstTimeMappingState.IDLE,
+        message_to_send_store=message_to_send_store,
+        bot_state_store=bot_state_store,
+        bot_consumed_messages_store=consumed,
+    )
+
+    await flow.call(current_event=EventName.USER_SEND_TEXT, context=_ctx(answer=answer))
+
+    assert _sent(message_to_send_store) == []
+    bot_state_store.save_state.assert_not_awaited()
+    consumed.mark_consumed.assert_not_awaited()
+
+
+@pytest.mark.parametrize("keyword", [None, "   "])
+async def test_a_conversation_without_a_usable_keyword_never_starts(keyword):
+    conversation = _conversation()
+    if keyword is None:
+        conversation.messages = [m for m in conversation.messages if m.bot_step != BotStep.KEYWORD]
+    else:
+        conversation.messages[0].prompt = keyword
+    message_to_send_store = AsyncMock(spec=MessageToSendStore)
+    bot_state_store = AsyncMock(spec=BotStateStore)
+    flow = _make_flow(
+        FirstTimeMappingState.IDLE,
+        message_to_send_store=message_to_send_store,
+        bot_state_store=bot_state_store,
+    )
+
+    await flow.call(
+        current_event=EventName.USER_SEND_TEXT,
+        context=_ctx(configured_messages=conversation, answer=KEYWORD),
+    )
+
+    assert _sent(message_to_send_store) == []
+    bot_state_store.save_state.assert_not_awaited()
 
 
 # ---- location and media ----
@@ -614,13 +668,28 @@ async def test_the_text_that_opens_the_conversation_is_kept_out_of_the_map():
         FirstTimeMappingState.IDLE,
         bot_consumed_messages_store=bot_consumed_messages_store,
     )
-    ctx = _ctx(answer="hola", message_id="1786309600000-0")
+    ctx = _ctx(answer=KEYWORD, message_id="1786309600000-0")
 
     await flow.on_start(ctx)
 
     bot_consumed_messages_store.mark_consumed.assert_awaited_once_with(
         device=ctx.sender, message_id="1786309600000-0", occurred_at=OCCURRED_AT,
     )
+
+
+async def test_a_non_keyword_text_while_idle_is_not_consumed():
+    bot_consumed_messages_store = AsyncMock(spec=BotConsumedMessagesStore)
+    flow = _make_flow(
+        FirstTimeMappingState.IDLE,
+        bot_consumed_messages_store=bot_consumed_messages_store,
+    )
+
+    await flow.call(
+        current_event=EventName.USER_SEND_TEXT,
+        context=_ctx(answer="hola", message_id="1786309600001-0"),
+    )
+
+    bot_consumed_messages_store.mark_consumed.assert_not_awaited()
 
 
 async def test_a_message_without_text_reaching_on_start_stays_available_to_the_map():

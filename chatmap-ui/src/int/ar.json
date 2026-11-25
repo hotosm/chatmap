@@ -10,6 +10,7 @@
   "app.botSetup.incompleteError": "املأ الرسائل المميّزة قبل الحفظ.",
   "app.botSetup.incorrectAnswer": "إجابة غير صحيحة",
   "app.botSetup.incorrectAnswerPlaceholder": "ما يرد به البوت حين تكون الإجابة غير صالحة",
+  "app.botSetup.keyword": "كلمة مفتاحية",
   "app.botSetup.location": "الموقع",
   "app.botSetup.maxAttemptsMessages": "رسائل الإلغاء أو البدء من جديد",
   "app.botSetup.maxAttemptsQuantity": "عدد المحاولات الفاشلة قبل عرض الإلغاء أو البدء من جديد",

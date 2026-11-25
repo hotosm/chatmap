@@ -19,6 +19,7 @@ class BotMaxAttemptsMessages:
 
 
 class BotStep(str, Enum):
+    KEYWORD = "keyword"
     START = "start"
     MEDIA = "media"
     LOCATION = "location"
@@ -63,6 +64,16 @@ class BotConfiguredMessages:
     def text_of(self, step: BotStep) -> str:
         message = self.message_for(step)
         return message.prompt if message else ""
+
+    def keyword(self) -> str:
+        return self.text_of(BotStep.KEYWORD)
+
+    def has_keyword(self) -> bool:
+        return bool(self.keyword().strip())
+
+    def matches_keyword(self, answer: str) -> bool:
+        """Only an exact keyword starts the bot; a missing one never does."""
+        return self.has_keyword() and answer == self.keyword()
 
     def error_of(self, step: BotStep) -> str:
         message = self.message_for(step)

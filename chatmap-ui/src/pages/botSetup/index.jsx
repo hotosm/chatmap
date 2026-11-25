@@ -5,6 +5,7 @@ import Footer from "../footer.jsx";
 import {FormattedMessage, useIntl} from "react-intl";
 
 import SlSwitch from "@shoelace-style/shoelace/dist/react/switch/index.js";
+import SlInput from "@shoelace-style/shoelace/dist/react/input/index.js";
 import SlButton from "@shoelace-style/shoelace/dist/react/button/index.js";
 import SlIcon from "@shoelace-style/shoelace/dist/react/icon/index.js";
 import SlSelect from "@shoelace-style/shoelace/dist/react/select/index.js";
@@ -16,9 +17,9 @@ import EditBotItemDialog from '../../components/EditBotItemDialog/index.jsx';
 import MaxAttemptsDialog from '../../components/MaxAttemptsDialog/index.jsx';
 import ConfirmDialog from '../../components/ConfirmDialog/index.jsx';
 import {
-    END_STEP, FIXED_STEPS, FREE_TEXT_ICON, QUESTION_ICON,
+    END_STEP, FIXED_STEPS, FREE_TEXT_ICON, KEYWORD_STEP, QUESTION_ICON,
     emptyQuestion, isQuestion, maxAttemptsFromSetup, maxAttemptsFromTemplate,
-    maxAttemptsHasProblems, messagesFromSetup, messagesFromTemplate,
+    maxAttemptsHasProblems, messageOf, messagesFromSetup, messagesFromTemplate,
     messagesToSave, problemsIn, questionsOf,
 } from '../../utils/botSetup.js';
 import '../../styles/botSetup.css';
@@ -58,6 +59,7 @@ export default function BotSetup() {
     }, [id]);
 
     const labels = useMemo(() => ({
+        keyword: intl.formatMessage({id: "app.botSetup.keyword", defaultMessage: "Keyword"}),
         start: intl.formatMessage({id: "app.botSetup.startMessage", defaultMessage: "Start message"}),
         media: intl.formatMessage({id: "app.botSetup.media", defaultMessage: "Media"}),
         location: intl.formatMessage({id: "app.botSetup.location", defaultMessage: "Location"}),
@@ -72,6 +74,9 @@ export default function BotSetup() {
     const maxAttemptsInvalid = useMemo(
         () => maxAttemptsHasProblems(maxAttempts, botActive), [maxAttempts, botActive]
     );
+
+    const keywordMessage = messageOf(messages, KEYWORD_STEP.bot_step);
+    const keywordMarked = invalid && problems.has(KEYWORD_STEP.bot_step);
 
     const questions = questionsOf(messages);
     const questionKey = (question) => question.id || `new-question-${questions.indexOf(question)}`;
@@ -262,6 +267,18 @@ export default function BotSetup() {
                         }
 
                         <div className="botSetup__items">
+
+                            <div className="botSetup__keyword">
+                                <SlInput
+                                    className={keywordMarked ? "botSetup__keyword-input--invalid" : ""}
+                                    label={labels.keyword}
+                                    value={keywordMessage?.prompt || ""}
+                                    placeholder={labels.keyword}
+                                    onSlInput={(event) => keywordMessage
+                                        && updateMessage(keywordMessage, {prompt: event.target.value})}
+                                />
+                            </div>
+
                             {FIXED_STEPS.map(rowFor)}
 
                             {questions.map((question) => renderRow(
