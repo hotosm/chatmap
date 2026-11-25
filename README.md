@@ -48,6 +48,21 @@ Then open http://localhost:5173 and create an account using any e-mail.
 
 Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/auth.md) and [Live feature docs](https://github.com/hotosm/chatmap/blob/develop/docs/live.md).
 
+## Roadmap 2027
+
+✅ Done
+⚙️ In progress
+
+<!-- prettier-ignore-start -->
+| Status | Feature |
+|:--:| :-- |
+| | Mapper app for iOS and Android available in app stores
+| | New features for Live Dashboard (data curation, validation, monitoring)
+| | Connector support for WhatsApp Business
+| | Connector support for Telegram
+| | Connector support for Signal
+| | Add data to OSM buildings
+
 ## Roadmap 2026
 
 ✅ Done
@@ -67,13 +82,6 @@ Check [authentication docs](https://github.com/hotosm/chatmap/blob/develop/docs/
 |✅| Show my location on the map
 |⚙️| Mapper app for iOS and Android
 |⚙️| Live Dashboard for creating and updating map points with chat data
-| | Connector support for Telegram
-| | Connector support for Signal
-| | [Upload content to Panoramax](https://github.com/hotosm/chatmap/issues/20) 
-| | User content licensing options |
-| | [Content timeline](https://github.com/hotosm/chatmap/issues/7)
-| | Content filtering options |
-| | Tagger view |
 
 ## Licensing
 
